@@ -94,9 +94,24 @@ export default function EnterpriseCreate() {
     enableGenericConfig: false,
     productConfigs: {
       domestic3d: {
-        packageRows: [createRow(), createRow(), createRow(), createRow()],
-        productRows: [createRow()],
+        accountCount: 30,
+        packageRows: [
+          createRow("3D工具渲染权益包"),
+          createRow("3D工具设计权益包"),
+          createRow("VR漫游权益包"),
+          createRow("施工图权益包"),
+        ],
+        productRows: [createRow("AI生图权益包")],
       },
+      smartGuide: {
+        accountCount: 30,
+        packageRows: [
+          createRow("智能导购权益包"),
+          createRow("导购数据权益包"),
+        ],
+        productRows: [],
+      },
+    } as Record<string, ProductConfig>,
       smartGuide: {
         accountCount: 30,
         packageRows: [
