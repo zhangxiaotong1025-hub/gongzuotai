@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, Download } from "lucide-react";
+import { CreateEnterpriseDialog } from "./CreateEnterpriseDialog";
 import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
@@ -161,10 +163,12 @@ const actions: ActionItem<Enterprise>[] = [
 ];
 
 export default function EnterpriseList() {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["ENT001"]));
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
   const [filters, setFilters] = useState<Record<string, string>>({});
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const totalItems = 1200;
 
   const toggleExpand = useCallback((id: string) => {
@@ -186,7 +190,7 @@ export default function EnterpriseList() {
               <Download className="h-4 w-4" />
               导出
             </button>
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={() => setShowCreateDialog(true)}>
               <Plus className="h-4 w-4" />
               新建企业
             </button>
