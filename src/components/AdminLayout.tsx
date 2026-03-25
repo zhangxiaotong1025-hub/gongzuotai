@@ -10,10 +10,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div
         className="transition-all duration-200"
-        style={{ marginLeft: collapsed ? 0 : 200 }}
+        style={{ marginLeft: collapsed ? 0 : 220 }}
       >
         <AdminHeader onToggleSidebar={() => setCollapsed(!collapsed)} />
-        <main className="p-5">{children}</main>
+        <main className="p-6">{children}</main>
       </div>
     </div>
   );

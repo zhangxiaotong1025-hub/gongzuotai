@@ -6,25 +6,25 @@
 
 @layer base {
   :root {
-    --background: 220 14% 96%;
-    --foreground: 220 20% 15%;
+    --background: 220 16% 96%;
+    --foreground: 222 24% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 15%;
+    --card-foreground: 222 24% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 15%;
+    --popover-foreground: 222 24% 16%;
 
-    --primary: 220 90% 56%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 96%;
-    --secondary-foreground: 220 20% 25%;
+    --secondary-foreground: 222 20% 25%;
 
     --muted: 220 14% 96%;
-    --muted-foreground: 220 8% 55%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 220 90% 56%;
+    --accent: 221 83% 53%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -32,59 +32,74 @@
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 220 90% 56%;
+    --ring: 221 83% 53%;
 
-    --radius: 0.375rem;
+    --radius: 0.5rem;
 
-    /* Status colors */
-    --status-active: 220 90% 56%;
-    --status-inactive: 25 95% 53%;
-    --status-warning: 38 92% 50%;
-    --status-success: 142 71% 45%;
+    /* Semantic status */
+    --success: 152 60% 42%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 221 83% 53%;
+    --info-foreground: 0 0% 100%;
+
+    /* Table */
+    --table-header: 220 16% 96%;
+    --table-row-hover: 220 20% 97%;
+    --table-border: 220 13% 93%;
 
     /* Sidebar */
+    --sidebar-width: 220px;
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 8% 46%;
-    --sidebar-primary: 220 90% 56%;
+    --sidebar-foreground: 220 9% 46%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 90% 97%;
-    --sidebar-accent-foreground: 220 90% 56%;
+    --sidebar-accent: 221 83% 97%;
+    --sidebar-accent-foreground: 221 83% 53%;
     --sidebar-border: 220 13% 93%;
-    --sidebar-ring: 220 90% 56%;
+    --sidebar-ring: 221 83% 53%;
 
-    /* Admin specific */
+    /* Header */
     --header-height: 56px;
-    --sidebar-width: 200px;
+
+    /* Shadows */
+    --shadow-xs: 0 1px 2px 0 hsl(220 20% 10% / 0.03);
+    --shadow-sm: 0 1px 3px 0 hsl(220 20% 10% / 0.06), 0 1px 2px -1px hsl(220 20% 10% / 0.04);
+    --shadow-md: 0 4px 6px -1px hsl(220 20% 10% / 0.06), 0 2px 4px -2px hsl(220 20% 10% / 0.04);
   }
 
   .dark {
-    --background: 220 20% 8%;
+    --background: 222 24% 6%;
     --foreground: 220 14% 90%;
-    --card: 220 20% 12%;
+    --card: 222 20% 10%;
     --card-foreground: 220 14% 90%;
-    --popover: 220 20% 12%;
+    --popover: 222 20% 10%;
     --popover-foreground: 220 14% 90%;
-    --primary: 220 90% 60%;
+    --primary: 221 83% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 15% 18%;
+    --secondary: 220 15% 16%;
     --secondary-foreground: 220 14% 85%;
-    --muted: 220 15% 15%;
+    --muted: 220 15% 14%;
     --muted-foreground: 220 8% 55%;
-    --accent: 220 90% 60%;
+    --accent: 221 83% 60%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62% 30%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
-    --ring: 220 90% 60%;
-    --sidebar-background: 220 20% 10%;
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
+    --ring: 221 83% 60%;
+    --table-header: 222 20% 12%;
+    --table-row-hover: 222 20% 13%;
+    --table-border: 220 15% 18%;
+    --sidebar-background: 222 20% 8%;
     --sidebar-foreground: 220 8% 55%;
-    --sidebar-primary: 220 90% 60%;
+    --sidebar-primary: 221 83% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 15%;
-    --sidebar-accent-foreground: 220 90% 70%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 220 90% 60%;
+    --sidebar-accent: 222 20% 14%;
+    --sidebar-accent-foreground: 221 83% 70%;
+    --sidebar-border: 220 15% 16%;
+    --sidebar-ring: 221 83% 60%;
   }
 }
 
@@ -93,57 +108,89 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: 'Noto Sans SC', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 @layer components {
-  /* Status badges */
+  /* ========== Status Badges ========== */
   .badge-active {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
-    background: hsl(var(--status-active) / 0.1);
-    color: hsl(var(--status-active));
-    border: 1px solid hsl(var(--status-active) / 0.2);
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(var(--success) / 0.08);
+    color: hsl(var(--success));
+  }
+  .badge-active::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full;
+    background: hsl(var(--success));
   }
   .badge-inactive {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
-    background: hsl(var(--status-inactive) / 0.1);
-    color: hsl(var(--status-inactive));
-    border: 1px solid hsl(var(--status-inactive) / 0.2);
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(var(--muted-foreground) / 0.08);
+    color: hsl(var(--muted-foreground));
+  }
+  .badge-inactive::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full;
+    background: hsl(var(--muted-foreground));
   }
   .badge-product {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs;
-    background: hsl(var(--muted));
-    color: hsl(var(--foreground));
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-normal;
+    background: hsl(var(--primary) / 0.06);
+    color: hsl(var(--primary));
   }
-  
-  /* Admin table */
+
+  /* ========== Admin Table ========== */
   .admin-table {
-    @apply w-full text-sm;
+    @apply w-full;
     border-collapse: separate;
     border-spacing: 0;
   }
   .admin-table thead {
-    @apply bg-muted/50;
+    background: hsl(var(--table-header));
   }
   .admin-table th {
-    @apply px-3 py-2.5 text-left text-xs font-medium text-muted-foreground whitespace-nowrap border-b;
+    @apply px-4 py-3 text-left text-xs font-medium tracking-wide whitespace-nowrap border-b;
+    color: hsl(var(--muted-foreground));
+    text-transform: none;
+    letter-spacing: 0.01em;
   }
   .admin-table td {
-    @apply text-sm whitespace-nowrap;
-  }
-  .admin-table tbody tr:hover {
-    @apply bg-muted/30;
-  }
-
-  /* Sticky action column shadow */
-  .admin-table th:last-child,
-  .admin-table td:last-child {
-    box-shadow: -4px 0 8px -4px hsl(var(--border) / 0.6);
+    @apply text-[13px] whitespace-nowrap;
+    color: hsl(var(--foreground));
   }
   
+  /* Row hover - use a CSS variable so action column can inherit */
+  .admin-table tbody tr {
+    --row-bg: hsl(var(--card));
+    background: var(--row-bg);
+    transition: background 0.15s ease;
+  }
+  .admin-table tbody tr:hover {
+    --row-bg: hsl(var(--table-row-hover));
+    background: var(--row-bg);
+  }
+
+  /* Sticky action column - inherits row background via var */
+  .admin-table td.action-cell {
+    background: var(--row-bg);
+    transition: background 0.15s ease;
+  }
+  .admin-table th.action-header {
+    background: hsl(var(--table-header));
+  }
+
+  /* Sticky column shadow */
+  .admin-table th.action-header,
+  .admin-table td.action-cell {
+    box-shadow: -1px 0 0 0 hsl(var(--table-border));
+  }
+
   /* Table scroll container */
   .admin-table-scroll {
     scrollbar-width: thin;
@@ -156,24 +203,35 @@
     background: hsl(var(--border));
     border-radius: 3px;
   }
+  .admin-table-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.3);
+  }
   .admin-table-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  /* Pagination button */
+  /* ========== Pagination ========== */
   .pagination-btn {
-    @apply w-7 h-7 flex items-center justify-center rounded border text-foreground text-xs transition-colors;
+    @apply w-8 h-8 flex items-center justify-center rounded-md text-[13px] transition-all;
+    color: hsl(var(--foreground));
+    border: 1px solid transparent;
   }
   .pagination-btn:hover:not(:disabled) {
-    @apply bg-muted;
+    background: hsl(var(--muted));
+    border-color: hsl(var(--border));
   }
   .pagination-btn:disabled {
-    @apply opacity-40 cursor-not-allowed;
+    @apply opacity-30 cursor-not-allowed;
+  }
+  .pagination-btn.active {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
   }
 
-  /* Sidebar nav item */
+  /* ========== Sidebar ========== */
   .nav-item {
-    @apply flex items-center gap-2.5 px-4 py-2 text-sm rounded-md transition-colors cursor-pointer;
+    @apply flex items-center gap-2.5 px-3 py-2 text-[13px] rounded-lg transition-all cursor-pointer relative;
     color: hsl(var(--sidebar-foreground));
   }
   .nav-item:hover {
@@ -185,21 +243,75 @@
     color: hsl(var(--sidebar-primary));
     font-weight: 500;
   }
-  .nav-item.active::before {
-    content: '';
-    @apply absolute left-0 top-1 bottom-1 w-0.5 rounded-r;
-    background: hsl(var(--sidebar-primary));
-  }
 
-  /* Filter bar */
+  /* ========== Filter Controls ========== */
   .filter-input {
-    @apply h-8 px-3 text-sm border rounded bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary;
+    @apply h-9 px-3 text-[13px] border rounded-lg text-foreground placeholder:text-muted-foreground/60 transition-all;
+    background: hsl(var(--card));
+  }
+  .filter-input:focus {
+    @apply outline-none ring-2 ring-offset-0;
+    ring-color: hsl(var(--primary) / 0.2);
+    border-color: hsl(var(--primary) / 0.5);
   }
   .filter-select {
-    @apply h-8 px-3 text-sm border rounded bg-card text-foreground focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer;
+    @apply h-9 px-3 text-[13px] border rounded-lg text-foreground transition-all appearance-none cursor-pointer;
+    background: hsl(var(--card));
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 8px center;
-    padding-right: 28px;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+  .filter-select:focus {
+    @apply outline-none ring-2 ring-offset-0;
+    ring-color: hsl(var(--primary) / 0.2);
+    border-color: hsl(var(--primary) / 0.5);
+  }
+
+  /* ========== Buttons ========== */
+  .btn-primary {
+    @apply h-9 px-4 text-[13px] font-medium rounded-lg transition-all flex items-center gap-1.5;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    box-shadow: var(--shadow-xs);
+  }
+  .btn-primary:hover {
+    background: hsl(var(--primary) / 0.9);
+    box-shadow: var(--shadow-sm);
+  }
+  .btn-secondary {
+    @apply h-9 px-4 text-[13px] font-medium border rounded-lg transition-all flex items-center gap-1.5;
+    color: hsl(var(--foreground));
+    background: hsl(var(--card));
+    box-shadow: var(--shadow-xs);
+  }
+  .btn-secondary:hover {
+    background: hsl(var(--muted));
+  }
+  .btn-ghost {
+    @apply h-9 px-3 text-[13px] rounded-lg transition-all flex items-center gap-1.5;
+    color: hsl(var(--muted-foreground));
+  }
+  .btn-ghost:hover {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+  }
+  .btn-text {
+    @apply px-2 py-1 text-[13px] rounded-md transition-all whitespace-nowrap;
+  }
+  .btn-text:hover {
+    background: hsl(var(--muted));
+  }
+  .btn-text.text-primary-action {
+    color: hsl(var(--primary));
+  }
+  .btn-text.text-primary-action:hover {
+    background: hsl(var(--primary) / 0.06);
+  }
+  .btn-text.text-danger-action {
+    color: hsl(var(--destructive));
+  }
+  .btn-text.text-danger-action:hover {
+    background: hsl(var(--destructive) / 0.06);
   }
 }

@@ -5,7 +5,7 @@ import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 
-// ===== 数据模型 =====
+// ===== Data Model =====
 interface Enterprise {
   id: string;
   name: string;
@@ -22,7 +22,7 @@ interface Enterprise {
   _level?: number;
 }
 
-// ===== 真实感模拟数据 =====
+// ===== Mock Data =====
 const ENTERPRISE_NAMES = [
   "欧派家居集团股份有限公司", "索菲亚家居股份有限公司", "尚品宅配家居股份有限公司",
   "金牌厨柜家居科技股份有限公司", "志邦家居股份有限公司", "我乐家居股份有限公司",
@@ -34,17 +34,15 @@ const CREATORS = ["张伟", "李娜", "王强", "赵敏", "刘洋", "陈静", "�
 
 function randomPick<T>(arr: T[], count?: number): T[] {
   const c = count || Math.ceil(Math.random() * arr.length);
-  const shuffled = [...arr].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, Math.min(c, arr.length));
+  return [...arr].sort(() => Math.random() - 0.5).slice(0, Math.min(c, arr.length));
 }
 
 function generateEnterprise(id: string, depth = 0): Enterprise {
-  const name = ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)];
   const hasChildren = depth === 0 && Math.random() > 0.4;
   const childCount = hasChildren ? Math.floor(Math.random() * 4) + 1 : 0;
   return {
     id,
-    name,
+    name: ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)],
     type: TYPES[Math.floor(Math.random() * TYPES.length)],
     status: Math.random() > 0.25 ? "active" : "inactive",
     products: randomPick(PRODUCTS, Math.floor(Math.random() * 3) + 1),
@@ -54,11 +52,7 @@ function generateEnterprise(id: string, depth = 0): Enterprise {
     creator: CREATORS[Math.floor(Math.random() * CREATORS.length)],
     updatedAt: `2026-0${Math.floor(Math.random() * 3) + 1}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")} ${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
     note: ["核心战略客户", "稳定续费客户，主要销售硬装瓷砖", "新签约客户，试用期", "重点关注客户", "年度合作伙伴"][Math.floor(Math.random() * 5)],
-    children: hasChildren
-      ? Array.from({ length: childCount }, (_, i) =>
-          generateEnterprise(`${id}-${i + 1}`, depth + 1)
-        )
-      : [],
+    children: hasChildren ? Array.from({ length: childCount }, (_, i) => generateEnterprise(`${id}-${i + 1}`, depth + 1)) : [],
   };
 }
 
@@ -66,46 +60,30 @@ const mockData: Enterprise[] = Array.from({ length: 10 }, (_, i) =>
   generateEnterprise(`ENT${String(i + 1).padStart(3, "0")}`)
 );
 
-// ===== 筛选字段定义 =====
+// ===== Filter Fields =====
 const filterFields: FilterField[] = [
-  { key: "name", label: "企业名称", type: "input", placeholder: "请输入企业名称", width: 180 },
-  { key: "id", label: "企业ID", type: "input", placeholder: "请输入企业ID", width: 140 },
-  {
-    key: "type",
-    label: "企业类型",
-    type: "select",
-    options: TYPES.map((t) => ({ label: t, value: t })),
-    width: 130,
-  },
-  {
-    key: "status",
-    label: "状态",
-    type: "select",
-    options: [
-      { label: "启用", value: "active" },
-      { label: "停用", value: "inactive" },
-    ],
-    width: 110,
-  },
-  {
-    key: "product",
-    label: "启用产品",
-    type: "select",
-    options: PRODUCTS.map((p) => ({ label: p, value: p })),
-    width: 130,
-  },
+  { key: "name", label: "企业名称", type: "input", placeholder: "请输入企业名称", width: 200 },
+  { key: "id", label: "企业ID", type: "input", placeholder: "请输入企业ID", width: 150 },
+  { key: "type", label: "企业类型", type: "select", options: TYPES.map((t) => ({ label: t, value: t })), width: 140 },
+  { key: "status", label: "状态", type: "select", options: [{ label: "启用", value: "active" }, { label: "停用", value: "inactive" }], width: 120 },
+  { key: "product", label: "启用产品", type: "select", options: PRODUCTS.map((p) => ({ label: p, value: p })), width: 140 },
   { key: "createdFrom", label: "创建时间", type: "date", width: 160 },
 ];
 
-// ===== 表格列定义 =====
+// ===== Columns =====
 const columns: TableColumn<Enterprise>[] = [
-  { key: "name", title: "企业名称", minWidth: 260, render: (v) => <span className="text-foreground">{v}</span> },
+  {
+    key: "name",
+    title: "企业名称",
+    minWidth: 260,
+    render: (v) => <span className="text-foreground font-medium">{v}</span>,
+  },
   {
     key: "type",
     title: "企业类型",
     minWidth: 90,
     render: (v) => (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-foreground">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground">
         {v}
       </span>
     ),
@@ -113,7 +91,7 @@ const columns: TableColumn<Enterprise>[] = [
   {
     key: "status",
     title: "状态",
-    minWidth: 80,
+    minWidth: 90,
     render: (v) => (
       <span className={v === "active" ? "badge-active" : "badge-inactive"}>
         {v === "active" ? "启用" : "停用"}
@@ -123,7 +101,7 @@ const columns: TableColumn<Enterprise>[] = [
   {
     key: "products",
     title: "启用产品",
-    minWidth: 160,
+    minWidth: 180,
     render: (v: string[]) => (
       <div className="flex gap-1 flex-wrap">
         {v.map((p) => (
@@ -135,33 +113,43 @@ const columns: TableColumn<Enterprise>[] = [
   {
     key: "subsidiaries",
     title: "子公司",
-    minWidth: 70,
+    minWidth: 80,
     align: "center",
     render: (v) => <span className="text-primary cursor-pointer hover:underline">{v}</span>,
   },
   {
     key: "staff",
     title: "人员",
-    minWidth: 70,
+    minWidth: 80,
     align: "center",
     render: (v) => <span className="text-primary cursor-pointer hover:underline">{v}</span>,
   },
-  { key: "createdAt", title: "创建时间", minWidth: 140, render: (v) => <span className="text-muted-foreground text-xs">{v}</span> },
-  { key: "creator", title: "创建人", minWidth: 70 },
-  { key: "updatedAt", title: "更新时间", minWidth: 140, render: (v) => <span className="text-muted-foreground text-xs">{v}</span> },
+  {
+    key: "createdAt",
+    title: "创建时间",
+    minWidth: 150,
+    render: (v) => <span className="text-muted-foreground">{v}</span>,
+  },
+  { key: "creator", title: "创建人", minWidth: 80 },
+  {
+    key: "updatedAt",
+    title: "更新时间",
+    minWidth: 150,
+    render: (v) => <span className="text-muted-foreground">{v}</span>,
+  },
   {
     key: "note",
     title: "备注",
-    minWidth: 180,
+    minWidth: 200,
     render: (v) => (
-      <span className="text-muted-foreground text-xs block max-w-[200px] truncate" title={v}>
+      <span className="text-muted-foreground block max-w-[200px] truncate" title={v}>
         {v}
       </span>
     ),
   },
 ];
 
-// ===== 操作按钮定义 =====
+// ===== Actions =====
 const actions: ActionItem<Enterprise>[] = [
   { label: "查看", onClick: (r) => console.log("查看", r.id) },
   { label: "编辑", onClick: (r) => console.log("编辑", r.id), visible: (r) => !r._level },
@@ -187,17 +175,17 @@ export default function EnterpriseList() {
   }, []);
 
   return (
-    <div>
+    <div className="space-y-4">
       <PageHeader
         title="企业管理"
-        subtitle={`共${totalItems}个企业`}
+        subtitle={`共 ${totalItems} 个企业`}
         actions={
           <>
-            <button className="h-8 px-4 text-sm border rounded-md hover:bg-muted transition-colors text-foreground flex items-center gap-1.5">
-              <Download className="h-3.5 w-3.5" />
+            <button className="btn-secondary">
+              <Download className="h-4 w-4" />
               导出
             </button>
-            <button className="h-8 px-4 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-1.5">
+            <button className="btn-primary">
               <Plus className="h-4 w-4" />
               新建企业
             </button>
@@ -228,7 +216,7 @@ export default function EnterpriseList() {
         getLevel={(r) => r._level || 0}
       />
 
-      <div className="bg-card rounded-b-lg border border-t-0">
+      <div className="bg-card rounded-xl border" style={{ boxShadow: 'var(--shadow-xs)' }}>
         <Pagination
           current={currentPage}
           total={totalItems}

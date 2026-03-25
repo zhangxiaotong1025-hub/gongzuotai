@@ -1,13 +1,5 @@
 import { useState, ReactNode } from "react";
-import { Search, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
-
-/**
- * 筛选器规范：
- * 1. 默认显示一行筛选项（最多4个）
- * 2. 超出的筛选项折叠在「展开」中
- * 3. 查询/重置按钮始终在右侧
- * 4. 圆角卡片容器，统一间距
- */
+import { Search, RotateCcw, ChevronDown } from "lucide-react";
 
 export interface FilterField {
   key: string;
@@ -38,25 +30,23 @@ export function FilterBar({
   extra,
 }: FilterBarProps) {
   const [expanded, setExpanded] = useState(false);
-
   const visibleFields = expanded ? fields : fields.slice(0, maxVisible);
   const hasMore = fields.length > maxVisible;
 
   const renderField = (field: FilterField) => {
+    const w = field.width || 160;
     switch (field.type) {
       case "select":
         return (
           <select
             className="filter-select"
-            style={{ width: field.width || 140 }}
+            style={{ width: w }}
             value={values[field.key] || ""}
             onChange={(e) => onChange(field.key, e.target.value)}
           >
-            <option value="">{field.placeholder || "请选择"}</option>
+            <option value="">{field.placeholder || "全部"}</option>
             {field.options?.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
         );
@@ -65,7 +55,7 @@ export function FilterBar({
           <input
             type="date"
             className="filter-input"
-            style={{ width: field.width || 160 }}
+            style={{ width: w }}
             value={values[field.key] || ""}
             onChange={(e) => onChange(field.key, e.target.value)}
           />
@@ -75,7 +65,7 @@ export function FilterBar({
           <input
             type="text"
             className="filter-input"
-            style={{ width: field.width || 160 }}
+            style={{ width: w }}
             placeholder={field.placeholder || "请输入"}
             value={values[field.key] || ""}
             onChange={(e) => onChange(field.key, e.target.value)}
@@ -85,41 +75,30 @@ export function FilterBar({
   };
 
   return (
-    <div className="bg-card rounded-lg border p-4 mb-4">
+    <div className="bg-card rounded-xl border p-4 mb-4" style={{ boxShadow: 'var(--shadow-xs)' }}>
       <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
         {visibleFields.map((field) => (
           <div key={field.key} className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted-foreground">{field.label}</label>
+            <label className="text-xs text-muted-foreground font-medium">{field.label}</label>
             {renderField(field)}
           </div>
         ))}
 
-        {/* Actions */}
         <div className="flex items-center gap-2 ml-auto">
           {hasMore && (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="h-8 px-3 text-xs text-primary hover:bg-primary/5 rounded-md transition-colors flex items-center gap-1"
+              className="btn-ghost text-primary text-[13px]"
             >
               {expanded ? "收起" : "展开"}
-              {expanded ? (
-                <ChevronUp className="h-3 w-3" />
-              ) : (
-                <ChevronDown className="h-3 w-3" />
-              )}
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
             </button>
           )}
-          <button
-            onClick={onSearch}
-            className="h-8 px-5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-1.5"
-          >
+          <button onClick={onSearch} className="btn-primary">
             <Search className="h-3.5 w-3.5" />
             查询
           </button>
-          <button
-            onClick={onReset}
-            className="h-8 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors flex items-center gap-1.5"
-          >
+          <button onClick={onReset} className="btn-ghost">
             <RotateCcw className="h-3.5 w-3.5" />
             重置
           </button>
