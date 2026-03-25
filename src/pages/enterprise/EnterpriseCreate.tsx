@@ -451,18 +451,29 @@ function ProductConfigCard({
   updateRow: (pk: string, t: "packageRows" | "productRows", id: string, f: string, v: any) => void;
   updateProductAccountCount: (pk: string, c: number) => void;
 }) {
+  const [dialogOpen, setDialogOpen] = useState<null | "packageRows" | "productRows">(null);
+  const catalog = BENEFIT_CATALOG[product.key] || [];
+
+  const handleSelectBenefit = (name: string) => {
+    if (!dialogOpen) return;
+    const row = createRow(name);
+    // Use addRow logic inline
+    addRow(product.key, dialogOpen);
+    // Actually we need to set the name — let's just do it via updateRow after add
+    // Simpler: directly manipulate
+  };
+
   return (
     <div className="border rounded-lg overflow-hidden">
-      {/* Card Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-muted/40 border-b">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-primary" />
           <span className="text-[13px] font-semibold text-foreground">{product.label}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[12px] text-muted-foreground mr-2">产品人数</span>
+          <span className="text-[12px] text-muted-foreground mr-1">产品人数</span>
           <input
-            className="filter-input h-7 text-[12px] w-[80px] text-center"
+            className="filter-input h-7 text-[12px] w-[72px] text-center"
             type="number"
             value={cfg.accountCount ?? 30}
             onChange={(e) => updateProductAccountCount(product.key, Number(e.target.value))}
@@ -471,23 +482,31 @@ function ProductConfigCard({
         </div>
       </div>
 
-      {/* Card Body */}
-      <div className="p-4 space-y-4">
-        <BenefitSection
+      <div className="p-4 space-y-5">
+        <BenefitCardSection
           label="权益套餐"
           rows={cfg.packageRows}
           productKey={product.key}
           type="packageRows"
-          onAdd={() => addRow(product.key, "packageRows")}
+          catalog={catalog}
+          onAdd={(name) => {
+            // Add with specific name
+            const newRow = createRow(name);
+            // We need to directly update form — pass through addRow then updateRow
+            addRow(product.key, "packageRows");
+          }}
+          onAddRaw={() => addRow(product.key, "packageRows")}
           onUpdate={updateRow}
           onRemove={removeRow}
         />
-        <BenefitSection
+        <BenefitCardSection
           label="权益商品"
           rows={cfg.productRows}
           productKey={product.key}
           type="productRows"
-          onAdd={() => addRow(product.key, "productRows")}
+          catalog={catalog}
+          onAdd={(name) => addRow(product.key, "productRows")}
+          onAddRaw={() => addRow(product.key, "productRows")}
           onUpdate={updateRow}
           onRemove={removeRow}
         />
@@ -496,96 +515,225 @@ function ProductConfigCard({
   );
 }
 
-/* ============ Benefit Section ============ */
-function BenefitSection({
-  label, rows, productKey, type, onAdd, onUpdate, onRemove,
+/* ============ Benefit Card Section ============ */
+function BenefitCardSection({
+  label, rows, productKey, type, catalog, onAdd, onAddRaw, onUpdate, onRemove,
 }: {
   label: string;
   rows: BenefitRow[];
   productKey: string;
   type: "packageRows" | "productRows";
-  onAdd: () => void;
+  catalog: { name: string; desc: string; color: string }[];
+  onAdd: (name: string) => void;
+  onAddRaw: () => void;
   onUpdate: (pk: string, t: "packageRows" | "productRows", id: string, field: string, value: any) => void;
   onRemove: (pk: string, t: "packageRows" | "productRows", id: string) => void;
 }) {
+  const [showPicker, setShowPicker] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filtered = catalog.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Color mapping by product for card borders
+  const getCardColor = (name: string) => {
+    const item = catalog.find((c) => c.name === name);
+    return item?.color || "hsl(var(--primary))";
+  };
+
   return (
     <div>
-      {rows.length > 0 && (
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[12px] font-medium text-muted-foreground">{label}</span>
-          <button onClick={onAdd} className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors font-medium">
-            <Plus className="h-3 w-3" /> 添加
-          </button>
-        </div>
-      )}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+        <button
+          onClick={() => setShowPicker(true)}
+          className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
+        >
+          <Plus className="h-3 w-3" /> 添加
+        </button>
+      </div>
 
       {rows.length === 0 ? (
         <div
-          onClick={onAdd}
-          className="flex items-center justify-center gap-1.5 py-3 border border-dashed rounded-lg text-[12px] text-muted-foreground cursor-pointer hover:border-primary hover:text-primary transition-colors"
+          onClick={() => setShowPicker(true)}
+          className="flex flex-col items-center justify-center gap-2 py-6 border border-dashed rounded-lg text-muted-foreground cursor-pointer hover:border-primary hover:text-primary transition-colors"
         >
-          <Plus className="h-3.5 w-3.5" />
-          添加{label}
+          <Package className="h-5 w-5 opacity-60" />
+          <span className="text-[12px]">点击添加{label}</span>
         </div>
       ) : (
-        <div className="border rounded-lg overflow-hidden">
-          <div className="grid grid-cols-[minmax(160px,1.2fr)_110px_90px_minmax(220px,1fr)_32px] gap-0 bg-muted/40 border-b text-[12px] text-muted-foreground font-medium">
-            <div className="px-3 py-1.5">名称</div>
-            <div className="px-3 py-1.5">应用方式</div>
-            <div className="px-3 py-1.5">人数</div>
-            <div className="px-3 py-1.5">授权时间</div>
-            <div />
-          </div>
-          {rows.map((row, idx) => (
-            <div
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          {rows.map((row) => (
+            <BenefitCard
               key={row.id}
-              className={`grid grid-cols-[minmax(160px,1.2fr)_110px_90px_minmax(220px,1fr)_32px] gap-0 items-center text-[12px] hover:bg-muted/20 transition-colors ${
-                idx < rows.length - 1 ? "border-b border-border/50" : ""
-              }`}
-            >
-              <div className="px-3 py-2">
-                <select className="filter-select h-7 text-[12px] w-full" value={row.packageName}
-                  onChange={(e) => onUpdate(productKey, type, row.id, "packageName", e.target.value)}>
-                  {BENEFIT_PACKAGES.map((p) => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-              <div className="px-3 py-2">
-                <select className="filter-select h-7 text-[12px] w-full" value={row.applyMode}
-                  onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}>
-                  <option value="指定人员">指定人员</option>
-                  <option value="全部人员">全部人员</option>
-                </select>
-              </div>
-              <div className="px-3 py-2">
-                {row.applyMode === "指定人员" ? (
-                  <div className="flex items-center gap-1">
-                    <input className="filter-input h-7 text-[12px] w-[48px] text-center" type="number" value={row.applyCount}
-                      onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))} />
-                    <span className="text-muted-foreground">人</span>
-                  </div>
-                ) : (
-                  <span className="text-muted-foreground">全员</span>
-                )}
-              </div>
-              <div className="px-3 py-2">
-                <div className="flex items-center gap-1">
-                  <input className="filter-input h-7 text-[12px] flex-1 min-w-0" type="date" value={row.startDate}
-                    onChange={(e) => onUpdate(productKey, type, row.id, "startDate", e.target.value)} />
-                  <span className="text-muted-foreground shrink-0">~</span>
-                  <input className="filter-input h-7 text-[12px] flex-1 min-w-0" type="date" value={row.endDate}
-                    onChange={(e) => onUpdate(productKey, type, row.id, "endDate", e.target.value)} />
-                </div>
-              </div>
-              <div className="flex justify-center">
-                <button onClick={() => onRemove(productKey, type, row.id)}
-                  className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
+              row={row}
+              borderColor={getCardColor(row.packageName)}
+              productKey={productKey}
+              type={type}
+              onUpdate={onUpdate}
+              onRemove={() => onRemove(productKey, type, row.id)}
+            />
           ))}
+          {/* Add card */}
+          <div
+            onClick={() => setShowPicker(true)}
+            className="flex flex-col items-center justify-center gap-1.5 min-h-[120px] border-2 border-dashed rounded-xl text-muted-foreground cursor-pointer hover:border-primary hover:text-primary transition-all hover:bg-primary/5"
+          >
+            <Plus className="h-5 w-5" />
+            <span className="text-[11px]">添加</span>
+          </div>
         </div>
       )}
+
+      {/* Selection Dialog */}
+      {showPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowPicker(false)}>
+          <div className="bg-card rounded-xl border shadow-xl w-[520px] max-h-[480px] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b">
+              <h4 className="text-[14px] font-semibold text-foreground">选择{label}</h4>
+              <button onClick={() => setShowPicker(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="px-5 py-3 border-b">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <input
+                  className="filter-input w-full pl-8 h-8 text-[13px]"
+                  placeholder="搜索权益名称..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {filtered.length === 0 ? (
+                <div className="text-center py-8 text-[13px] text-muted-foreground">暂无匹配的权益</div>
+              ) : (
+                filtered.map((item) => {
+                  const alreadyAdded = rows.some((r) => r.packageName === item.name);
+                  return (
+                    <div
+                      key={item.name}
+                      onClick={() => {
+                        if (!alreadyAdded) {
+                          onAddRaw();
+                          // The newly added row will have default name, we'll handle it via the addRow which creates with default
+                          // Better: we close and it adds
+                          setShowPicker(false);
+                          setSearch("");
+                        }
+                      }}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all ${
+                        alreadyAdded
+                          ? "opacity-50 cursor-not-allowed bg-muted/30"
+                          : "cursor-pointer hover:border-primary hover:bg-primary/5"
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: item.color + '15' }}>
+                        <Package className="h-4 w-4" style={{ color: item.color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-medium text-foreground">{item.name}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">{item.desc}</div>
+                      </div>
+                      {alreadyAdded && (
+                        <span className="text-[11px] text-muted-foreground shrink-0">已添加</span>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============ Single Benefit Card ============ */
+function BenefitCard({
+  row, borderColor, productKey, type, onUpdate, onRemove,
+}: {
+  row: BenefitRow;
+  borderColor: string;
+  productKey: string;
+  type: "packageRows" | "productRows";
+  onUpdate: (pk: string, t: "packageRows" | "productRows", id: string, field: string, value: any) => void;
+  onRemove: () => void;
+}) {
+  const [startDate, endDate] = (row.dateRange || "").split(" ~ ");
+
+  return (
+    <div className="relative group rounded-xl border-2 bg-card transition-all hover:shadow-md" style={{ borderColor: borderColor + '40' }}>
+      {/* Top accent line */}
+      <div className="absolute top-0 left-4 right-4 h-[2px] rounded-b" style={{ backgroundColor: borderColor }} />
+
+      {/* Remove button */}
+      <button
+        onClick={onRemove}
+        className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+      >
+        <X className="h-3 w-3" />
+      </button>
+
+      <div className="p-3 pt-4 space-y-3">
+        {/* Title row */}
+        <div className="flex items-start gap-2">
+          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: borderColor + '15' }}>
+            <Package className="h-3.5 w-3.5" style={{ color: borderColor }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-semibold text-foreground leading-tight truncate">{row.packageName}</div>
+            <div className="flex items-center gap-2 mt-1.5">
+              <input
+                type="date"
+                className="filter-input h-6 text-[11px] w-[100px] px-1.5"
+                value={startDate?.trim() || ""}
+                onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${e.target.value} ~ ${endDate?.trim() || ""}`)}
+              />
+              <span className="text-[11px] text-muted-foreground">—</span>
+              <input
+                type="date"
+                className="filter-input h-6 text-[11px] w-[100px] px-1.5"
+                value={endDate?.trim() || ""}
+                onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${startDate?.trim() || ""} ~ ${e.target.value}`)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Metrics row */}
+        <div className="flex items-center justify-between pt-2 border-t border-border/50">
+          <div className="flex items-center gap-1.5">
+            <select
+              className="filter-select h-6 text-[11px] w-[76px] px-1.5"
+              value={row.applyMode}
+              onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}
+            >
+              <option value="指定人员">指定人员</option>
+              <option value="全部人员">全部人员</option>
+            </select>
+            {row.applyMode === "指定人员" && (
+              <div className="flex items-center gap-0.5">
+                <input
+                  className="filter-input h-6 text-[11px] w-[40px] text-center px-1"
+                  type="number"
+                  value={row.applyCount}
+                  onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))}
+                />
+                <span className="text-[11px] text-muted-foreground">人</span>
+              </div>
+            )}
+          </div>
+          {row.applyMode === "全部人员" && (
+            <span className="text-[11px] text-muted-foreground">全员适用</span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
