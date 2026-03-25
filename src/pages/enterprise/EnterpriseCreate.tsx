@@ -325,142 +325,87 @@ function StepBenefits({
   return (
     <div>
       {/* 产品权益 Section Header */}
-      <div className="bg-muted/60 px-6 py-3 border-b">
-        <h3 className="text-sm font-semibold text-foreground">产品权益</h3>
+      <div className="px-6 py-4 border-b bg-muted/30">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <div className="w-1 h-4 rounded-full bg-primary" />
+          产品权益
+        </h3>
       </div>
 
-      <div className="p-6 space-y-8">
+      <div className="p-6 space-y-6">
         {/* 基础权益 */}
-        <div>
-          <SubSection title="基础权益" />
-          <div className="mt-4 space-y-4 ml-4">
-            <FormRow label="开启产品" wide>
-              <div className="flex flex-wrap items-center gap-4">
-                {AVAILABLE_PRODUCTS.map((p) => {
-                  const checked = form.enabledProducts.includes(p.key);
-                  return (
-                    <label key={p.key} className="inline-flex items-center gap-1.5 text-[13px] cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleProduct(p.key)}
-                        className="w-3.5 h-3.5 rounded border-border accent-primary"
-                      />
-                      {p.label}
-                    </label>
-                  );
-                })}
-              </div>
-            </FormRow>
-            <FormRow label="是否加入供应链" wide>
-              <div className="flex items-center gap-4">
-                {[{ val: true, label: "加入" }, { val: false, label: "不加入" }].map((opt) => (
-                  <label key={String(opt.val)} className="inline-flex items-center gap-1.5 text-[13px] cursor-pointer">
-                    <input
-                      type="radio"
-                      name="supplyChain"
-                      checked={form.joinSupplyChain === opt.val}
-                      onChange={() => update("joinSupplyChain", opt.val)}
-                      className="accent-primary"
-                    />
-                    {opt.label}
+        <div className="space-y-4">
+          <FormRow label="开通产品" wide>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              {AVAILABLE_PRODUCTS.map((p) => {
+                const checked = form.enabledProducts.includes(p.key);
+                return (
+                  <label key={p.key} className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none group">
+                    <div className={`w-4 h-4 rounded border-[1.5px] flex items-center justify-center transition-all ${
+                      checked ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
+                    }`}>
+                      {checked && <Check className="h-3 w-3 text-primary-foreground" />}
+                    </div>
+                    <span className={checked ? "text-foreground font-medium" : "text-muted-foreground"}>{p.label}</span>
                   </label>
-                ))}
-              </div>
-            </FormRow>
-            <FormRow label="通用权益配置" wide>
-              <ToggleSwitch checked={form.enableGenericConfig} onChange={() => update("enableGenericConfig", !form.enableGenericConfig)} />
-            </FormRow>
-          </div>
+                );
+              })}
+            </div>
+          </FormRow>
+          <FormRow label="是否加入供应链" wide>
+            <div className="flex items-center gap-5">
+              {[{ val: true, label: "加入" }, { val: false, label: "不加入" }].map((opt) => (
+                <label key={String(opt.val)} className="inline-flex items-center gap-2 text-[13px] cursor-pointer">
+                  <div className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center transition-all ${
+                    form.joinSupplyChain === opt.val ? "border-primary" : "border-border"
+                  }`}>
+                    {form.joinSupplyChain === opt.val && <div className="w-2 h-2 rounded-full bg-primary" />}
+                  </div>
+                  <span className={form.joinSupplyChain === opt.val ? "text-foreground" : "text-muted-foreground"}>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </FormRow>
+          <FormRow label="通用权益配置" wide>
+            <ToggleSwitch checked={form.enableGenericConfig} onChange={() => update("enableGenericConfig", !form.enableGenericConfig)} />
+          </FormRow>
         </div>
 
         {/* Per-product configurations */}
         {AVAILABLE_PRODUCTS.filter((p) => form.enabledProducts.includes(p.key)).map((product) => {
           const cfg: ProductConfig = form.productConfigs[product.key] || { packageRows: [], productRows: [] };
-          const showAccountCount = product.key === "smartGuide" || product.key === "customerData";
-
           return (
-            <div key={product.key}>
-              <div className="flex items-center gap-3 mb-4">
-                <SubSection title={product.label} />
-                <button
-                  onClick={() => addRow(product.key, "packageRows")}
-                  className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Plus className="h-3 w-3" /> 添加权益套餐
-                </button>
-                <button
-                  onClick={() => addRow(product.key, "productRows")}
-                  className="inline-flex items-center gap-1 text-[12px] text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Plus className="h-3 w-3" /> 添加权益商品
-                </button>
-              </div>
-
-              <div className="ml-4 space-y-5">
-                {showAccountCount && (
-                  <FormRow label="账号数量" wide>
-                    <input
-                      className="filter-input w-60"
-                      type="number"
-                      value={cfg.accountCount ?? 30}
-                      onChange={(e) => updateProductAccountCount(product.key, Number(e.target.value))}
-                    />
-                  </FormRow>
-                )}
-
-                {/* 权益套餐配置 */}
-                {cfg.packageRows.length > 0 && (
-                  <BenefitTable
-                    label="权益套餐配置"
-                    rows={cfg.packageRows}
-                    productKey={product.key}
-                    type="packageRows"
-                    onUpdate={updateRow}
-                    onRemove={removeRow}
-                  />
-                )}
-
-                {/* 权益商品配置 */}
-                {cfg.productRows.length > 0 && (
-                  <BenefitTable
-                    label="权益商品配置"
-                    rows={cfg.productRows}
-                    productKey={product.key}
-                    type="productRows"
-                    onUpdate={updateRow}
-                    onRemove={removeRow}
-                  />
-                )}
-
-                {cfg.packageRows.length === 0 && cfg.productRows.length === 0 && !showAccountCount && (
-                  <div className="text-[13px] text-muted-foreground ml-[140px] py-2">暂无配置，请点击上方按钮添加权益</div>
-                )}
-              </div>
-            </div>
+            <ProductConfigCard
+              key={product.key}
+              product={product}
+              cfg={cfg}
+              addRow={addRow}
+              removeRow={removeRow}
+              updateRow={updateRow}
+              updateProductAccountCount={updateProductAccountCount}
+            />
           );
         })}
       </div>
 
       {/* 企业权益 Section Header */}
-      <div className="bg-muted/60 px-6 py-3 border-y">
-        <h3 className="text-sm font-semibold text-foreground">企业权益</h3>
+      <div className="px-6 py-4 border-y bg-muted/30">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <div className="w-1 h-4 rounded-full bg-primary" />
+          企业权益
+        </h3>
       </div>
 
       <div className="p-6">
-        <div className="max-w-[640px] mx-auto space-y-5">
+        <div className="max-w-[640px] space-y-5">
           <FormRow label="子企业上限数">
-            <input className="filter-input w-full" type="number" value={form.maxSubCompanies} onChange={(e) => update("maxSubCompanies", Number(e.target.value))} />
+            <input className="filter-input w-60" type="number" value={form.maxSubCompanies} onChange={(e) => update("maxSubCompanies", Number(e.target.value))} />
           </FormRow>
           <FormRow label="独立设置子企业权益">
             <ToggleSwitch checked={form.autoGrantSub} onChange={() => update("autoGrantSub", !form.autoGrantSub)} />
           </FormRow>
           <FormRow label="到期时间">
-            <select className="filter-select w-full" value={form.expireDate} onChange={(e) => update("expireDate", e.target.value)}>
-              <option value="2027-12-31">2027-12-31</option>
-              <option value="2028-12-31">2028-12-31</option>
-              <option value="2029-12-31">2029-12-31</option>
-            </select>
+            <input className="filter-input w-60" type="date" value={form.expireDate} onChange={(e) => update("expireDate", e.target.value)} />
           </FormRow>
         </div>
       </div>
@@ -468,93 +413,166 @@ function StepBenefits({
   );
 }
 
-/* ============ Benefit Table ============ */
-function BenefitTable({
-  label, rows, productKey, type, onUpdate, onRemove,
+/* ============ Product Config Card ============ */
+function ProductConfigCard({
+  product, cfg, addRow, removeRow, updateRow, updateProductAccountCount,
+}: {
+  product: { key: string; label: string };
+  cfg: ProductConfig;
+  addRow: (pk: string, t: "packageRows" | "productRows") => void;
+  removeRow: (pk: string, t: "packageRows" | "productRows", id: string) => void;
+  updateRow: (pk: string, t: "packageRows" | "productRows", id: string, f: string, v: any) => void;
+  updateProductAccountCount: (pk: string, c: number) => void;
+}) {
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      {/* Card Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-muted/40 border-b">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-primary" />
+          <span className="text-[13px] font-semibold text-foreground">{product.label}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] text-muted-foreground mr-2">产品人数</span>
+          <input
+            className="filter-input h-7 text-[12px] w-[80px] text-center"
+            type="number"
+            value={cfg.accountCount ?? 30}
+            onChange={(e) => updateProductAccountCount(product.key, Number(e.target.value))}
+          />
+          <span className="text-[12px] text-muted-foreground">人</span>
+        </div>
+      </div>
+
+      {/* Card Body */}
+      <div className="p-4 space-y-4">
+        <BenefitSection
+          label="权益套餐"
+          rows={cfg.packageRows}
+          productKey={product.key}
+          type="packageRows"
+          onAdd={() => addRow(product.key, "packageRows")}
+          onUpdate={updateRow}
+          onRemove={removeRow}
+        />
+        <BenefitSection
+          label="权益商品"
+          rows={cfg.productRows}
+          productKey={product.key}
+          type="productRows"
+          onAdd={() => addRow(product.key, "productRows")}
+          onUpdate={updateRow}
+          onRemove={removeRow}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ============ Benefit Section ============ */
+function BenefitSection({
+  label, rows, productKey, type, onAdd, onUpdate, onRemove,
 }: {
   label: string;
   rows: BenefitRow[];
   productKey: string;
   type: "packageRows" | "productRows";
+  onAdd: () => void;
   onUpdate: (pk: string, t: "packageRows" | "productRows", id: string, field: string, value: any) => void;
   onRemove: (pk: string, t: "packageRows" | "productRows", id: string) => void;
 }) {
   return (
-    <div className="flex items-start gap-4">
-      <label className="text-[13px] text-muted-foreground pt-2 text-right shrink-0 w-[140px]">{label}：</label>
-      <div className="flex-1 min-w-0 space-y-2">
-        {/* Column headers */}
-        <div className="flex items-center gap-3 text-[12px] text-muted-foreground mb-1">
-          <span className="w-[160px]">权益套餐</span>
-          <span className="w-[100px]">应用方式</span>
-          <span className="w-[80px]">应用人员</span>
-          <span className="flex-1">权益时间</span>
-        </div>
-        {rows.map((row) => (
-          <div key={row.id} className="flex items-center gap-3">
-            {/* Package tag */}
-            <div className="w-[160px] shrink-0">
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-muted text-[12px] text-foreground font-medium">
-                {row.packageName}
-                <Info className="h-3 w-3 text-muted-foreground" />
-              </span>
-            </div>
-            {/* Apply mode */}
-            <div className="w-[100px] shrink-0">
-              <select
-                className="filter-select h-8 text-[12px] w-full"
-                value={row.applyMode}
-                onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}
-              >
-                <option value="指定人员">指定人员</option>
-                <option value="全部人员">全部人员</option>
-              </select>
-            </div>
-            {/* Apply count */}
-            <div className="w-[80px] shrink-0">
-              {row.applyMode === "指定人员" ? (
-                <div className="flex items-center gap-1">
-                  <input
-                    className="filter-input h-8 text-[12px] w-[50px]"
-                    type="number"
-                    value={row.applyCount}
-                    onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))}
-                  />
-                  <span className="text-[12px] text-muted-foreground">人</span>
-                </div>
-              ) : (
-                <span className="inline-flex items-center px-2 py-1 rounded bg-muted text-[12px] text-muted-foreground">全部 人</span>
-              )}
-            </div>
-            {/* Date range */}
-            <div className="flex items-center gap-1 flex-1">
-              <input
-                className="filter-input h-8 text-[12px] w-[110px]"
-                type="date"
-                value={row.startDate}
-                onChange={(e) => onUpdate(productKey, type, row.id, "startDate", e.target.value)}
-              />
-              <span className="text-muted-foreground text-[12px]">~</span>
-              <input
-                className="filter-input h-8 text-[12px] w-[110px]"
-                type="date"
-                value={row.endDate}
-                onChange={(e) => onUpdate(productKey, type, row.id, "endDate", e.target.value)}
-              />
-            </div>
-            {/* Delete */}
-            <button
-              onClick={() => onRemove(productKey, type, row.id)}
-              className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[12px] font-medium text-muted-foreground tracking-wide">{label}</span>
+        <button
+          onClick={onAdd}
+          className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
+        >
+          <Plus className="h-3.5 w-3.5" /> 添加
+        </button>
       </div>
+
+      {rows.length === 0 ? (
+        <div className="flex items-center justify-center py-6 border border-dashed rounded-lg text-[12px] text-muted-foreground">
+          暂无配置，点击"添加"按钮进行配置
+        </div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="grid grid-cols-[1fr_100px_90px_1fr_36px] gap-0 bg-muted/50 border-b text-[12px] text-muted-foreground font-medium">
+            <div className="px-3 py-2">名称</div>
+            <div className="px-3 py-2">应用方式</div>
+            <div className="px-3 py-2">人数</div>
+            <div className="px-3 py-2">授权时间</div>
+            <div className="px-3 py-2"></div>
+          </div>
+          {rows.map((row, idx) => (
+            <div
+              key={row.id}
+              className={`grid grid-cols-[1fr_100px_90px_1fr_36px] gap-0 items-center text-[12px] hover:bg-muted/20 transition-colors ${
+                idx < rows.length - 1 ? "border-b" : ""
+              }`}
+            >
+              <div className="px-3 py-2.5">
+                <select
+                  className="filter-select h-7 text-[12px] w-full max-w-[180px]"
+                  value={row.packageName}
+                  onChange={(e) => onUpdate(productKey, type, row.id, "packageName", e.target.value)}
+                >
+                  {BENEFIT_PACKAGES.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div className="px-3 py-2.5">
+                <select
+                  className="filter-select h-7 text-[12px] w-full"
+                  value={row.applyMode}
+                  onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}
+                >
+                  <option value="指定人员">指定人员</option>
+                  <option value="全部人员">全部人员</option>
+                </select>
+              </div>
+              <div className="px-3 py-2.5">
+                {row.applyMode === "指定人员" ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      className="filter-input h-7 text-[12px] w-[52px] text-center"
+                      type="number"
+                      value={row.applyCount}
+                      onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))}
+                    />
+                    <span className="text-muted-foreground">人</span>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">全员</span>
+                )}
+              </div>
+              <div className="px-3 py-2.5">
+                <div className="flex items-center gap-1.5">
+                  <input className="filter-input h-7 text-[12px] w-[110px]" type="date" value={row.startDate}
+                    onChange={(e) => onUpdate(productKey, type, row.id, "startDate", e.target.value)} />
+                  <span className="text-muted-foreground">~</span>
+                  <input className="filter-input h-7 text-[12px] w-[110px]" type="date" value={row.endDate}
+                    onChange={(e) => onUpdate(productKey, type, row.id, "endDate", e.target.value)} />
+                </div>
+              </div>
+              <div className="px-1 py-2.5 flex justify-center">
+                <button
+                  onClick={() => onRemove(productKey, type, row.id)}
+                  className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
+
+
 
 /* ============ Step 3: 品牌配置 ============ */
 function StepBrandConfig({ form, update }: { form: any; update: (k: string, v: any) => void }) {
