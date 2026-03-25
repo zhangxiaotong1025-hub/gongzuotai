@@ -93,22 +93,17 @@ export default function EnterpriseCreate() {
   const update = (key: string, value: any) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const toggleProduct = (key: string) => {
-    const enabled = form.enabledProducts;
-    if (enabled.includes(key)) {
-      update("enabledProducts", enabled.filter((k) => k !== key));
-    } else {
-      update("enabledProducts", [...enabled, key]);
-      if (!form.productConfigs[key]) {
-        setForm((prev) => ({
-          ...prev,
-          enabledProducts: [...prev.enabledProducts.filter(k => k !== key), key],
-          productConfigs: {
-            ...prev.productConfigs,
-            [key]: { packageRows: [], productRows: [], accountCount: 30 },
-          },
-        }));
+    setForm((prev) => {
+      const enabled = prev.enabledProducts;
+      if (enabled.includes(key)) {
+        return { ...prev, enabledProducts: enabled.filter((k) => k !== key) };
+      } else {
+        const newConfigs = prev.productConfigs[key]
+          ? prev.productConfigs
+          : { ...prev.productConfigs, [key]: { packageRows: [], productRows: [], accountCount: 30 } };
+        return { ...prev, enabledProducts: [...enabled, key], productConfigs: newConfigs };
       }
-    }
+    });
   };
 
   const addRow = (productKey: string, type: "packageRows" | "productRows") => {
@@ -340,7 +335,11 @@ function StepBenefits({
               {AVAILABLE_PRODUCTS.map((p) => {
                 const checked = form.enabledProducts.includes(p.key);
                 return (
-                  <label key={p.key} className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none group">
+                  <label
+                    key={p.key}
+                    className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none group"
+                    onClick={(e) => { e.preventDefault(); toggleProduct(p.key); }}
+                  >
                     <div className={`w-4 h-4 rounded border-[1.5px] flex items-center justify-center transition-all ${
                       checked ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
                     }`}>
@@ -499,7 +498,7 @@ function BenefitSection({
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
-          <div className="grid grid-cols-[1fr_100px_90px_1fr_36px] gap-0 bg-muted/50 border-b text-[12px] text-muted-foreground font-medium">
+          <div className="grid grid-cols-[minmax(180px,1.2fr)_120px_100px_minmax(240px,1fr)_36px] gap-0 bg-muted/50 border-b text-[12px] text-muted-foreground font-medium">
             <div className="px-3 py-2">名称</div>
             <div className="px-3 py-2">应用方式</div>
             <div className="px-3 py-2">人数</div>
@@ -509,7 +508,7 @@ function BenefitSection({
           {rows.map((row, idx) => (
             <div
               key={row.id}
-              className={`grid grid-cols-[1fr_100px_90px_1fr_36px] gap-0 items-center text-[12px] hover:bg-muted/20 transition-colors ${
+              className={`grid grid-cols-[minmax(180px,1.2fr)_120px_100px_minmax(240px,1fr)_36px] gap-0 items-center text-[12px] hover:bg-muted/20 transition-colors ${
                 idx < rows.length - 1 ? "border-b" : ""
               }`}
             >
