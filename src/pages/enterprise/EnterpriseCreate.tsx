@@ -325,8 +325,252 @@ function StepBenefits({
   return (
     <div>
       {/* 产品权益 Section Header */}
-      <div className="bg-muted/60 px-6 py-3 border-b">
-        <h3 className="text-sm font-semibold text-foreground">产品权益</h3>
+      <div className="px-6 py-4 border-b bg-muted/30">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <div className="w-1 h-4 rounded-full bg-primary" />
+          产品权益
+        </h3>
+      </div>
+
+      <div className="p-6 space-y-6">
+        {/* 基础权益 */}
+        <div className="space-y-4">
+          <FormRow label="开通产品" wide>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              {AVAILABLE_PRODUCTS.map((p) => {
+                const checked = form.enabledProducts.includes(p.key);
+                return (
+                  <label key={p.key} className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none group">
+                    <div className={`w-4 h-4 rounded border-[1.5px] flex items-center justify-center transition-all ${
+                      checked ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
+                    }`}>
+                      {checked && <Check className="h-3 w-3 text-primary-foreground" />}
+                    </div>
+                    <span className={checked ? "text-foreground font-medium" : "text-muted-foreground"}>{p.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </FormRow>
+          <FormRow label="是否加入供应链" wide>
+            <div className="flex items-center gap-5">
+              {[{ val: true, label: "加入" }, { val: false, label: "不加入" }].map((opt) => (
+                <label key={String(opt.val)} className="inline-flex items-center gap-2 text-[13px] cursor-pointer">
+                  <div className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center transition-all ${
+                    form.joinSupplyChain === opt.val ? "border-primary" : "border-border"
+                  }`}>
+                    {form.joinSupplyChain === opt.val && <div className="w-2 h-2 rounded-full bg-primary" />}
+                  </div>
+                  <span className={form.joinSupplyChain === opt.val ? "text-foreground" : "text-muted-foreground"}>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </FormRow>
+          <FormRow label="通用权益配置" wide>
+            <ToggleSwitch checked={form.enableGenericConfig} onChange={() => update("enableGenericConfig", !form.enableGenericConfig)} />
+          </FormRow>
+        </div>
+
+        {/* Per-product configurations */}
+        {AVAILABLE_PRODUCTS.filter((p) => form.enabledProducts.includes(p.key)).map((product) => {
+          const cfg: ProductConfig = form.productConfigs[product.key] || { packageRows: [], productRows: [] };
+          return (
+            <ProductConfigCard
+              key={product.key}
+              product={product}
+              cfg={cfg}
+              addRow={addRow}
+              removeRow={removeRow}
+              updateRow={updateRow}
+              updateProductAccountCount={updateProductAccountCount}
+            />
+          );
+        })}
+      </div>
+
+      {/* 企业权益 Section Header */}
+      <div className="px-6 py-4 border-y bg-muted/30">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <div className="w-1 h-4 rounded-full bg-primary" />
+          企业权益
+        </h3>
+      </div>
+
+      <div className="p-6">
+        <div className="max-w-[640px] space-y-5">
+          <FormRow label="子企业上限数">
+            <input className="filter-input w-60" type="number" value={form.maxSubCompanies} onChange={(e) => update("maxSubCompanies", Number(e.target.value))} />
+          </FormRow>
+          <FormRow label="独立设置子企业权益">
+            <ToggleSwitch checked={form.autoGrantSub} onChange={() => update("autoGrantSub", !form.autoGrantSub)} />
+          </FormRow>
+          <FormRow label="到期时间">
+            <input className="filter-input w-60" type="date" value={form.expireDate} onChange={(e) => update("expireDate", e.target.value)} />
+          </FormRow>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============ Product Config Card ============ */
+function ProductConfigCard({
+  product, cfg, addRow, removeRow, updateRow, updateProductAccountCount,
+}: {
+  product: { key: string; label: string };
+  cfg: ProductConfig;
+  addRow: (pk: string, t: "packageRows" | "productRows") => void;
+  removeRow: (pk: string, t: "packageRows" | "productRows", id: string) => void;
+  updateRow: (pk: string, t: "packageRows" | "productRows", id: string, f: string, v: any) => void;
+  updateProductAccountCount: (pk: string, c: number) => void;
+}) {
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      {/* Card Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-muted/40 border-b">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-primary" />
+          <span className="text-[13px] font-semibold text-foreground">{product.label}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] text-muted-foreground mr-2">产品人数</span>
+          <input
+            className="filter-input h-7 text-[12px] w-[80px] text-center"
+            type="number"
+            value={cfg.accountCount ?? 30}
+            onChange={(e) => updateProductAccountCount(product.key, Number(e.target.value))}
+          />
+          <span className="text-[12px] text-muted-foreground">人</span>
+        </div>
+      </div>
+
+      {/* Card Body */}
+      <div className="p-4 space-y-4">
+        <BenefitSection
+          label="权益套餐"
+          rows={cfg.packageRows}
+          productKey={product.key}
+          type="packageRows"
+          onAdd={() => addRow(product.key, "packageRows")}
+          onUpdate={updateRow}
+          onRemove={removeRow}
+        />
+        <BenefitSection
+          label="权益商品"
+          rows={cfg.productRows}
+          productKey={product.key}
+          type="productRows"
+          onAdd={() => addRow(product.key, "productRows")}
+          onUpdate={updateRow}
+          onRemove={removeRow}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ============ Benefit Section ============ */
+function BenefitSection({
+  label, rows, productKey, type, onAdd, onUpdate, onRemove,
+}: {
+  label: string;
+  rows: BenefitRow[];
+  productKey: string;
+  type: "packageRows" | "productRows";
+  onAdd: () => void;
+  onUpdate: (pk: string, t: "packageRows" | "productRows", id: string, field: string, value: any) => void;
+  onRemove: (pk: string, t: "packageRows" | "productRows", id: string) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[12px] font-medium text-muted-foreground tracking-wide">{label}</span>
+        <button
+          onClick={onAdd}
+          className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
+        >
+          <Plus className="h-3.5 w-3.5" /> 添加
+        </button>
+      </div>
+
+      {rows.length === 0 ? (
+        <div className="flex items-center justify-center py-6 border border-dashed rounded-lg text-[12px] text-muted-foreground">
+          暂无配置，点击"添加"按钮进行配置
+        </div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="grid grid-cols-[1fr_100px_90px_1fr_36px] gap-0 bg-muted/50 border-b text-[12px] text-muted-foreground font-medium">
+            <div className="px-3 py-2">名称</div>
+            <div className="px-3 py-2">应用方式</div>
+            <div className="px-3 py-2">人数</div>
+            <div className="px-3 py-2">授权时间</div>
+            <div className="px-3 py-2"></div>
+          </div>
+          {rows.map((row, idx) => (
+            <div
+              key={row.id}
+              className={`grid grid-cols-[1fr_100px_90px_1fr_36px] gap-0 items-center text-[12px] hover:bg-muted/20 transition-colors ${
+                idx < rows.length - 1 ? "border-b" : ""
+              }`}
+            >
+              <div className="px-3 py-2.5">
+                <select
+                  className="filter-select h-7 text-[12px] w-full max-w-[180px]"
+                  value={row.packageName}
+                  onChange={(e) => onUpdate(productKey, type, row.id, "packageName", e.target.value)}
+                >
+                  {BENEFIT_PACKAGES.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div className="px-3 py-2.5">
+                <select
+                  className="filter-select h-7 text-[12px] w-full"
+                  value={row.applyMode}
+                  onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}
+                >
+                  <option value="指定人员">指定人员</option>
+                  <option value="全部人员">全部人员</option>
+                </select>
+              </div>
+              <div className="px-3 py-2.5">
+                {row.applyMode === "指定人员" ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      className="filter-input h-7 text-[12px] w-[52px] text-center"
+                      type="number"
+                      value={row.applyCount}
+                      onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))}
+                    />
+                    <span className="text-muted-foreground">人</span>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">全员</span>
+                )}
+              </div>
+              <div className="px-3 py-2.5">
+                <div className="flex items-center gap-1.5">
+                  <input className="filter-input h-7 text-[12px] w-[110px]" type="date" value={row.startDate}
+                    onChange={(e) => onUpdate(productKey, type, row.id, "startDate", e.target.value)} />
+                  <span className="text-muted-foreground">~</span>
+                  <input className="filter-input h-7 text-[12px] w-[110px]" type="date" value={row.endDate}
+                    onChange={(e) => onUpdate(productKey, type, row.id, "endDate", e.target.value)} />
+                </div>
+              </div>
+              <div className="px-1 py-2.5 flex justify-center">
+                <button
+                  onClick={() => onRemove(productKey, type, row.id)}
+                  className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
       </div>
 
       <div className="p-6 space-y-8">
