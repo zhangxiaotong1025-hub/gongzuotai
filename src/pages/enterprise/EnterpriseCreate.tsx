@@ -446,22 +446,12 @@ function ProductConfigCard({
 }: {
   product: { key: string; label: string };
   cfg: ProductConfig;
-  addRow: (pk: string, t: "packageRows" | "productRows") => void;
+  addRow: (pk: string, t: "packageRows" | "productRows", name?: string) => void;
   removeRow: (pk: string, t: "packageRows" | "productRows", id: string) => void;
   updateRow: (pk: string, t: "packageRows" | "productRows", id: string, f: string, v: any) => void;
   updateProductAccountCount: (pk: string, c: number) => void;
 }) {
-  const [dialogOpen, setDialogOpen] = useState<null | "packageRows" | "productRows">(null);
   const catalog = BENEFIT_CATALOG[product.key] || [];
-
-  const handleSelectBenefit = (name: string) => {
-    if (!dialogOpen) return;
-    const row = createRow(name);
-    // Use addRow logic inline
-    addRow(product.key, dialogOpen);
-    // Actually we need to set the name — let's just do it via updateRow after add
-    // Simpler: directly manipulate
-  };
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -489,13 +479,7 @@ function ProductConfigCard({
           productKey={product.key}
           type="packageRows"
           catalog={catalog}
-          onAdd={(name) => {
-            // Add with specific name
-            const newRow = createRow(name);
-            // We need to directly update form — pass through addRow then updateRow
-            addRow(product.key, "packageRows");
-          }}
-          onAddRaw={() => addRow(product.key, "packageRows")}
+          onAddWithName={(name) => addRow(product.key, "packageRows", name)}
           onUpdate={updateRow}
           onRemove={removeRow}
         />
@@ -505,8 +489,7 @@ function ProductConfigCard({
           productKey={product.key}
           type="productRows"
           catalog={catalog}
-          onAdd={(name) => addRow(product.key, "productRows")}
-          onAddRaw={() => addRow(product.key, "productRows")}
+          onAddWithName={(name) => addRow(product.key, "productRows", name)}
           onUpdate={updateRow}
           onRemove={removeRow}
         />
