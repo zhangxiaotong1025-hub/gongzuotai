@@ -1,12 +1,11 @@
-import { useState } from "react";
-import {
-  ChevronDown,
-  ChevronRight,
-  Plus,
-  MoreHorizontal,
-  Search,
-} from "lucide-react";
+import { useState, useCallback } from "react";
+import { Plus, Download } from "lucide-react";
+import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
+import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
+import { Pagination } from "@/components/admin/Pagination";
+import { PageHeader } from "@/components/admin/PageHeader";
 
+// ===== 数据模型 =====
 interface Enterprise {
   id: string;
   name: string;
@@ -20,456 +19,223 @@ interface Enterprise {
   updatedAt: string;
   note: string;
   children?: Enterprise[];
-  level?: number;
+  _level?: number;
 }
 
-const mockData: Enterprise[] = [
+// ===== 真实感模拟数据 =====
+const ENTERPRISE_NAMES = [
+  "欧派家居集团股份有限公司", "索菲亚家居股份有限公司", "尚品宅配家居股份有限公司",
+  "金牌厨柜家居科技股份有限公司", "志邦家居股份有限公司", "我乐家居股份有限公司",
+  "好莱客创意家居股份有限公司", "皮阿诺家居股份有限公司", "顶固集创家居股份有限公司",
+];
+const TYPES = ["品牌商", "经销商", "装企", "卖场", "门店"];
+const PRODUCTS = ["国内3D", "国际3D", "智能导购", "VR全景"];
+const CREATORS = ["张伟", "李娜", "王强", "赵敏", "刘洋", "陈静", "杨帆"];
+
+function randomPick<T>(arr: T[], count?: number): T[] {
+  const c = count || Math.ceil(Math.random() * arr.length);
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(c, arr.length));
+}
+
+function generateEnterprise(id: string, depth = 0): Enterprise {
+  const name = ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)];
+  const hasChildren = depth === 0 && Math.random() > 0.4;
+  const childCount = hasChildren ? Math.floor(Math.random() * 4) + 1 : 0;
+  return {
+    id,
+    name,
+    type: TYPES[Math.floor(Math.random() * TYPES.length)],
+    status: Math.random() > 0.25 ? "active" : "inactive",
+    products: randomPick(PRODUCTS, Math.floor(Math.random() * 3) + 1),
+    subsidiaries: Math.floor(Math.random() * 50) + 1,
+    staff: Math.floor(Math.random() * 200) + 5,
+    createdAt: `202${Math.floor(Math.random() * 6)}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")} ${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
+    creator: CREATORS[Math.floor(Math.random() * CREATORS.length)],
+    updatedAt: `2026-0${Math.floor(Math.random() * 3) + 1}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")} ${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
+    note: ["核心战略客户", "稳定续费客户，主要销售硬装瓷砖", "新签约客户，试用期", "重点关注客户", "年度合作伙伴"][Math.floor(Math.random() * 5)],
+    children: hasChildren
+      ? Array.from({ length: childCount }, (_, i) =>
+          generateEnterprise(`${id}-${i + 1}`, depth + 1)
+        )
+      : [],
+  };
+}
+
+const mockData: Enterprise[] = Array.from({ length: 10 }, (_, i) =>
+  generateEnterprise(`ENT${String(i + 1).padStart(3, "0")}`)
+);
+
+// ===== 筛选字段定义 =====
+const filterFields: FilterField[] = [
+  { key: "name", label: "企业名称", type: "input", placeholder: "请输入企业名称", width: 180 },
+  { key: "id", label: "企业ID", type: "input", placeholder: "请输入企业ID", width: 140 },
   {
-    id: "ENT001",
-    name: "上海自然博物馆有限公司",
-    type: "品牌商",
-    status: "active",
-    products: ["国内3D", "国际3D"],
-    subsidiaries: 20,
-    staff: 30,
-    createdAt: "2020-1-25 10:10",
-    creator: "王王",
-    updatedAt: "2026-1-25 10:10",
-    note: "稳定续费客户，主要销售硬装瓷砖",
-    children: [
-      {
-        id: "ENT001-1",
-        name: "上海自然博物馆有限公司",
-        type: "品牌商",
-        status: "inactive",
-        products: ["国内3D"],
-        subsidiaries: 6,
-        staff: 30,
-        createdAt: "2020-1-25 10:10",
-        creator: "王王",
-        updatedAt: "2026-1-25 10:10",
-        note: "稳定续费客户，主要销售硬装瓷砖",
-      },
-      {
-        id: "ENT001-2",
-        name: "上海自然博物馆有限公司",
-        type: "品牌商",
-        status: "active",
-        products: ["国内3D"],
-        subsidiaries: 20,
-        staff: 30,
-        createdAt: "2020-1-25 10:10",
-        creator: "王王",
-        updatedAt: "2026-1-25 10:10",
-        note: "稳定续费客户，主要销售硬装瓷砖",
-      },
-      {
-        id: "ENT001-3",
-        name: "上海自然博物馆有限公司",
-        type: "品牌商",
-        status: "inactive",
-        products: ["国际3D"],
-        subsidiaries: 20,
-        staff: 30,
-        createdAt: "2020-1-25 10:10",
-        creator: "",
-        updatedAt: "2026-1-25 10:10",
-        note: "稳定续费客户，主要销售硬装瓷砖",
-      },
-      {
-        id: "ENT001-4",
-        name: "上海自然博物馆有限公司",
-        type: "品牌商",
-        status: "active",
-        products: ["国际3D"],
-        subsidiaries: 20,
-        staff: 30,
-        createdAt: "2020-1-25 10:10",
-        creator: "",
-        updatedAt: "2026-1-25 10:10",
-        note: "稳定续费客户，主要销售硬装瓷砖",
-      },
+    key: "type",
+    label: "企业类型",
+    type: "select",
+    options: TYPES.map((t) => ({ label: t, value: t })),
+    width: 130,
+  },
+  {
+    key: "status",
+    label: "状态",
+    type: "select",
+    options: [
+      { label: "启用", value: "active" },
+      { label: "停用", value: "inactive" },
     ],
+    width: 110,
   },
   {
-    id: "ENT002",
-    name: "上海自然博物馆有限公司",
-    type: "品牌商",
-    status: "inactive",
-    products: ["国内3D"],
-    subsidiaries: 14,
-    staff: 30,
-    createdAt: "2020-1-25 10:10",
-    creator: "王王",
-    updatedAt: "2026-1-25 10:10",
-    note: "稳定续费客户，主要销售硬装瓷砖",
-    children: [],
+    key: "product",
+    label: "启用产品",
+    type: "select",
+    options: PRODUCTS.map((p) => ({ label: p, value: p })),
+    width: 130,
+  },
+  { key: "createdFrom", label: "创建时间", type: "date", width: 160 },
+];
+
+// ===== 表格列定义 =====
+const columns: TableColumn<Enterprise>[] = [
+  { key: "name", title: "企业名称", minWidth: 260, render: (v) => <span className="text-foreground">{v}</span> },
+  {
+    key: "type",
+    title: "企业类型",
+    minWidth: 90,
+    render: (v) => (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-foreground">
+        {v}
+      </span>
+    ),
   },
   {
-    id: "ENT003",
-    name: "上海自然博物馆有限公司",
-    type: "品牌商",
-    status: "active",
-    products: ["国内3D", "国际3D"],
-    subsidiaries: 20,
-    staff: 30,
-    createdAt: "2020-1-25 10:10",
-    creator: "王王",
-    updatedAt: "2026-1-25 10:10",
-    note: "稳定续费客户，主要销售硬装瓷砖",
-    children: [],
+    key: "status",
+    title: "状态",
+    minWidth: 80,
+    render: (v) => (
+      <span className={v === "active" ? "badge-active" : "badge-inactive"}>
+        {v === "active" ? "启用" : "停用"}
+      </span>
+    ),
   },
   {
-    id: "ENT004",
-    name: "上海自然博物馆有限公司",
-    type: "品牌商",
-    status: "active",
-    products: ["国内3D", "国际3D"],
-    subsidiaries: 20,
-    staff: 30,
-    createdAt: "2020-1-25 10:10",
-    creator: "王王",
-    updatedAt: "2026-1-25 10:10",
-    note: "稳定续费客户，主要销售硬装瓷砖",
-    children: [],
+    key: "products",
+    title: "启用产品",
+    minWidth: 160,
+    render: (v: string[]) => (
+      <div className="flex gap-1 flex-wrap">
+        {v.map((p) => (
+          <span key={p} className="badge-product">{p}</span>
+        ))}
+      </div>
+    ),
   },
   {
-    id: "ENT005",
-    name: "上海自然博物馆有限公司",
-    type: "品牌商",
-    status: "active",
-    products: ["国内3D", "国际3D"],
-    subsidiaries: 20,
-    staff: 30,
-    createdAt: "2020-1-25 10:10",
-    creator: "王王",
-    updatedAt: "2026-1-25 10:10",
-    note: "稳定续费客户，主要销售硬装瓷砖",
-    children: [],
+    key: "subsidiaries",
+    title: "子公司",
+    minWidth: 70,
+    align: "center",
+    render: (v) => <span className="text-primary cursor-pointer hover:underline">{v}</span>,
   },
   {
-    id: "ENT006",
-    name: "上海自然博物馆有限公司",
-    type: "品牌商",
-    status: "active",
-    products: ["国内3D", "国际3D"],
-    subsidiaries: 20,
-    staff: 30,
-    createdAt: "2020-1-25 10:10",
-    creator: "",
-    updatedAt: "2026-1-25 10:10",
-    note: "稳定续费客户，主要销售硬装瓷砖",
-    children: [],
+    key: "staff",
+    title: "人员",
+    minWidth: 70,
+    align: "center",
+    render: (v) => <span className="text-primary cursor-pointer hover:underline">{v}</span>,
   },
+  { key: "createdAt", title: "创建时间", minWidth: 140, render: (v) => <span className="text-muted-foreground text-xs">{v}</span> },
+  { key: "creator", title: "创建人", minWidth: 70 },
+  { key: "updatedAt", title: "更新时间", minWidth: 140, render: (v) => <span className="text-muted-foreground text-xs">{v}</span> },
   {
-    id: "ENT007",
-    name: "上海自然博物馆有限公司",
-    type: "品牌商",
-    status: "active",
-    products: ["国内3D", "国际3D"],
-    subsidiaries: 20,
-    staff: 30,
-    createdAt: "2020-1-25 10:10",
-    creator: "王王",
-    updatedAt: "2026-1-25 10:10",
-    note: "稳定续费客户，主要销售硬装瓷砖",
-    children: [],
+    key: "note",
+    title: "备注",
+    minWidth: 180,
+    render: (v) => (
+      <span className="text-muted-foreground text-xs block max-w-[200px] truncate" title={v}>
+        {v}
+      </span>
+    ),
   },
 ];
 
-function EnterpriseRow({
-  item,
-  level = 0,
-  expanded,
-  onToggle,
-}: {
-  item: Enterprise;
-  level?: number;
-  expanded: Set<string>;
-  onToggle: (id: string) => void;
-}) {
-  const hasChildren = item.children && item.children.length > 0;
-  const isExpanded = expanded.has(item.id);
-  const [showActions, setShowActions] = useState(false);
-
-  return (
-    <>
-      <tr className="hover:bg-muted/30 transition-colors">
-        {/* Name with tree indent */}
-        <td className="px-3 py-3 border-b">
-          <div className="flex items-center" style={{ paddingLeft: level * 24 }}>
-            {hasChildren ? (
-              <button
-                onClick={() => onToggle(item.id)}
-                className="mr-1.5 p-0.5 rounded hover:bg-muted text-muted-foreground"
-              >
-                {isExpanded ? (
-                  <ChevronDown className="h-3.5 w-3.5" />
-                ) : (
-                  <ChevronRight className="h-3.5 w-3.5" />
-                )}
-              </button>
-            ) : (
-              <span className="w-5 mr-1.5" />
-            )}
-            <span className="text-sm text-foreground">{item.name}</span>
-          </div>
-        </td>
-        {/* Type */}
-        <td className="px-3 py-3 border-b">
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-foreground">
-            {item.type}
-          </span>
-        </td>
-        {/* Status */}
-        <td className="px-3 py-3 border-b">
-          <span className={item.status === "active" ? "badge-active" : "badge-inactive"}>
-            {item.status === "active" ? "启用" : "停用"}
-          </span>
-        </td>
-        {/* Products */}
-        <td className="px-3 py-3 border-b">
-          <div className="flex gap-1.5">
-            {item.products.map((p) => (
-              <span key={p} className="badge-product">{p}</span>
-            ))}
-          </div>
-        </td>
-        {/* Subsidiaries */}
-        <td className="px-3 py-3 border-b text-center">
-          <span className="text-primary cursor-pointer hover:underline">{item.subsidiaries}</span>
-        </td>
-        {/* Staff */}
-        <td className="px-3 py-3 border-b text-center">
-          <span className="text-primary cursor-pointer hover:underline">{item.staff}</span>
-        </td>
-        {/* Created */}
-        <td className="px-3 py-3 border-b text-muted-foreground text-xs">{item.createdAt}</td>
-        {/* Creator */}
-        <td className="px-3 py-3 border-b text-sm">{item.creator}</td>
-        {/* Updated */}
-        <td className="px-3 py-3 border-b text-muted-foreground text-xs">{item.updatedAt}</td>
-        {/* Note */}
-        <td className="px-3 py-3 border-b text-muted-foreground text-xs max-w-[200px] truncate">
-          {item.note}
-        </td>
-        {/* Actions */}
-        <td className="px-3 py-3 border-b">
-          <div className="flex items-center gap-2 relative">
-            <button className="text-primary text-sm hover:underline">查看</button>
-            {level === 0 && (
-              <button className="text-primary text-sm hover:underline">编辑</button>
-            )}
-            <button
-              onClick={() => setShowActions(!showActions)}
-              className="p-1 rounded hover:bg-muted text-muted-foreground"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
-            {showActions && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowActions(false)} />
-                <div className="absolute right-0 top-full mt-1 bg-card border rounded-md shadow-lg py-1 z-20 min-w-[120px]">
-                  <button className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors">
-                    启用/停用
-                  </button>
-                  <button className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors">
-                    设置管理员
-                  </button>
-                  <button className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors">
-                    新建子企业
-                  </button>
-                  <button className="w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors">
-                    权益配置
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </td>
-      </tr>
-      {/* Children */}
-      {isExpanded &&
-        item.children?.map((child) => (
-          <EnterpriseRow
-            key={child.id}
-            item={child}
-            level={level + 1}
-            expanded={expanded}
-            onToggle={onToggle}
-          />
-        ))}
-    </>
-  );
-}
+// ===== 操作按钮定义 =====
+const actions: ActionItem<Enterprise>[] = [
+  { label: "查看", onClick: (r) => console.log("查看", r.id) },
+  { label: "编辑", onClick: (r) => console.log("编辑", r.id), visible: (r) => !r._level },
+  { label: "启用/停用", onClick: (r) => console.log("toggle", r.id) },
+  { label: "设置管理员", onClick: (r) => console.log("admin", r.id) },
+  { label: "新建子企业", onClick: (r) => console.log("sub", r.id), visible: (r) => !r._level },
+  { label: "权益配置", onClick: (r) => console.log("entitlement", r.id) },
+];
 
 export default function EnterpriseList() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["ENT001"]));
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 68;
+  const [pageSize, setPageSize] = useState(100);
+  const [filters, setFilters] = useState<Record<string, string>>({});
   const totalItems = 1200;
 
-  const toggleExpand = (id: string) => {
+  const toggleExpand = useCallback((id: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
-  };
-
-  const paginationPages = () => {
-    const pages: (number | "...")[] = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1, 2, 3, "...", totalPages - 1, totalPages);
-    }
-    return pages;
-  };
+  }, []);
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-baseline gap-3">
-          <h1 className="text-xl font-bold text-foreground">企业管理</h1>
-          <span className="text-sm text-muted-foreground">共{totalItems}个企业</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="h-8 px-4 text-sm border rounded-md hover:bg-muted transition-colors text-foreground">
-            次级按钮
-          </button>
-          <button className="h-8 px-4 text-sm border rounded-md hover:bg-muted transition-colors text-foreground">
-            次级按钮
-          </button>
-          <button className="h-8 px-4 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-1.5">
-            <Plus className="h-4 w-4" />
-            新建企业
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="企业管理"
+        subtitle={`共${totalItems}个企业`}
+        actions={
+          <>
+            <button className="h-8 px-4 text-sm border rounded-md hover:bg-muted transition-colors text-foreground flex items-center gap-1.5">
+              <Download className="h-3.5 w-3.5" />
+              导出
+            </button>
+            <button className="h-8 px-4 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-1.5">
+              <Plus className="h-4 w-4" />
+              新建企业
+            </button>
+          </>
+        }
+      />
 
-      {/* Filters */}
-      <div className="bg-card rounded-lg border p-4 mb-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">企业名称</label>
-            <input type="text" placeholder="请输入" className="filter-input w-36" />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">企业ID</label>
-            <input type="text" placeholder="请输入" className="filter-input w-28" />
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">企业类型</label>
-            <select className="filter-select w-28">
-              <option value="">请选择</option>
-              <option value="brand">品牌商</option>
-              <option value="dealer">经销商</option>
-              <option value="decoration">装企</option>
-              <option value="mall">卖场</option>
-              <option value="store">门店</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">企业类型</label>
-            <select className="filter-select w-28">
-              <option value="">请选择</option>
-            </select>
-          </div>
-          <button className="text-sm text-primary hover:underline">更多</button>
-          <button className="h-8 px-5 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors flex items-center gap-1.5">
-            <Search className="h-3.5 w-3.5" />
-            查询
-          </button>
-          <button className="h-8 px-4 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            重置
-          </button>
-        </div>
-      </div>
+      <FilterBar
+        fields={filterFields}
+        values={filters}
+        onChange={(key, value) => setFilters((prev) => ({ ...prev, [key]: value }))}
+        onSearch={() => console.log("search", filters)}
+        onReset={() => setFilters({})}
+        maxVisible={4}
+      />
 
-      {/* Table */}
-      <div className="bg-card rounded-lg border overflow-x-auto">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th className="min-w-[240px]">企业名称</th>
-              <th>企业类型</th>
-              <th>状态</th>
-              <th>启用产品</th>
-              <th className="text-center">子公司</th>
-              <th className="text-center">人员</th>
-              <th>创建时间</th>
-              <th>创建人</th>
-              <th>更新时间</th>
-              <th>备注</th>
-              <th className="min-w-[140px]">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mockData.map((item) => (
-              <EnterpriseRow
-                key={item.id}
-                item={item}
-                expanded={expanded}
-                onToggle={toggleExpand}
-              />
-            ))}
-          </tbody>
-        </table>
+      <AdminTable
+        columns={columns}
+        data={mockData}
+        rowKey={(r) => r.id}
+        actions={actions}
+        maxVisibleActions={2}
+        expandable={{
+          childrenKey: "children",
+          expandedKeys: expanded,
+          onToggle: toggleExpand,
+        }}
+        getLevel={(r) => r._level || 0}
+      />
 
-        {/* Pagination */}
-        <div className="flex items-center justify-end gap-2 px-4 py-3 border-t">
-          <select className="filter-select text-xs h-7 w-24">
-            <option>100条/页</option>
-            <option>50条/页</option>
-            <option>20条/页</option>
-          </select>
-          <button
-            className="w-7 h-7 flex items-center justify-center rounded border text-muted-foreground hover:bg-muted disabled:opacity-40"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-          >
-            ‹
-          </button>
-          {paginationPages().map((p, i) =>
-            p === "..." ? (
-              <span key={`dots-${i}`} className="text-muted-foreground text-xs px-1">…</span>
-            ) : (
-              <button
-                key={p}
-                onClick={() => setCurrentPage(p as number)}
-                className={`w-7 h-7 flex items-center justify-center rounded text-xs transition-colors ${
-                  currentPage === p
-                    ? "bg-primary text-primary-foreground"
-                    : "border text-foreground hover:bg-muted"
-                }`}
-              >
-                {p}
-              </button>
-            )
-          )}
-          <button
-            className="w-7 h-7 flex items-center justify-center rounded border text-muted-foreground hover:bg-muted disabled:opacity-40"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-          >
-            ›
-          </button>
-          <span className="text-xs text-muted-foreground ml-1">前往</span>
-          <input
-            type="text"
-            className="filter-input w-12 h-7 text-xs text-center"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const val = parseInt((e.target as HTMLInputElement).value);
-                if (val >= 1 && val <= totalPages) setCurrentPage(val);
-              }
-            }}
-          />
-          <span className="text-xs text-muted-foreground">页</span>
-        </div>
+      <div className="bg-card rounded-b-lg border border-t-0">
+        <Pagination
+          current={currentPage}
+          total={totalItems}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
+        />
       </div>
     </div>
   );
