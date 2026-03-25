@@ -26,18 +26,41 @@ const AVAILABLE_PRODUCTS = [
   { key: "live", label: "直播" },
 ];
 
-const BENEFIT_PACKAGES = [
-  "3D工具渲染权益包", "3D工具设计权益包", "VR漫游权益包", "施工图权益包",
-  "渲染权益包", "AI生图权益包", "高清渲染权益包",
-];
+const BENEFIT_CATALOG: Record<string, { name: string; desc: string; color: string }[]> = {
+  domestic3d: [
+    { name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", color: "hsl(var(--primary))" },
+    { name: "3D工具设计权益包", desc: "含户型绘制、方案设计、模型库", color: "hsl(210 80% 55%)" },
+    { name: "VR漫游权益包", desc: "含VR全景漫游、场景切换", color: "hsl(260 60% 55%)" },
+    { name: "施工图权益包", desc: "含CAD导出、水电布局图", color: "hsl(170 60% 42%)" },
+    { name: "AI生图权益包", desc: "含AI渲染、风格迁移", color: "hsl(340 70% 55%)" },
+  ],
+  international3d: [
+    { name: "国际版渲染权益包", desc: "含8K渲染、HDR输出", color: "hsl(var(--primary))" },
+    { name: "国际版设计权益包", desc: "含全球模型库、多语言支持", color: "hsl(210 80% 55%)" },
+    { name: "国际版VR权益包", desc: "含VR漫游、AR预览", color: "hsl(260 60% 55%)" },
+  ],
+  smartGuide: [
+    { name: "智能导购权益包", desc: "含AI推荐、商品匹配", color: "hsl(var(--primary))" },
+    { name: "导购数据权益包", desc: "含客户画像、行为分析", color: "hsl(210 80% 55%)" },
+  ],
+  customerData: [
+    { name: "精准客资权益包", desc: "含线索分配、客户管理", color: "hsl(var(--primary))" },
+    { name: "客资分析权益包", desc: "含转化分析、ROI报表", color: "hsl(210 80% 55%)" },
+  ],
+  smartPhoto: [
+    { name: "智能翻拍权益包", desc: "含AI抠图、场景替换", color: "hsl(var(--primary))" },
+  ],
+  live: [
+    { name: "直播权益包", desc: "含直播推流、互动工具", color: "hsl(var(--primary))" },
+  ],
+};
 
 interface BenefitRow {
   id: string;
   packageName: string;
   applyMode: "指定人员" | "全部人员";
   applyCount: number;
-  startDate: string;
-  endDate: string;
+  dateRange: string; // "2026-01-01 ~ 2028-12-31"
 }
 
 interface ProductConfig {
@@ -46,13 +69,12 @@ interface ProductConfig {
   accountCount?: number;
 }
 
-const createRow = (): BenefitRow => ({
+const createRow = (name?: string): BenefitRow => ({
   id: crypto.randomUUID(),
-  packageName: "3D工具渲染权益包",
+  packageName: name || "3D工具渲染权益包",
   applyMode: "指定人员",
   applyCount: 10,
-  startDate: "2026-12-12",
-  endDate: "2028-12-12",
+  dateRange: "2026-01-01 ~ 2028-12-31",
 });
 
 export default function EnterpriseCreate() {
