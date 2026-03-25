@@ -28,30 +28,30 @@ const AVAILABLE_PRODUCTS = [
 
 const BENEFIT_CATALOG: Record<string, { name: string; desc: string; color: string }[]> = {
   domestic3d: [
-    { name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", color: "hsl(var(--primary))" },
+    { name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", color: "hsl(221 83% 53%)" },
     { name: "3D工具设计权益包", desc: "含户型绘制、方案设计、模型库", color: "hsl(210 80% 55%)" },
     { name: "VR漫游权益包", desc: "含VR全景漫游、场景切换", color: "hsl(260 60% 55%)" },
     { name: "施工图权益包", desc: "含CAD导出、水电布局图", color: "hsl(170 60% 42%)" },
     { name: "AI生图权益包", desc: "含AI渲染、风格迁移", color: "hsl(340 70% 55%)" },
   ],
   international3d: [
-    { name: "国际版渲染权益包", desc: "含8K渲染、HDR输出", color: "hsl(var(--primary))" },
+    { name: "国际版渲染权益包", desc: "含8K渲染、HDR输出", color: "hsl(221 83% 53%)" },
     { name: "国际版设计权益包", desc: "含全球模型库、多语言支持", color: "hsl(210 80% 55%)" },
     { name: "国际版VR权益包", desc: "含VR漫游、AR预览", color: "hsl(260 60% 55%)" },
   ],
   smartGuide: [
-    { name: "智能导购权益包", desc: "含AI推荐、商品匹配", color: "hsl(var(--primary))" },
+    { name: "智能导购权益包", desc: "含AI推荐、商品匹配", color: "hsl(221 83% 53%)" },
     { name: "导购数据权益包", desc: "含客户画像、行为分析", color: "hsl(210 80% 55%)" },
   ],
   customerData: [
-    { name: "精准客资权益包", desc: "含线索分配、客户管理", color: "hsl(var(--primary))" },
+    { name: "精准客资权益包", desc: "含线索分配、客户管理", color: "hsl(221 83% 53%)" },
     { name: "客资分析权益包", desc: "含转化分析、ROI报表", color: "hsl(210 80% 55%)" },
   ],
   smartPhoto: [
-    { name: "智能翻拍权益包", desc: "含AI抠图、场景替换", color: "hsl(var(--primary))" },
+    { name: "智能翻拍权益包", desc: "含AI抠图、场景替换", color: "hsl(221 83% 53%)" },
   ],
   live: [
-    { name: "直播权益包", desc: "含直播推流、互动工具", color: "hsl(var(--primary))" },
+    { name: "直播权益包", desc: "含直播推流、互动工具", color: "hsl(221 83% 53%)" },
   ],
 };
 
@@ -60,7 +60,7 @@ interface BenefitRow {
   packageName: string;
   applyMode: "指定人员" | "全部人员";
   applyCount: number;
-  dateRange: string; // "2026-01-01 ~ 2028-12-31"
+  dateRange: string;
 }
 
 interface ProductConfig {
@@ -71,7 +71,7 @@ interface ProductConfig {
 
 const createRow = (name?: string): BenefitRow => ({
   id: crypto.randomUUID(),
-  packageName: name || "3D工具渲染权益包",
+  packageName: name || "权益包",
   applyMode: "指定人员",
   applyCount: 10,
   dateRange: "2026-01-01 ~ 2028-12-31",
@@ -88,7 +88,6 @@ export default function EnterpriseCreate() {
     province: "广东", licenseFile: null as File | null,
     contactName: "", contactPhone: "", legalPerson: "", legalPhone: "",
     regCapital: "", brand: "",
-    // Step 2
     enabledProducts: ["domestic3d", "smartGuide"] as string[],
     joinSupplyChain: true,
     enableGenericConfig: false,
@@ -112,7 +111,6 @@ export default function EnterpriseCreate() {
         productRows: [],
       },
     } as Record<string, ProductConfig>,
-    // Step 3 - enterprise benefits
     maxSubCompanies: 30,
     autoGrantSub: false,
     expireDate: "2027-12-31",
@@ -473,7 +471,7 @@ function ProductConfigCard({
       </div>
 
       <div className="p-4 space-y-5">
-        <BenefitCardSection
+        <BenefitListSection
           label="权益套餐"
           rows={cfg.packageRows}
           productKey={product.key}
@@ -483,7 +481,7 @@ function ProductConfigCard({
           onUpdate={updateRow}
           onRemove={removeRow}
         />
-        <BenefitCardSection
+        <BenefitListSection
           label="权益商品"
           rows={cfg.productRows}
           productKey={product.key}
@@ -498,8 +496,8 @@ function ProductConfigCard({
   );
 }
 
-/* ============ Benefit Card Section ============ */
-function BenefitCardSection({
+/* ============ Benefit List Section (table with tag display) ============ */
+function BenefitListSection({
   label, rows, productKey, type, catalog, onAddWithName, onUpdate, onRemove,
 }: {
   label: string;
@@ -518,16 +516,15 @@ function BenefitCardSection({
     c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Color mapping by product for card borders
-  const getCardColor = (name: string) => {
+  const getTagColor = (name: string) => {
     const item = catalog.find((c) => c.name === name);
-    return item?.color || "hsl(var(--primary))";
+    return item?.color || "hsl(221 83% 53%)";
   };
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[12px] font-medium text-muted-foreground tracking-wide">{label}</span>
         <button
           onClick={() => setShowPicker(true)}
           className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
@@ -539,32 +536,92 @@ function BenefitCardSection({
       {rows.length === 0 ? (
         <div
           onClick={() => setShowPicker(true)}
-          className="flex flex-col items-center justify-center gap-2 py-6 border border-dashed rounded-lg text-muted-foreground cursor-pointer hover:border-primary hover:text-primary transition-colors"
+          className="flex flex-col items-center justify-center gap-1.5 py-5 border border-dashed rounded-lg text-muted-foreground cursor-pointer hover:border-primary hover:text-primary transition-colors"
         >
-          <Package className="h-5 w-5 opacity-60" />
+          <Plus className="h-4 w-4 opacity-60" />
           <span className="text-[12px]">点击添加{label}</span>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          {rows.map((row) => (
-            <BenefitCard
-              key={row.id}
-              row={row}
-              borderColor={getCardColor(row.packageName)}
-              productKey={productKey}
-              type={type}
-              onUpdate={onUpdate}
-              onRemove={() => onRemove(productKey, type, row.id)}
-            />
-          ))}
-          {/* Add card */}
-          <div
-            onClick={() => setShowPicker(true)}
-            className="flex flex-col items-center justify-center gap-1.5 min-h-[120px] border-2 border-dashed rounded-xl text-muted-foreground cursor-pointer hover:border-primary hover:text-primary transition-all hover:bg-primary/5"
-          >
-            <Plus className="h-5 w-5" />
-            <span className="text-[11px]">添加</span>
+        <div className="border rounded-lg overflow-hidden">
+          {/* Table header */}
+          <div className="grid grid-cols-[minmax(180px,1fr)_110px_72px_minmax(200px,1fr)_32px] bg-muted/50 border-b text-[12px] font-medium text-muted-foreground">
+            <div className="px-3 py-2">名称</div>
+            <div className="px-3 py-2">应用方式</div>
+            <div className="px-3 py-2">人数</div>
+            <div className="px-3 py-2">授权时间</div>
+            <div />
           </div>
+          {/* Rows */}
+          {rows.map((row) => {
+            const color = getTagColor(row.packageName);
+            const [startDate, endDate] = (row.dateRange || "").split(" ~ ");
+            return (
+              <div
+                key={row.id}
+                className="grid grid-cols-[minmax(180px,1fr)_110px_72px_minmax(200px,1fr)_32px] items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
+              >
+                {/* Name tag */}
+                <div className="px-3 py-2.5">
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[12px] font-medium whitespace-nowrap"
+                    style={{ backgroundColor: color.replace(')', ' / 0.08)').replace('hsl(', 'hsl('), color: color }}
+                  >
+                    <Package className="h-3 w-3 shrink-0" />
+                    {row.packageName}
+                  </span>
+                </div>
+                {/* Apply mode */}
+                <div className="px-3 py-2.5">
+                  <select
+                    className="filter-select h-7 text-[12px] w-full px-2"
+                    value={row.applyMode}
+                    onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}
+                  >
+                    <option value="指定人员">指定人员</option>
+                    <option value="全部人员">全部人员</option>
+                  </select>
+                </div>
+                {/* Count */}
+                <div className="px-2 py-2.5">
+                  {row.applyMode === "指定人员" ? (
+                    <input
+                      className="filter-input h-7 text-[12px] w-full text-center px-1"
+                      type="number"
+                      value={row.applyCount}
+                      onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))}
+                    />
+                  ) : (
+                    <span className="text-[12px] text-muted-foreground">全员</span>
+                  )}
+                </div>
+                {/* Date range */}
+                <div className="px-3 py-2.5 flex items-center gap-1.5">
+                  <input
+                    type="date"
+                    className="filter-input h-7 text-[12px] flex-1 px-1.5 min-w-0"
+                    value={startDate?.trim() || ""}
+                    onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${e.target.value} ~ ${endDate?.trim() || ""}`)}
+                  />
+                  <span className="text-[11px] text-muted-foreground shrink-0">~</span>
+                  <input
+                    type="date"
+                    className="filter-input h-7 text-[12px] flex-1 px-1.5 min-w-0"
+                    value={endDate?.trim() || ""}
+                    onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${startDate?.trim() || ""} ~ ${e.target.value}`)}
+                  />
+                </div>
+                {/* Delete */}
+                <div className="px-1 py-2.5 flex justify-center">
+                  <button
+                    onClick={() => onRemove(productKey, type, row.id)}
+                    className="w-6 h-6 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -634,92 +691,6 @@ function BenefitCardSection({
   );
 }
 
-/* ============ Single Benefit Card ============ */
-function BenefitCard({
-  row, borderColor, productKey, type, onUpdate, onRemove,
-}: {
-  row: BenefitRow;
-  borderColor: string;
-  productKey: string;
-  type: "packageRows" | "productRows";
-  onUpdate: (pk: string, t: "packageRows" | "productRows", id: string, field: string, value: any) => void;
-  onRemove: () => void;
-}) {
-  const [startDate, endDate] = (row.dateRange || "").split(" ~ ");
-
-  return (
-    <div className="relative group rounded-xl border-2 bg-card transition-all hover:shadow-md" style={{ borderColor: borderColor + '40' }}>
-      {/* Top accent line */}
-      <div className="absolute top-0 left-4 right-4 h-[2px] rounded-b" style={{ backgroundColor: borderColor }} />
-
-      {/* Remove button */}
-      <button
-        onClick={onRemove}
-        className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-      >
-        <X className="h-3 w-3" />
-      </button>
-
-      <div className="p-3 pt-4 space-y-3">
-        {/* Title row */}
-        <div className="flex items-start gap-2">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: borderColor + '15' }}>
-            <Package className="h-3.5 w-3.5" style={{ color: borderColor }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-semibold text-foreground leading-tight truncate">{row.packageName}</div>
-            <div className="flex items-center gap-2 mt-1.5">
-              <input
-                type="date"
-                className="filter-input h-6 text-[11px] w-[100px] px-1.5"
-                value={startDate?.trim() || ""}
-                onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${e.target.value} ~ ${endDate?.trim() || ""}`)}
-              />
-              <span className="text-[11px] text-muted-foreground">—</span>
-              <input
-                type="date"
-                className="filter-input h-6 text-[11px] w-[100px] px-1.5"
-                value={endDate?.trim() || ""}
-                onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${startDate?.trim() || ""} ~ ${e.target.value}`)}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Metrics row */}
-        <div className="flex items-center justify-between pt-2 border-t border-border/50">
-          <div className="flex items-center gap-1.5">
-            <select
-              className="filter-select h-6 text-[11px] w-[76px] px-1.5"
-              value={row.applyMode}
-              onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}
-            >
-              <option value="指定人员">指定人员</option>
-              <option value="全部人员">全部人员</option>
-            </select>
-            {row.applyMode === "指定人员" && (
-              <div className="flex items-center gap-0.5">
-                <input
-                  className="filter-input h-6 text-[11px] w-[40px] text-center px-1"
-                  type="number"
-                  value={row.applyCount}
-                  onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))}
-                />
-                <span className="text-[11px] text-muted-foreground">人</span>
-              </div>
-            )}
-          </div>
-          {row.applyMode === "全部人员" && (
-            <span className="text-[11px] text-muted-foreground">全员适用</span>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-
 /* ============ Step 3: 品牌配置 ============ */
 function StepBrandConfig({ form, update }: { form: any; update: (k: string, v: any) => void }) {
   return (
@@ -765,12 +736,6 @@ function SectionTitle({ title }: { title: string }) {
       <div className="w-1 h-4 rounded-full bg-primary" />
       <h3 className="text-sm font-semibold text-foreground">{title}</h3>
     </div>
-  );
-}
-
-function SubSection({ title }: { title: string }) {
-  return (
-    <h4 className="text-[13px] font-semibold text-foreground">{title}</h4>
   );
 }
 
