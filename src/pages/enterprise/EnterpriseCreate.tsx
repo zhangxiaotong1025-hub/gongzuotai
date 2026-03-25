@@ -500,15 +500,14 @@ function ProductConfigCard({
 
 /* ============ Benefit Card Section ============ */
 function BenefitCardSection({
-  label, rows, productKey, type, catalog, onAdd, onAddRaw, onUpdate, onRemove,
+  label, rows, productKey, type, catalog, onAddWithName, onUpdate, onRemove,
 }: {
   label: string;
   rows: BenefitRow[];
   productKey: string;
   type: "packageRows" | "productRows";
   catalog: { name: string; desc: string; color: string }[];
-  onAdd: (name: string) => void;
-  onAddRaw: () => void;
+  onAddWithName: (name: string) => void;
   onUpdate: (pk: string, t: "packageRows" | "productRows", id: string, field: string, value: any) => void;
   onRemove: (pk: string, t: "packageRows" | "productRows", id: string) => void;
 }) {
