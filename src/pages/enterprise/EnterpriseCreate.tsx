@@ -514,7 +514,7 @@ function BenefitSection({
             >
               <div className="px-3 py-2.5">
                 <select
-                  className="filter-select h-7 text-[12px] w-full max-w-[180px]"
+                  className="filter-select h-7 text-[12px] w-full"
                   value={row.packageName}
                   onChange={(e) => onUpdate(productKey, type, row.id, "packageName", e.target.value)}
                 >
