@@ -482,84 +482,75 @@ function BenefitSection({
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[12px] font-medium text-muted-foreground tracking-wide">{label}</span>
-        <button
-          onClick={onAdd}
-          className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
-        >
-          <Plus className="h-3.5 w-3.5" /> 添加
-        </button>
-      </div>
+      {rows.length > 0 && (
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[12px] font-medium text-muted-foreground">{label}</span>
+          <button onClick={onAdd} className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors font-medium">
+            <Plus className="h-3 w-3" /> 添加
+          </button>
+        </div>
+      )}
 
       {rows.length === 0 ? (
-        <div className="flex items-center justify-center py-6 border border-dashed rounded-lg text-[12px] text-muted-foreground">
-          暂无配置，点击"添加"按钮进行配置
+        <div
+          onClick={onAdd}
+          className="flex items-center justify-center gap-1.5 py-3 border border-dashed rounded-lg text-[12px] text-muted-foreground cursor-pointer hover:border-primary hover:text-primary transition-colors"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          添加{label}
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
-          <div className="grid grid-cols-[minmax(180px,1.2fr)_120px_100px_minmax(240px,1fr)_36px] gap-0 bg-muted/50 border-b text-[12px] text-muted-foreground font-medium">
-            <div className="px-3 py-2">名称</div>
-            <div className="px-3 py-2">应用方式</div>
-            <div className="px-3 py-2">人数</div>
-            <div className="px-3 py-2">授权时间</div>
-            <div className="px-3 py-2"></div>
+          <div className="grid grid-cols-[minmax(160px,1.2fr)_110px_90px_minmax(220px,1fr)_32px] gap-0 bg-muted/40 border-b text-[12px] text-muted-foreground font-medium">
+            <div className="px-3 py-1.5">名称</div>
+            <div className="px-3 py-1.5">应用方式</div>
+            <div className="px-3 py-1.5">人数</div>
+            <div className="px-3 py-1.5">授权时间</div>
+            <div />
           </div>
           {rows.map((row, idx) => (
             <div
               key={row.id}
-              className={`grid grid-cols-[minmax(180px,1.2fr)_120px_100px_minmax(240px,1fr)_36px] gap-0 items-center text-[12px] hover:bg-muted/20 transition-colors ${
-                idx < rows.length - 1 ? "border-b" : ""
+              className={`grid grid-cols-[minmax(160px,1.2fr)_110px_90px_minmax(220px,1fr)_32px] gap-0 items-center text-[12px] hover:bg-muted/20 transition-colors ${
+                idx < rows.length - 1 ? "border-b border-border/50" : ""
               }`}
             >
-              <div className="px-3 py-2.5">
-                <select
-                  className="filter-select h-7 text-[12px] w-full"
-                  value={row.packageName}
-                  onChange={(e) => onUpdate(productKey, type, row.id, "packageName", e.target.value)}
-                >
+              <div className="px-3 py-2">
+                <select className="filter-select h-7 text-[12px] w-full" value={row.packageName}
+                  onChange={(e) => onUpdate(productKey, type, row.id, "packageName", e.target.value)}>
                   {BENEFIT_PACKAGES.map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
-              <div className="px-3 py-2.5">
-                <select
-                  className="filter-select h-7 text-[12px] w-full"
-                  value={row.applyMode}
-                  onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}
-                >
+              <div className="px-3 py-2">
+                <select className="filter-select h-7 text-[12px] w-full" value={row.applyMode}
+                  onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}>
                   <option value="指定人员">指定人员</option>
                   <option value="全部人员">全部人员</option>
                 </select>
               </div>
-              <div className="px-3 py-2.5">
+              <div className="px-3 py-2">
                 {row.applyMode === "指定人员" ? (
                   <div className="flex items-center gap-1">
-                    <input
-                      className="filter-input h-7 text-[12px] w-[52px] text-center"
-                      type="number"
-                      value={row.applyCount}
-                      onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))}
-                    />
+                    <input className="filter-input h-7 text-[12px] w-[48px] text-center" type="number" value={row.applyCount}
+                      onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))} />
                     <span className="text-muted-foreground">人</span>
                   </div>
                 ) : (
                   <span className="text-muted-foreground">全员</span>
                 )}
               </div>
-              <div className="px-3 py-2.5">
-                <div className="flex items-center gap-1.5">
-                  <input className="filter-input h-7 text-[12px] w-[110px]" type="date" value={row.startDate}
+              <div className="px-3 py-2">
+                <div className="flex items-center gap-1">
+                  <input className="filter-input h-7 text-[12px] flex-1 min-w-0" type="date" value={row.startDate}
                     onChange={(e) => onUpdate(productKey, type, row.id, "startDate", e.target.value)} />
-                  <span className="text-muted-foreground">~</span>
-                  <input className="filter-input h-7 text-[12px] w-[110px]" type="date" value={row.endDate}
+                  <span className="text-muted-foreground shrink-0">~</span>
+                  <input className="filter-input h-7 text-[12px] flex-1 min-w-0" type="date" value={row.endDate}
                     onChange={(e) => onUpdate(productKey, type, row.id, "endDate", e.target.value)} />
                 </div>
               </div>
-              <div className="px-1 py-2.5 flex justify-center">
-                <button
-                  onClick={() => onRemove(productKey, type, row.id)}
-                  className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                >
+              <div className="flex justify-center">
+                <button onClick={() => onRemove(productKey, type, row.id)}
+                  className="w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -629,10 +620,10 @@ function SubSection({ title }: { title: string }) {
 
 function FormRow({ label, required, children, wide }: { label: string; required?: boolean; children: React.ReactNode; wide?: boolean }) {
   return (
-    <div className="flex items-start gap-4">
-      <label className={`text-[13px] text-muted-foreground pt-2 text-right shrink-0 ${wide ? "w-[140px]" : "w-[120px]"}`}>
+    <div className="flex items-start gap-3">
+      <label className={`text-[13px] text-muted-foreground pt-[7px] text-right shrink-0 ${wide ? "w-[120px]" : "w-[100px]"}`}>
         {required && <span className="text-destructive mr-0.5">*</span>}
-        {label}：
+        {label}
       </label>
       <div className="flex-1 min-w-0">{children}</div>
     </div>
