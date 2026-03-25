@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdminLayout } from "@/components/AdminLayout";
 import EnterpriseList from "./pages/enterprise/EnterpriseList";
+import EnterpriseCreate from "./pages/enterprise/EnterpriseCreate";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
@@ -20,6 +21,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/enterprise" replace />} />
             <Route path="/enterprise" element={<EnterpriseList />} />
+            <Route path="/enterprise/create" element={<EnterpriseCreate />} />
             <Route path="/enterprise/staff" element={<PlaceholderPage title="人员管理" />} />
             <Route path="/enterprise/apply" element={<PlaceholderPage title="企业入驻申请" />} />
             <Route path="/permission" element={<PlaceholderPage title="权限管理" />} />

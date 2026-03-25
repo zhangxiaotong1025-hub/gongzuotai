@@ -230,6 +230,15 @@ export default function EnterpriseList() {
           onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
         />
       </div>
+
+      <CreateEnterpriseDialog
+        open={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSelect={(type) => {
+          setShowCreateDialog(false);
+          navigate(`/enterprise/create?type=${type}`);
+        }}
+      />
     </div>
   );
 }
