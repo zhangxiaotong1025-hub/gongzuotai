@@ -111,6 +111,7 @@ export default function EnterpriseCreate() {
         ],
         productRows: [],
       },
+    } as Record<string, ProductConfig>,
     // Step 3 - enterprise benefits
     maxSubCompanies: 30,
     autoGrantSub: false,
