@@ -153,7 +153,8 @@ const columns: TableColumn<Enterprise>[] = [
 const actions: ActionItem<Enterprise>[] = [
   { label: "查看", onClick: (r) => console.log("查看", r.id) },
   { label: "编辑", onClick: (r) => console.log("编辑", r.id), visible: (r) => !r._level },
-  { label: "启用/停用", onClick: (r) => console.log("toggle", r.id) },
+  { label: "停用", onClick: (r) => console.log("停用", r.id), visible: (r) => r.status === "active", danger: true },
+  { label: "启用", onClick: (r) => console.log("启用", r.id), visible: (r) => r.status === "inactive" },
   { label: "设置管理员", onClick: (r) => console.log("admin", r.id) },
   { label: "新建子企业", onClick: (r) => console.log("sub", r.id), visible: (r) => !r._level },
   { label: "权益配置", onClick: (r) => console.log("entitlement", r.id) },
