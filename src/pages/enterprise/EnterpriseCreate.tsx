@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Check, ChevronLeft, Upload, X, Plus, Info } from "lucide-react";
+import { Check, ChevronLeft, Upload, X, Plus, Info, Search, Package } from "lucide-react";
 
 const TYPE_LABELS: Record<string, string> = {
   brand: "品牌商", dealer: "经销商", hq: "总部公司", studio: "工作室", supplier: "供应商",
