@@ -134,14 +134,14 @@ export default function EnterpriseCreate() {
     });
   };
 
-  const addRow = (productKey: string, type: "packageRows" | "productRows") => {
+  const addRow = (productKey: string, type: "packageRows" | "productRows", name?: string) => {
     setForm((prev) => {
       const cfg = prev.productConfigs[productKey] || { packageRows: [], productRows: [] };
       return {
         ...prev,
         productConfigs: {
           ...prev.productConfigs,
-          [productKey]: { ...cfg, [type]: [...cfg[type], createRow()] },
+          [productKey]: { ...cfg, [type]: [...cfg[type], createRow(name)] },
         },
       };
     });
