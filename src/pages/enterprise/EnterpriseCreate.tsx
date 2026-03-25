@@ -601,9 +601,7 @@ function BenefitCardSection({
                       key={item.name}
                       onClick={() => {
                         if (!alreadyAdded) {
-                          onAddRaw();
-                          // The newly added row will have default name, we'll handle it via the addRow which creates with default
-                          // Better: we close and it adds
+                          onAddWithName(item.name);
                           setShowPicker(false);
                           setSearch("");
                         }
