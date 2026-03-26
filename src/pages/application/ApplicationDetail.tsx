@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Building2, FileText, Edit3, ExternalLink, X as XIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Building2, FileText, Edit3, ExternalLink, X as XIcon, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { CreateEnterpriseDialog } from "@/pages/enterprise/CreateEnterpriseDialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogTitle,
@@ -12,6 +13,13 @@ import {
 type ApplicationStatus = "pending" | "created" | "closed";
 
 /* ── Mock Data ── */
+interface OpLog {
+  time: string;
+  operator: string;
+  action: string;
+  detail?: string;
+}
+
 const MOCK = {
   id: "APP0001",
   name: "上海自然博物馆有限公司",
@@ -39,10 +47,19 @@ const MOCK = {
   closeTime: undefined as string | undefined,
 };
 
+const INITIAL_LOGS: OpLog[] = [
+  { time: "2020-1-25 10:10", operator: "系统", action: "提交申请", detail: "企业通过官网提交入驻申请" },
+];
+
 const STATUS_MAP: Record<ApplicationStatus, { label: string; className: string }> = {
   pending: { label: "待处理", className: "badge-warning" },
   created: { label: "已创建企业", className: "badge-active" },
   closed: { label: "已关闭", className: "badge-inactive" },
+};
+
+const TYPE_KEY_MAP: Record<string, string> = {
+  "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
+  "卖场": "mall", "门店": "store", "工作室": "studio",
 };
 
 /* ── Detail Row ── */
@@ -77,7 +94,8 @@ export default function ApplicationDetail() {
   const [editing, setEditing] = useState(isEditMode);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [closeReasonInput, setCloseReasonInput] = useState("");
-  const [showProcessDialog, setShowProcessDialog] = useState(false);
+  const [showTypeDialog, setShowTypeDialog] = useState(false);
+  const [opLogs, setOpLogs] = useState<OpLog[]>(INITIAL_LOGS);
 
   // Editable fields state
   const [editForm, setEditForm] = useState({
@@ -96,25 +114,30 @@ export default function ApplicationDetail() {
   };
 
   const handleClose = () => {
+    const now = new Date().toLocaleString("zh-CN");
     setD((prev) => ({
       ...prev,
       status: "closed" as ApplicationStatus,
       closeReason: closeReasonInput.trim() || undefined,
-      closeTime: new Date().toLocaleString("zh-CN"),
+      closeTime: now,
     }));
+    setOpLogs((prev) => [...prev, {
+      time: now, operator: "当前用户", action: "关闭申请",
+      detail: closeReasonInput.trim() || undefined,
+    }]);
     setShowCloseConfirm(false);
     setCloseReasonInput("");
     toast.success("申请已关闭");
   };
 
-  const handleCreateEnterprise = () => {
-    setShowProcessDialog(false);
-    const typeKeyMap: Record<string, string> = {
-      "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
-      "卖场": "mall", "门店": "store", "工作室": "studio",
-    };
-    const typeKey = typeKeyMap[d.type] || "brand";
-    navigate(`/enterprise/create?type=${typeKey}&fromApplication=${d.id}`);
+  const handleTypeSelected = (type: string) => {
+    const now = new Date().toLocaleString("zh-CN");
+    setOpLogs((prev) => [...prev, {
+      time: now, operator: "当前用户", action: "创建企业",
+      detail: `选择企业类型进入创建流程`,
+    }]);
+    setShowTypeDialog(false);
+    navigate(`/enterprise/create?type=${type}&fromApplication=${d.id}`);
   };
 
   return (
