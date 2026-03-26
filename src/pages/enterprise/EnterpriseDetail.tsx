@@ -1,17 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Info, Building2, Package, Tag, CheckCircle2, XCircle, Clock, Edit3 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Building2, Package, Tag, CheckCircle2, XCircle, Clock, Edit3, Info, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { AuditDialog, AuditTimeline, type AuditRecord } from "./AuditDialog";
 
 /* ── Types ── */
 type AuditStatus = "pending" | "approved" | "rejected";
@@ -33,7 +24,7 @@ const MOCK_DETAIL = {
   address: "上海市浦东新区陆家嘴金融中心8号楼XXX室",
   activationCode: "ACT-2025-0088",
   status: "active" as const,
-  auditStatus: "approved" as AuditStatus,
+  auditStatus: "pending" as AuditStatus,
   admin: "张伟",
   enabledProducts: ["国内3D工具", "国际3D工具", "精准客资"],
   supplyChain: "加入",
@@ -57,6 +48,11 @@ const MOCK_DETAIL = {
   subEnterpriseExpiry: "2027-12-31",
   ownedBrands: ["欧派", "索菲亚", "尚品宅配", "金牌厨柜"],
   agentBrands: ["志邦", "我乐", "好莱客", "皮阿诺", "顶固", "百得胜", "诗尼曼"],
+  auditRecords: [
+    { id: "ar-1", action: "submit" as const, operator: "李娜", time: "2026-01-15 09:30", remark: "新企业创建，提交审核" },
+    { id: "ar-2", action: "reject" as const, operator: "王强", time: "2026-01-16 14:20", remark: "营业执照信息不完整，请补充后重新提交" },
+    { id: "ar-3", action: "resubmit" as const, operator: "李娜", time: "2026-01-17 10:00", remark: "已补充营业执照信息，重新提交审核" },
+  ] as AuditRecord[],
 };
 
 /* ── Audit Status Config ── */
@@ -66,7 +62,7 @@ const AUDIT_CFG: Record<AuditStatus, { label: string; icon: typeof Clock; status
   rejected: { label: "审核驳回", icon: XCircle, statusVar: "destructive" },
 };
 
-/* ── Section Header (unified with create page style) ── */
+/* ── Section Header ── */
 function SectionHeader({ title, icon: Icon }: { title: string; icon: typeof Building2 }) {
   return (
     <div className="flex items-center gap-2.5 px-6 py-3 border-b" style={{ background: "hsl(var(--muted) / 0.5)" }}>
@@ -76,7 +72,7 @@ function SectionHeader({ title, icon: Icon }: { title: string; icon: typeof Buil
   );
 }
 
-/* ── Sub-section Title (matches create page SectionTitle) ── */
+/* ── Sub-section Title ── */
 function SubTitle({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-2 mb-4">
@@ -86,7 +82,7 @@ function SubTitle({ title }: { title: string }) {
   );
 }
 
-/* ── Detail Row - uses same label width as FormRow in create page ── */
+/* ── Detail Row ── */
 function DetailItem({ label, value, highlight, className }: {
   label: string;
   value: React.ReactNode;
@@ -126,7 +122,6 @@ const VARIANT_COLORS: Record<string, { border: string; bg: string; text: string;
 function BenefitCard({ pkg }: { pkg: typeof MOCK_DETAIL.benefitPackages[0] }) {
   const ratio = pkg.total > 0 ? pkg.used / pkg.total : 0;
   const c = VARIANT_COLORS[pkg.variant] || VARIANT_COLORS.primary;
-
   return (
     <div
       className="rounded-xl p-3.5 w-[185px] relative overflow-hidden transition-shadow hover:shadow-md"
@@ -162,24 +157,33 @@ export default function EnterpriseDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [d, setD] = useState(MOCK_DETAIL);
-  const [confirmDialog, setConfirmDialog] = useState<{ type: "approve" | "reject" } | null>(null);
+  const [showAuditDialog, setShowAuditDialog] = useState(false);
 
   const auditCfg = AUDIT_CFG[d.auditStatus];
   const AuditIcon = auditCfg.icon;
+  const hasBrands = d.type === "brand" || d.type === "mall";
 
-  const handleAudit = (action: "approve" | "reject") => {
+  const handleAuditConfirm = (result: { action: "approve" | "reject"; remark: string }) => {
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const newRecord: AuditRecord = {
+      id: `ar-${Date.now()}`,
+      action: result.action,
+      operator: "当前用户",
+      time: timeStr,
+      remark: result.remark,
+    };
     setD((prev) => ({
       ...prev,
-      auditStatus: action === "approve" ? "approved" : "rejected",
+      auditStatus: result.action === "approve" ? "approved" : "rejected",
+      auditRecords: [...prev.auditRecords, newRecord],
     }));
-    setConfirmDialog(null);
+    setShowAuditDialog(false);
   };
-
-  const hasBrands = d.type === "brand" || d.type === "mall";
 
   return (
     <div className="space-y-4">
-      {/* Breadcrumb + Actions — same height and spacing as PageHeader */}
+      {/* Breadcrumb + Actions */}
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-baseline gap-2">
           <span
@@ -202,25 +206,13 @@ export default function EnterpriseDetail() {
             返回列表
           </Button>
           {d.auditStatus === "pending" && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 text-[13px] px-4"
-                style={{ borderColor: "hsl(var(--destructive) / 0.3)", color: "hsl(var(--destructive))" }}
-                onClick={() => setConfirmDialog({ type: "reject" })}
-              >
-                驳回
-              </Button>
-              <Button
-                size="sm"
-                className="h-9 text-[13px] px-4 gap-1.5"
-                style={{ background: "hsl(var(--success))" }}
-                onClick={() => setConfirmDialog({ type: "approve" })}
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" /> 审核通过
-              </Button>
-            </>
+            <Button
+              size="sm"
+              className="h-9 text-[13px] px-4 gap-1.5"
+              onClick={() => setShowAuditDialog(true)}
+            >
+              审核
+            </Button>
           )}
           <Button
             size="sm"
@@ -275,10 +267,7 @@ export default function EnterpriseDetail() {
             <DetailItem label="企业ID" value={d.id} />
             <DetailItem label="组织结构" value={
               <span className="flex items-center gap-1.5">
-                <span
-                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium"
-                  style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}
-                >
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}>
                   {d.orgStructure}
                 </span>
                 <span className="text-foreground">{d.orgName}</span>
@@ -300,7 +289,6 @@ export default function EnterpriseDetail() {
         {/* ── 权益配置 ── */}
         <SectionHeader title="权益配置" icon={Package} />
         <div className="px-6 py-5 space-y-7">
-          {/* 基础权益 */}
           <div>
             <SubTitle title="基础权益" />
             <div className="grid grid-cols-3 gap-x-6 gap-y-3">
@@ -314,16 +302,13 @@ export default function EnterpriseDetail() {
             </div>
           </div>
 
-          {/* 3D工具权益 */}
           <div>
             <SubTitle title="3D工具权益" />
             <div className="mb-5">
               <div className="flex items-start gap-3">
                 <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-1">权益包：</span>
                 <div className="flex gap-3 flex-wrap">
-                  {d.benefitPackages.map((pkg, i) => (
-                    <BenefitCard key={i} pkg={pkg} />
-                  ))}
+                  {d.benefitPackages.map((pkg, i) => <BenefitCard key={i} pkg={pkg} />)}
                 </div>
               </div>
             </div>
@@ -342,7 +327,6 @@ export default function EnterpriseDetail() {
             </div>
           </div>
 
-          {/* 企业权益 */}
           <div>
             <SubTitle title="企业权益" />
             <div className="grid grid-cols-3 gap-x-6 gap-y-3">
@@ -373,36 +357,25 @@ export default function EnterpriseDetail() {
             </div>
           </>
         )}
+
+        {/* ── 审核记录 ── */}
+        <SectionHeader title="审核记录" icon={History} />
+        <div className="px-6 py-5">
+          {d.auditRecords.length > 0 ? (
+            <AuditTimeline records={[...d.auditRecords].reverse()} />
+          ) : (
+            <div className="text-[13px] text-muted-foreground py-4 text-center">暂无审核记录</div>
+          )}
+        </div>
       </div>
 
-      {/* ── Audit Confirmation Dialog ── */}
-      <AlertDialog open={!!confirmDialog} onOpenChange={() => setConfirmDialog(null)}>
-        <AlertDialogContent
-          className="max-w-[420px] overflow-hidden rounded-xl border bg-card p-0"
-          style={{ boxShadow: "var(--shadow-md)" }}
-        >
-          <div className="border-b px-5 py-4" style={{ background: "hsl(var(--muted) / 0.4)" }}>
-            <AlertDialogTitle className="text-[15px] font-semibold text-foreground">
-              {confirmDialog?.type === "approve" ? "确认审核通过？" : "确认驳回该企业？"}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="mt-1 text-[13px] leading-6 text-muted-foreground">
-              {confirmDialog?.type === "approve"
-                ? "审核通过后该企业可以被启用，并正常使用已配置的产品和权益。"
-                : "驳回后企业信息需要重新编辑并提交审核，当前配置将保留。"}
-            </AlertDialogDescription>
-          </div>
-          <AlertDialogFooter className="gap-2 px-5 py-4">
-            <AlertDialogCancel className="mt-0 h-9 rounded-lg px-4 text-[13px]">取消</AlertDialogCancel>
-            <AlertDialogAction
-              className={`h-9 rounded-lg px-4 text-[13px] ${confirmDialog?.type === "reject" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}`}
-              style={confirmDialog?.type === "approve" ? { background: "hsl(var(--success))", color: "hsl(var(--success-foreground))" } : undefined}
-              onClick={() => confirmDialog && handleAudit(confirmDialog.type)}
-            >
-              {confirmDialog?.type === "approve" ? "确认通过" : "确认驳回"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Audit Dialog */}
+      <AuditDialog
+        open={showAuditDialog}
+        onClose={() => setShowAuditDialog(false)}
+        enterpriseName={d.name}
+        onConfirm={handleAuditConfirm}
+      />
     </div>
   );
 }

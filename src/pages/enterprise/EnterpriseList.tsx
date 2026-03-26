@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Plus, Download } from "lucide-react";
 import { CreateEnterpriseDialog } from "./CreateEnterpriseDialog";
 import { SetAdminDialog } from "./SetAdminDialog";
+import { AuditDialog, type AuditRecord } from "./AuditDialog";
 import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
@@ -27,6 +28,8 @@ interface Enterprise {
   admin?: string;
   children?: Enterprise[];
   _level?: number;
+  frozen?: boolean; // cascading freeze from parent
+  auditRecords?: AuditRecord[];
 }
 
 // ===== Mock Data =====
@@ -81,6 +84,15 @@ function generateEnterprise(id: string, depth = 0, parentType?: string): Enterpr
     creator: CREATORS[Math.floor(Math.random() * CREATORS.length)],
     updatedAt: `2026-0${Math.floor(Math.random() * 3) + 1}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")} ${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
     note: ["核心战略客户", "稳定续费客户，主要销售硬装瓷砖", "新签约客户，试用期", "重点关注客户", "年度合作伙伴"][Math.floor(Math.random() * 5)],
+    auditRecords: [
+      {
+        id: `${id}-ar-1`,
+        action: "submit",
+        operator: CREATORS[Math.floor(Math.random() * CREATORS.length)],
+        time: `2026-01-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")} 14:30`,
+        remark: "新企业创建，提交审核",
+      },
+    ],
     children: hasChildren ? Array.from({ length: childCount }, (_, i) => generateEnterprise(`${id}-${i + 1}`, depth + 1, type)) : [],
   };
 }
@@ -112,7 +124,14 @@ const columns: TableColumn<Enterprise>[] = [
     key: "name",
     title: "企业名称",
     minWidth: 260,
-    render: (v) => <span className="text-foreground font-medium">{v}</span>,
+    render: (v, row) => (
+      <span className="text-foreground font-medium">
+        {v}
+        {(row as Enterprise).frozen && (
+          <span className="ml-1.5 badge-danger text-[10px] py-0">已冻结</span>
+        )}
+      </span>
+    ),
   },
   {
     key: "type",
@@ -138,7 +157,11 @@ const columns: TableColumn<Enterprise>[] = [
     title: "业务状态",
     minWidth: 90,
     render: (v, row) => {
-      if ((row as Enterprise).auditStatus !== "approved") {
+      const ent = row as Enterprise;
+      if (ent.frozen) {
+        return <span className="badge-danger">已冻结</span>;
+      }
+      if (ent.auditStatus !== "approved") {
         return <span className="text-xs text-muted-foreground">—</span>;
       }
       return (
@@ -199,6 +222,26 @@ const columns: TableColumn<Enterprise>[] = [
   },
 ];
 
+// ===== Cascade freeze/unfreeze helpers =====
+function freezeChildren(children?: Enterprise[]): Enterprise[] | undefined {
+  if (!children) return children;
+  return children.map((c) => ({
+    ...c,
+    frozen: true,
+    status: "inactive" as const,
+    children: freezeChildren(c.children),
+  }));
+}
+
+function unfreezeChildren(children?: Enterprise[]): Enterprise[] | undefined {
+  if (!children) return children;
+  return children.map((c) => ({
+    ...c,
+    frozen: false,
+    children: unfreezeChildren(c.children),
+  }));
+}
+
 export default function EnterpriseList() {
   const navigate = useNavigate();
   const [data, setData] = useState<Enterprise[]>(initialData);
@@ -209,6 +252,7 @@ export default function EnterpriseList() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [adminTarget, setAdminTarget] = useState<Enterprise | null>(null);
   const [subParent, setSubParent] = useState<Enterprise | null>(null);
+  const [auditTarget, setAuditTarget] = useState<Enterprise | null>(null);
   const totalItems = 1200;
 
   const toggleExpand = useCallback((id: string) => {
@@ -229,10 +273,30 @@ export default function EnterpriseList() {
     setData((prev) => updateTree(prev));
   }, []);
 
+  // Cascade-aware update: when rejecting/disabling parent, freeze all children
+  const updateWithCascade = useCallback((id: string, patch: Partial<Enterprise>, cascade: "freeze" | "unfreeze" | "none") => {
+    const updateTree = (items: Enterprise[]): Enterprise[] =>
+      items.map((e) => {
+        if (e.id === id) {
+          const updated = { ...e, ...patch };
+          if (cascade === "freeze") {
+            updated.children = freezeChildren(e.children);
+          } else if (cascade === "unfreeze") {
+            updated.children = unfreezeChildren(e.children);
+          }
+          return updated;
+        }
+        return { ...e, children: e.children ? updateTree(e.children) : e.children };
+      });
+    setData((prev) => updateTree(prev));
+  }, []);
+
   const handleToggleStatus = useCallback((record: Enterprise) => {
     const newStatus = record.status === "active" ? "inactive" : "active";
-    updateEnterprise(record.id, { status: newStatus });
-  }, [updateEnterprise]);
+    // Disabling parent → freeze children; enabling → unfreeze children
+    const cascade = newStatus === "inactive" ? "freeze" : "unfreeze";
+    updateWithCascade(record.id, { status: newStatus }, cascade);
+  }, [updateWithCascade]);
 
   const handleEnableClick = useCallback((record: Enterprise) => {
     if (!record.admin) {
@@ -242,58 +306,54 @@ export default function EnterpriseList() {
     handleToggleStatus(record);
   }, [handleToggleStatus]);
 
-  const handleApprove = useCallback((record: Enterprise) => {
-    updateEnterprise(record.id, { auditStatus: "approved" });
-  }, [updateEnterprise]);
-
-  const handleReject = useCallback((record: Enterprise) => {
-    updateEnterprise(record.id, { auditStatus: "rejected" });
-  }, [updateEnterprise]);
+  const handleAuditConfirm = useCallback((result: { action: "approve" | "reject"; remark: string }) => {
+    if (!auditTarget) return;
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    const newRecord: AuditRecord = {
+      id: `ar-${Date.now()}`,
+      action: result.action,
+      operator: "当前用户",
+      time: timeStr,
+      remark: result.remark,
+    };
+    const newAuditStatus = result.action === "approve" ? "approved" : "rejected";
+    const cascade = result.action === "reject" ? "freeze" : "none";
+    updateWithCascade(auditTarget.id, {
+      auditStatus: newAuditStatus as AuditStatus,
+      auditRecords: [...(auditTarget.auditRecords || []), newRecord],
+    }, cascade as "freeze" | "unfreeze" | "none");
+    setAuditTarget(null);
+  }, [auditTarget, updateWithCascade]);
 
   const listActions: ActionItem<Enterprise>[] = [
     { label: "查看", onClick: (r) => navigate(`/enterprise/detail/${r.id}`) },
     {
-      label: "审核通过",
-      onClick: handleApprove,
+      label: "审核",
+      onClick: (r) => setAuditTarget(r),
       visible: (r) => r.auditStatus === "pending",
-      confirm: {
-        title: "确认审核通过？",
-        description: "审核通过后该企业可以被启用。",
-        confirmLabel: "确认通过",
-      },
-    },
-    {
-      label: "审核驳回",
-      onClick: handleReject,
-      visible: (r) => r.auditStatus === "pending",
-      danger: true,
-      confirm: {
-        title: "确认驳回该企业？",
-        description: "驳回后企业信息需要重新编辑并提交审核。",
-        confirmLabel: "确认驳回",
-      },
     },
     {
       label: "停用",
       onClick: handleToggleStatus,
-      visible: (r) => r.auditStatus === "approved" && r.status === "active",
+      visible: (r) => r.auditStatus === "approved" && r.status === "active" && !r.frozen,
       danger: true,
       confirm: {
         title: "确认停用该企业？",
-        description: "停用后该企业将暂时无法继续使用当前能力，后续可在列表中重新启用。",
+        description: "停用后该企业及其所有子企业将被冻结，暂时无法使用，后续可重新启用。",
         confirmLabel: "确认停用",
       },
     },
     {
       label: "启用",
       onClick: handleEnableClick,
-      visible: (r) => r.auditStatus === "approved" && r.status === "inactive",
+      visible: (r) => r.auditStatus === "approved" && r.status === "inactive" && !r.frozen,
     },
     { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
     {
       label: "新建子企业",
       onClick: (r) => setSubParent(r),
-      visible: (r) => (r._level || 0) < 2,
+      visible: (r) => (r._level || 0) < 2 && !r.frozen,
     },
     { label: "权益配置", onClick: (r) => navigate(`/enterprise/detail/${r.id}`) },
   ];
@@ -391,6 +451,13 @@ export default function EnterpriseList() {
           }
           setAdminTarget(null);
         }}
+      />
+
+      <AuditDialog
+        open={Boolean(auditTarget)}
+        onClose={() => setAuditTarget(null)}
+        enterpriseName={auditTarget?.name}
+        onConfirm={handleAuditConfirm}
       />
     </div>
   );
