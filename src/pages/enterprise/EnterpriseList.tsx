@@ -184,6 +184,7 @@ export default function EnterpriseList() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [adminTarget, setAdminTarget] = useState<Enterprise | null>(null);
   const [subParent, setSubParent] = useState<Enterprise | null>(null);
+  const totalItems = 1200;
 
   const toggleExpand = useCallback((id: string) => {
     setExpanded((prev) => {
