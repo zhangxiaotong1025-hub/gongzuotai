@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 
 const TYPE_LABELS: Record<string, string> = {
-  brand: "品牌商", dealer: "经销商", hq: "总部公司", studio: "工作室", supplier: "供应商",
+  mall: "卖场", brand: "品牌商", dealer: "经销商", decoration: "装修公司", studio: "工作室", store: "门店",
 };
 
 const ALL_STEPS = [
@@ -19,14 +19,15 @@ const ALL_STEPS = [
 ];
 
 // 企业类型与品牌关系映射
-// brand(品牌商) → 拥有品牌(创建); dealer(经销商) → 代理品牌(关联); hq → 两者皆有; studio/supplier → 无品牌配置
+// mall(卖场) → 拥有+代理; brand(品牌商) → 拥有+代理; dealer(经销商) → 代理; decoration(装修公司) → 无关; studio(工作室) → 无关; store(门店) → 无关
 type BrandRelation = "own" | "agent" | "both" | "none";
 const TYPE_BRAND_RELATION: Record<string, BrandRelation> = {
-  brand: "own",
+  mall: "both",
+  brand: "both",
   dealer: "agent",
-  hq: "both",
+  decoration: "none",
   studio: "none",
-  supplier: "none",
+  store: "none",
 };
 
 function getStepsForType(type: string) {
