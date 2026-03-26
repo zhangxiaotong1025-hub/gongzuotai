@@ -11,12 +11,31 @@ const TYPE_LABELS: Record<string, string> = {
   brand: "品牌商", dealer: "经销商", hq: "总部公司", studio: "工作室", supplier: "供应商",
 };
 
-const STEPS = [
+const ALL_STEPS = [
   { key: "basic", label: "基础信息" },
   { key: "product", label: "权益配置" },
   { key: "config", label: "品牌配置" },
   { key: "done", label: "完成" },
 ];
+
+// 企业类型与品牌关系映射
+// brand(品牌商) → 拥有品牌(创建); dealer(经销商) → 代理品牌(关联); hq → 两者皆有; studio/supplier → 无品牌配置
+type BrandRelation = "own" | "agent" | "both" | "none";
+const TYPE_BRAND_RELATION: Record<string, BrandRelation> = {
+  brand: "own",
+  dealer: "agent",
+  hq: "both",
+  studio: "none",
+  supplier: "none",
+};
+
+function getStepsForType(type: string) {
+  const relation = TYPE_BRAND_RELATION[type] || "none";
+  if (relation === "none") {
+    return ALL_STEPS.filter((s) => s.key !== "config");
+  }
+  return ALL_STEPS;
+}
 
 const INDUSTRIES = ["家居建材", "家具制造", "装饰装修", "智能家居", "软装设计", "其他"];
 const PROVINCES = ["北京", "上海", "广东", "浙江", "江苏", "四川", "湖北", "山东", "福建", "湖南"];
@@ -128,10 +147,34 @@ const createRow = (name?: string): BenefitRow => ({
   dateRange: "2026-01-01 ~ 2028-12-31",
 });
 
+interface OwnedBrand {
+  id: string;
+  name: string;
+  logo: null;
+  country: string;
+  info: string;
+  categories: string[];
+  series: string[];
+}
+
+const MOCK_AGENT_BRANDS = [
+  { id: "b1", name: "马可波罗", logo: "🏷️" },
+  { id: "b2", name: "东鹏瓷砖", logo: "🏷️" },
+  { id: "b3", name: "诺贝尔瓷砖", logo: "🏷️" },
+  { id: "b4", name: "蒙娜丽莎", logo: "🏷️" },
+  { id: "b5", name: "冠珠陶瓷", logo: "🏷️" },
+  { id: "b6", name: "新中源陶瓷", logo: "🏷️" },
+];
+
+const COUNTRIES = ["中国", "美国", "日本", "韩国", "德国", "意大利", "法国", "英国"];
+const CATEGORIES = ["瓷砖", "卫浴", "地板", "涂料", "灯具", "家具", "橱柜", "门窗", "五金", "墙纸"];
+
 export default function EnterpriseCreate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type") || "brand";
+  const brandRelation = TYPE_BRAND_RELATION[type] || "none";
+  const steps = useMemo(() => getStepsForType(type), [type]);
   const [currentStep, setCurrentStep] = useState(0);
 
   const [form, setForm] = useState({
@@ -165,6 +208,9 @@ export default function EnterpriseCreate() {
     maxSubCompanies: 30,
     autoGrantSub: false,
     expireDate: "2027-12-31",
+    // Brand config
+    ownedBrands: [] as OwnedBrand[],
+    agentBrandIds: [] as string[],
   });
 
   const update = (key: string, value: any) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -240,7 +286,29 @@ export default function EnterpriseCreate() {
     });
   };
 
-  const goNext = () => setCurrentStep((s) => Math.min(s + 1, STEPS.length - 1));
+  // Owned brand CRUD
+  const addOwnedBrand = () => {
+    update("ownedBrands", [
+      ...form.ownedBrands,
+      { id: crypto.randomUUID(), name: "", logo: null, country: "中国", info: "", categories: [], series: [] },
+    ]);
+  };
+  const removeOwnedBrand = (id: string) => update("ownedBrands", form.ownedBrands.filter((b: OwnedBrand) => b.id !== id));
+  const updateOwnedBrand = (id: string, field: string, value: any) => {
+    update("ownedBrands", form.ownedBrands.map((b: OwnedBrand) => b.id === id ? { ...b, [field]: value } : b));
+  };
+
+  // Agent brand toggle
+  const toggleAgentBrand = (brandId: string) => {
+    const ids = form.agentBrandIds as string[];
+    update("agentBrandIds", ids.includes(brandId) ? ids.filter((id) => id !== brandId) : [...ids, brandId]);
+  };
+
+  const currentStepKey = steps[currentStep]?.key;
+  const lastStepIndex = steps.length - 1;
+  const isLastContentStep = currentStep === lastStepIndex - 1; // step before "done"
+
+  const goNext = () => setCurrentStep((s) => Math.min(s + 1, lastStepIndex));
   const goPrev = () => setCurrentStep((s) => Math.max(s - 1, 0));
 
   return (
@@ -259,7 +327,7 @@ export default function EnterpriseCreate() {
       {/* Stepper */}
       <div className="bg-card rounded-xl border p-6 mb-5" style={{ boxShadow: 'var(--shadow-xs)' }}>
         <div className="flex items-center justify-center max-w-[600px] mx-auto">
-          {STEPS.map((step, i) => {
+          {steps.map((step, i) => {
             const isCompleted = i < currentStep;
             const isCurrent = i === currentStep;
             return (
@@ -276,7 +344,7 @@ export default function EnterpriseCreate() {
                     {step.label}
                   </span>
                 </div>
-                {i < STEPS.length - 1 && (
+                {i < steps.length - 1 && (
                   <div className="flex-1 mx-4">
                     <div className={`h-px ${i < currentStep ? "bg-primary" : "bg-border"}`} />
                   </div>
@@ -289,8 +357,8 @@ export default function EnterpriseCreate() {
 
       {/* Step Content */}
       <div className="bg-card rounded-xl border" style={{ boxShadow: 'var(--shadow-xs)' }}>
-        {currentStep === 0 && <StepBasic form={form} update={update} />}
-        {currentStep === 1 && (
+        {currentStepKey === "basic" && <StepBasic form={form} update={update} />}
+        {currentStepKey === "product" && (
           <StepBenefits
             form={form}
             update={update}
@@ -301,26 +369,36 @@ export default function EnterpriseCreate() {
             updateProductAccountCount={updateProductAccountCount}
           />
         )}
-        {currentStep === 2 && <StepBrandConfig form={form} update={update} />}
-        {currentStep === 3 && <StepDone type={type} />}
+        {currentStepKey === "config" && (
+          <StepBrandConfig
+            form={form}
+            update={update}
+            brandRelation={brandRelation}
+            addOwnedBrand={addOwnedBrand}
+            removeOwnedBrand={removeOwnedBrand}
+            updateOwnedBrand={updateOwnedBrand}
+            toggleAgentBrand={toggleAgentBrand}
+          />
+        )}
+        {currentStepKey === "done" && <StepDone type={type} />}
 
         {/* Actions */}
         <div className="flex justify-center gap-3 px-6 py-5 border-t">
-          {currentStep > 0 && currentStep < 3 && (
-            <button onClick={() => { if (currentStep === 1) { setCurrentStep(0); } else goPrev(); }} className="btn-secondary">取消</button>
-          )}
           {currentStep === 0 && (
             <button onClick={() => navigate("/enterprise")} className="btn-secondary">取消</button>
           )}
-          {currentStep > 0 && currentStep < 3 && (
-            <button onClick={goPrev} className="btn-secondary">上一步</button>
+          {currentStep > 0 && currentStepKey !== "done" && (
+            <>
+              <button onClick={() => navigate("/enterprise")} className="btn-secondary">取消</button>
+              <button onClick={goPrev} className="btn-secondary">上一步</button>
+            </>
           )}
-          {currentStep < 3 && (
+          {currentStepKey !== "done" && (
             <button onClick={goNext} className="btn-primary">
-              {currentStep === 2 ? "提交" : "下一步"}
+              {isLastContentStep ? "提交" : "下一步"}
             </button>
           )}
-          {currentStep === 3 && (
+          {currentStepKey === "done" && (
             <button onClick={() => navigate("/enterprise")} className="btn-primary">返回列表</button>
           )}
         </div>
@@ -389,99 +467,90 @@ function StepBenefits({
   form: any;
   update: (k: string, v: any) => void;
   toggleProduct: (key: string) => void;
-  addRow: (productKey: string, type: "packageRows" | "productRows") => void;
+  addRow: (productKey: string, type: "packageRows" | "productRows", name?: string) => void;
   removeRow: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
   updateRow: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: any) => void;
   updateProductAccountCount: (productKey: string, count: number) => void;
 }) {
   return (
     <div>
-      {/* 产品权益 Section Header */}
       <div className="px-6 py-4 border-b bg-muted/30">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <div className="w-1 h-4 rounded-full bg-primary" />
           产品权益
         </h3>
       </div>
-
       <div className="p-6 space-y-6">
-        {/* 基础权益 */}
         <div className="space-y-4">
           <FormRow label="开通产品" wide>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               {AVAILABLE_PRODUCTS.map((p) => {
                 const checked = form.enabledProducts.includes(p.key);
                 return (
-                  <label
-                    key={p.key}
-                    className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none group"
-                    onClick={(e) => { e.preventDefault(); toggleProduct(p.key); }}
-                  >
+                  <label key={p.key} className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none group"
+                    onClick={(e) => { e.preventDefault(); toggleProduct(p.key); }}>
                     <div className={`w-4 h-4 rounded border-[1.5px] flex items-center justify-center transition-all ${
                       checked ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
                     }`}>
                       {checked && <Check className="h-3 w-3 text-primary-foreground" />}
                     </div>
-                    <span className={checked ? "text-foreground font-medium" : "text-muted-foreground"}>{p.label}</span>
+                    <span className={checked ? "text-foreground" : "text-muted-foreground"}>{p.label}</span>
                   </label>
                 );
               })}
             </div>
           </FormRow>
-          <FormRow label="是否加入供应链" wide>
-            <div className="flex items-center gap-5">
-              {[{ val: true, label: "加入" }, { val: false, label: "不加入" }].map((opt) => (
-                <label key={String(opt.val)} className="inline-flex items-center gap-2 text-[13px] cursor-pointer">
-                  <div className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center transition-all ${
-                    form.joinSupplyChain === opt.val ? "border-primary" : "border-border"
-                  }`}>
-                    {form.joinSupplyChain === opt.val && <div className="w-2 h-2 rounded-full bg-primary" />}
-                  </div>
-                  <span className={form.joinSupplyChain === opt.val ? "text-foreground" : "text-muted-foreground"}>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-          </FormRow>
-          <FormRow label="通用权益配置" wide>
-            <ToggleSwitch checked={form.enableGenericConfig} onChange={() => update("enableGenericConfig", !form.enableGenericConfig)} />
-          </FormRow>
         </div>
 
-        {/* Per-product configurations */}
-        {AVAILABLE_PRODUCTS.filter((p) => form.enabledProducts.includes(p.key)).map((product) => {
-          const cfg: ProductConfig = form.productConfigs[product.key] || { packageRows: [], productRows: [] };
+        {form.enabledProducts.map((pKey: string) => {
+          const product = AVAILABLE_PRODUCTS.find((p) => p.key === pKey);
+          if (!product) return null;
+          const cfg = form.productConfigs[pKey] || { packageRows: [], productRows: [], accountCount: 30 };
+          const catalog = BENEFIT_CATALOG[pKey] || [];
           return (
-            <ProductConfigCard
-              key={product.key}
-              product={product}
-              cfg={cfg}
-              addRow={addRow}
-              removeRow={removeRow}
-              updateRow={updateRow}
-              updateProductAccountCount={updateProductAccountCount}
-            />
+            <div key={pKey} className="border rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 bg-muted/30 border-b">
+                <span className="text-[13px] font-semibold text-foreground">{product.label}</span>
+              </div>
+              <div className="p-5 space-y-5">
+                <FormRow label="产品人数" wide>
+                  <input className="filter-input w-32" type="number" value={cfg.accountCount || 30}
+                    onChange={(e) => updateProductAccountCount(pKey, Number(e.target.value))} />
+                  <span className="text-[12px] text-muted-foreground ml-2">人</span>
+                </FormRow>
+                <BenefitListSection
+                  label="权益包" productKey={pKey} type="packageRows" rows={cfg.packageRows} catalog={catalog}
+                  onAdd={addRow} onRemove={removeRow} onUpdate={updateRow}
+                  onAddWithName={(name) => addRow(pKey, "packageRows", name)}
+                />
+                <BenefitListSection
+                  label="权益商品" productKey={pKey} type="productRows" rows={cfg.productRows} catalog={catalog}
+                  onAdd={addRow} onRemove={removeRow} onUpdate={updateRow}
+                  onAddWithName={(name) => addRow(pKey, "productRows", name)}
+                />
+              </div>
+            </div>
           );
         })}
-      </div>
 
-      {/* 企业权益 Section Header */}
-      <div className="px-6 py-4 border-y bg-muted/30">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <div className="w-1 h-4 rounded-full bg-primary" />
-          企业权益
-        </h3>
-      </div>
-
-      <div className="p-6">
-        <div className="max-w-[640px] space-y-5">
-          <FormRow label="子企业上限数">
-            <input className="filter-input w-60" type="number" value={form.maxSubCompanies} onChange={(e) => update("maxSubCompanies", Number(e.target.value))} />
+        <div className="px-6 py-4 border-t bg-muted/30 -mx-6 -mb-6 mt-6">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <div className="w-1 h-4 rounded-full bg-primary" />
+            企业权益
+          </h3>
+        </div>
+        <div className="space-y-4 pt-2">
+          <FormRow label="子企业上限" wide>
+            <input className="filter-input w-32" type="number" value={form.maxSubCompanies}
+              onChange={(e) => update("maxSubCompanies", Number(e.target.value))} />
+            <span className="text-[12px] text-muted-foreground ml-2">个</span>
           </FormRow>
-          <FormRow label="独立设置子企业权益">
+          <FormRow label="独立配置子企业权益" wide>
             <ToggleSwitch checked={form.autoGrantSub} onChange={() => update("autoGrantSub", !form.autoGrantSub)} />
           </FormRow>
-          <FormRow label="到期时间">
-            <input className="filter-input w-60" type="date" value={form.expireDate} onChange={(e) => update("expireDate", e.target.value)} />
+          <FormRow label="到期时间" wide>
+            <input className="filter-input w-48" type="date" value={form.expireDate}
+              onChange={(e) => update("expireDate", e.target.value)} />
           </FormRow>
         </div>
       </div>
@@ -489,83 +558,23 @@ function StepBenefits({
   );
 }
 
-/* ============ Product Config Card ============ */
-function ProductConfigCard({
-  product, cfg, addRow, removeRow, updateRow, updateProductAccountCount,
-}: {
-  product: { key: string; label: string };
-  cfg: ProductConfig;
-  addRow: (pk: string, t: "packageRows" | "productRows", name?: string) => void;
-  removeRow: (pk: string, t: "packageRows" | "productRows", id: string) => void;
-  updateRow: (pk: string, t: "packageRows" | "productRows", id: string, f: string, v: any) => void;
-  updateProductAccountCount: (pk: string, c: number) => void;
-}) {
-  const catalog = BENEFIT_CATALOG[product.key] || [];
-
-  return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 bg-muted/40 border-b">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary" />
-          <span className="text-[13px] font-semibold text-foreground">{product.label}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] text-muted-foreground mr-1">产品人数</span>
-          <input
-            className="filter-input h-7 text-[12px] w-[72px] text-center"
-            type="number"
-            value={cfg.accountCount ?? 30}
-            onChange={(e) => updateProductAccountCount(product.key, Number(e.target.value))}
-          />
-          <span className="text-[12px] text-muted-foreground">人</span>
-        </div>
-      </div>
-
-      <div className="p-4 space-y-5">
-        <BenefitListSection
-          label="权益套餐"
-          rows={cfg.packageRows}
-          productKey={product.key}
-          type="packageRows"
-          catalog={catalog}
-          onAddWithName={(name) => addRow(product.key, "packageRows", name)}
-          onUpdate={updateRow}
-          onRemove={removeRow}
-        />
-        <BenefitListSection
-          label="权益商品"
-          rows={cfg.productRows}
-          productKey={product.key}
-          type="productRows"
-          catalog={catalog}
-          onAddWithName={(name) => addRow(product.key, "productRows", name)}
-          onUpdate={updateRow}
-          onRemove={removeRow}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* ============ Benefit List Section (table with tag display) ============ */
+/* ============ BenefitListSection ============ */
 function BenefitListSection({
-  label, rows, productKey, type, catalog, onAddWithName, onUpdate, onRemove,
+  label, productKey, type, rows, catalog, onAdd, onRemove, onUpdate, onAddWithName,
 }: {
   label: string;
-  rows: BenefitRow[];
   productKey: string;
   type: "packageRows" | "productRows";
+  rows: BenefitRow[];
   catalog: { name: string; desc: string; color: string }[];
+  onAdd: (productKey: string, type: "packageRows" | "productRows") => void;
+  onRemove: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
+  onUpdate: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: any) => void;
   onAddWithName: (name: string) => void;
-  onUpdate: (pk: string, t: "packageRows" | "productRows", id: string, field: string, value: any) => void;
-  onRemove: (pk: string, t: "packageRows" | "productRows", id: string) => void;
 }) {
   const [showPicker, setShowPicker] = useState(false);
   const [search, setSearch] = useState("");
-
-  const filtered = catalog.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = catalog.filter((c) => c.name.includes(search));
 
   const getTagColor = (name: string) => {
     const item = catalog.find((c) => c.name === name);
@@ -594,7 +603,6 @@ function BenefitListSection({
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden">
-          {/* Table header */}
           <div className="grid grid-cols-[minmax(180px,1fr)_110px_72px_minmax(200px,1fr)_32px] bg-muted/50 border-b text-[12px] font-medium text-muted-foreground">
             <div className="px-3 py-2">名称</div>
             <div className="px-3 py-2">应用方式</div>
@@ -602,61 +610,38 @@ function BenefitListSection({
             <div className="px-3 py-2">授权时间</div>
             <div />
           </div>
-          {/* Rows */}
           {rows.map((row) => {
             const color = getTagColor(row.packageName);
             return (
-              <div
-                key={row.id}
-                className="grid grid-cols-[minmax(180px,1fr)_110px_72px_minmax(200px,1fr)_32px] items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
-              >
-                {/* Name tag */}
+              <div key={row.id} className="grid grid-cols-[minmax(180px,1fr)_110px_72px_minmax(200px,1fr)_32px] items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group">
                 <div className="px-3 py-2.5">
-                  <span
-                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[12px] font-medium whitespace-nowrap"
-                    style={{ backgroundColor: color.replace(')', ' / 0.08)').replace('hsl(', 'hsl('), color: color }}
-                  >
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[12px] font-medium whitespace-nowrap"
+                    style={{ backgroundColor: color.replace(')', ' / 0.08)').replace('hsl(', 'hsl('), color }}>
                     <Package className="h-3 w-3 shrink-0" />
                     {row.packageName}
                   </span>
                 </div>
-                {/* Apply mode */}
                 <div className="px-3 py-2.5">
-                  <select
-                    className="filter-select h-7 text-[12px] w-full px-2"
-                    value={row.applyMode}
-                    onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}
-                  >
+                  <select className="filter-select h-7 text-[12px] w-full px-2" value={row.applyMode}
+                    onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}>
                     <option value="指定人员">指定人员</option>
                     <option value="全部人员">全部人员</option>
                   </select>
                 </div>
-                {/* Count */}
                 <div className="px-2 py-2.5">
                   {row.applyMode === "指定人员" ? (
-                    <input
-                      className="filter-input h-7 text-[12px] w-full text-center px-1"
-                      type="number"
-                      value={row.applyCount}
-                      onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))}
-                    />
+                    <input className="filter-input h-7 text-[12px] w-full text-center px-1" type="number" value={row.applyCount}
+                      onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))} />
                   ) : (
                     <span className="text-[12px] text-muted-foreground">全员</span>
                   )}
                 </div>
-                {/* Date range picker */}
                 <div className="px-3 py-2.5">
-                  <DateRangePicker
-                    value={row.dateRange}
-                    onChange={(val) => onUpdate(productKey, type, row.id, "dateRange", val)}
-                  />
+                  <DateRangePicker value={row.dateRange} onChange={(val) => onUpdate(productKey, type, row.id, "dateRange", val)} />
                 </div>
-                {/* Delete */}
                 <div className="px-1 py-2.5 flex justify-center">
-                  <button
-                    onClick={() => onRemove(productKey, type, row.id)}
-                    className="w-6 h-6 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                  >
+                  <button onClick={() => onRemove(productKey, type, row.id)}
+                    className="w-6 h-6 flex items-center justify-center rounded opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -666,7 +651,6 @@ function BenefitListSection({
         </div>
       )}
 
-      {/* Selection Dialog */}
       {showPicker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowPicker(false)}>
           <div className="bg-card rounded-xl border shadow-xl w-[520px] max-h-[480px] flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -679,13 +663,8 @@ function BenefitListSection({
             <div className="px-5 py-3 border-b">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <input
-                  className="filter-input w-full pl-8 h-8 text-[13px]"
-                  placeholder="搜索权益名称..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  autoFocus
-                />
+                <input className="filter-input w-full pl-8 h-8 text-[13px]" placeholder="搜索权益名称..." value={search}
+                  onChange={(e) => setSearch(e.target.value)} autoFocus />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -695,21 +674,9 @@ function BenefitListSection({
                 filtered.map((item) => {
                   const alreadyAdded = rows.some((r) => r.packageName === item.name);
                   return (
-                    <div
-                      key={item.name}
-                      onClick={() => {
-                        if (!alreadyAdded) {
-                          onAddWithName(item.name);
-                          setShowPicker(false);
-                          setSearch("");
-                        }
-                      }}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all ${
-                        alreadyAdded
-                          ? "opacity-50 cursor-not-allowed bg-muted/30"
-                          : "cursor-pointer hover:border-primary hover:bg-primary/5"
-                      }`}
-                    >
+                    <div key={item.name}
+                      onClick={() => { if (!alreadyAdded) { onAddWithName(item.name); setShowPicker(false); setSearch(""); } }}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-all ${alreadyAdded ? "opacity-50 cursor-not-allowed bg-muted/30" : "cursor-pointer hover:border-primary hover:bg-primary/5"}`}>
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: item.color + '15' }}>
                         <Package className="h-4 w-4" style={{ color: item.color }} />
                       </div>
@@ -717,9 +684,7 @@ function BenefitListSection({
                         <div className="text-[13px] font-medium text-foreground">{item.name}</div>
                         <div className="text-[11px] text-muted-foreground mt-0.5">{item.desc}</div>
                       </div>
-                      {alreadyAdded && (
-                        <span className="text-[11px] text-muted-foreground shrink-0">已添加</span>
-                      )}
+                      {alreadyAdded && <span className="text-[11px] text-muted-foreground shrink-0">已添加</span>}
                     </div>
                   );
                 })
@@ -733,24 +698,156 @@ function BenefitListSection({
 }
 
 /* ============ Step 3: 品牌配置 ============ */
-function StepBrandConfig({ form, update }: { form: any; update: (k: string, v: any) => void }) {
+function StepBrandConfig({
+  form, update, brandRelation, addOwnedBrand, removeOwnedBrand, updateOwnedBrand, toggleAgentBrand,
+}: {
+  form: any;
+  update: (k: string, v: any) => void;
+  brandRelation: BrandRelation;
+  addOwnedBrand: () => void;
+  removeOwnedBrand: (id: string) => void;
+  updateOwnedBrand: (id: string, field: string, value: any) => void;
+  toggleAgentBrand: (brandId: string) => void;
+}) {
+  const showOwn = brandRelation === "own" || brandRelation === "both";
+  const showAgent = brandRelation === "agent" || brandRelation === "both";
+
   return (
-    <div className="p-6">
-      <SectionTitle title="品牌配置" />
-      <div className="max-w-[640px] mx-auto space-y-5 mt-5">
-        <FormRow label="品牌名称">
-          <input className="filter-input w-full" placeholder="请输入品牌名称" value={form.brand} onChange={(e) => update("brand", e.target.value)} />
-        </FormRow>
-        <FormRow label="品牌Logo">
-          <div className="w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-            <Upload className="h-5 w-5" />
-            <span className="text-[10px]">点击上传</span>
+    <div className="p-6 space-y-8">
+      {/* 拥有品牌 Section */}
+      {showOwn && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <SectionTitle title="拥有品牌" />
+            <button onClick={addOwnedBrand} className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 font-medium transition-colors">
+              <Plus className="h-3.5 w-3.5" /> 新建
+            </button>
           </div>
-        </FormRow>
-        <FormRow label="品牌简介">
-          <textarea className="filter-input w-full h-20 resize-none" placeholder="请输入品牌简介" />
-        </FormRow>
-      </div>
+
+          {form.ownedBrands.length === 0 ? (
+            <div onClick={addOwnedBrand}
+              className="flex flex-col items-center justify-center gap-2 py-10 border border-dashed rounded-lg text-muted-foreground cursor-pointer hover:border-primary hover:text-primary transition-colors">
+              <Plus className="h-5 w-5 opacity-60" />
+              <span className="text-[13px]">点击新建品牌</span>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {form.ownedBrands.map((brand: OwnedBrand, idx: number) => (
+                <div key={brand.id} className="border rounded-lg">
+                  <div className="flex items-center justify-between px-5 py-3 bg-muted/30 rounded-t-lg border-b">
+                    <span className="text-[13px] font-medium text-foreground">品牌{idx + 1}信息</span>
+                    <button onClick={() => removeOwnedBrand(brand.id)} className="text-[12px] text-destructive hover:text-destructive/80 transition-colors">删除</button>
+                  </div>
+                  <div className="p-5 space-y-4">
+                    <FormRow label="品牌名称" required>
+                      <input className="filter-input w-full" placeholder="请输入" value={brand.name}
+                        onChange={(e) => updateOwnedBrand(brand.id, "name", e.target.value)} />
+                    </FormRow>
+                    <FormRow label="品牌Logo" required>
+                      <div className="w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                        <Upload className="h-5 w-5" />
+                        <span className="text-[10px]">点击上传</span>
+                      </div>
+                    </FormRow>
+                    <FormRow label="国家">
+                      <select className="filter-select w-full" value={brand.country}
+                        onChange={(e) => updateOwnedBrand(brand.id, "country", e.target.value)}>
+                        {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </FormRow>
+                    <FormRow label="品牌信息">
+                      <textarea className="filter-input w-full h-20 resize-none" placeholder="请输入" value={brand.info}
+                        onChange={(e) => updateOwnedBrand(brand.id, "info", e.target.value)} />
+                    </FormRow>
+                    <FormRow label="经营品类">
+                      <div className="space-y-2">
+                        {brand.categories.map((cat: string, ci: number) => (
+                          <div key={ci} className="flex items-center gap-2">
+                            <select className="filter-select flex-1" value={cat}
+                              onChange={(e) => {
+                                const newCats = [...brand.categories];
+                                newCats[ci] = e.target.value;
+                                updateOwnedBrand(brand.id, "categories", newCats);
+                              }}>
+                              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <button onClick={() => updateOwnedBrand(brand.id, "categories", brand.categories.filter((_: string, i: number) => i !== ci))}
+                              className="w-7 h-7 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                        <button onClick={() => updateOwnedBrand(brand.id, "categories", [...brand.categories, CATEGORIES[0]])}
+                          className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors">
+                          <Plus className="h-3 w-3" /> 添加品类
+                        </button>
+                      </div>
+                    </FormRow>
+                    <FormRow label="所含系列">
+                      <div className="space-y-2">
+                        {brand.series.map((s: string, si: number) => (
+                          <div key={si} className="flex items-center gap-2">
+                            <input className="filter-input flex-1" value={s} placeholder="请输入系列名称"
+                              onChange={(e) => {
+                                const newSeries = [...brand.series];
+                                newSeries[si] = e.target.value;
+                                updateOwnedBrand(brand.id, "series", newSeries);
+                              }} />
+                            <button onClick={() => updateOwnedBrand(brand.id, "series", brand.series.filter((_: string, i: number) => i !== si))}
+                              className="w-7 h-7 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                        <button onClick={() => updateOwnedBrand(brand.id, "series", [...brand.series, ""])}
+                          className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors">
+                          <Plus className="h-3 w-3" /> 创建系列
+                        </button>
+                      </div>
+                    </FormRow>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 代理品牌 Section */}
+      {showAgent && (
+        <div>
+          <SectionTitle title="代理品牌" />
+          <div className="mt-4">
+            <FormRow label="代理品牌" required>
+              <div className="flex flex-wrap gap-3">
+                {MOCK_AGENT_BRANDS.map((ab) => {
+                  const selected = (form.agentBrandIds as string[]).includes(ab.id);
+                  return (
+                    <div key={ab.id} onClick={() => toggleAgentBrand(ab.id)}
+                      className={cn(
+                        "relative w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center gap-1 cursor-pointer transition-all",
+                        selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                      )}>
+                      {selected && (
+                        <button onClick={(e) => { e.stopPropagation(); toggleAgentBrand(ab.id); }}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                      <span className="text-2xl">{ab.logo}</span>
+                      <span className="text-[11px] text-foreground font-medium">{ab.name}</span>
+                    </div>
+                  );
+                })}
+                <div className="w-20 h-20 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+                  <Plus className="h-4 w-4" />
+                  <span className="text-[10px]">点击选择</span>
+                </div>
+              </div>
+            </FormRow>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
