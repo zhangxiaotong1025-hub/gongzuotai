@@ -35,6 +35,8 @@ const MOCK = {
   expectedBudget: "10-50万",
   enterpriseId: undefined as string | undefined,
   enterpriseName: undefined as string | undefined,
+  closeReason: undefined as string | undefined,
+  closeTime: undefined as string | undefined,
 };
 
 const STATUS_MAP: Record<ApplicationStatus, { label: string; className: string }> = {
@@ -74,6 +76,7 @@ export default function ApplicationDetail() {
   const [d, setD] = useState(MOCK);
   const [editing, setEditing] = useState(isEditMode);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [closeReasonInput, setCloseReasonInput] = useState("");
   const [showProcessDialog, setShowProcessDialog] = useState(false);
 
   // Editable fields state
@@ -93,8 +96,14 @@ export default function ApplicationDetail() {
   };
 
   const handleClose = () => {
-    setD((prev) => ({ ...prev, status: "closed" as ApplicationStatus }));
+    setD((prev) => ({
+      ...prev,
+      status: "closed" as ApplicationStatus,
+      closeReason: closeReasonInput.trim() || undefined,
+      closeTime: new Date().toLocaleString("zh-CN"),
+    }));
     setShowCloseConfirm(false);
+    setCloseReasonInput("");
     toast.success("申请已关闭");
   };
 
@@ -143,7 +152,7 @@ export default function ApplicationDetail() {
                 variant="outline" size="sm"
                 className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
                 style={{ borderColor: "hsl(var(--destructive) / 0.25)", color: "hsl(var(--destructive))" }}
-                onClick={() => setShowCloseConfirm(true)}
+                onClick={() => { setCloseReasonInput(""); setShowCloseConfirm(true); }}
               >
                 <XIcon className="h-3.5 w-3.5" /> 关闭申请
               </Button>
@@ -306,6 +315,19 @@ export default function ApplicationDetail() {
           </>
         )}
 
+        {/* ── 关闭信息 (if closed) ── */}
+        {d.status === "closed" && d.closeReason && (
+          <>
+            <SectionHeader title="关闭信息" icon={FileText} />
+            <div className="px-6 py-5">
+              <div className="grid grid-cols-3 gap-x-8 gap-y-4">
+                <DetailItem label="关闭原因" value={d.closeReason} className="col-span-2" />
+                {d.closeTime && <DetailItem label="关闭时间" value={<span className="text-muted-foreground">{d.closeTime}</span>} />}
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Edit Actions */}
         {editing && (
           <div className="flex justify-end gap-3 px-6 py-4 border-t">
@@ -315,31 +337,50 @@ export default function ApplicationDetail() {
         )}
       </div>
 
-      {/* Close Confirm Dialog */}
-      <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
-        <AlertDialogContent
-          className="max-w-[420px] overflow-hidden rounded-xl border bg-card p-0"
-          style={{ boxShadow: "var(--shadow-md)" }}
-        >
-          <div className="border-b bg-muted/40 px-5 py-4">
-            <AlertDialogTitle className="text-[15px] font-semibold text-foreground">
-              确认关闭该申请？
-            </AlertDialogTitle>
-            <AlertDialogDescription className="mt-1 text-[13px] leading-6 text-muted-foreground">
-              关闭后该申请将标记为无效，后续不可恢复。
-            </AlertDialogDescription>
+      {/* Close Reason Dialog */}
+      {showCloseConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCloseConfirm(false)} />
+          <div
+            className="relative w-full max-w-[480px] rounded-xl border bg-card p-0 animate-in fade-in-0 zoom-in-95 duration-200 overflow-hidden"
+            style={{ boxShadow: "var(--shadow-md)" }}
+          >
+            <div className="border-b bg-muted/40 px-5 py-4">
+              <h3 className="text-[15px] font-semibold text-foreground">关闭申请</h3>
+              <p className="mt-1 text-[13px] text-muted-foreground">
+                关闭后该申请将标记为无效，后续不可恢复。
+              </p>
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              <div className="flex items-center gap-2 text-[13px]">
+                <span className="text-muted-foreground w-[70px] text-right shrink-0">企业名称：</span>
+                <span className="text-foreground font-medium">{d.name}</span>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[13px] text-muted-foreground">
+                  关闭原因 <span className="text-destructive">*</span>
+                </label>
+                <textarea
+                  className="filter-input w-full min-h-[80px] resize-y"
+                  placeholder="请填写关闭原因..."
+                  value={closeReasonInput}
+                  onChange={(e) => setCloseReasonInput(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 px-5 py-4 border-t">
+              <button className="btn-secondary flex-1" onClick={() => setShowCloseConfirm(false)}>取消</button>
+              <button
+                className="btn-primary flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={!closeReasonInput.trim()}
+                onClick={handleClose}
+              >
+                确认关闭
+              </button>
+            </div>
           </div>
-          <AlertDialogFooter className="gap-2 px-5 py-4">
-            <AlertDialogCancel className="mt-0 h-9 rounded-lg px-4 text-[13px]">取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleClose}
-              className="h-9 rounded-lg px-4 text-[13px] bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              确认关闭
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        </div>
+      )}
 
       {/* Process Dialog - Create Enterprise Confirm */}
       {showProcessDialog && (
