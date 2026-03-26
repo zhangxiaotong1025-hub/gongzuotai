@@ -231,7 +231,7 @@ function BenefitConfigDialog({ open, onClose, staffName }: { open: boolean; onCl
   const [benefits, setBenefits] = useState<BenefitPkg[]>([
     { id: "b1", name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue", dateRange: "2025-02-23 ~ 2028-02-23" },
   ]);
-  const [showPicker, setShowPicker] = useState(false);
+  
 
   const allCatalog = useMemo(() => {
     const items: { name: string; desc: string; tone: BenefitTone; productKey: string }[] = [];
