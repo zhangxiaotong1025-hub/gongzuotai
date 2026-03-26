@@ -378,7 +378,7 @@
   }
 
   .admin-action-menu-item {
-    @apply flex w-full items-center px-3 py-2 text-[13px] text-left transition-colors;
+    @apply flex w-full items-center gap-2 px-3 py-2 text-[13px] text-left transition-colors;
     color: hsl(var(--foreground));
   }
   .admin-action-menu-item:hover {
