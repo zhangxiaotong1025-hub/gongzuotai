@@ -19,8 +19,8 @@ interface CreateEnterpriseDialogProps {
   allowedTypes?: string[]; // filter to these type keys only
 }
 
-export function CreateEnterpriseDialog({ open, onClose, onSelect, title, subtitle, allowedTypes }: CreateEnterpriseDialogProps) {
-  const [selected, setSelected] = useState<string | null>(null);
+export function CreateEnterpriseDialog({ open, onClose, onSelect, title, subtitle, allowedTypes, defaultType }: CreateEnterpriseDialogProps) {
+  const [selected, setSelected] = useState<string | null>(defaultType || null);
 
   if (!open) return null;
 
