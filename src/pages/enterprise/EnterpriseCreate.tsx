@@ -715,8 +715,19 @@ function StepBrandConfig({
 
   return (
     <div className="p-6 space-y-8">
-      {/* 拥有品牌 Section */}
-      {showOwn && (
+      {/* 权限说明 */}
+      <div className="flex items-start gap-2 px-4 py-3 rounded-lg bg-muted/50 border text-[12px] text-muted-foreground">
+        <Info className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+        <div>
+          {showOwn && showAgent ? (
+            <span><strong className="text-foreground">拥有品牌</strong>：可上传公有模型，拥有品牌完整管理权限；<strong className="text-foreground">代理品牌</strong>：可使用品牌资源，但不可上传公有模型。</span>
+          ) : showOwn ? (
+            <span><strong className="text-foreground">拥有品牌</strong>：可上传公有模型，拥有品牌完整管理权限。</span>
+          ) : (
+            <span><strong className="text-foreground">代理品牌</strong>：可使用品牌资源，但不可上传公有模型。</span>
+          )}
+        </div>
+      </div>
         <div>
           <div className="flex items-center justify-between mb-4">
             <SectionTitle title="拥有品牌" />
