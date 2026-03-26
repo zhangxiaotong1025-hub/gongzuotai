@@ -221,7 +221,7 @@ function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
   onToggle: (id: string) => void;
   depth: number;
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(["all", "hq", "supply", "south"]));
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(["hq", "supply", "south"]));
 
   return (
     <>
@@ -229,7 +229,6 @@ function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
         const hasChildren = node.children && node.children.length > 0;
         const isExpanded = expanded.has(node.id);
         const isSelected = selectedIds.includes(node.id);
-        const isRoot = node.id === "all";
 
         return (
           <div key={node.id}>
@@ -255,26 +254,24 @@ function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
               ) : (
                 <span className="w-[18px] shrink-0" />
               )}
-              {!isRoot && (
-                <div
-                  className={cn(
-                    "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all cursor-pointer",
-                    isSelected ? "bg-primary border-primary" : "border-border bg-card"
-                  )}
-                  onClick={() => onToggle(node.id)}
-                >
-                  {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
-                </div>
-              )}
+              <div
+                className={cn(
+                  "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all cursor-pointer",
+                  isSelected ? "bg-primary border-primary" : "border-border bg-card"
+                )}
+                onClick={() => onToggle(node.id)}
+              >
+                {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+              </div>
               <span
-                className={cn("flex-1 truncate", isRoot && "font-medium text-muted-foreground")}
-                onClick={() => !isRoot && onToggle(node.id)}
+                className="flex-1 truncate"
+                onClick={() => onToggle(node.id)}
               >
                 {node.name}
               </span>
             </div>
             {hasChildren && isExpanded && (
-              <OrgTreeDropdown nodes={node.children!} selectedIds={selectedIds} onToggle={onToggle} depth={isRoot ? depth : depth + 1} />
+              <OrgTreeDropdown nodes={node.children!} selectedIds={selectedIds} onToggle={onToggle} depth={depth + 1} />
             )}
           </div>
         );
