@@ -560,7 +560,6 @@ function BenefitListSection({
           {rows.map((row) => {
             const color = getTagColor(row.packageName);
             return (
-            return (
               <div
                 key={row.id}
                 className="grid grid-cols-[minmax(180px,1fr)_110px_72px_minmax(200px,1fr)_32px] items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
