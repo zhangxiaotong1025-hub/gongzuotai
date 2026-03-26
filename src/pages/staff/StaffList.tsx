@@ -530,8 +530,28 @@ export default function StaffList() {
     { label: "查看", onClick: (r) => navigate(`/enterprise/staff/detail/${r.id}`) },
     { label: "编辑", onClick: (r) => navigate(`/enterprise/staff/create?id=${r.id}`) },
     { label: "权益设置", onClick: (r) => setBenefitDialogStaff(r) },
-    { label: r => r.status === "active" ? "停用" : "启用", onClick: (r) => toast.success(`已${r.status === "active" ? "停用" : "启用"}「${r.name}」`), confirm: { title: "确认操作", description: "该操作执行后将立即生效，请确认是否继续。" } },
-    { label: "删除", danger: true, onClick: (r) => toast.success(`已删除「${r.name}」`), confirm: { title: "确认删除人员", description: "删除后该人员数据将无法恢复，请确认是否继续。", confirmLabel: "确认删除" } },
+    {
+      label: "停用",
+      onClick: (r) => { toast.success(`已停用「${r.name}」`); },
+      visible: (r) => r.status === "active",
+      danger: true,
+      confirm: {
+        title: "确认停用该人员？",
+        description: "停用后该人员将无法使用系统功能，后续可重新启用。",
+        confirmLabel: "确认停用",
+      },
+    },
+    {
+      label: "启用",
+      onClick: (r) => { toast.success(`已启用「${r.name}」`); },
+      visible: (r) => r.status === "inactive",
+    },
+    {
+      label: "删除",
+      danger: true,
+      onClick: (r) => toast.success(`已删除「${r.name}」`),
+      confirm: { title: "确认删除人员", description: "删除后该人员数据将无法恢复，请确认是否继续。", confirmLabel: "确认删除" },
+    },
   ];
 
   return (
