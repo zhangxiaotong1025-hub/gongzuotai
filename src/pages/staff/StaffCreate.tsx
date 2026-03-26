@@ -61,26 +61,21 @@ interface OrgNode {
 
 const orgTreeData: OrgNode[] = [
   {
-    id: "all", name: "全部", children: [
-      { id: "unset", name: "未设置组织架构" },
+    id: "hq", name: "总部", children: [
+      { id: "model", name: "模型部" },
+      { id: "design", name: "设计部" },
+    ]
+  },
+  {
+    id: "supply", name: "供应链", children: [
       {
-        id: "hq", name: "总部", children: [
-          { id: "model", name: "模型部" },
-          { id: "design", name: "设计部" },
+        id: "south", name: "华南供应链", children: [
+          { id: "sd-supply", name: "山东供应链" },
+          { id: "hb-supply", name: "河北供应链" },
+          { id: "tj-supply", name: "天津供应链" },
         ]
       },
-      {
-        id: "supply", name: "供应链", children: [
-          {
-            id: "south", name: "华南供应链", children: [
-              { id: "sd-supply", name: "山东供应链" },
-              { id: "hb-supply", name: "河北供应链" },
-              { id: "tj-supply", name: "天津供应链" },
-            ]
-          },
-          { id: "north", name: "华北供应链" },
-        ]
-      },
+      { id: "north", name: "华北供应链" },
     ]
   },
 ];
