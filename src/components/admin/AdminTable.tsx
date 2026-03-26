@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect, useCallback, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { MoreHorizontal } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export interface TableColumn<T> {
   key: string;
@@ -16,6 +25,12 @@ export interface ActionItem<T> {
   onClick: (record: T) => void;
   visible?: (record: T) => boolean;
   danger?: boolean;
+  confirm?: {
+    title?: string;
+    description?: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+  };
 }
 
 interface AdminTableProps<T> {
@@ -44,6 +59,7 @@ function ActionCell<T>({
   maxVisible: number;
 }) {
   const [open, setOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<ActionItem<T> | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -52,88 +68,152 @@ function ActionCell<T>({
   const shown = visibleActions.slice(0, maxVisible);
   const overflow = visibleActions.slice(maxVisible);
 
+  const closeMenu = useCallback(() => setOpen(false), []);
+
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
     setMenuPos({
-      top: rect.bottom + 4,
+      top: rect.bottom + 6,
       left: rect.right,
     });
   }, []);
 
   useEffect(() => {
     if (!open) return;
+
     updatePosition();
-    const handler = (e: MouseEvent) => {
+
+    const handlePointerDown = (e: MouseEvent) => {
       const target = e.target as Node;
       if (
-        menuRef.current && !menuRef.current.contains(target) &&
-        triggerRef.current && !triggerRef.current.contains(target)
+        menuRef.current &&
+        !menuRef.current.contains(target) &&
+        triggerRef.current &&
+        !triggerRef.current.contains(target)
       ) {
-        setOpen(false);
+        closeMenu();
       }
     };
-    document.addEventListener("mousedown", handler);
-    window.addEventListener("scroll", () => setOpen(false), true);
+
+    document.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("scroll", closeMenu, true);
+    window.addEventListener("resize", closeMenu);
+
     return () => {
-      document.removeEventListener("mousedown", handler);
-      window.removeEventListener("scroll", () => setOpen(false), true);
+      document.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("scroll", closeMenu, true);
+      window.removeEventListener("resize", closeMenu);
     };
-  }, [open, updatePosition]);
+  }, [open, closeMenu, updatePosition]);
+
+  const handleActionClick = (action: ActionItem<T>) => {
+    closeMenu();
+    if (action.confirm) {
+      setPendingAction(action);
+      return;
+    }
+    action.onClick(record);
+  };
+
+  const handleConfirm = () => {
+    if (!pendingAction) return;
+    pendingAction.onClick(record);
+    setPendingAction(null);
+  };
 
   return (
-    <div className="flex items-center gap-0.5">
-      {shown.map((action) => (
-        <button
-          key={action.label}
-          onClick={() => action.onClick(record)}
-          className={`btn-text ${action.danger ? "text-danger-action" : "text-primary-action"}`}
-        >
-          {action.label}
-        </button>
-      ))}
-      {overflow.length > 0 && (
-        <>
+    <>
+      <div className="flex items-center gap-1">
+        {shown.map((action) => (
           <button
-            ref={triggerRef}
-            onClick={() => setOpen(!open)}
-            className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors"
+            key={action.label}
+            type="button"
+            onClick={() => handleActionClick(action)}
+            className={`btn-text ${action.danger ? "text-danger-action" : "text-primary-action"}`}
           >
-            <MoreHorizontal className="h-4 w-4" />
+            {action.label}
           </button>
-          {open && createPortal(
-            <div
-              ref={menuRef}
-              className="fixed bg-card border rounded-lg py-1 z-[9999] min-w-[140px] animate-in fade-in-0 zoom-in-95 duration-100"
-              style={{
-                top: menuPos.top,
-                left: menuPos.left,
-                transform: "translateX(-100%)",
-                boxShadow: "0 8px 24px -4px hsl(220 20% 10% / 0.12), 0 2px 8px -2px hsl(220 20% 10% / 0.08)",
+        ))}
+        {overflow.length > 0 && (
+          <>
+            <button
+              ref={triggerRef}
+              type="button"
+              onClick={() => {
+                if (open) {
+                  closeMenu();
+                  return;
+                }
+                updatePosition();
+                setOpen(true);
               }}
+              className="admin-action-trigger"
+              data-state={open ? "open" : "closed"}
             >
-              {overflow.map((action) => (
-                <button
-                  key={action.label}
-                  onClick={() => {
-                    action.onClick(record);
-                    setOpen(false);
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+            {open &&
+              createPortal(
+                <div
+                  ref={menuRef}
+                  className="admin-action-menu"
+                  data-state="open"
+                  style={{
+                    top: menuPos.top,
+                    left: menuPos.left,
+                    transform: "translateX(calc(-100% + 2px))",
                   }}
-                  className={`w-full text-left px-3 py-2 text-[13px] transition-colors ${
-                    action.danger
-                      ? "text-destructive hover:bg-destructive/5"
-                      : "text-foreground hover:bg-muted"
-                  }`}
                 >
-                  {action.label}
-                </button>
-              ))}
-            </div>,
-            document.body
-          )}
-        </>
-      )}
-    </div>
+                  {overflow.map((action) => (
+                    <button
+                      key={action.label}
+                      type="button"
+                      onClick={() => handleActionClick(action)}
+                      className={`admin-action-menu-item ${action.danger ? "admin-action-menu-item-danger" : ""}`}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>,
+                document.body,
+              )}
+          </>
+        )}
+      </div>
+
+      <AlertDialog
+        open={Boolean(pendingAction)}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setPendingAction(null);
+        }}
+      >
+        <AlertDialogContent
+          className="max-w-[420px] overflow-hidden rounded-xl border bg-card p-0"
+          style={{ boxShadow: "var(--shadow-md)" }}
+        >
+          <div className="border-b bg-muted/40 px-5 py-4">
+            <AlertDialogTitle className="text-[15px] font-semibold text-foreground">
+              {pendingAction?.confirm?.title || `确认${pendingAction?.label}该企业？`}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="mt-1 text-[13px] leading-6 text-muted-foreground">
+              {pendingAction?.confirm?.description || "该操作执行后将立即生效，请确认是否继续。"}
+            </AlertDialogDescription>
+          </div>
+          <AlertDialogFooter className="gap-2 px-5 py-4">
+            <AlertDialogCancel className="mt-0 h-9 rounded-lg px-4 text-[13px]">
+              {pendingAction?.confirm?.cancelLabel || "取消"}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirm}
+              className={`h-9 rounded-lg px-4 text-[13px] ${pendingAction?.danger ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
+            >
+              {pendingAction?.confirm?.confirmLabel || `确认${pendingAction?.label}`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
