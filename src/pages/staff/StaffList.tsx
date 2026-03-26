@@ -363,7 +363,6 @@ function OrgTreeNode({
 
   useEffect(() => {
     if (!menuOpen) return;
-    updateMenuPosition();
     const handlePointerDown = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node) && triggerRef.current && !triggerRef.current.contains(e.target as Node)) setMenuOpen(false);
     };
@@ -399,7 +398,7 @@ function OrgTreeNode({
 
         {!isRoot && !isEditing && (
           <button ref={triggerRef} type="button" className="shrink-0 rounded p-0.5 opacity-0 transition-all hover:bg-muted group-hover:opacity-100"
-            onClick={(e) => { e.stopPropagation(); if (menuOpen) { setMenuOpen(false); return; } updateMenuPosition(); setMenuOpen(true); }}>
+            onClick={(e) => { e.stopPropagation(); if (menuOpen) { setMenuOpen(false); return; } if (triggerRef.current) { const rect = triggerRef.current.getBoundingClientRect(); setMenuPos({ top: rect.bottom + 6, left: rect.right }); } setMenuOpen(true); }}>
             <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
         )}
