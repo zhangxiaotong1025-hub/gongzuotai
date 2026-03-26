@@ -20,16 +20,18 @@ interface DetailActionBarProps {
   /** 状态切换相关 */
   statusToggle?: {
     currentActive: boolean;
-    activeLabel?: string;   // 默认 "启用" / "上架"
-    inactiveLabel?: string; // 默认 "停用" / "下架"
+    activeLabel?: string;
+    inactiveLabel?: string;
     onToggle: () => void;
   };
+  /** 额外操作按钮，插入到编辑按钮之前 */
+  extraActions?: React.ReactNode;
 }
 
 export function DetailActionBar({
   backLabel, backPath, currentName,
   prevPath, nextPath,
-  onEdit, onCopy, statusToggle,
+  onEdit, onCopy, statusToggle, extraActions,
 }: DetailActionBarProps) {
   const navigate = useNavigate();
 
