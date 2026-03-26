@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { skuData, bundleData, STATUS_MAP, BILLING_CYCLES, getCapability, getApp, getRule } from "@/data/entitlement";
+import { skuData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getCapability, getApp, getRule } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { SkuDialog } from "./dialogs/SkuDialog";
 import { toast } from "sonner";
@@ -74,16 +74,15 @@ export default function SkuDetail() {
               {rules.map((r) => {
                 if (!r) return null;
                 const cap = getCapability(r.capabilityId);
-                const { PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES } = require("@/data/entitlement");
                 return (
                   <tr key={r.id} className="border-b border-border/40 hover:bg-muted/30">
                     <td className="py-2"><Link to={`/entitlement/rule/detail/${r.id}`} className="text-primary hover:underline font-medium">{r.name}</Link></td>
                     <td className="py-2">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-muted-foreground hover:text-primary">{cap.name}</Link> : "—"}</td>
                     <td className="py-2 text-right font-medium">{r.quota.toLocaleString()} {cap?.unit || ""}</td>
-                    <td className="py-2 text-muted-foreground">{r.periodType}</td>
-                    <td className="py-2 text-muted-foreground">{r.grantType}</td>
+                    <td className="py-2 text-muted-foreground">{PERIOD_TYPES.find((p) => p.value === r.periodType)?.label}{r.periodValue > 0 ? `·${r.periodValue}` : ""}</td>
+                    <td className="py-2 text-muted-foreground">{GRANT_TYPES.find((g) => g.value === r.grantType)?.label}</td>
                     <td className="py-2">{r.isCumulative ? <span className="text-primary font-medium">是</span> : <span className="text-muted-foreground">否</span>}</td>
-                    <td className="py-2 text-muted-foreground">{r.expirePolicy}</td>
+                    <td className="py-2 text-muted-foreground">{EXPIRE_POLICIES.find((e) => e.value === r.expirePolicy)?.label}</td>
                   </tr>
                 );
               })}
