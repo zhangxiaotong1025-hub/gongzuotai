@@ -432,23 +432,7 @@ export default function StaffList() {
   const [editingMode, setEditingMode] = useState<"create" | "rename" | null>(null);
   const [editingOriginName, setEditingOriginName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<OrgNode | null>(null);
-  const [panelHeight, setPanelHeight] = useState(560);
-  const panelRowRef = useRef<HTMLDivElement>(null);
-  const pageRef = useRef<HTMLDivElement>(null);
   const [benefitDialogStaff, setBenefitDialogStaff] = useState<StaffMember | null>(null);
-
-  useEffect(() => {
-    const updateHeight = () => {
-      if (!panelRowRef.current) return;
-      const top = panelRowRef.current.getBoundingClientRect().top;
-      setPanelHeight(Math.max(window.innerHeight - top - 24, 360));
-    };
-    updateHeight();
-    const observer = new ResizeObserver(updateHeight);
-    if (pageRef.current) observer.observe(pageRef.current);
-    window.addEventListener("resize", updateHeight);
-    return () => { observer.disconnect(); window.removeEventListener("resize", updateHeight); };
-  }, []);
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
