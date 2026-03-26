@@ -98,8 +98,8 @@ function findOrgName(nodes: OrgNode[], id: string): string | null {
 function flattenOrg(nodes: OrgNode[], depth = 0): { id: string; name: string; depth: number }[] {
   const result: { id: string; name: string; depth: number }[] = [];
   for (const n of nodes) {
-    if (n.id !== "all") result.push({ id: n.id, name: n.name, depth });
-    if (n.children) result.push(...flattenOrg(n.children, n.id === "all" ? depth : depth + 1));
+    result.push({ id: n.id, name: n.name, depth });
+    if (n.children) result.push(...flattenOrg(n.children, depth + 1));
   }
   return result;
 }
