@@ -1,14 +1,18 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { bundleData, skuData, ruleData, capabilityData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, getRule, getCapability, getRulesBySkuId } from "@/data/entitlement";
-import { ArrowLeft } from "lucide-react";
+import { bundleData, skuData, STATUS_MAP, BILLING_CYCLES, getCapability, getRulesBySkuId } from "@/data/entitlement";
+import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { toast } from "sonner";
 
 export default function PackageDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const bundle = bundleData.find((b) => b.id === id);
+  const bundleIndex = bundleData.findIndex((b) => b.id === id);
+  const bundle = bundleIndex >= 0 ? bundleData[bundleIndex] : null;
   if (!bundle) return <div className="p-10 text-center text-muted-foreground">套餐不存在</div>;
 
   const cycle = BILLING_CYCLES.find((b) => b.value === bundle.billingCycle)?.label || bundle.billingCycle;
+  const prevBundle = bundleIndex > 0 ? bundleData[bundleIndex - 1] : null;
+  const nextBundle = bundleIndex < bundleData.length - 1 ? bundleData[bundleIndex + 1] : null;
 
   const enrichedItems = bundle.items.map((item) => {
     const sku = skuData.find((s) => s.id === item.skuId);
@@ -18,11 +22,21 @@ export default function PackageDetail() {
 
   return (
     <div className="space-y-5 pb-6">
-      <div className="flex items-center gap-2 text-[13px]">
-        <button onClick={() => navigate("/entitlement/package")} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"><ArrowLeft className="h-3.5 w-3.5" /> 商品套餐</button>
-        <span className="text-muted-foreground/30">/</span>
-        <span className="text-foreground font-medium">{bundle.name}</span>
-      </div>
+      <DetailActionBar
+        backLabel="商品套餐"
+        backPath="/entitlement/package"
+        currentName={bundle.name}
+        prevPath={prevBundle ? `/entitlement/package/detail/${prevBundle.id}` : null}
+        nextPath={nextBundle ? `/entitlement/package/detail/${nextBundle.id}` : null}
+        onEdit={() => toast.info("编辑功能开发中")}
+        onCopy={() => toast.success("套餐已复制（功能开发中）")}
+        statusToggle={{
+          currentActive: bundle.status === "on_sale",
+          activeLabel: "上架",
+          inactiveLabel: "下架",
+          onToggle: () => toast.info(bundle.status === "on_sale" ? "已下架" : "已上架"),
+        }}
+      />
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-start justify-between mb-4">
@@ -56,10 +70,9 @@ export default function PackageDetail() {
                   <td className="py-2 text-center">{quantity > 1 ? <span className="text-primary font-medium">×{quantity}</span> : "1"}</td>
                   <td className="py-2">
                     <div className="flex flex-wrap gap-1">
-                      {rules.map((r) => {
-                        const cap = getCapability(r.capabilityId);
-                        return <Link key={r.id} to={`/entitlement/rule/detail/${r.id}`} className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-muted text-muted-foreground hover:text-primary">{r.name}</Link>;
-                      })}
+                      {rules.map((r) => (
+                        <Link key={r.id} to={`/entitlement/rule/detail/${r.id}`} className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-muted text-muted-foreground hover:text-primary">{r.name}</Link>
+                      ))}
                       {rules.length === 0 && <span className="text-muted-foreground">—</span>}
                     </div>
                   </td>

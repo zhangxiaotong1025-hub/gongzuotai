@@ -1,23 +1,36 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { capabilityData, appData, ruleData, skuData, DATA_TYPES, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getApp } from "@/data/entitlement";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { capabilityData, ruleData, skuData, DATA_TYPES, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getApp } from "@/data/entitlement";
+import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { toast } from "sonner";
+import { ExternalLink } from "lucide-react";
 
 export default function CapabilityDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const cap = capabilityData.find((c) => c.id === id);
+  const capIndex = capabilityData.findIndex((c) => c.id === id);
+  const cap = capIndex >= 0 ? capabilityData[capIndex] : null;
   if (!cap) return <div className="p-10 text-center text-muted-foreground">能力不存在</div>;
 
   const app = getApp(cap.appId);
   const rules = ruleData.filter((r) => r.capabilityId === cap.id);
+  const prevCap = capIndex > 0 ? capabilityData[capIndex - 1] : null;
+  const nextCap = capIndex < capabilityData.length - 1 ? capabilityData[capIndex + 1] : null;
 
   return (
     <div className="space-y-5 pb-6">
-      <div className="flex items-center gap-2 text-[13px]">
-        <button onClick={() => navigate("/entitlement/capability")} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"><ArrowLeft className="h-3.5 w-3.5" /> 能力管理</button>
-        <span className="text-muted-foreground/30">/</span>
-        <span className="text-foreground font-medium">{cap.name}</span>
-      </div>
+      <DetailActionBar
+        backLabel="能力管理"
+        backPath="/entitlement/capability"
+        currentName={cap.name}
+        prevPath={prevCap ? `/entitlement/capability/detail/${prevCap.id}` : null}
+        nextPath={nextCap ? `/entitlement/capability/detail/${nextCap.id}` : null}
+        onEdit={() => toast.info("编辑功能开发中")}
+        onCopy={() => toast.success("能力已复制（功能开发中）")}
+        statusToggle={{
+          currentActive: cap.status === "active",
+          onToggle: () => toast.info(cap.status === "active" ? "已停用" : "已启用"),
+        }}
+      />
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-start justify-between mb-4">
@@ -38,7 +51,6 @@ export default function CapabilityDetail() {
         </div>
       </div>
 
-      {/* Rules */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <h3 className="text-[14px] font-semibold text-foreground mb-3">权益规则 ({rules.length}) <span className="text-[12px] text-muted-foreground font-normal">— 基于此能力的额度配置</span></h3>
         <div className="overflow-x-auto">
@@ -55,7 +67,7 @@ export default function CapabilityDetail() {
             </tr></thead>
             <tbody>
               {rules.map((r) => {
-                const skuCount = skuData.filter((s) => s.ruleIds.includes(r.id)).length;
+                const skuCount = skuData.filter((s) => (s.ruleIds || []).includes(r.id)).length;
                 return (
                   <tr key={r.id} className="border-b border-border/40 hover:bg-muted/30">
                     <td className="py-2"><Link to={`/entitlement/rule/detail/${r.id}`} className="text-primary hover:underline font-medium">{r.name}</Link></td>

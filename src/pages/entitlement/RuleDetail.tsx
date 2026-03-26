@@ -1,25 +1,37 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ruleData, capabilityData, appData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp } from "@/data/entitlement";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ruleData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp } from "@/data/entitlement";
+import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { toast } from "sonner";
 
 export default function RuleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const rule = ruleData.find((r) => r.id === id);
+  const ruleIndex = ruleData.findIndex((r) => r.id === id);
+  const rule = ruleIndex >= 0 ? ruleData[ruleIndex] : null;
   if (!rule) return <div className="p-10 text-center text-muted-foreground">权益规则不存在</div>;
 
   const cap = getCapability(rule.capabilityId);
   const app = cap ? getApp(cap.appId) : null;
-  const skus = skuData.filter((s) => s.ruleIds.includes(rule.id));
+  const skus = skuData.filter((s) => (s.ruleIds || []).includes(rule.id));
   const bundles = bundleData.filter((b) => b.items.some((i) => skus.some((s) => s.id === i.skuId)));
+  const prevRule = ruleIndex > 0 ? ruleData[ruleIndex - 1] : null;
+  const nextRule = ruleIndex < ruleData.length - 1 ? ruleData[ruleIndex + 1] : null;
 
   return (
     <div className="space-y-5 pb-6">
-      <div className="flex items-center gap-2 text-[13px]">
-        <button onClick={() => navigate("/entitlement/rule")} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"><ArrowLeft className="h-3.5 w-3.5" /> 权益规则管理</button>
-        <span className="text-muted-foreground/30">/</span>
-        <span className="text-foreground font-medium">{rule.name}</span>
-      </div>
+      <DetailActionBar
+        backLabel="权益规则管理"
+        backPath="/entitlement/rule"
+        currentName={rule.name}
+        prevPath={prevRule ? `/entitlement/rule/detail/${prevRule.id}` : null}
+        nextPath={nextRule ? `/entitlement/rule/detail/${nextRule.id}` : null}
+        onEdit={() => toast.info("编辑功能开发中")}
+        onCopy={() => toast.success("规则已复制（功能开发中）")}
+        statusToggle={{
+          currentActive: rule.status === "active",
+          onToggle: () => toast.info(rule.status === "active" ? "已停用" : "已启用"),
+        }}
+      />
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-start justify-between mb-4">
@@ -28,8 +40,8 @@ export default function RuleDetail() {
         </div>
         <div className="grid grid-cols-4 gap-4 text-[13px]">
           <div><span className="text-muted-foreground">规则编码</span><div className="font-mono text-foreground mt-0.5">{rule.code}</div></div>
-          <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5">{app ? <Link to={`/entitlement/app/detail/${app.id}`} className="text-primary hover:underline inline-flex items-center gap-1">{app.name} <ExternalLink className="h-3 w-3" /></Link> : "—"}</div></div>
-          <div><span className="text-muted-foreground">关联能力</span><div className="mt-0.5">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-primary hover:underline inline-flex items-center gap-1">{cap.name} <ExternalLink className="h-3 w-3" /></Link> : "—"}</div></div>
+          <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5">{app ? <Link to={`/entitlement/app/detail/${app.id}`} className="text-primary hover:underline">{app.name}</Link> : "—"}</div></div>
+          <div><span className="text-muted-foreground">关联能力</span><div className="mt-0.5">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-primary hover:underline">{cap.name}</Link> : "—"}</div></div>
           <div><span className="text-muted-foreground">数据类型</span><div className="text-foreground mt-0.5">{cap ? `${DATA_TYPES.find((t) => t.value === cap.dataType)?.label.split("（")[0]} · ${cap.unit}` : "—"}</div></div>
         </div>
         <div className="grid grid-cols-6 gap-4 text-[13px] mt-4 pt-4 border-t">
@@ -87,7 +99,6 @@ export default function RuleDetail() {
         </div>
       </div>
 
-      {/* Related Bundles */}
       {bundles.length > 0 && (
         <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
           <h3 className="text-[14px] font-semibold text-foreground mb-3">涉及的套餐 ({bundles.length})</h3>

@@ -1,25 +1,37 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { appData, capabilityData, ruleData, skuData, bundleData, STATUS_MAP, DATA_TYPES, PERIOD_TYPES, GRANT_TYPES, getCapabilitiesByApp, getRulesByApp } from "@/data/entitlement";
-import { ArrowLeft } from "lucide-react";
+import { appData, capabilityData, ruleData, skuData, bundleData, STATUS_MAP, DATA_TYPES, getCapabilitiesByApp, getRulesByApp } from "@/data/entitlement";
+import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { toast } from "sonner";
 
 export default function AppDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const app = appData.find((a) => a.id === id);
+  const appIndex = appData.findIndex((a) => a.id === id);
+  const app = appIndex >= 0 ? appData[appIndex] : null;
   if (!app) return <div className="p-10 text-center text-muted-foreground">应用不存在</div>;
 
   const caps = getCapabilitiesByApp(app.id);
   const rules = getRulesByApp(app.id);
   const skus = skuData.filter((s) => s.appId === app.id);
   const bundles = bundleData.filter((b) => b.appId === app.id);
+  const prevApp = appIndex > 0 ? appData[appIndex - 1] : null;
+  const nextApp = appIndex < appData.length - 1 ? appData[appIndex + 1] : null;
 
   return (
     <div className="space-y-5 pb-6">
-      <div className="flex items-center gap-2 text-[13px]">
-        <button onClick={() => navigate("/entitlement/app")} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"><ArrowLeft className="h-3.5 w-3.5" /> 应用管理</button>
-        <span className="text-muted-foreground/30">/</span>
-        <span className="text-foreground font-medium">{app.name}</span>
-      </div>
+      <DetailActionBar
+        backLabel="应用管理"
+        backPath="/entitlement/app"
+        currentName={app.name}
+        prevPath={prevApp ? `/entitlement/app/detail/${prevApp.id}` : null}
+        nextPath={nextApp ? `/entitlement/app/detail/${nextApp.id}` : null}
+        onEdit={() => toast.info("编辑功能开发中")}
+        onCopy={() => toast.success("应用已复制（功能开发中）")}
+        statusToggle={{
+          currentActive: app.status === "active",
+          onToggle: () => toast.info(app.status === "active" ? "已停用" : "已启用"),
+        }}
+      />
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-start justify-between mb-4">
@@ -35,7 +47,6 @@ export default function AppDetail() {
         </div>
       </div>
 
-      {/* Capabilities */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <h3 className="text-[14px] font-semibold text-foreground mb-3">能力 ({caps.length})</h3>
         <div className="overflow-x-auto">
@@ -67,7 +78,6 @@ export default function AppDetail() {
         </div>
       </div>
 
-      {/* Bundles */}
       {bundles.length > 0 && (
         <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
           <h3 className="text-[14px] font-semibold text-foreground mb-3">套餐 ({bundles.length})</h3>
