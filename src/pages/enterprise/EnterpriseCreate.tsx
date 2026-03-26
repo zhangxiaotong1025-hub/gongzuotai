@@ -506,6 +506,66 @@ function StepBasic({ form, update }: { form: any; update: (k: string, v: any) =>
   );
 }
 
+/* ============ Step 1-Sub: 子企业基础信息 ============ */
+function StepSubBasic({
+  form, update, parentName, allowedSubTypes, selectedSubType, onSubTypeChange,
+}: {
+  form: any;
+  update: (k: string, v: any) => void;
+  parentName: string;
+  allowedSubTypes: string[];
+  selectedSubType: string;
+  onSubTypeChange: (t: string) => void;
+}) {
+  return (
+    <div className="p-6">
+      <SectionTitle title="基础信息" />
+      <div className="max-w-[640px] mx-auto space-y-5 mt-5">
+        <FormRow label="上级企业">
+          <input className="filter-input w-full bg-muted/30" value={parentName} disabled />
+        </FormRow>
+        <FormRow label="企业类型" required>
+          <select
+            className="filter-select w-full"
+            value={selectedSubType}
+            onChange={(e) => onSubTypeChange(e.target.value)}
+          >
+            {allowedSubTypes.map((t) => (
+              <option key={t} value={t}>{TYPE_LABELS[t]}</option>
+            ))}
+          </select>
+        </FormRow>
+        <FormRow label="企业名称" required>
+          <input className="filter-input w-full" placeholder="请输入" value={form.name} onChange={(e) => update("name", e.target.value)} />
+        </FormRow>
+        <FormRow label="企业ID">
+          <input className="filter-input w-full bg-muted/30" value={form.license} disabled />
+        </FormRow>
+        <FormRow label="组织结构">
+          <select className="filter-select w-full" value={form.orgStructure} onChange={(e) => update("orgStructure", e.target.value)}>
+            {ORG_STRUCTURES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </FormRow>
+        <FormRow label="企业联系人">
+          <input className="filter-input w-full" placeholder="请输入" value={form.contactName} onChange={(e) => update("contactName", e.target.value)} />
+        </FormRow>
+        <FormRow label="联系人手机号">
+          <input className="filter-input w-full" placeholder="请输入" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} />
+        </FormRow>
+        <FormRow label="覆盖区域">
+          <select className="filter-select w-full" value={form.region} onChange={(e) => update("region", e.target.value)}>
+            <option value="">请选择</option>
+            {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </FormRow>
+        <FormRow label="详细地址">
+          <input className="filter-input w-full" placeholder="请输入" value={form.address} onChange={(e) => update("address", e.target.value)} />
+        </FormRow>
+      </div>
+    </div>
+  );
+}
+
 /* ============ Step 2: 权益配置 ============ */
 function StepBenefits({
   form, update, toggleProduct, addRow, removeRow, updateRow, updateProductAccountCount,
