@@ -16,7 +16,8 @@ interface CreateEnterpriseDialogProps {
   onSelect: (type: string) => void;
   title?: string;
   subtitle?: string;
-  allowedTypes?: string[]; // filter to these type keys only
+  allowedTypes?: string[];
+  defaultType?: string;
 }
 
 export function CreateEnterpriseDialog({ open, onClose, onSelect, title, subtitle, allowedTypes, defaultType }: CreateEnterpriseDialogProps) {
