@@ -1,24 +1,38 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { skuData, ruleData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, DATA_TYPES, getCapability, getApp, getRule } from "@/data/entitlement";
-import { ArrowLeft } from "lucide-react";
+import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { toast } from "sonner";
 
 export default function SkuDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const sku = skuData.find((s) => s.id === id);
+  const skuIndex = skuData.findIndex((s) => s.id === id);
+  const sku = skuIndex >= 0 ? skuData[skuIndex] : null;
   if (!sku) return <div className="p-10 text-center text-muted-foreground">商品不存在</div>;
 
-  const rules = sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean);
+  const rules = (sku.ruleIds || []).map((rid) => getRule(rid)).filter(Boolean);
   const app = getApp(sku.appId);
   const bundles = bundleData.filter((b) => b.items.some((i) => i.skuId === sku.id));
+  const prevSku = skuIndex > 0 ? skuData[skuIndex - 1] : null;
+  const nextSku = skuIndex < skuData.length - 1 ? skuData[skuIndex + 1] : null;
 
   return (
     <div className="space-y-5 pb-6">
-      <div className="flex items-center gap-2 text-[13px]">
-        <button onClick={() => navigate("/entitlement/sku")} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"><ArrowLeft className="h-3.5 w-3.5" /> 商品SKU</button>
-        <span className="text-muted-foreground/30">/</span>
-        <span className="text-foreground font-medium">{sku.name}</span>
-      </div>
+      <DetailActionBar
+        backLabel="商品SKU"
+        backPath="/entitlement/sku"
+        currentName={sku.name}
+        prevPath={prevSku ? `/entitlement/sku/detail/${prevSku.id}` : null}
+        nextPath={nextSku ? `/entitlement/sku/detail/${nextSku.id}` : null}
+        onEdit={() => toast.info("编辑功能开发中")}
+        onCopy={() => toast.success("商品已复制（功能开发中）")}
+        statusToggle={{
+          currentActive: sku.salesStatus === "on_sale",
+          activeLabel: "上架",
+          inactiveLabel: "下架",
+          onToggle: () => toast.info(sku.salesStatus === "on_sale" ? "已下架" : "已上架"),
+        }}
+      />
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-start justify-between mb-4">
@@ -35,7 +49,6 @@ export default function SkuDetail() {
         {sku.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t">{sku.description}</p>}
       </div>
 
-      {/* Rules table */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益规则 ({rules.length})</h3>
         <div className="overflow-x-auto">
@@ -70,7 +83,6 @@ export default function SkuDetail() {
         </div>
       </div>
 
-      {/* Bundles */}
       {bundles.length > 0 && (
         <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
           <h3 className="text-[14px] font-semibold text-foreground mb-3">包含此商品的套餐 ({bundles.length})</h3>
