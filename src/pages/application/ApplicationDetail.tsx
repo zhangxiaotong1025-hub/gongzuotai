@@ -35,6 +35,8 @@ const MOCK = {
   expectedBudget: "10-50万",
   enterpriseId: undefined as string | undefined,
   enterpriseName: undefined as string | undefined,
+  closeReason: undefined as string | undefined,
+  closeTime: undefined as string | undefined,
 };
 
 const STATUS_MAP: Record<ApplicationStatus, { label: string; className: string }> = {
@@ -74,6 +76,7 @@ export default function ApplicationDetail() {
   const [d, setD] = useState(MOCK);
   const [editing, setEditing] = useState(isEditMode);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [closeReasonInput, setCloseReasonInput] = useState("");
   const [showProcessDialog, setShowProcessDialog] = useState(false);
 
   // Editable fields state
@@ -93,8 +96,14 @@ export default function ApplicationDetail() {
   };
 
   const handleClose = () => {
-    setD((prev) => ({ ...prev, status: "closed" as ApplicationStatus }));
+    setD((prev) => ({
+      ...prev,
+      status: "closed" as ApplicationStatus,
+      closeReason: closeReasonInput.trim() || undefined,
+      closeTime: new Date().toLocaleString("zh-CN"),
+    }));
     setShowCloseConfirm(false);
+    setCloseReasonInput("");
     toast.success("申请已关闭");
   };
 
