@@ -209,7 +209,7 @@ export default function OrderDetail() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-foreground text-[13px]">{acc.customerName}</span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{acc.appName}</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{acc.appNames.join("、")}</span>
                   </div>
                   <span className="badge-active">活跃</span>
                 </div>
