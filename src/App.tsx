@@ -12,6 +12,11 @@ import StaffDetail from "./pages/staff/StaffDetail";
 import StaffCreate from "./pages/staff/StaffCreate";
 import ApplicationList from "./pages/application/ApplicationList";
 import ApplicationDetail from "./pages/application/ApplicationDetail";
+import AppListPage from "./pages/entitlement/AppList";
+import CapabilityList from "./pages/entitlement/CapabilityList";
+import RuleList from "./pages/entitlement/RuleList";
+import SkuList from "./pages/entitlement/SkuList";
+import PackageList from "./pages/entitlement/PackageList";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
