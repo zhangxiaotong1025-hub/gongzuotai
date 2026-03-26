@@ -3,8 +3,8 @@ import { Search, Bell, ChevronDown, Menu, Settings } from "lucide-react";
 export function AdminHeader({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   return (
     <header
-      className="h-14 border-b flex items-center justify-between px-5 sticky top-0 z-20"
-      style={{ background: 'hsl(var(--card))' }}
+      className="h-14 border-b border-border/60 flex items-center justify-between px-5 sticky top-0 z-20"
+      style={{ background: 'hsl(var(--card))', boxShadow: 'var(--shadow-xs)' }}
     >
       <div className="flex items-center gap-3">
         <button
@@ -15,12 +15,12 @@ export function AdminHeader({ onToggleSidebar }: { onToggleSidebar: () => void }
         </button>
         <div className="hidden sm:flex items-center text-[13px] text-muted-foreground">
           <span>企业管理</span>
-          <span className="mx-2">/</span>
+          <span className="mx-2 opacity-30">/</span>
           <span className="text-foreground font-medium">企业管理</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground">
           <Search className="h-[18px] w-[18px]" />
         </button>
@@ -36,13 +36,13 @@ export function AdminHeader({ onToggleSidebar }: { onToggleSidebar: () => void }
             className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{ background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))' }}
           >
-            <span className="text-primary-foreground text-xs font-medium">程</span>
+            <span className="text-primary-foreground text-[11px] font-medium">程</span>
           </div>
           <div className="flex flex-col">
             <span className="text-[13px] text-foreground leading-tight">程女士</span>
             <span className="text-[11px] text-muted-foreground leading-tight">超级管理员</span>
           </div>
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground ml-0.5" />
         </div>
       </div>
     </header>

@@ -5,14 +5,8 @@ import { Button } from "@/components/ui/button";
 import { AuditDialog, AuditTimeline, type AuditRecord } from "./AuditDialog";
 import { SetAdminDialog } from "./SetAdminDialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
 /* ── Types ── */
@@ -41,11 +35,11 @@ const MOCK_DETAIL = {
   supplyChain: "加入",
   renderRight: "未开启",
   benefitPackages: [
-    { name: "3D工具渲染权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "primary" as const },
-    { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "info" as const },
-    { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "danger" as const },
-    { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "primary" as const },
-    { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "danger" as const },
+    { name: "3D工具渲染权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "blue" as const },
+    { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "teal" as const },
+    { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "rose" as const },
+    { name: "VR漫游权益包", date: "2025.2.23—2028.2.23", used: 8, total: 30, variant: "violet" as const },
+    { name: "AI生图权益包", date: "2025.2.23—2028.2.23", used: 25, total: 30, variant: "amber" as const },
   ],
   serviceType: "豪华版",
   accountCount: { used: 10, total: 10 },
@@ -73,13 +67,22 @@ const AUDIT_CFG: Record<AuditStatus, { label: string; icon: typeof Clock; status
   rejected: { label: "审核驳回", icon: XCircle, statusVar: "destructive" },
 };
 
+/* ── Benefit Card Palette — CSS variable based ── */
+const BENEFIT_VARIANTS: Record<string, string> = {
+  blue: "--benefit-blue",
+  teal: "--benefit-teal",
+  violet: "--benefit-violet",
+  amber: "--benefit-amber",
+  rose: "--benefit-rose",
+};
+
 /* ── Section Header ── */
 function SectionHeader({ title, icon: Icon, action }: { title: string; icon: typeof Building2; action?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between px-6 py-3 border-b" style={{ background: "hsl(var(--muted) / 0.5)" }}>
+    <div className="flex items-center justify-between px-6 py-3.5 border-b" style={{ background: "hsl(var(--muted) / 0.35)" }}>
       <div className="flex items-center gap-2.5">
         <Icon className="h-4 w-4 text-primary" />
-        <span className="text-sm font-semibold text-foreground">{title}</span>
+        <span className="text-[13px] font-semibold text-foreground tracking-wide">{title}</span>
       </div>
       {action}
     </div>
@@ -89,19 +92,16 @@ function SectionHeader({ title, icon: Icon, action }: { title: string; icon: typ
 /* ── Sub-section Title ── */
 function SubTitle({ title }: { title: string }) {
   return (
-    <div className="flex items-center gap-2 mb-4">
-      <div className="w-1 h-4 rounded-full bg-primary" />
-      <h4 className="text-sm font-semibold text-foreground">{title}</h4>
+    <div className="flex items-center gap-2.5 mb-4">
+      <div className="w-0.5 h-4 rounded-full bg-primary/60" />
+      <h4 className="text-[13px] font-semibold text-foreground">{title}</h4>
     </div>
   );
 }
 
 /* ── Detail Row ── */
 function DetailItem({ label, value, highlight, className }: {
-  label: string;
-  value: React.ReactNode;
-  highlight?: boolean;
-  className?: string;
+  label: string; value: React.ReactNode; highlight?: boolean; className?: string;
 }) {
   return (
     <div className={`flex items-start gap-3 min-w-0 ${className || ""}`}>
@@ -111,48 +111,54 @@ function DetailItem({ label, value, highlight, className }: {
   );
 }
 
-/* ── Benefit Package Card ── */
-const VARIANT_COLORS: Record<string, { border: string; bg: string; text: string; bar: string }> = {
-  primary: {
-    border: "hsl(var(--primary) / 0.2)",
-    bg: "hsl(var(--primary) / 0.03)",
-    text: "hsl(var(--primary))",
-    bar: "hsl(var(--primary))",
-  },
-  info: {
-    border: "hsl(var(--info) / 0.2)",
-    bg: "hsl(var(--info) / 0.03)",
-    text: "hsl(var(--info))",
-    bar: "hsl(var(--info))",
-  },
-  danger: {
-    border: "hsl(var(--destructive) / 0.2)",
-    bg: "hsl(var(--destructive) / 0.03)",
-    text: "hsl(var(--destructive))",
-    bar: "hsl(var(--destructive))",
-  },
-};
-
+/* ── Benefit Package Card — elegant, desaturated ── */
 function BenefitCard({ pkg }: { pkg: typeof MOCK_DETAIL.benefitPackages[0] }) {
   const ratio = pkg.total > 0 ? pkg.used / pkg.total : 0;
-  const c = VARIANT_COLORS[pkg.variant] || VARIANT_COLORS.primary;
+  const cssVar = BENEFIT_VARIANTS[pkg.variant] || "--benefit-blue";
+
   return (
     <div
-      className="rounded-xl p-3.5 w-[185px] relative overflow-hidden transition-shadow hover:shadow-md"
-      style={{ border: `1px solid ${c.border}`, background: c.bg }}
+      className="rounded-xl p-4 w-[190px] relative overflow-hidden transition-all hover:shadow-sm group"
+      style={{
+        border: `1px solid hsl(${cssVar.replace('--', 'var(--')}) / 0.15)`,
+        background: `hsl(${cssVar.replace('--', 'var(--')}) / 0.03)`,
+      }}
     >
-      <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: c.bar }} />
-      <div className="flex items-start justify-between gap-1 mb-1.5">
-        <span className="text-xs font-semibold leading-tight line-clamp-2" style={{ color: c.text }}>{pkg.name}</span>
-        <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 cursor-pointer opacity-40 hover:opacity-80 transition-opacity" style={{ color: c.text }} />
+      {/* Top accent line */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[2px] opacity-60 group-hover:opacity-100 transition-opacity"
+        style={{ background: `hsl(var(${cssVar}))` }}
+      />
+      <div className="flex items-start justify-between gap-1 mb-2">
+        <span
+          className="text-[12px] font-semibold leading-tight line-clamp-2"
+          style={{ color: `hsl(var(${cssVar}))` }}
+        >
+          {pkg.name}
+        </span>
+        <Info
+          className="h-3.5 w-3.5 shrink-0 mt-0.5 cursor-pointer opacity-30 hover:opacity-70 transition-opacity"
+          style={{ color: `hsl(var(${cssVar}))` }}
+        />
       </div>
-      <div className="text-[11px] mb-3 opacity-70" style={{ color: c.text }}>{pkg.date}</div>
-      <div className="h-1.5 rounded-full mb-2" style={{ background: `${c.bar}15` }}>
-        <div className="h-full rounded-full transition-all" style={{ width: `${ratio * 100}%`, background: c.bar }} />
+      <div className="text-[11px] mb-3 text-muted-foreground">{pkg.date}</div>
+      <div className="h-1 rounded-full mb-2" style={{ background: `hsl(var(${cssVar}) / 0.1)` }}>
+        <div
+          className="h-full rounded-full transition-all"
+          style={{
+            width: `${ratio * 100}%`,
+            background: ratio > 0.8
+              ? `hsl(var(--warning))`
+              : `hsl(var(${cssVar}))`,
+            opacity: 0.7,
+          }}
+        />
       </div>
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-muted-foreground">已授权/已购买</span>
-        <span className="text-sm font-bold" style={{ color: c.text }}>{pkg.used}<span className="opacity-50">/{pkg.total}</span></span>
+        <span className="text-[13px] font-semibold" style={{ color: `hsl(var(${cssVar}))` }}>
+          {pkg.used}<span className="opacity-40 font-normal">/{pkg.total}</span>
+        </span>
       </div>
     </div>
   );
@@ -161,7 +167,7 @@ function BenefitCard({ pkg }: { pkg: typeof MOCK_DETAIL.benefitPackages[0] }) {
 /* ── Brand Card ── */
 function BrandCard({ name }: { name: string }) {
   return (
-    <div className="w-[72px] h-[72px] rounded-xl border border-border bg-muted/40 flex items-center justify-center transition-all hover:shadow-sm hover:border-primary/20 cursor-default">
+    <div className="w-[72px] h-[72px] rounded-xl border border-border/80 bg-muted/30 flex items-center justify-center transition-all hover:shadow-sm hover:border-primary/15 cursor-default">
       <span className="text-[11px] text-muted-foreground text-center leading-tight font-medium">{name}</span>
     </div>
   );
@@ -216,9 +222,9 @@ export default function EnterpriseDetail() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Breadcrumb + Actions */}
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between">
         <div className="flex items-baseline gap-2">
           <span
             className="text-[13px] text-muted-foreground cursor-pointer hover:text-primary transition-colors"
@@ -226,32 +232,27 @@ export default function EnterpriseDetail() {
           >
             企业管理
           </span>
-          <span className="text-muted-foreground/40 text-xs">/</span>
-          <h1 className="text-lg font-semibold text-foreground">企业详情</h1>
+          <span className="text-muted-foreground/30 text-xs">/</span>
+          <h1 className="text-base font-semibold text-foreground tracking-tight">企业详情</h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1 h-9 text-[13px] px-3">
+          <Button variant="outline" size="sm" className="gap-1 h-8 text-[13px] px-3 rounded-lg">
             <ChevronLeft className="h-3.5 w-3.5" /> 上一个
           </Button>
-          <Button variant="outline" size="sm" className="gap-1 h-9 text-[13px] px-3">
+          <Button variant="outline" size="sm" className="gap-1 h-8 text-[13px] px-3 rounded-lg">
             下一个 <ChevronRight className="h-3.5 w-3.5" />
           </Button>
-          <div className="w-px h-5 bg-border mx-1" />
+          <div className="w-px h-4 bg-border mx-1" />
           {d.auditStatus === "pending" && (
-            <Button
-              size="sm"
-              className="h-9 text-[13px] px-4 gap-1.5"
-              onClick={() => setShowAuditDialog(true)}
-            >
+            <Button size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg" onClick={() => setShowAuditDialog(true)}>
               审核
             </Button>
           )}
           {canToggleStatus && d.status === "active" && (
             <Button
-              variant="outline"
-              size="sm"
-              className="h-9 text-[13px] px-4 gap-1.5"
-              style={{ borderColor: "hsl(var(--destructive) / 0.3)", color: "hsl(var(--destructive))" }}
+              variant="outline" size="sm"
+              className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
+              style={{ borderColor: "hsl(var(--destructive) / 0.25)", color: "hsl(var(--destructive))" }}
               onClick={() => setShowStatusConfirm("disable")}
             >
               <PowerOff className="h-3.5 w-3.5" /> 停用
@@ -260,56 +261,48 @@ export default function EnterpriseDetail() {
           {canToggleStatus && d.status === "inactive" && (
             <Button
               size="sm"
-              className="h-9 text-[13px] px-4 gap-1.5"
+              className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
               style={{ background: "hsl(var(--success))" }}
               onClick={handleEnableClick}
             >
               <Power className="h-3.5 w-3.5" /> 启用
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 text-[13px] px-4 gap-1.5"
-            onClick={() => setShowAdminDialog(true)}
-          >
+          <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
+            onClick={() => setShowAdminDialog(true)}>
             <UserCog className="h-3.5 w-3.5" /> 设置管理员
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 text-[13px] px-4 gap-1.5"
-            onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}`)}
-          >
+          <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
+            onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}`)}>
             <Edit3 className="h-3.5 w-3.5" /> 编辑
           </Button>
-          <Button variant="outline" size="sm" className="h-9 text-[13px] px-4" onClick={() => navigate("/enterprise")}>
+          <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 rounded-lg" onClick={() => navigate("/enterprise")}>
             返回列表
           </Button>
         </div>
       </div>
 
       {/* Main Card */}
-      <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
+      <div className="bg-card rounded-xl border border-border/80 overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
         {/* Top: Name + Status Banner */}
-        <div className="px-6 py-5 flex items-center justify-between border-b border-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.08)" }}>
+        <div className="px-6 py-5 flex items-center justify-between border-b border-border/60">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.06)" }}>
               <Building2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <div className="text-base font-semibold text-foreground">{d.name}</div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-muted text-muted-foreground">{d.typeName}</span>
-                <span className="text-xs text-muted-foreground">ID: {d.id}</span>
+              <div className="text-[15px] font-semibold text-foreground tracking-tight">{d.name}</div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-muted text-muted-foreground font-medium">{d.typeName}</span>
+                <span className="text-[11px] text-muted-foreground/70">ID: {d.id}</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium"
               style={{
-                background: `hsl(var(--${auditCfg.statusVar}) / 0.08)`,
+                background: `hsl(var(--${auditCfg.statusVar}) / 0.07)`,
                 color: `hsl(var(--${auditCfg.statusVar}))`,
               }}
             >
@@ -326,18 +319,18 @@ export default function EnterpriseDetail() {
 
         {/* ── 基础信息 ── */}
         <SectionHeader title="基础信息" icon={Building2} action={
-          <button className="text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
+          <button className="text-[12px] text-primary/80 hover:text-primary transition-colors font-medium"
             onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}`)}>
             编辑信息
           </button>
         } />
         <div className="px-6 py-5">
-          <div className="grid grid-cols-3 gap-x-6 gap-y-4">
+          <div className="grid grid-cols-3 gap-x-8 gap-y-4">
             <DetailItem label="企业名称" value={d.name} />
             <DetailItem label="企业ID" value={d.id} />
             <DetailItem label="组织结构" value={
               <span className="flex items-center gap-1.5">
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
                   {d.orgStructure}
                 </span>
                 <span className="text-foreground">{d.orgName}</span>
@@ -346,7 +339,7 @@ export default function EnterpriseDetail() {
             <DetailItem label="行业" value={d.industry} />
             <DetailItem label="覆盖区域" value={d.region} />
             <DetailItem label="营业执照" value={
-              <span className="w-14 h-14 rounded-lg border border-border bg-muted/50 inline-flex items-center justify-center text-[10px] text-muted-foreground">暂无</span>
+              <span className="w-14 h-14 rounded-lg border border-border/60 bg-muted/30 inline-flex items-center justify-center text-[10px] text-muted-foreground">暂无</span>
             } />
             <DetailItem label="执照编号" value={d.licenseNo} />
             <DetailItem label="法人代表" value={d.legalRep} />
@@ -371,7 +364,7 @@ export default function EnterpriseDetail() {
 
         {/* ── 权益配置 ── */}
         <SectionHeader title="权益配置" icon={Package} action={
-          <button className="text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
+          <button className="text-[12px] text-primary/80 hover:text-primary transition-colors font-medium"
             onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}&step=product`)}>
             编辑权益
           </button>
@@ -379,7 +372,7 @@ export default function EnterpriseDetail() {
         <div className="px-6 py-5 space-y-7">
           <div>
             <SubTitle title="基础权益" />
-            <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+            <div className="grid grid-cols-3 gap-x-8 gap-y-3">
               <DetailItem label="开启产品" value={
                 <div className="flex gap-1.5 flex-wrap">
                   {d.enabledProducts.map((p) => <span key={p} className="badge-product">{p}</span>)}
@@ -400,7 +393,7 @@ export default function EnterpriseDetail() {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+            <div className="grid grid-cols-3 gap-x-8 gap-y-3">
               <DetailItem label="服务类型" value={d.serviceType} />
               <DetailItem label="账号数量" value={<>{d.accountCount.used} / {d.accountCount.total}个</>} highlight />
               <DetailItem label="功能权益" value={d.funcRights} />
@@ -417,7 +410,7 @@ export default function EnterpriseDetail() {
 
           <div>
             <SubTitle title="企业权益" />
-            <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+            <div className="grid grid-cols-3 gap-x-8 gap-y-3">
               <DetailItem label="子企业上限" value={<>{d.subEnterpriseLimit.used} / {d.subEnterpriseLimit.total}个</>} highlight />
               <DetailItem label="子企业权益" value={d.subEnterpriseRight} />
               <DetailItem label="到期时间" value={d.subEnterpriseExpiry} />
@@ -429,7 +422,7 @@ export default function EnterpriseDetail() {
         {hasBrands && (
           <>
             <SectionHeader title="品牌设置" icon={Tag} action={
-              <button className="text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
+              <button className="text-[12px] text-primary/80 hover:text-primary transition-colors font-medium"
                 onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}&step=config`)}>
                 编辑品牌
               </button>
@@ -463,34 +456,19 @@ export default function EnterpriseDetail() {
       </div>
 
       {/* ── Dialogs ── */}
-      <AuditDialog
-        open={showAuditDialog}
-        onClose={() => setShowAuditDialog(false)}
-        enterpriseName={d.name}
-        onConfirm={handleAuditConfirm}
-      />
+      <AuditDialog open={showAuditDialog} onClose={() => setShowAuditDialog(false)} enterpriseName={d.name} onConfirm={handleAuditConfirm} />
 
-      <SetAdminDialog
-        open={showAdminDialog}
-        onClose={() => setShowAdminDialog(false)}
-        enterpriseName={d.name}
+      <SetAdminDialog open={showAdminDialog} onClose={() => setShowAdminDialog(false)} enterpriseName={d.name}
         onConfirm={(result) => {
-          setD((prev) => ({
-            ...prev,
-            admin: result.adminName,
-            status: result.status,
-          }));
+          setD((prev) => ({ ...prev, admin: result.adminName, status: result.status }));
           setShowAdminDialog(false);
         }}
       />
 
       {/* Status Toggle Confirm */}
       <AlertDialog open={!!showStatusConfirm} onOpenChange={() => setShowStatusConfirm(null)}>
-        <AlertDialogContent
-          className="max-w-[420px] overflow-hidden rounded-xl border bg-card p-0"
-          style={{ boxShadow: "var(--shadow-md)" }}
-        >
-          <div className="border-b px-5 py-4" style={{ background: "hsl(var(--muted) / 0.4)" }}>
+        <AlertDialogContent className="max-w-[420px] overflow-hidden rounded-xl border bg-card p-0" style={{ boxShadow: "var(--shadow-md)" }}>
+          <div className="border-b px-5 py-4" style={{ background: "hsl(var(--muted) / 0.3)" }}>
             <AlertDialogHeader className="space-y-1">
               <AlertDialogTitle className="text-[15px] font-semibold text-foreground">
                 {showStatusConfirm === "disable" ? "确认停用该企业？" : "确认启用该企业？"}
@@ -503,10 +481,10 @@ export default function EnterpriseDetail() {
             </AlertDialogHeader>
           </div>
           <AlertDialogFooter className="gap-2 px-5 py-4">
-            <AlertDialogCancel className="mt-0 h-9 rounded-lg px-4 text-[13px]">取消</AlertDialogCancel>
+            <AlertDialogCancel className="mt-0 h-8 rounded-lg px-4 text-[13px]">取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleStatusConfirm}
-              className={`h-9 rounded-lg px-4 text-[13px] ${showStatusConfirm === "disable" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}`}
+              className={`h-8 rounded-lg px-4 text-[13px] ${showStatusConfirm === "disable" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}`}
               style={showStatusConfirm === "enable" ? { background: "hsl(var(--success))", color: "hsl(var(--success-foreground))" } : undefined}
             >
               {showStatusConfirm === "disable" ? "确认停用" : "确认启用"}

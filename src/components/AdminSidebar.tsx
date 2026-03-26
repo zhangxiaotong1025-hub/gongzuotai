@@ -55,7 +55,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
 
   return (
     <aside
-      className="fixed left-0 top-0 h-full border-r z-30 flex flex-col transition-all duration-200"
+      className="fixed left-0 top-0 h-full border-r border-border/60 z-30 flex flex-col transition-all duration-200"
       style={{
         width: collapsed ? 0 : 220,
         overflow: "hidden",
@@ -63,13 +63,13 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
       }}
     >
       {/* Logo */}
-      <div className="h-14 flex items-center px-5 border-b shrink-0">
+      <div className="h-14 flex items-center px-5 border-b border-border/60 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'hsl(var(--primary))' }}>
-            <span className="text-primary-foreground font-bold text-sm">居</span>
+            <span className="text-primary-foreground font-bold text-[12px]">居</span>
           </div>
           <div className="flex flex-col whitespace-nowrap">
-            <span className="text-sm font-semibold text-foreground leading-tight">居然设计家</span>
+            <span className="text-[13px] font-semibold text-foreground leading-tight tracking-tight">居然设计家</span>
             <span className="text-[10px] text-muted-foreground leading-tight">管理后台</span>
           </div>
         </div>
@@ -89,7 +89,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
                     className={`w-full flex items-center gap-2.5 px-3 py-2 text-[13px] rounded-lg transition-all ${
                       groupActive
                         ? "text-primary font-medium"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                     }`}
                   >
                     <item.icon className="h-[18px] w-[18px] shrink-0" />
@@ -101,7 +101,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
                   <div
                     className={`overflow-hidden transition-all duration-200 ${isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
                   >
-                    <div className="ml-[30px] mt-0.5 space-y-0.5 border-l border-border pl-3">
+                    <div className="ml-[30px] mt-0.5 space-y-0.5 border-l border-border/50 pl-3">
                       {item.children.map((child) => (
                         <Link
                           key={child.path}
@@ -109,7 +109,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
                           className={`block px-3 py-1.5 text-[13px] rounded-md transition-all ${
                             isActive(child.path)
                               ? "text-primary font-medium bg-primary/5"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                           }`}
                         >
                           {child.label}
@@ -128,7 +128,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
                 className={`flex items-center gap-2.5 px-3 py-2 text-[13px] rounded-lg transition-all ${
                   isActive(item.path!)
                     ? "text-primary font-medium bg-primary/5"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 }`}
               >
                 <item.icon className="h-[18px] w-[18px] shrink-0" />
