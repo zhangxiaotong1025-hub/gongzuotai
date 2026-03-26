@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Building2, Package, Tag, CheckCircle2, XCircle, Clock, Info, UserCog } from "lucide-react";
+import { Building2, Package, Tag, CheckCircle2, XCircle, Clock, Info, History, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { AuditDialog, AuditTimeline, type AuditRecord } from "./AuditDialog";
