@@ -314,4 +314,50 @@
   .btn-text.text-danger-action:hover {
     background: hsl(var(--destructive) / 0.06);
   }
+
+  .admin-action-trigger {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-all;
+    color: hsl(var(--muted-foreground));
+    border-color: transparent;
+    background: transparent;
+  }
+  .admin-action-trigger:hover,
+  .admin-action-trigger[data-state="open"] {
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted));
+    border-color: hsl(var(--border));
+  }
+
+  .admin-action-menu {
+    @apply fixed min-w-[152px] rounded-xl border py-1 z-[70];
+    background: hsl(var(--popover));
+    border-color: hsl(var(--border));
+    box-shadow: var(--shadow-md);
+  }
+  .admin-action-menu[data-state="open"] {
+    animation: admin-action-menu-fade 0.12s ease-out;
+  }
+
+  .admin-action-menu-item {
+    @apply flex w-full items-center px-3 py-2 text-[13px] text-left transition-colors;
+    color: hsl(var(--foreground));
+  }
+  .admin-action-menu-item:hover {
+    background: hsl(var(--muted));
+  }
+  .admin-action-menu-item-danger {
+    color: hsl(var(--destructive));
+  }
+  .admin-action-menu-item-danger:hover {
+    background: hsl(var(--destructive) / 0.06);
+  }
+
+  @keyframes admin-action-menu-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }

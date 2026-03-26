@@ -154,8 +154,27 @@ const columns: TableColumn<Enterprise>[] = [
 // ===== Actions =====
 const actions: ActionItem<Enterprise>[] = [
   { label: "查看", onClick: (r) => console.log("查看", r.id) },
-  { label: "终止", onClick: (r) => console.log("终止", r.id), visible: (r) => r.status === "active", danger: true },
-  { label: "启用", onClick: (r) => console.log("启用", r.id), visible: (r) => r.status === "inactive" },
+  {
+    label: "停用",
+    onClick: (r) => console.log("停用", r.id),
+    visible: (r) => r.status === "active",
+    danger: true,
+    confirm: {
+      title: "确认停用该企业？",
+      description: "停用后该企业将暂时无法继续使用当前能力，后续可在列表中重新启用。",
+      confirmLabel: "确认停用",
+    },
+  },
+  {
+    label: "启用",
+    onClick: (r) => console.log("启用", r.id),
+    visible: (r) => r.status === "inactive",
+    confirm: {
+      title: "确认启用该企业？",
+      description: "启用前请确认该企业已完成管理员配置，启用后企业即可正常使用相关能力。",
+      confirmLabel: "确认启用",
+    },
+  },
   { label: "设置管理员", onClick: (r) => console.log("admin", r.id) },
   { label: "新建子企业", onClick: (r) => console.log("sub", r.id), visible: (r) => !r._level },
   { label: "权益配置", onClick: (r) => console.log("entitlement", r.id) },
