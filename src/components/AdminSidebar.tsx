@@ -35,27 +35,15 @@ const navItems: NavItem[] = [
     label: "权益管理",
     icon: Gift,
     children: [
-      { label: "应用管理", path: "/entitlement/app", icon: Monitor },
-      { label: "能力管理", path: "/entitlement/capability", icon: Zap },
-      { label: "权益规则", path: "/entitlement/rule", icon: Ruler },
-      { label: "权益商品", path: "/entitlement/sku", icon: Box },
-    ],
-  },
-  {
-    label: "权益商品管理",
-    icon: ShoppingBag,
-    children: [
-      { label: "商品SKU", path: "/entitlement/sku-list", icon: Tag },
-      { label: "权益包", path: "/entitlement/package", icon: Layers },
-    ],
-  },
-  { label: "订单管理", icon: ClipboardList, path: "/entitlement/order" },
-  {
-    label: "客户权益",
-    icon: UserCircle,
-    children: [
-      { label: "权益账户", path: "/entitlement/account", icon: Wallet },
-      { label: "权益消耗", path: "/entitlement/usage", icon: Activity },
+      { label: "应用管理", path: "/entitlement/app" },
+      { label: "权益能力管理", path: "/entitlement/capability" },
+      { label: "权益规则管理", path: "/entitlement/rule" },
+      { label: "权益商品管理", path: "/entitlement/sku", children: [
+        { label: "权益商品", path: "/entitlement/sku" },
+        { label: "权益包", path: "/entitlement/package" },
+      ]},
+      { label: "权益订单管理", path: "/entitlement/order" },
+      { label: "权益账户", path: "/entitlement/account" },
     ],
   },
   { label: "品牌管理", icon: Tag, path: "/brand" },
