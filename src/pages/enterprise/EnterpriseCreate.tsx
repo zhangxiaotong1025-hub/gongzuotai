@@ -11,12 +11,31 @@ const TYPE_LABELS: Record<string, string> = {
   brand: "品牌商", dealer: "经销商", hq: "总部公司", studio: "工作室", supplier: "供应商",
 };
 
-const STEPS = [
+const ALL_STEPS = [
   { key: "basic", label: "基础信息" },
   { key: "product", label: "权益配置" },
   { key: "config", label: "品牌配置" },
   { key: "done", label: "完成" },
 ];
+
+// 企业类型与品牌关系映射
+// brand(品牌商) → 拥有品牌(创建); dealer(经销商) → 代理品牌(关联); hq → 两者皆有; studio/supplier → 无品牌配置
+type BrandRelation = "own" | "agent" | "both" | "none";
+const TYPE_BRAND_RELATION: Record<string, BrandRelation> = {
+  brand: "own",
+  dealer: "agent",
+  hq: "both",
+  studio: "none",
+  supplier: "none",
+};
+
+function getStepsForType(type: string) {
+  const relation = TYPE_BRAND_RELATION[type] || "none";
+  if (relation === "none") {
+    return ALL_STEPS.filter((s) => s.key !== "config");
+  }
+  return ALL_STEPS;
+}
 
 const INDUSTRIES = ["家居建材", "家具制造", "装饰装修", "智能家居", "软装设计", "其他"];
 const PROVINCES = ["北京", "上海", "广东", "浙江", "江苏", "四川", "湖北", "山东", "福建", "湖南"];
