@@ -7,10 +7,16 @@ import {
   Box, Layers, ClipboardList, Wallet, Activity,
 } from "lucide-react";
 
+interface NavGrandChild {
+  label: string;
+  path: string;
+}
+
 interface NavChild {
   label: string;
   path: string;
   icon?: React.ElementType;
+  children?: NavGrandChild[];
 }
 
 interface NavItem {
@@ -35,27 +41,19 @@ const navItems: NavItem[] = [
     label: "权益管理",
     icon: Gift,
     children: [
-      { label: "应用管理", path: "/entitlement/app", icon: Monitor },
-      { label: "能力管理", path: "/entitlement/capability", icon: Zap },
-      { label: "权益规则", path: "/entitlement/rule", icon: Ruler },
-      { label: "权益商品", path: "/entitlement/sku", icon: Box },
-    ],
-  },
-  {
-    label: "权益商品管理",
-    icon: ShoppingBag,
-    children: [
-      { label: "商品SKU", path: "/entitlement/sku-list", icon: Tag },
-      { label: "权益包", path: "/entitlement/package", icon: Layers },
-    ],
-  },
-  { label: "订单管理", icon: ClipboardList, path: "/entitlement/order" },
-  {
-    label: "客户权益",
-    icon: UserCircle,
-    children: [
-      { label: "权益账户", path: "/entitlement/account", icon: Wallet },
-      { label: "权益消耗", path: "/entitlement/usage", icon: Activity },
+      { label: "应用管理", path: "/entitlement/app" },
+      { label: "权益能力管理", path: "/entitlement/capability" },
+      { label: "权益规则管理", path: "/entitlement/rule" },
+      {
+        label: "权益商品管理",
+        path: "/entitlement/sku",
+        children: [
+          { label: "权益商品", path: "/entitlement/sku" },
+          { label: "权益包", path: "/entitlement/package" },
+        ],
+      },
+      { label: "权益订单管理", path: "/entitlement/order" },
+      { label: "权益账户", path: "/entitlement/account" },
     ],
   },
   { label: "品牌管理", icon: Tag, path: "/brand" },
@@ -83,8 +81,15 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  const isChildActive = (child: NavChild) => {
+    if (isActive(child.path)) return true;
+    if (child.children?.some((gc) => isActive(gc.path))) return true;
+    return location.pathname.startsWith(child.path + "/");
+  };
+
   const isGroupActive = (item: NavItem) =>
-    item.children?.some((c) => location.pathname === c.path || location.pathname.startsWith(c.path + "/"));
+    item.children?.some((c) => isChildActive(c));
 
   return (
     <aside
@@ -132,22 +137,61 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
                     />
                   </button>
                   <div
-                    className={`overflow-hidden transition-all duration-200 ${isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
+                    className={`overflow-hidden transition-all duration-200 ${isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}
                   >
                     <div className="ml-[30px] mt-0.5 space-y-0.5 border-l border-border/50 pl-3">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.path}
-                          to={child.path}
-                          className={`block px-3 py-1.5 text-[13px] rounded-md transition-all ${
-                            isActive(child.path)
-                              ? "text-primary font-medium bg-primary/5"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                          }`}
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
+                      {item.children.map((child) => {
+                        if (child.children) {
+                          const subOpen = expanded.includes(child.label);
+                          const subActive = isChildActive(child);
+                          return (
+                            <div key={child.label}>
+                              <button
+                                onClick={() => toggleExpand(child.label)}
+                                className={`w-full flex items-center justify-between px-3 py-1.5 text-[13px] rounded-md transition-all ${
+                                  subActive
+                                    ? "text-primary font-medium"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                                }`}
+                              >
+                                <span>{child.label}</span>
+                                <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${subOpen ? "" : "-rotate-90"}`} />
+                              </button>
+                              <div className={`overflow-hidden transition-all duration-200 ${subOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}>
+                                <div className="ml-3 mt-0.5 space-y-0.5 border-l border-border/40 pl-3">
+                                  {child.children.map((gc) => (
+                                    <Link
+                                      key={gc.path}
+                                      to={gc.path}
+                                      className={`block px-3 py-1.5 text-[12px] rounded-md transition-all ${
+                                        isActive(gc.path)
+                                          ? "text-primary font-medium bg-primary/5"
+                                          : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                                      }`}
+                                    >
+                                      {gc.label}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <Link
+                            key={child.path}
+                            to={child.path}
+                            className={`block px-3 py-1.5 text-[13px] rounded-md transition-all ${
+                              isActive(child.path)
+                                ? "text-primary font-medium bg-primary/5"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                            }`}
+                          >
+                            {child.label}
+                          </Link>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
