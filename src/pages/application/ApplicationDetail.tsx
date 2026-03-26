@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Building2, FileText, Edit3, ExternalLink, X as XIcon, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { CreateEnterpriseDialog } from "@/pages/enterprise/CreateEnterpriseDialog";
 
 /* ── Types ── */
