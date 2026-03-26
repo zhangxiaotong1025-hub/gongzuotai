@@ -13,7 +13,7 @@ import {
 
 export interface TableColumn<T> {
   key: string;
-  title: string;
+  title: ReactNode;
   width?: number;
   minWidth?: number;
   align?: "left" | "center" | "right";
