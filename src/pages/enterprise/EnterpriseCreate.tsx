@@ -381,7 +381,7 @@ export default function EnterpriseCreate() {
             toggleAgentBrand={toggleAgentBrand}
           />
         )}
-        {currentStepKey === "done" && <StepDone type={type} />}
+        {currentStepKey === "done" && <StepDone type={type} form={form} navigate={navigate} />}
 
         {/* Actions */}
         <div className="flex justify-center gap-3 px-6 py-5 border-t">
@@ -400,7 +400,7 @@ export default function EnterpriseCreate() {
             </button>
           )}
           {currentStepKey === "done" && (
-            <button onClick={() => navigate("/enterprise")} className="btn-primary">返回列表</button>
+            <button onClick={() => navigate("/enterprise")} className="btn-secondary">返回列表</button>
           )}
         </div>
       </div>
