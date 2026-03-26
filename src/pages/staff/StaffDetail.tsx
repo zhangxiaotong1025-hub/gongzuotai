@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Edit3, User, Package, Info, Power, PowerOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { User, Package, Info } from "lucide-react";
+import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -107,52 +107,18 @@ export default function StaffDetail() {
 
   return (
     <div className="space-y-5">
-      {/* Breadcrumb + Global Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-baseline gap-2">
-          <span className="text-[13px] text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/enterprise/staff")}>
-            人员管理
-          </span>
-          <span className="text-muted-foreground/30 text-xs">/</span>
-          <h1 className="text-base font-semibold text-foreground tracking-tight">人员详情</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1 h-8 text-[13px] px-3 rounded-lg">
-            <ChevronLeft className="h-3.5 w-3.5" /> 上一个
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1 h-8 text-[13px] px-3 rounded-lg">
-            下一个 <ChevronRight className="h-3.5 w-3.5" />
-          </Button>
-          <div className="w-px h-4 bg-border mx-1" />
-          {d.status === "active" && (
-            <Button
-              variant="outline" size="sm"
-              className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
-              style={{ borderColor: "hsl(var(--destructive) / 0.25)", color: "hsl(var(--destructive))" }}
-              onClick={() => setShowStatusConfirm("disable")}
-            >
-              <PowerOff className="h-3.5 w-3.5" /> 停用
-            </Button>
-          )}
-          {d.status === "inactive" && (
-            <Button
-              size="sm"
-              className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
-              style={{ background: "hsl(var(--success))" }}
-              onClick={() => setShowStatusConfirm("enable")}
-            >
-              <Power className="h-3.5 w-3.5" /> 启用
-            </Button>
-          )}
-          <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
-            onClick={() => navigate(`/enterprise/staff/create?mode=edit&id=${id}`)}>
-            <Edit3 className="h-3.5 w-3.5" /> 编辑
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 rounded-lg" onClick={() => navigate("/enterprise/staff")}>
-            返回列表
-          </Button>
-        </div>
-      </div>
+      <DetailActionBar
+        backLabel="人员管理"
+        backPath="/enterprise/staff"
+        currentName={d.name}
+        prevPath={null}
+        nextPath={null}
+        onEdit={() => navigate(`/enterprise/staff/create?mode=edit&id=${id}`)}
+        statusToggle={{
+          currentActive: d.status === "active",
+          onToggle: () => d.status === "active" ? setShowStatusConfirm("disable") : setShowStatusConfirm("enable"),
+        }}
+      />
 
       {/* Main Card */}
       <div className="bg-card rounded-xl border border-border/80 overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>

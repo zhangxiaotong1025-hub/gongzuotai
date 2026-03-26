@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ruleData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { RuleDialog } from "./dialogs/RuleDialog";
 import { toast } from "sonner";
 
 export default function RuleDetail() {
@@ -8,6 +10,9 @@ export default function RuleDetail() {
   const navigate = useNavigate();
   const ruleIndex = ruleData.findIndex((r) => r.id === id);
   const rule = ruleIndex >= 0 ? ruleData[ruleIndex] : null;
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogInitial, setDialogInitial] = useState(rule);
+
   if (!rule) return <div className="p-10 text-center text-muted-foreground">权益规则不存在</div>;
 
   const cap = getCapability(rule.capabilityId);
@@ -17,6 +22,9 @@ export default function RuleDetail() {
   const prevRule = ruleIndex > 0 ? ruleData[ruleIndex - 1] : null;
   const nextRule = ruleIndex < ruleData.length - 1 ? ruleData[ruleIndex + 1] : null;
 
+  const handleEdit = () => { setDialogInitial(rule); setDialogOpen(true); };
+  const handleCopy = () => { setDialogInitial({ ...rule, id: "", name: `${rule.name}（副本）`, code: `${rule.code}_COPY` }); setDialogOpen(true); };
+
   return (
     <div className="space-y-5 pb-6">
       <DetailActionBar
@@ -25,8 +33,8 @@ export default function RuleDetail() {
         currentName={rule.name}
         prevPath={prevRule ? `/entitlement/rule/detail/${prevRule.id}` : null}
         nextPath={nextRule ? `/entitlement/rule/detail/${nextRule.id}` : null}
-        onEdit={() => toast.info("编辑功能开发中")}
-        onCopy={() => toast.success("规则已复制（功能开发中）")}
+        onEdit={handleEdit}
+        onCopy={handleCopy}
         statusToggle={{
           currentActive: rule.status === "active",
           onToggle: () => toast.info(rule.status === "active" ? "已停用" : "已启用"),
@@ -112,6 +120,8 @@ export default function RuleDetail() {
           </div>
         </div>
       )}
+
+      <RuleDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSave={(form) => { toast.success(dialogInitial?.id === rule.id ? "规则已更新" : "规则已创建（副本）"); setDialogOpen(false); }} initial={dialogInitial} />
     </div>
   );
 }

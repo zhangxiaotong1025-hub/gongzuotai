@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { skuData, ruleData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, DATA_TYPES, getCapability, getApp, getRule } from "@/data/entitlement";
+import { skuData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getCapability, getApp, getRule } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { SkuDialog } from "./dialogs/SkuDialog";
 import { toast } from "sonner";
 
 export default function SkuDetail() {
@@ -8,6 +10,9 @@ export default function SkuDetail() {
   const navigate = useNavigate();
   const skuIndex = skuData.findIndex((s) => s.id === id);
   const sku = skuIndex >= 0 ? skuData[skuIndex] : null;
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogInitial, setDialogInitial] = useState(sku);
+
   if (!sku) return <div className="p-10 text-center text-muted-foreground">商品不存在</div>;
 
   const rules = (sku.ruleIds || []).map((rid) => getRule(rid)).filter(Boolean);
@@ -15,6 +20,9 @@ export default function SkuDetail() {
   const bundles = bundleData.filter((b) => b.items.some((i) => i.skuId === sku.id));
   const prevSku = skuIndex > 0 ? skuData[skuIndex - 1] : null;
   const nextSku = skuIndex < skuData.length - 1 ? skuData[skuIndex + 1] : null;
+
+  const handleEdit = () => { setDialogInitial(sku); setDialogOpen(true); };
+  const handleCopy = () => { setDialogInitial({ ...sku, id: "", name: `${sku.name}（副本）`, code: `${sku.code}_COPY` }); setDialogOpen(true); };
 
   return (
     <div className="space-y-5 pb-6">
@@ -24,8 +32,8 @@ export default function SkuDetail() {
         currentName={sku.name}
         prevPath={prevSku ? `/entitlement/sku/detail/${prevSku.id}` : null}
         nextPath={nextSku ? `/entitlement/sku/detail/${nextSku.id}` : null}
-        onEdit={() => toast.info("编辑功能开发中")}
-        onCopy={() => toast.success("商品已复制（功能开发中）")}
+        onEdit={handleEdit}
+        onCopy={handleCopy}
         statusToggle={{
           currentActive: sku.salesStatus === "on_sale",
           activeLabel: "上架",
@@ -99,6 +107,8 @@ export default function SkuDetail() {
           </div>
         </div>
       )}
+
+      <SkuDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSave={(form) => { toast.success(dialogInitial?.id === sku.id ? "商品已更新" : "商品已创建（副本）"); setDialogOpen(false); }} initial={dialogInitial} />
     </div>
   );
 }
