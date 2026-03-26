@@ -407,6 +407,157 @@ export default function EnterpriseCreate() {
   );
 }
 
+/* ============ Step 1: 基础信息 ============ */
+function StepBasic({ form, update }: { form: any; update: (k: string, v: any) => void }) {
+  return (
+    <div className="p-6">
+      <SectionTitle title="基础信息" />
+      <div className="max-w-[640px] mx-auto space-y-5 mt-5">
+        <FormRow label="企业名称" required>
+          <input className="filter-input w-full" placeholder="请输入" value={form.name} onChange={(e) => update("name", e.target.value)} />
+        </FormRow>
+        <FormRow label="营业证" required>
+          <input className="filter-input w-full" value={form.license} onChange={(e) => update("license", e.target.value)} />
+        </FormRow>
+        <FormRow label="资质认证">
+          <select className="filter-select w-full" value={form.authType} onChange={(e) => update("authType", e.target.value)}>
+            {AUTH_TYPES.map((a) => <option key={a} value={a}>{a}</option>)}
+          </select>
+        </FormRow>
+        <FormRow label="行业">
+          <select className="filter-select w-full" value={form.industry} onChange={(e) => update("industry", e.target.value)}>
+            {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
+          </select>
+        </FormRow>
+        <FormRow label="营业范围">
+          <select className="filter-select w-full" value={form.province} onChange={(e) => update("province", e.target.value)}>
+            {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </FormRow>
+        <FormRow label="证件照">
+          <div className="w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+            <Upload className="h-5 w-5" />
+            <span className="text-[10px]">点击上传</span>
+          </div>
+        </FormRow>
+        <FormRow label="对接销售/顾问">
+          <input className="filter-input w-full" placeholder="请输入" value={form.contactName} onChange={(e) => update("contactName", e.target.value)} />
+        </FormRow>
+        <FormRow label="企业人数" required>
+          <input className="filter-input w-full" placeholder="请输入" value={form.legalPerson} onChange={(e) => update("legalPerson", e.target.value)} />
+        </FormRow>
+        <FormRow label="企业手机号" required>
+          <input className="filter-input w-full" placeholder="请输入" value={form.legalPhone} onChange={(e) => update("legalPhone", e.target.value)} />
+        </FormRow>
+        <FormRow label="注册资金">
+          <input className="filter-input w-full" placeholder="请输入" value={form.regCapital} onChange={(e) => update("regCapital", e.target.value)} />
+        </FormRow>
+        <FormRow label="品牌标识">
+          <input className="filter-input w-full" placeholder="请输入" value={form.brand} onChange={(e) => update("brand", e.target.value)} />
+        </FormRow>
+      </div>
+    </div>
+  );
+}
+
+/* ============ Step 2: 权益配置 ============ */
+function StepBenefits({
+  form, update, toggleProduct, addRow, removeRow, updateRow, updateProductAccountCount,
+}: {
+  form: any;
+  update: (k: string, v: any) => void;
+  toggleProduct: (key: string) => void;
+  addRow: (productKey: string, type: "packageRows" | "productRows", name?: string) => void;
+  removeRow: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
+  updateRow: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: any) => void;
+  updateProductAccountCount: (productKey: string, count: number) => void;
+}) {
+  return (
+    <div>
+      <div className="px-6 py-4 border-b bg-muted/30">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <div className="w-1 h-4 rounded-full bg-primary" />
+          产品权益
+        </h3>
+      </div>
+      <div className="p-6 space-y-6">
+        <div className="space-y-4">
+          <FormRow label="开通产品" wide>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              {AVAILABLE_PRODUCTS.map((p) => {
+                const checked = form.enabledProducts.includes(p.key);
+                return (
+                  <label key={p.key} className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none group"
+                    onClick={(e) => { e.preventDefault(); toggleProduct(p.key); }}>
+                    <div className={`w-4 h-4 rounded border-[1.5px] flex items-center justify-center transition-all ${
+                      checked ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
+                    }`}>
+                      {checked && <Check className="h-3 w-3 text-primary-foreground" />}
+                    </div>
+                    <span className={checked ? "text-foreground" : "text-muted-foreground"}>{p.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </FormRow>
+        </div>
+
+        {form.enabledProducts.map((pKey: string) => {
+          const product = AVAILABLE_PRODUCTS.find((p) => p.key === pKey);
+          if (!product) return null;
+          const cfg = form.productConfigs[pKey] || { packageRows: [], productRows: [], accountCount: 30 };
+          const catalog = BENEFIT_CATALOG[pKey] || [];
+          return (
+            <div key={pKey} className="border rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 bg-muted/30 border-b">
+                <span className="text-[13px] font-semibold text-foreground">{product.label}</span>
+              </div>
+              <div className="p-5 space-y-5">
+                <FormRow label="产品人数" wide>
+                  <input className="filter-input w-32" type="number" value={cfg.accountCount || 30}
+                    onChange={(e) => updateProductAccountCount(pKey, Number(e.target.value))} />
+                  <span className="text-[12px] text-muted-foreground ml-2">人</span>
+                </FormRow>
+                <BenefitListSection
+                  label="权益包" productKey={pKey} type="packageRows" rows={cfg.packageRows} catalog={catalog}
+                  onAdd={addRow} onRemove={removeRow} onUpdate={updateRow}
+                  onAddWithName={(name) => addRow(pKey, "packageRows", name)}
+                />
+                <BenefitListSection
+                  label="权益商品" productKey={pKey} type="productRows" rows={cfg.productRows} catalog={catalog}
+                  onAdd={addRow} onRemove={removeRow} onUpdate={updateRow}
+                  onAddWithName={(name) => addRow(pKey, "productRows", name)}
+                />
+              </div>
+            </div>
+          );
+        })}
+
+        <div className="px-6 py-4 border-t bg-muted/30 -mx-6 -mb-6 mt-6">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <div className="w-1 h-4 rounded-full bg-primary" />
+            企业权益
+          </h3>
+        </div>
+        <div className="space-y-4 pt-2">
+          <FormRow label="子企业上限" wide>
+            <input className="filter-input w-32" type="number" value={form.maxSubCompanies}
+              onChange={(e) => update("maxSubCompanies", Number(e.target.value))} />
+            <span className="text-[12px] text-muted-foreground ml-2">个</span>
+          </FormRow>
+          <FormRow label="独立配置子企业权益" wide>
+            <ToggleSwitch checked={form.autoGrantSub} onChange={() => update("autoGrantSub", !form.autoGrantSub)} />
+          </FormRow>
+          <FormRow label="到期时间" wide>
+            <input className="filter-input w-48" type="date" value={form.expireDate}
+              onChange={(e) => update("expireDate", e.target.value)} />
+          </FormRow>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ============ BenefitListSection ============ */
 function BenefitListSection({
   label, productKey, type, rows, catalog, onAdd, onRemove, onUpdate, onAddWithName,
