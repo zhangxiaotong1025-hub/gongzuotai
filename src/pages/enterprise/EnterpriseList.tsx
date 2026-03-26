@@ -156,6 +156,7 @@ const columns: TableColumn<Enterprise>[] = [
 
 export default function EnterpriseList() {
   const navigate = useNavigate();
+  const [data, setData] = useState<Enterprise[]>(initialData);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["ENT001"]));
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
@@ -172,11 +173,36 @@ export default function EnterpriseList() {
     });
   }, []);
 
+  // Recursively update an enterprise by id in the tree
+  const updateEnterprise = useCallback((id: string, patch: Partial<Enterprise>) => {
+    const updateTree = (items: Enterprise[]): Enterprise[] =>
+      items.map((e) => ({
+        ...e,
+        ...(e.id === id ? patch : {}),
+        children: e.children ? updateTree(e.children) : e.children,
+      }));
+    setData((prev) => updateTree(prev));
+  }, []);
+
+  const handleToggleStatus = useCallback((record: Enterprise) => {
+    const newStatus = record.status === "active" ? "inactive" : "active";
+    updateEnterprise(record.id, { status: newStatus });
+  }, [updateEnterprise]);
+
+  const handleEnableClick = useCallback((record: Enterprise) => {
+    if (!record.admin) {
+      // No admin set → open admin dialog instead
+      setAdminTarget(record);
+      return;
+    }
+    handleToggleStatus(record);
+  }, [handleToggleStatus]);
+
   const listActions: ActionItem<Enterprise>[] = [
     { label: "查看", onClick: (r) => console.log("查看", r.id) },
     {
       label: "停用",
-      onClick: (r) => console.log("停用", r.id),
+      onClick: handleToggleStatus,
       visible: (r) => r.status === "active",
       danger: true,
       confirm: {
@@ -187,13 +213,8 @@ export default function EnterpriseList() {
     },
     {
       label: "启用",
-      onClick: (r) => console.log("启用", r.id),
+      onClick: handleEnableClick,
       visible: (r) => r.status === "inactive",
-      confirm: {
-        title: "确认启用该企业？",
-        description: "启用前请确认该企业已完成管理员配置，启用后企业即可正常使用相关能力。",
-        confirmLabel: "确认启用",
-      },
     },
     { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
     { label: "新建子企业", onClick: (r) => console.log("sub", r.id), visible: (r) => !r._level },
