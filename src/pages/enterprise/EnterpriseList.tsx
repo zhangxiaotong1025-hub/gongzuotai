@@ -286,8 +286,13 @@ export default function EnterpriseList() {
         open={Boolean(adminTarget)}
         onClose={() => setAdminTarget(null)}
         enterpriseName={adminTarget?.name}
-        onConfirm={(data) => {
-          console.log("设置管理员", adminTarget?.id, data);
+        onConfirm={(result) => {
+          if (adminTarget) {
+            updateEnterprise(adminTarget.id, {
+              admin: result.adminName,
+              status: result.status,
+            });
+          }
           setAdminTarget(null);
         }}
       />
