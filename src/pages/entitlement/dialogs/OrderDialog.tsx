@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { X, Search, Package, Layers } from "lucide-react";
-import { appData, skuData, bundleData, ORDER_SOURCES, BILLING_CYCLES, type EntitlementOrder, type OrderItem, type Sku, type Bundle } from "@/data/entitlement";
+import { appData, skuData, bundleData, ORDER_TYPES, BILLING_CYCLES, type EntitlementOrder, type OrderItem, type Sku, type Bundle } from "@/data/entitlement";
 
 interface OrderDialogProps {
   open: boolean;
@@ -18,7 +18,7 @@ interface OrderDialogProps {
 export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps) {
   const [customerName, setCustomerName] = useState("");
   const [appId, setAppId] = useState("");
-  const [source, setSource] = useState<string>("purchase");
+  const [orderType, setOrderType] = useState<string>("internal_grant");
   const [remark, setRemark] = useState("");
   const [items, setItems] = useState<OrderItem[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -27,21 +27,22 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
     if (open) {
       setCustomerName(initial?.customerName || "");
       setAppId(initial?.appId || appData[0]?.id || "");
-      setSource(initial?.source || "purchase");
+      setOrderType(initial?.orderType || "internal_grant");
       setRemark(initial?.remark || "");
       setItems(initial?.items || []);
     }
   }, [open, initial]);
 
   const totalAmount = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
-
   const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
 
   const handleSubmit = () => {
     if (!customerName.trim()) return;
+    const paymentStatus = orderType === "internal_grant" || orderType === "system_grant" ? "no_payment" as const : "pending" as const;
+    const orderStatus = paymentStatus === "no_payment" ? "completed" as const : "pending" as const;
     onSave({
-      customerName, appId, source: source as any, remark, items,
-      totalAmount, status: "pending",
+      customerName, appId, orderType: orderType as any, remark, items,
+      totalAmount, paymentStatus, orderStatus,
     });
   };
 
@@ -50,14 +51,14 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
       <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
         <DialogContent className="max-w-[600px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{initial ? "编辑订单" : "新建权益订单"}</DialogTitle>
+            <DialogTitle>{initial ? "编辑订单" : "创建内部订单"}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px]">客户名称 *</Label>
-                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="请输入客户名称" />
+                <Label className="text-[13px]">企业名称 *</Label>
+                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="请输入企业名称" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[13px]">所属应用</Label>
@@ -70,10 +71,10 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px]">订单来源</Label>
-                <Select value={source} onValueChange={setSource}>
+                <Label className="text-[13px]">订单类型</Label>
+                <Select value={orderType} onValueChange={setOrderType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{ORDER_SOURCES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                  <SelectContent>{ORDER_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
@@ -108,7 +109,7 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                     </div>
                   ))}
                   <div className="px-3 py-2 text-[13px] font-medium text-right bg-muted/30">
-                    合计: <span className="text-foreground">¥{totalAmount}</span>
+                    合计: <span className="text-foreground">¥{totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
               ) : (
@@ -126,7 +127,6 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
         </DialogContent>
       </Dialog>
 
-      {/* Item Picker Dialog */}
       <ItemPickerDialog
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
@@ -178,7 +178,6 @@ function ItemPickerDialog({ open, onClose, appId, existingItems, onConfirm }: {
           <DialogTitle>选择商品/套餐</DialogTitle>
         </DialogHeader>
 
-        {/* Tabs & Search */}
         <div className="flex items-center gap-3 pb-3 border-b">
           <div className="flex gap-1 bg-muted rounded-lg p-0.5">
             <button onClick={() => setTab("sku")} className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors ${tab === "sku" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
@@ -195,7 +194,6 @@ function ItemPickerDialog({ open, onClose, appId, existingItems, onConfirm }: {
           <span className="text-[12px] text-muted-foreground whitespace-nowrap">已选 {localItems.length} 项</span>
         </div>
 
-        {/* List */}
         <div className="flex-1 overflow-y-auto min-h-[300px] py-2">
           {tab === "sku" ? (
             <div className="space-y-1">
