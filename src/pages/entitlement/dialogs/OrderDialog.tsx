@@ -43,7 +43,7 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
   const filteredCustomers = useMemo(() => {
     if (customerType === "B") {
       return bEnterpriseData.filter((e) =>
-        !customerSearch || e.name.includes(customerSearch) || e.id.includes(customerSearch)
+        !customerSearch || e.name.includes(customerSearch) || e.type.includes(customerSearch) || (e.parentName && e.parentName.includes(customerSearch))
       );
     } else {
       return cUserData.filter((u) =>
