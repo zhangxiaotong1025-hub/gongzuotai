@@ -9,11 +9,14 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 
 // ===== Data Model =====
+type AuditStatus = "pending" | "approved" | "rejected";
+
 interface Enterprise {
   id: string;
   name: string;
   type: string;
   status: "active" | "inactive";
+  auditStatus: AuditStatus;
   products: string[];
   subsidiaries: number;
   staff: number;
@@ -36,13 +39,11 @@ const TYPES = ["品牌商", "经销商", "装修公司", "卖场", "门店", "�
 const PRODUCTS = ["国内3D", "国际3D", "智能导购", "VR全景"];
 const CREATORS = ["张伟", "李娜", "王强", "赵敏", "刘洋", "陈静", "杨帆"];
 
-// Type key mapping for sub-enterprise creation
 const TYPE_KEY_MAP: Record<string, string> = {
   "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
   "卖场": "mall", "门店": "store", "工作室": "studio", "供应商": "supplier",
 };
 
-// Sub-enterprise allowed types by parent type
 const SUB_TYPE_MAP: Record<string, string[]> = {
   "品牌商": ["品牌商", "经销商", "装修公司", "门店", "工作室"],
   "经销商": ["经销商", "装修公司", "门店", "工作室"],
@@ -59,16 +60,19 @@ function randomPick<T>(arr: T[], count?: number): T[] {
 }
 
 function generateEnterprise(id: string, depth = 0, parentType?: string): Enterprise {
-  const maxDepth = 2; // 0-indexed: 0=HQ, 1=二级, 2=三级
+  const maxDepth = 2;
   const hasChildren = depth < maxDepth && Math.random() > (depth === 0 ? 0.3 : 0.5);
   const childCount = hasChildren ? Math.floor(Math.random() * 3) + 1 : 0;
   const allowedTypes = depth === 0 ? TYPES : (parentType ? (SUB_TYPE_MAP[parentType] || TYPES) : TYPES);
   const type = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
+  const auditRand = Math.random();
+  const auditStatus: AuditStatus = auditRand > 0.7 ? "pending" : auditRand > 0.15 ? "approved" : "rejected";
   return {
     id,
     name: ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)],
     type,
-    status: Math.random() > 0.25 ? "active" : "inactive",
+    status: auditStatus === "approved" ? (Math.random() > 0.25 ? "active" : "inactive") : "inactive",
+    auditStatus,
     admin: Math.random() > 0.4 ? CREATORS[Math.floor(Math.random() * CREATORS.length)] : undefined,
     products: randomPick(PRODUCTS, Math.floor(Math.random() * 3) + 1),
     subsidiaries: Math.floor(Math.random() * 50) + 1,
@@ -85,13 +89,20 @@ const initialData: Enterprise[] = Array.from({ length: 10 }, (_, i) =>
   generateEnterprise(`ENT${String(i + 1).padStart(3, "0")}`)
 );
 
+// ===== Audit Status Labels =====
+const AUDIT_STATUS_MAP: Record<AuditStatus, { label: string; className: string }> = {
+  pending: { label: "待审核", className: "badge-warning" },
+  approved: { label: "已通过", className: "badge-active" },
+  rejected: { label: "已驳回", className: "badge-danger" },
+};
+
 // ===== Filter Fields =====
 const filterFields: FilterField[] = [
   { key: "name", label: "企业名称", type: "input", placeholder: "请输入企业名称", width: 200 },
   { key: "id", label: "企业ID", type: "input", placeholder: "请输入企业ID", width: 150 },
   { key: "type", label: "企业类型", type: "select", options: TYPES.map((t) => ({ label: t, value: t })), width: 140 },
-  { key: "status", label: "状态", type: "select", options: [{ label: "启用", value: "active" }, { label: "停用", value: "inactive" }], width: 120 },
-  { key: "product", label: "启用产品", type: "select", options: PRODUCTS.map((p) => ({ label: p, value: p })), width: 140 },
+  { key: "status", label: "业务状态", type: "select", options: [{ label: "启用", value: "active" }, { label: "停用", value: "inactive" }], width: 120 },
+  { key: "auditStatus", label: "审核状态", type: "select", options: [{ label: "待审核", value: "pending" }, { label: "已通过", value: "approved" }, { label: "已驳回", value: "rejected" }], width: 120 },
   { key: "createdFrom", label: "创建时间", type: "date", width: 160 },
 ];
 
@@ -114,14 +125,28 @@ const columns: TableColumn<Enterprise>[] = [
     ),
   },
   {
-    key: "status",
-    title: "状态",
+    key: "auditStatus",
+    title: "审核状态",
     minWidth: 90,
-    render: (v) => (
-      <span className={v === "active" ? "badge-active" : "badge-inactive"}>
-        {v === "active" ? "启用" : "停用"}
-      </span>
-    ),
+    render: (v: AuditStatus) => {
+      const cfg = AUDIT_STATUS_MAP[v];
+      return <span className={cfg.className}>{cfg.label}</span>;
+    },
+  },
+  {
+    key: "status",
+    title: "业务状态",
+    minWidth: 90,
+    render: (v, row) => {
+      if ((row as Enterprise).auditStatus !== "approved") {
+        return <span className="text-xs text-muted-foreground">—</span>;
+      }
+      return (
+        <span className={v === "active" ? "badge-active" : "badge-inactive"}>
+          {v === "active" ? "启用" : "停用"}
+        </span>
+      );
+    },
   },
   {
     key: "products",
@@ -194,7 +219,6 @@ export default function EnterpriseList() {
     });
   }, []);
 
-  // Recursively update an enterprise by id in the tree
   const updateEnterprise = useCallback((id: string, patch: Partial<Enterprise>) => {
     const updateTree = (items: Enterprise[]): Enterprise[] =>
       items.map((e) => ({
@@ -212,19 +236,47 @@ export default function EnterpriseList() {
 
   const handleEnableClick = useCallback((record: Enterprise) => {
     if (!record.admin) {
-      // No admin set → open admin dialog instead
       setAdminTarget(record);
       return;
     }
     handleToggleStatus(record);
   }, [handleToggleStatus]);
 
+  const handleApprove = useCallback((record: Enterprise) => {
+    updateEnterprise(record.id, { auditStatus: "approved" });
+  }, [updateEnterprise]);
+
+  const handleReject = useCallback((record: Enterprise) => {
+    updateEnterprise(record.id, { auditStatus: "rejected" });
+  }, [updateEnterprise]);
+
   const listActions: ActionItem<Enterprise>[] = [
     { label: "查看", onClick: (r) => navigate(`/enterprise/detail/${r.id}`) },
     {
+      label: "审核通过",
+      onClick: handleApprove,
+      visible: (r) => r.auditStatus === "pending",
+      confirm: {
+        title: "确认审核通过？",
+        description: "审核通过后该企业可以被启用。",
+        confirmLabel: "确认通过",
+      },
+    },
+    {
+      label: "审核驳回",
+      onClick: handleReject,
+      visible: (r) => r.auditStatus === "pending",
+      danger: true,
+      confirm: {
+        title: "确认驳回该企业？",
+        description: "驳回后企业信息需要重新编辑并提交审核。",
+        confirmLabel: "确认驳回",
+      },
+    },
+    {
       label: "停用",
       onClick: handleToggleStatus,
-      visible: (r) => r.status === "active",
+      visible: (r) => r.auditStatus === "approved" && r.status === "active",
       danger: true,
       confirm: {
         title: "确认停用该企业？",
@@ -235,7 +287,7 @@ export default function EnterpriseList() {
     {
       label: "启用",
       onClick: handleEnableClick,
-      visible: (r) => r.status === "inactive",
+      visible: (r) => r.auditStatus === "approved" && r.status === "inactive",
     },
     { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
     {
@@ -243,7 +295,7 @@ export default function EnterpriseList() {
       onClick: (r) => setSubParent(r),
       visible: (r) => (r._level || 0) < 2,
     },
-    { label: "权益配置", onClick: (r) => console.log("entitlement", r.id) },
+    { label: "权益配置", onClick: (r) => navigate(`/enterprise/detail/${r.id}`) },
   ];
 
   return (
@@ -307,7 +359,6 @@ export default function EnterpriseList() {
         }}
       />
 
-      {/* Sub-enterprise type selection dialog */}
       {subParent && (() => {
         const parentTypeKey = TYPE_KEY_MAP[subParent.type] || "brand";
         const allowed = (SUB_TYPE_MAP[subParent.type] || []).map((t) => TYPE_KEY_MAP[t]).filter(Boolean);
