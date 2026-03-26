@@ -152,7 +152,7 @@ export default function ApplicationDetail() {
                 variant="outline" size="sm"
                 className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
                 style={{ borderColor: "hsl(var(--destructive) / 0.25)", color: "hsl(var(--destructive))" }}
-                onClick={() => setShowCloseConfirm(true)}
+                onClick={() => { setCloseReasonInput(""); setShowCloseConfirm(true); }}
               >
                 <XIcon className="h-3.5 w-3.5" /> 关闭申请
               </Button>
