@@ -593,13 +593,6 @@ export default function StaffList() {
         </section>
 
         <section>
-          <div className="mb-3 flex items-center justify-between rounded-xl border border-border/80 bg-card px-4 py-3" style={{ boxShadow: "var(--shadow-xs)" }}>
-            <div>
-              <div className="text-[14px] font-semibold text-foreground">{selectedOrgNode?.name || "全部人员"}</div>
-              <div className="mt-1 text-[12px] text-muted-foreground">当前列表仅展示该组织下可见人员，重复归属自动去重</div>
-            </div>
-            <div className="text-[12px] text-muted-foreground">共 {totalItems} 人</div>
-          </div>
           <AdminTable columns={columns} data={filteredData} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
           <div className="rounded-xl border bg-card mt-4" style={{ boxShadow: "var(--shadow-xs)" }}>
             <Pagination current={currentPage} total={totalItems} pageSize={pageSize} onPageChange={setCurrentPage}
