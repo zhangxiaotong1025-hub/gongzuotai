@@ -69,6 +69,13 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+        benefit: {
+          blue: "hsl(var(--benefit-blue))",
+          teal: "hsl(var(--benefit-teal))",
+          violet: "hsl(var(--benefit-violet))",
+          amber: "hsl(var(--benefit-amber))",
+          rose: "hsl(var(--benefit-rose))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
