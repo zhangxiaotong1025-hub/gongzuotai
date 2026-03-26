@@ -137,19 +137,25 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
               <div className="relative">
                 {customerId ? (
                   <div className="flex items-center justify-between border rounded-md px-3 py-2 bg-muted/30">
-                    <div className="flex items-center gap-2 text-[13px]">
-                      {customerType === "B" ? <Building2 className="h-3.5 w-3.5 text-primary" /> : <User className="h-3.5 w-3.5 text-primary" />}
-                      <span className="font-medium">{customerName}</span>
+                    <div className="flex items-center gap-2 text-[13px] min-w-0">
+                      {customerType === "B" ? <Building2 className="h-3.5 w-3.5 text-primary shrink-0" /> : <User className="h-3.5 w-3.5 text-primary shrink-0" />}
+                      <span className="font-medium truncate">{customerName}</span>
                       {customerType === "B" && (() => {
                         const ent = bEnterpriseData.find((e) => e.id === customerId);
-                        return ent ? <span className="text-[11px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{ent.type}</span> : null;
+                        if (!ent) return null;
+                        return (
+                          <>
+                            <span className="text-[11px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">{ent.type}</span>
+                            {ent.parentName && <span className="text-[10px] text-muted-foreground shrink-0">← {ent.parentName}</span>}
+                          </>
+                        );
                       })()}
                       {customerType === "C" && (() => {
                         const user = cUserData.find((u) => u.id === customerId);
                         return user ? <span className="text-[11px] text-muted-foreground">{user.phone}</span> : null;
                       })()}
                     </div>
-                    <button onClick={() => { setCustomerId(""); setCustomerName(""); }} className="text-muted-foreground hover:text-destructive">
+                    <button onClick={() => { setCustomerId(""); setCustomerName(""); }} className="text-muted-foreground hover:text-destructive shrink-0">
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -173,11 +179,13 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                               <button
                                 key={ent.id}
                                 onClick={() => handleSelectCustomer(ent.id, ent.name)}
-                                className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-muted/60 transition-colors text-left"
+                                className="w-full flex items-center gap-2 py-2 text-[13px] hover:bg-muted/60 transition-colors text-left"
+                                style={{ paddingLeft: `${12 + ent.level * 16}px`, paddingRight: 12 }}
                               >
                                 <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                 <span className="truncate flex-1">{ent.name}</span>
                                 <span className="text-[11px] text-muted-foreground shrink-0">{ent.type}</span>
+                                {ent.parentName && <span className="text-[10px] text-muted-foreground/60 shrink-0 max-w-[120px] truncate">← {ent.parentName}</span>}
                               </button>
                             ))
                           ) : (
