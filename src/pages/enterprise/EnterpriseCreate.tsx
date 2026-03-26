@@ -728,6 +728,9 @@ function StepBrandConfig({
           )}
         </div>
       </div>
+
+      {/* 拥有品牌 Section */}
+      {showOwn && (
         <div>
           <div className="flex items-center justify-between mb-4">
             <SectionTitle title="拥有品牌" />
