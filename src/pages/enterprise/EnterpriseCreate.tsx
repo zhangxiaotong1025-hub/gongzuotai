@@ -559,7 +559,7 @@ function BenefitListSection({
           {/* Rows */}
           {rows.map((row) => {
             const color = getTagColor(row.packageName);
-            const [startDate, endDate] = (row.dateRange || "").split(" ~ ");
+            return (
             return (
               <div
                 key={row.id}
