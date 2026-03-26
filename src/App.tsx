@@ -7,6 +7,9 @@ import { AdminLayout } from "@/components/AdminLayout";
 import EnterpriseList from "./pages/enterprise/EnterpriseList";
 import EnterpriseCreate from "./pages/enterprise/EnterpriseCreate";
 import EnterpriseDetail from "./pages/enterprise/EnterpriseDetail";
+import StaffList from "./pages/staff/StaffList";
+import StaffDetail from "./pages/staff/StaffDetail";
+import StaffCreate from "./pages/staff/StaffCreate";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
@@ -24,7 +27,9 @@ const App = () => (
             <Route path="/enterprise" element={<EnterpriseList />} />
             <Route path="/enterprise/create" element={<EnterpriseCreate />} />
             <Route path="/enterprise/detail/:id" element={<EnterpriseDetail />} />
-            <Route path="/enterprise/staff" element={<PlaceholderPage title="人员管理" />} />
+            <Route path="/enterprise/staff" element={<StaffList />} />
+            <Route path="/enterprise/staff/detail/:id" element={<StaffDetail />} />
+            <Route path="/enterprise/staff/create" element={<StaffCreate />} />
             <Route path="/enterprise/apply" element={<PlaceholderPage title="企业入驻申请" />} />
             <Route path="/permission" element={<PlaceholderPage title="权限管理" />} />
             <Route path="/entitlement" element={<PlaceholderPage title="权益管理" />} />
