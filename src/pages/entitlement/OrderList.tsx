@@ -21,7 +21,7 @@ export default function OrderList() {
   const [data, setData] = useState<EntitlementOrder[]>(initialData);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(20);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<EntitlementOrder | null>(null);
 
@@ -37,19 +37,6 @@ export default function OrderList() {
     setDialogOpen(false); setEditTarget(null);
   }, [editTarget, data.length]);
 
-  const columns: TableColumn<EntitlementOrder>[] = [
-    { key: "orderNo", title: "订单号", minWidth: 170, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors font-mono text-[12px]" onClick={() => navigate(`/entitlement/order/detail/${(row as EntitlementOrder).id}`)}>{v}</button> },
-    { key: "customerName", title: "客户", minWidth: 180 },
-    { key: "items", title: "商品/套餐", minWidth: 160, render: (_v, row) => {
-      const items = (row as EntitlementOrder).items;
-      return <span className="text-[12px]">{items.map((i) => i.itemName).join("、")}</span>;
-    }},
-    { key: "totalAmount", title: "金额", minWidth: 80, align: "right" as const, render: (v: number) => <span className={`font-medium ${v > 0 ? "text-foreground" : "text-muted-foreground"}`}>{v > 0 ? `¥${v}` : "¥0"}</span> },
-    { key: "source", title: "来源", minWidth: 80, render: (v: string) => <span className="text-[12px]">{ORDER_SOURCES.find((s) => s.value === v)?.label}</span> },
-    { key: "status", title: "状态", minWidth: 80, render: (v: string) => { const s = ORDER_STATUS.find((os) => os.value === v); return <span className={s?.className || ""}>{s?.label}</span>; } },
-    { key: "createdAt", title: "创建时间", minWidth: 110 },
-  ];
-
   const filtered = data.filter((d) => {
     if (filters.orderNo && !d.orderNo.includes(filters.orderNo) && !d.customerName.includes(filters.orderNo)) return false;
     if (filters.appId && d.appId !== filters.appId) return false;
@@ -60,23 +47,36 @@ export default function OrderList() {
 
   const paged = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  const actions = (row: EntitlementOrder): ActionItem[] => [
-    { label: "查看详情", onClick: () => navigate(`/entitlement/order/detail/${row.id}`) },
-    ...(row.status === "pending" ? [
-      { label: "标记已支付", onClick: () => { setData((prev) => prev.map((o) => o.id === row.id ? { ...o, status: "paid" as const, paidAt: new Date().toLocaleString("zh-CN") } : o)); toast.success("已标记为已支付"); } },
-      { label: "取消订单", onClick: () => { setData((prev) => prev.map((o) => o.id === row.id ? { ...o, status: "cancelled" as const } : o)); toast.success("订单已取消"); }, danger: true },
-    ] : []),
+  const columns: TableColumn<EntitlementOrder>[] = [
+    { key: "orderNo", title: "订单号", minWidth: 170, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors font-mono text-[12px]" onClick={() => navigate(`/entitlement/order/detail/${(row as EntitlementOrder).id}`)}>{v}</button> },
+    { key: "customerName", title: "客户", minWidth: 180 },
+    { key: "items", title: "商品/套餐", minWidth: 160, render: (_v, row) => {
+      const items = (row as EntitlementOrder).items;
+      return <span className="text-[12px]">{items.map((i) => i.itemName).join("、")}</span>;
+    }},
+    { key: "totalAmount", title: "金额", minWidth: 80, align: "right" as const, render: (v: number) => <span className={`font-medium ${v > 0 ? "text-foreground" : "text-muted-foreground"}`}>{v > 0 ? `¥${v}` : "¥0"}</span> },
+    { key: "source", title: "来源", minWidth: 80, render: (v: string) => <span className="text-[12px]">{ORDER_SOURCES.find((s) => s.value === v)?.label}</span> },
+    { key: "status", title: "状态", minWidth: 80, render: (v: string) => { const s = ORDER_STATUS.find((os) => os.value === v); return <span className={s?.className || ""}>{s?.label}</span>; } },
+    { key: "createdAt", title: "创建时间", minWidth: 110, render: (v) => <span className="text-muted-foreground">{v}</span> },
+  ];
+
+  const actions: ActionItem<EntitlementOrder>[] = [
+    { label: "查看详情", onClick: (r) => navigate(`/entitlement/order/detail/${r.id}`) },
+    { label: "标记已支付", onClick: (r) => { setData((prev) => prev.map((o) => o.id === r.id ? { ...o, status: "paid" as const, paidAt: new Date().toLocaleString("zh-CN") } : o)); toast.success("已标记为已支付"); }, visible: (r) => r.status === "pending" },
+    { label: "取消订单", onClick: (r) => { setData((prev) => prev.map((o) => o.id === r.id ? { ...o, status: "cancelled" as const } : o)); toast.success("订单已取消"); }, danger: true, visible: (r) => r.status === "pending" },
   ];
 
   return (
     <div className="space-y-4">
-      <PageHeader title="权益订单管理" actions={[
-        { label: "导出", icon: Download, variant: "outline" as const, onClick: () => toast.info("导出功能开发中") },
-        { label: "新建订单", icon: Plus, onClick: () => { setEditTarget(null); setDialogOpen(true); } },
-      ]} />
-      <FilterBar fields={filterFields} values={filters} onChange={setFilters} onReset={() => setFilters({})} />
-      <AdminTable columns={columns} data={paged} rowKey="id" actions={actions} />
-      <Pagination current={currentPage} pageSize={pageSize} total={filtered.length} onChange={setCurrentPage} onPageSizeChange={setPageSize} />
+      <PageHeader title="权益订单管理" subtitle="管理权益商品的订单与支付状态" actions={
+        <div className="flex gap-2">
+          <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 新建</button>
+          <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>
+        </div>
+      } />
+      <FilterBar fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onSearch={() => {}} onReset={() => setFilters({})} maxVisible={4} />
+      <AdminTable columns={columns} data={paged} rowKey={(r) => r.id} actions={actions} maxVisibleActions={1} />
+      <div className="bg-card rounded-xl border" style={{ boxShadow: "var(--shadow-xs)" }}><Pagination current={currentPage} total={filtered.length} pageSize={pageSize} onPageChange={setCurrentPage} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} /></div>
       <OrderDialog open={dialogOpen} onClose={() => { setDialogOpen(false); setEditTarget(null); }} onSave={handleSave} initial={editTarget} />
     </div>
   );

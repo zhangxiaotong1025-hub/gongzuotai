@@ -22,6 +22,10 @@ import SkuList from "./pages/entitlement/SkuList";
 import SkuDetail from "./pages/entitlement/SkuDetail";
 import PackageList from "./pages/entitlement/PackageList";
 import PackageDetail from "./pages/entitlement/PackageDetail";
+import OrderList from "./pages/entitlement/OrderList";
+import OrderDetail from "./pages/entitlement/OrderDetail";
+import AccountList from "./pages/entitlement/AccountList";
+import AccountDetail from "./pages/entitlement/AccountDetail";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
@@ -56,8 +60,10 @@ const App = () => (
             <Route path="/entitlement/sku/detail/:id" element={<SkuDetail />} />
             <Route path="/entitlement/package" element={<PackageList />} />
             <Route path="/entitlement/package/detail/:id" element={<PackageDetail />} />
-            <Route path="/entitlement/order" element={<PlaceholderPage title="权益订单管理" />} />
-            <Route path="/entitlement/account" element={<PlaceholderPage title="权益账户" />} />
+            <Route path="/entitlement/order" element={<OrderList />} />
+            <Route path="/entitlement/order/detail/:id" element={<OrderDetail />} />
+            <Route path="/entitlement/account" element={<AccountList />} />
+            <Route path="/entitlement/account/detail/:id" element={<AccountDetail />} />
             <Route path="/entitlement/usage" element={<PlaceholderPage title="权益消耗" />} />
             <Route path="/brand" element={<PlaceholderPage title="品牌管理" />} />
             <Route path="/customer" element={<PlaceholderPage title="客户管理" />} />
