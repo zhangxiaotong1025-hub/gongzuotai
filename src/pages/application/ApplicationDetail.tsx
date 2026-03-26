@@ -162,15 +162,17 @@ export default function ApplicationDetail() {
             下一个 <ChevronRight className="h-3.5 w-3.5" />
           </Button>
           <div className="w-px h-4 bg-border mx-1" />
+          {(d.status === "pending" || d.status === "closed") && d.status !== "created" && (
+            <Button
+              size="sm"
+              className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
+              onClick={() => setShowTypeDialog(true)}
+            >
+              创建企业
+            </Button>
+          )}
           {d.status === "pending" && (
             <>
-              <Button
-                size="sm"
-                className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
-                onClick={() => setShowProcessDialog(true)}
-              >
-                创建企业
-              </Button>
               <Button
                 variant="outline" size="sm"
                 className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
