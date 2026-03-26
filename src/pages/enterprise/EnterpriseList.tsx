@@ -183,6 +183,7 @@ export default function EnterpriseList() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [adminTarget, setAdminTarget] = useState<Enterprise | null>(null);
+  const [subParent, setSubParent] = useState<Enterprise | null>(null);
   const totalItems = 1200;
 
   const toggleExpand = useCallback((id: string) => {
@@ -239,12 +240,8 @@ export default function EnterpriseList() {
     { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
     {
       label: "新建子企业",
-      onClick: (r) => {
-        const typeKey = TYPE_KEY_MAP[r.type] || "brand";
-        const level = (r._level || 0) + 1;
-        navigate(`/enterprise/create?type=${typeKey}&parentId=${r.id}&parentType=${typeKey}&parentName=${encodeURIComponent(r.name)}&level=${level}`);
-      },
-      visible: (r) => (r._level || 0) < 2, // max 3 levels (0,1,2)
+      onClick: (r) => setSubParent(r),
+      visible: (r) => (r._level || 0) < 2,
     },
     { label: "权益配置", onClick: (r) => console.log("entitlement", r.id) },
   ];
@@ -309,6 +306,26 @@ export default function EnterpriseList() {
           navigate(`/enterprise/create?type=${type}`);
         }}
       />
+
+      {/* Sub-enterprise type selection dialog */}
+      {subParent && (() => {
+        const parentTypeKey = TYPE_KEY_MAP[subParent.type] || "brand";
+        const allowed = (SUB_TYPE_MAP[subParent.type] || []).map((t) => TYPE_KEY_MAP[t]).filter(Boolean);
+        const level = (subParent._level || 0) + 1;
+        return (
+          <CreateEnterpriseDialog
+            open
+            title="新建子企业"
+            subtitle={`请选择「${subParent.name}」的子企业类型`}
+            allowedTypes={allowed}
+            onClose={() => setSubParent(null)}
+            onSelect={(type) => {
+              setSubParent(null);
+              navigate(`/enterprise/create?type=${type}&parentId=${subParent.id}&parentType=${parentTypeKey}&parentName=${encodeURIComponent(subParent.name)}&level=${level}`);
+            }}
+          />
+        );
+      })()}
 
       <SetAdminDialog
         open={Boolean(adminTarget)}
