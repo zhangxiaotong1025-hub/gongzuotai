@@ -74,15 +74,6 @@ function ActionCell<T>({
 
   const closeMenu = useCallback(() => setOpen(false), []);
 
-  const updatePosition = useCallback(() => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    setMenuPos({
-      top: rect.bottom + 6,
-      left: rect.right,
-    });
-  }, []);
-
   useEffect(() => {
     if (!open) return;
 
@@ -107,7 +98,7 @@ function ActionCell<T>({
       window.removeEventListener("scroll", closeMenu, true);
       window.removeEventListener("resize", closeMenu);
     };
-  }, [open, closeMenu, updatePosition]);
+  }, [open, closeMenu]);
 
   const handleActionClick = (action: ActionItem<T>) => {
     closeMenu();

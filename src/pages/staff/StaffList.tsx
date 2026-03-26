@@ -355,12 +355,6 @@ function OrgTreeNode({
 
   useEffect(() => { if (isEditing) { inputRef.current?.focus(); inputRef.current?.select(); } }, [isEditing]);
 
-  const updateMenuPosition = useCallback(() => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    setMenuPos({ top: rect.bottom + 6, left: rect.right });
-  }, []);
-
   useEffect(() => {
     if (!menuOpen) return;
     const handlePointerDown = (e: MouseEvent) => {
@@ -371,7 +365,7 @@ function OrgTreeNode({
     window.addEventListener("scroll", close, true);
     window.addEventListener("resize", close);
     return () => { document.removeEventListener("mousedown", handlePointerDown); window.removeEventListener("scroll", close, true); window.removeEventListener("resize", close); };
-  }, [menuOpen, updateMenuPosition]);
+  }, [menuOpen]);
 
   return (
     <div className={depth > 0 ? "ml-3" : ""}>
