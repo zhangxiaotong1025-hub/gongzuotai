@@ -249,42 +249,46 @@ function BenefitConfigDialog({ open, onClose, staffName }: { open: boolean; onCl
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[600px] max-h-[80vh] overflow-y-auto rounded-xl p-0">
-        <div className="border-b px-5 py-4" style={{ background: "hsl(var(--muted) / 0.3)" }}>
+      <DialogContent className="max-w-[720px] max-h-[85vh] flex flex-col rounded-xl p-0">
+        <div className="border-b px-5 py-4 shrink-0" style={{ background: "hsl(var(--muted) / 0.3)" }}>
           <DialogHeader>
             <DialogTitle className="text-[15px] font-semibold">权益设置 — {staffName}</DialogTitle>
-            <DialogDescription className="text-[13px] text-muted-foreground">配置该人员的权益包及使用周期</DialogDescription>
+            <DialogDescription className="text-[13px] text-muted-foreground">点击权益包卡片添加，下方配置使用周期</DialogDescription>
           </DialogHeader>
         </div>
-        <div className="px-5 py-4 space-y-4">
-          {/* Available benefits list — same pattern as enterprise create */}
-          <div>
-            <div className="text-[12px] font-medium text-muted-foreground mb-2">可选权益包</div>
-            <div className="rounded-xl border border-border/70 divide-y divide-border/50 overflow-hidden">
-              {allCatalog.map((item, i) => {
-                const already = benefits.find((b) => b.name === item.name);
-                const cssVar = VARIANT_VARS[item.tone];
-                return (
-                  <div key={i} className={cn(
-                    "flex items-center gap-3 px-4 py-2.5 transition-colors",
-                    already ? "opacity-40 bg-muted/20" : "hover:bg-muted/40 cursor-pointer"
-                  )} onClick={() => !already && addBenefit(item)}>
-                    <div className="w-1 h-5 rounded-full shrink-0" style={{ background: `hsl(var(${cssVar}))` }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-medium text-foreground">{item.name}</div>
-                      <div className="text-[11px] text-muted-foreground">{item.desc}</div>
-                    </div>
-                    {already
-                      ? <span className="text-[11px] text-muted-foreground shrink-0">已添加</span>
-                      : <Plus className="h-3.5 w-3.5 text-primary shrink-0" />}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
 
-          {/* Added benefits with date config */}
-          {benefits.length > 0 && (
+        {/* Available — horizontal card row like staff list */}
+        <div className="px-5 pt-4 pb-2 shrink-0">
+          <div className="text-[12px] font-medium text-muted-foreground mb-2">可选权益包</div>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {allCatalog.map((item, i) => {
+              const already = benefits.find((b) => b.name === item.name);
+              const cssVar = VARIANT_VARS[item.tone];
+              return (
+                <div key={i}
+                  className={cn(
+                    "relative min-w-[170px] shrink-0 overflow-hidden rounded-xl px-3.5 py-3 transition-all",
+                    already ? "opacity-35 cursor-not-allowed" : "hover:shadow-sm cursor-pointer"
+                  )}
+                  style={{ border: `1px solid hsl(var(${cssVar}) / 0.15)`, background: `hsl(var(${cssVar}) / 0.03)` }}
+                  onClick={() => !already && addBenefit(item)}
+                >
+                  <div className="absolute left-0 right-0 top-0 h-[2px] opacity-50" style={{ background: `hsl(var(${cssVar}))` }} />
+                  <div className="flex items-start justify-between gap-1 mb-1">
+                    <span className="text-[12px] font-semibold leading-tight" style={{ color: `hsl(var(${cssVar}))` }}>{item.name}</span>
+                    {!already && <Plus className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary opacity-60" />}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground">{item.desc}</div>
+                  {already && <div className="text-[10px] text-muted-foreground mt-1 font-medium">已添加</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Configured benefits — scrollable */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-3">
+          {benefits.length > 0 ? (
             <div>
               <div className="text-[12px] font-medium text-muted-foreground mb-2">已配置权益（{benefits.length}）</div>
               <div className="space-y-3">
@@ -310,9 +314,12 @@ function BenefitConfigDialog({ open, onClose, staffName }: { open: boolean; onCl
                 })}
               </div>
             </div>
+          ) : (
+            <div className="text-[13px] text-muted-foreground text-center py-8">点击上方权益包卡片添加</div>
           )}
         </div>
-        <div className="flex justify-end gap-2 px-5 py-4 border-t">
+
+        <div className="flex justify-end gap-2 px-5 py-4 border-t shrink-0">
           <button className="btn-secondary" onClick={onClose}>取消</button>
           <button className="btn-primary" onClick={() => { toast.success("权益配置已更新"); onClose(); }}>保存</button>
         </div>
