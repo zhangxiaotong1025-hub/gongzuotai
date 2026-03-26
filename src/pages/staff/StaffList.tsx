@@ -585,13 +585,10 @@ export default function StaffList() {
             <div className="text-[12px] text-muted-foreground">共 {totalItems} 人</div>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-            <div className="space-y-4">
-              <AdminTable columns={columns} data={filteredData} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
-              <div className="rounded-xl border bg-card" style={{ boxShadow: "var(--shadow-xs)" }}>
-                <Pagination current={currentPage} total={totalItems} pageSize={pageSize} onPageChange={setCurrentPage}
-                  onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />
-              </div>
-            </div>
+          <AdminTable columns={columns} data={filteredData} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
+          <div className="rounded-xl border bg-card mt-4" style={{ boxShadow: "var(--shadow-xs)" }}>
+            <Pagination current={currentPage} total={totalItems} pageSize={pageSize} onPageChange={setCurrentPage}
+              onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />
           </div>
         </section>
       </div>
