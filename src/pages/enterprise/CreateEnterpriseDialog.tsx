@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Building2, Store, Landmark, Briefcase, ShoppingBag, HardHat, X } from "lucide-react";
 
 const ALL_ENTERPRISE_TYPES = [
