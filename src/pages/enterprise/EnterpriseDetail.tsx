@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Building2, Package, Tag, CheckCircle2, XCircle, Clock, Edit3, Info, History, UserCog, Power, PowerOff } from "lucide-react";
+import { Building2, Package, Tag, CheckCircle2, XCircle, Clock, Info, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { AuditDialog, AuditTimeline, type AuditRecord } from "./AuditDialog";
 import { SetAdminDialog } from "./SetAdminDialog";
 import {
@@ -223,64 +224,31 @@ export default function EnterpriseDetail() {
 
   return (
     <div className="space-y-5">
-      {/* Breadcrumb + Actions */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-baseline gap-2">
-          <span
-            className="text-[13px] text-muted-foreground cursor-pointer hover:text-primary transition-colors"
-            onClick={() => navigate("/enterprise")}
-          >
-            企业管理
-          </span>
-          <span className="text-muted-foreground/30 text-xs">/</span>
-          <h1 className="text-base font-semibold text-foreground tracking-tight">企业详情</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1 h-8 text-[13px] px-3 rounded-lg">
-            <ChevronLeft className="h-3.5 w-3.5" /> 上一个
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1 h-8 text-[13px] px-3 rounded-lg">
-            下一个 <ChevronRight className="h-3.5 w-3.5" />
-          </Button>
-          <div className="w-px h-4 bg-border mx-1" />
-          {d.auditStatus === "pending" && (
-            <Button size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg" onClick={() => setShowAuditDialog(true)}>
-              审核
+      <DetailActionBar
+        backLabel="企业管理"
+        backPath="/enterprise"
+        currentName={d.name}
+        prevPath={null}
+        nextPath={null}
+        onEdit={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}`)}
+        statusToggle={canToggleStatus ? {
+          currentActive: d.status === "active",
+          onToggle: () => d.status === "active" ? setShowStatusConfirm("disable") : handleEnableClick(),
+        } : undefined}
+        extraActions={
+          <>
+            {d.auditStatus === "pending" && (
+              <Button size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg" onClick={() => setShowAuditDialog(true)}>
+                审核
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
+              onClick={() => setShowAdminDialog(true)}>
+              <UserCog className="h-3.5 w-3.5" /> 设置管理员
             </Button>
-          )}
-          {canToggleStatus && d.status === "active" && (
-            <Button
-              variant="outline" size="sm"
-              className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
-              style={{ borderColor: "hsl(var(--destructive) / 0.25)", color: "hsl(var(--destructive))" }}
-              onClick={() => setShowStatusConfirm("disable")}
-            >
-              <PowerOff className="h-3.5 w-3.5" /> 停用
-            </Button>
-          )}
-          {canToggleStatus && d.status === "inactive" && (
-            <Button
-              size="sm"
-              className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
-              style={{ background: "hsl(var(--success))" }}
-              onClick={handleEnableClick}
-            >
-              <Power className="h-3.5 w-3.5" /> 启用
-            </Button>
-          )}
-          <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
-            onClick={() => setShowAdminDialog(true)}>
-            <UserCog className="h-3.5 w-3.5" /> 设置管理员
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
-            onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}`)}>
-            <Edit3 className="h-3.5 w-3.5" /> 编辑
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 rounded-lg" onClick={() => navigate("/enterprise")}>
-            返回列表
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Main Card */}
       <div className="bg-card rounded-xl border border-border/80 overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
