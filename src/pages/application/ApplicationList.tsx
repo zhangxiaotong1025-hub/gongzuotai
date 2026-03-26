@@ -5,6 +5,7 @@ import { AdminTable, type TableColumn, type ActionItem } from "@/components/admi
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { CreateEnterpriseDialog } from "@/pages/enterprise/CreateEnterpriseDialog";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -256,11 +257,17 @@ export default function ApplicationList() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [processTarget, setProcessTarget] = useState<Application | null>(null);
   const [closeConfirm, setCloseConfirm] = useState<Application | null>(null);
+  const [createTarget, setCreateTarget] = useState<Application | null>(null);
   const totalItems = 1200;
 
   const updateApplication = useCallback((id: string, patch: Partial<Application>) => {
     setData((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   }, []);
+
+  const TYPE_KEY_MAP: Record<string, string> = {
+    "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
+    "卖场": "mall", "门店": "store", "工作室": "studio",
+  };
 
   const handleProcess = useCallback((id: string, action: "close" | "create") => {
     setProcessTarget(null);
@@ -268,18 +275,17 @@ export default function ApplicationList() {
       const target = data.find((a) => a.id === id);
       if (target) setCloseConfirm(target);
     } else {
-      // Navigate to enterprise creation with pre-filled data
       const app = data.find((a) => a.id === id);
-      if (app) {
-        const typeKeyMap: Record<string, string> = {
-          "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
-          "卖场": "mall", "门店": "store", "工作室": "studio",
-        };
-        const typeKey = typeKeyMap[app.type] || "brand";
-        navigate(`/enterprise/create?type=${typeKey}&fromApplication=${app.id}`);
-      }
+      if (app) setCreateTarget(app);
     }
-  }, [data, navigate]);
+  }, [data]);
+
+  const handleTypeSelected = useCallback((type: string) => {
+    if (createTarget) {
+      navigate(`/enterprise/create?type=${type}&fromApplication=${createTarget.id}`);
+      setCreateTarget(null);
+    }
+  }, [createTarget, navigate]);
 
   const handleCloseConfirm = useCallback(() => {
     if (!closeConfirm) return;
@@ -389,6 +395,16 @@ export default function ApplicationList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create Enterprise Type Dialog */}
+      <CreateEnterpriseDialog
+        open={Boolean(createTarget)}
+        onClose={() => setCreateTarget(null)}
+        onSelect={handleTypeSelected}
+        defaultType={createTarget ? (TYPE_KEY_MAP[createTarget.type] || "brand") : undefined}
+        title="创建企业"
+        subtitle={`基于「${createTarget?.name || ""}」的申请创建企业，请确认或修改企业类型`}
+      />
     </div>
   );
 }

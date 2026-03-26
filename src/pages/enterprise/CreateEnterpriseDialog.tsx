@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Building2, Store, Landmark, Briefcase, ShoppingBag, HardHat, X } from "lucide-react";
 
 const ALL_ENTERPRISE_TYPES = [
@@ -16,11 +16,16 @@ interface CreateEnterpriseDialogProps {
   onSelect: (type: string) => void;
   title?: string;
   subtitle?: string;
-  allowedTypes?: string[]; // filter to these type keys only
+  allowedTypes?: string[];
+  defaultType?: string;
 }
 
-export function CreateEnterpriseDialog({ open, onClose, onSelect, title, subtitle, allowedTypes }: CreateEnterpriseDialogProps) {
-  const [selected, setSelected] = useState<string | null>(null);
+export function CreateEnterpriseDialog({ open, onClose, onSelect, title, subtitle, allowedTypes, defaultType }: CreateEnterpriseDialogProps) {
+  const [selected, setSelected] = useState<string | null>(defaultType || null);
+
+  useEffect(() => {
+    if (open) setSelected(defaultType || null);
+  }, [open, defaultType]);
 
   if (!open) return null;
 
