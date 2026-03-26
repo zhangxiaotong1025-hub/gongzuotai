@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Download, ChevronRight, ChevronDown, Users, MoreHorizontal, Edit2, Trash2, FolderPlus } from "lucide-react";
+import { Plus, Download, ChevronRight, ChevronDown, Users, MoreHorizontal, Edit2, Trash2, FolderPlus, FolderTree } from "lucide-react";
 import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
@@ -8,13 +8,16 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 /* ── Types ── */
 interface OrgNode {
   id: string;
   name: string;
-  count: number;
   children?: OrgNode[];
 }
 
@@ -27,39 +30,38 @@ interface StaffMember {
   products: string[];
   role: string;
   benefits: string[];
-  orgPath: string;
+  orgIds: string[]; // supports multi-org membership
   createdAt: string;
-  _level?: number;
 }
 
 /* ── Mock Org Tree ── */
 const initialOrgTree: OrgNode[] = [
   {
-    id: "all", name: "全部", count: 38, children: [
-      { id: "unset", name: "未设置组织架构", count: 24 },
+    id: "all", name: "全部", children: [
+      { id: "unset", name: "未设置组织架构" },
       {
-        id: "hq", name: "总部", count: 2, children: [
-          { id: "model", name: "模型部", count: 8 },
-          { id: "design", name: "设计部", count: 5 },
+        id: "hq", name: "总部", children: [
+          { id: "model", name: "模型部" },
+          { id: "design", name: "设计部" },
         ]
       },
       {
-        id: "supply", name: "供应链", count: 10, children: [
+        id: "supply", name: "供应链", children: [
           {
-            id: "south", name: "华南供应链", count: 2, children: [
-              { id: "sd-supply", name: "山东供应链", count: 2 },
-              { id: "hb-supply", name: "河北供应链", count: 3 },
-              { id: "tj-supply", name: "天津供应链", count: 3 },
+            id: "south", name: "华南供应链", children: [
+              { id: "sd-supply", name: "山东供应链" },
+              { id: "hb-supply", name: "河北供应链" },
+              { id: "tj-supply", name: "天津供应链" },
             ]
           },
-          { id: "north", name: "华北供应链", count: 8 },
+          { id: "north", name: "华北供应链" },
         ]
       },
     ]
   },
 ];
 
-/* ── Mock Benefit Cards ── */
+/* ── Benefit Cards ── */
 const BENEFIT_TABS = ["全部", "国际3D工具", "国内3D工具", "智能导购", "精准客资"];
 
 interface BenefitSummary {
@@ -80,33 +82,6 @@ const BENEFIT_SUMMARIES: BenefitSummary[] = [
   { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "rose" },
 ];
 
-/* ── Mock Staff Data ── */
-const NAMES = ["王小二", "李博然", "刘晓宇", "贾西贝", "员工2号", "员工3号", "员工4号", "员工1号", "员工4号", "员工6号"];
-const ENTERPRISES = [
-  "广州珊珊光纤有限公司",
-  "广州光纤有限公司/佛山店",
-  "广州珊珊光纤有限公司/.../佛山店",
-];
-const PRODUCTS_LIST = ["国内3D", "国际3D", "智能导购"];
-const ROLES = ["企业管理员", "设计师", "店长", "导购", "模型管理员", "精准客资"];
-const BENEFITS_LIST = ["工具极速渲染", "导购AI生图", "工具极速渲染 / 导购AI生图"];
-
-function generateStaff(): StaffMember[] {
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: `S${String(i + 1).padStart(3, "0")}`,
-    name: NAMES[i % NAMES.length],
-    enterprise: ENTERPRISES[i % ENTERPRISES.length],
-    phone: `185****${String(Math.floor(Math.random() * 9000) + 1000)}`,
-    status: Math.random() > 0.3 ? "active" as const : "inactive" as const,
-    products: [PRODUCTS_LIST[Math.floor(Math.random() * PRODUCTS_LIST.length)], ...(Math.random() > 0.5 ? [PRODUCTS_LIST[Math.floor(Math.random() * PRODUCTS_LIST.length)]] : [])].filter((v, i, a) => a.indexOf(v) === i),
-    role: ROLES[Math.floor(Math.random() * ROLES.length)],
-    benefits: Math.random() > 0.4 ? [BENEFITS_LIST[Math.floor(Math.random() * BENEFITS_LIST.length)]] : [],
-    orgPath: ["总部", "供应链/华南供应链", "模型部", "设计部", "供应链/华北供应链"][Math.floor(Math.random() * 5)],
-    createdAt: `2025-${String(Math.floor(Math.random() * 12) + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")}`,
-  }));
-}
-
-/* ── Benefit Card Vars ── */
 const VARIANT_VARS: Record<string, string> = {
   blue: "--benefit-blue",
   teal: "--benefit-teal",
@@ -115,12 +90,66 @@ const VARIANT_VARS: Record<string, string> = {
   rose: "--benefit-rose",
 };
 
+/* ── Mock Staff Data ── */
+const NAMES = ["王小二", "李博然", "刘晓宇", "贾西贝", "员工2号", "员工3号", "员工4号", "员工1号", "员工5号", "员工6号"];
+const ENTERPRISES = ["广州珊珊光纤有限公司", "广州光纤有限公司/佛山店", "广州珊珊光纤有限公司/.../佛山店"];
+const PRODUCTS_LIST = ["国内3D", "国际3D", "智能导购"];
+const ROLES = ["企业管理员", "设计师", "店长", "导购", "模型管理员", "精准客资"];
+const BENEFITS_LIST = ["工具极速渲染", "导购AI生图", "工具极速渲染 / 导购AI生图"];
+const ORG_IDS = ["hq", "model", "design", "supply", "south", "north", "sd-supply", "hb-supply", "tj-supply"];
+
+function generateStaff(): StaffMember[] {
+  return Array.from({ length: 20 }, (_, i) => {
+    // Each staff belongs to 1-3 orgs randomly
+    const numOrgs = Math.floor(Math.random() * 2) + 1;
+    const shuffled = [...ORG_IDS].sort(() => Math.random() - 0.5);
+    const orgIds = shuffled.slice(0, numOrgs);
+    if (Math.random() < 0.2) orgIds.length = 0; // some unassigned
+
+    return {
+      id: `S${String(i + 1).padStart(3, "0")}`,
+      name: NAMES[i % NAMES.length],
+      enterprise: ENTERPRISES[i % ENTERPRISES.length],
+      phone: `185****${String(Math.floor(Math.random() * 9000) + 1000)}`,
+      status: Math.random() > 0.3 ? "active" as const : "inactive" as const,
+      products: [PRODUCTS_LIST[Math.floor(Math.random() * PRODUCTS_LIST.length)], ...(Math.random() > 0.5 ? [PRODUCTS_LIST[Math.floor(Math.random() * PRODUCTS_LIST.length)]] : [])].filter((v, idx, a) => a.indexOf(v) === idx),
+      role: ROLES[Math.floor(Math.random() * ROLES.length)],
+      benefits: Math.random() > 0.4 ? [BENEFITS_LIST[Math.floor(Math.random() * BENEFITS_LIST.length)]] : [],
+      orgIds,
+      createdAt: `2025-${String(Math.floor(Math.random() * 12) + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")}`,
+    };
+  });
+}
+
+/* ── Helpers ── */
+/** Collect all descendant IDs of a node (inclusive) */
+function collectOrgIds(nodes: OrgNode[], targetId: string): string[] {
+  const result: string[] = [];
+  function walk(list: OrgNode[], collecting: boolean) {
+    for (const n of list) {
+      const match = collecting || n.id === targetId;
+      if (match) result.push(n.id);
+      if (n.children) walk(n.children, match);
+    }
+  }
+  walk(nodes, false);
+  return result;
+}
+
+/** Count staff in a given org node (including descendants), with dedup */
+function countStaffInOrg(staff: StaffMember[], orgTree: OrgNode[], orgId: string): number {
+  if (orgId === "all") return staff.length;
+  if (orgId === "unset") return staff.filter(s => s.orgIds.length === 0).length;
+  const ids = new Set(collectOrgIds(orgTree, orgId));
+  return staff.filter(s => s.orgIds.some(oid => ids.has(oid))).length;
+}
+
 /* ── Filter Fields ── */
 const filterFields: FilterField[] = [
-  { key: "name", label: "企业名称", type: "input", placeholder: "请输入", width: 160 },
-  { key: "id", label: "企业ID", type: "input", placeholder: "请输入", width: 140 },
-  { key: "type", label: "企业类型", type: "select", options: [{ label: "品牌商", value: "brand" }, { label: "经销商", value: "dealer" }], width: 130 },
-  { key: "staffType", label: "企业类型", type: "select", options: [{ label: "正式", value: "formal" }, { label: "试用", value: "trial" }], width: 130 },
+  { key: "name", label: "姓名", type: "input", placeholder: "请输入", width: 140 },
+  { key: "phone", label: "手机号", type: "input", placeholder: "请输入", width: 140 },
+  { key: "status", label: "人员状态", type: "select", options: [{ label: "正常", value: "active" }, { label: "停用", value: "inactive" }], width: 120 },
+  { key: "role", label: "角色", type: "select", options: ROLES.map(r => ({ label: r, value: r })), width: 130 },
 ];
 
 /* ── Columns ── */
@@ -143,105 +172,134 @@ const columns: TableColumn<StaffMember>[] = [
   },
 ];
 
-/* ── Org Tree Component ── */
-function OrgTree({ nodes, selectedId, onSelect, onAddChild, onRename, onDelete, depth = 0 }: {
-  nodes: OrgNode[];
+/* ══════════════════════════════════════════════
+   OrgTree Component — full CRUD via hover menu
+   ══════════════════════════════════════════════ */
+function OrgTreeNode({ node, selectedId, onSelect, onAction, depth, staffData, orgTree }: {
+  node: OrgNode;
   selectedId: string;
   onSelect: (id: string) => void;
-  onAddChild: (parentId: string) => void;
-  onRename: (id: string, name: string) => void;
-  onDelete: (id: string) => void;
-  depth?: number;
+  onAction: (action: "add-sibling" | "add-child" | "rename" | "delete", node: OrgNode) => void;
+  depth: number;
+  staffData: StaffMember[];
+  orgTree: OrgNode[];
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(["all", "supply", "south", "hq"]));
-  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(depth < 2);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const hasChildren = node.children && node.children.length > 0;
+  const isSelected = selectedId === node.id;
+  const isRoot = node.id === "all";
+  const isUnset = node.id === "unset";
+  const count = countStaffInOrg(staffData, orgTree, node.id);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [menuOpen]);
 
   return (
     <div className={depth > 0 ? "ml-3" : ""}>
-      {nodes.map((node) => {
-        const hasChildren = node.children && node.children.length > 0;
-        const isExpanded = expanded.has(node.id);
-        const isSelected = selectedId === node.id;
-        const isMenuOpen = menuOpen === node.id;
-        return (
-          <div key={node.id}>
-            <div
-              className={`flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-[13px] group relative ${
-                isSelected ? "bg-primary/5 text-primary font-medium" : "text-foreground hover:bg-muted/60"
-              }`}
-              onClick={() => onSelect(node.id)}
+      <div
+        className={`flex items-center gap-1 py-[5px] px-2 rounded-lg cursor-pointer transition-all text-[13px] group relative ${
+          isSelected ? "bg-primary/5 text-primary font-medium" : "text-foreground hover:bg-muted/60"
+        }`}
+        onClick={() => onSelect(node.id)}
+      >
+        {/* Expand/collapse toggle */}
+        {hasChildren ? (
+          <button
+            className="p-0.5 rounded hover:bg-muted transition-colors shrink-0"
+            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+          >
+            {expanded
+              ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+          </button>
+        ) : (
+          <span className="w-[22px] shrink-0" />
+        )}
+
+        <span className="flex-1 truncate">{node.name}</span>
+
+        {/* Count — always visible for selected, hover for others */}
+        <span className={`text-[11px] text-muted-foreground transition-opacity shrink-0 ${
+          isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        }`}>
+          {count}
+        </span>
+
+        {/* Action button — hover to show */}
+        {!isRoot && (
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              className="p-0.5 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
             >
-              {hasChildren ? (
-                <button
-                  className="p-0.5 rounded hover:bg-muted transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setExpanded((prev) => {
-                      const next = new Set(prev);
-                      next.has(node.id) ? next.delete(node.id) : next.add(node.id);
-                      return next;
-                    });
-                  }}
-                >
-                  {isExpanded
-                    ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                    : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
-                </button>
-              ) : (
-                <span className="w-[22px]" />
-              )}
-              <span className="flex-1 truncate">{node.name}</span>
-              <span className="text-[11px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                ({node.count}人)
-              </span>
-              {node.id !== "all" && (
-                <button
-                  className="p-0.5 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMenuOpen(isMenuOpen ? null : node.id);
-                  }}
-                >
-                  <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
-              )}
-              {/* Context menu */}
-              {isMenuOpen && node.id !== "all" && (
-                <div
-                  className="absolute right-0 top-full z-50 mt-1 w-[140px] rounded-lg border bg-popover py-1"
-                  style={{ boxShadow: "var(--shadow-lg)" }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-foreground hover:bg-muted transition-colors"
-                    onClick={() => { onAddChild(node.id); setMenuOpen(null); }}
-                  >
-                    <FolderPlus className="h-3.5 w-3.5" /> 添加子部门
-                  </button>
-                  <button
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-foreground hover:bg-muted transition-colors"
-                    onClick={() => { onRename(node.id, node.name); setMenuOpen(null); }}
-                  >
-                    <Edit2 className="h-3.5 w-3.5" /> 重命名
-                  </button>
-                  {node.id !== "unset" && (
+              <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+
+            {menuOpen && (
+              <div
+                className="absolute right-0 top-full z-50 mt-1 w-[150px] rounded-lg border border-border/80 bg-popover py-1"
+                style={{ boxShadow: "var(--shadow-lg)" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {!isUnset && (
+                  <>
                     <button
-                      className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] hover:bg-muted transition-colors"
-                      style={{ color: "hsl(var(--destructive))" }}
-                      onClick={() => { onDelete(node.id); setMenuOpen(null); }}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-foreground hover:bg-muted transition-colors"
+                      onClick={() => { onAction("add-sibling", node); setMenuOpen(false); }}
                     >
-                      <Trash2 className="h-3.5 w-3.5" /> 删除
+                      <FolderTree className="h-3.5 w-3.5 text-muted-foreground" /> 新建同级组织
                     </button>
-                  )}
-                </div>
-              )}
-            </div>
-            {hasChildren && isExpanded && (
-              <OrgTree nodes={node.children!} selectedId={selectedId} onSelect={onSelect} onAddChild={onAddChild} onRename={onRename} onDelete={onDelete} depth={depth + 1} />
+                    <button
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-foreground hover:bg-muted transition-colors"
+                      onClick={() => { onAction("add-child", node); setMenuOpen(false); }}
+                    >
+                      <FolderPlus className="h-3.5 w-3.5 text-muted-foreground" /> 新建子组织
+                    </button>
+                  </>
+                )}
+                <button
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-foreground hover:bg-muted transition-colors"
+                  onClick={() => { onAction("rename", node); setMenuOpen(false); }}
+                >
+                  <Edit2 className="h-3.5 w-3.5 text-muted-foreground" /> 重命名
+                </button>
+                {!isUnset && (
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-destructive hover:bg-muted transition-colors"
+                    onClick={() => { onAction("delete", node); setMenuOpen(false); }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> 删除
+                  </button>
+                )}
+              </div>
             )}
           </div>
-        );
-      })}
+        )}
+      </div>
+
+      {/* Children */}
+      {hasChildren && expanded && node.children!.map((child) => (
+        <OrgTreeNode
+          key={child.id}
+          node={child}
+          selectedId={selectedId}
+          onSelect={onSelect}
+          onAction={onAction}
+          depth={depth + 1}
+          staffData={staffData}
+          orgTree={orgTree}
+        />
+      ))}
     </div>
   );
 }
@@ -253,8 +311,8 @@ function MiniBenefitCard({ pkg }: { pkg: BenefitSummary }) {
     <div
       className="rounded-xl px-4 py-3 min-w-[200px] relative overflow-hidden transition-all hover:shadow-sm shrink-0"
       style={{
-        border: `1px solid hsl(${cssVar.replace('--', 'var(--')}) / 0.15)`,
-        background: `hsl(${cssVar.replace('--', 'var(--')}) / 0.03)`,
+        border: `1px solid hsl(var(${cssVar}) / 0.15)`,
+        background: `hsl(var(${cssVar}) / 0.03)`,
       }}
     >
       <div className="absolute top-0 left-0 right-0 h-[2px] opacity-50" style={{ background: `hsl(var(${cssVar}))` }} />
@@ -279,6 +337,7 @@ function OrgEditDialog({ open, onClose, mode, initialName, onConfirm }: {
   onConfirm: (name: string) => void;
 }) {
   const [name, setName] = useState(initialName);
+  useEffect(() => { setName(initialName); }, [initialName]);
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -286,19 +345,19 @@ function OrgEditDialog({ open, onClose, mode, initialName, onConfirm }: {
         <div className="border-b px-5 py-4" style={{ background: "hsl(var(--muted) / 0.3)" }}>
           <DialogHeader className="space-y-1">
             <DialogTitle className="text-[15px] font-semibold text-foreground">
-              {mode === "add" ? "添加子部门" : "重命名部门"}
+              {mode === "add" ? "新建组织" : "重命名组织"}
             </DialogTitle>
             <DialogDescription className="text-[13px] text-muted-foreground">
-              {mode === "add" ? "请输入新部门名称" : "请输入新的部门名称"}
+              {mode === "add" ? "请输入新组织名称" : "请输入新的组织名称"}
             </DialogDescription>
           </DialogHeader>
         </div>
         <div className="px-5 py-5">
           <div className="flex items-center gap-3">
-            <label className="text-[13px] text-muted-foreground shrink-0 w-[70px] text-right">部门名称</label>
+            <label className="text-[13px] text-muted-foreground shrink-0 w-[70px] text-right">组织名称</label>
             <input
               className="filter-input flex-1"
-              placeholder="请输入部门名称"
+              placeholder="请输入组织名称"
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
@@ -320,6 +379,9 @@ function OrgEditDialog({ open, onClose, mode, initialName, onConfirm }: {
   );
 }
 
+/* ══════════════════════════
+   Main Component
+   ══════════════════════════ */
 export default function StaffList() {
   const navigate = useNavigate();
   const [data] = useState<StaffMember[]>(generateStaff);
@@ -329,58 +391,145 @@ export default function StaffList() {
   const [pageSize, setPageSize] = useState(100);
   const [selectedOrg, setSelectedOrg] = useState("all");
   const [activeTab, setActiveTab] = useState("全部");
-  const totalItems = 38;
 
   // Org edit state
   const [orgDialogOpen, setOrgDialogOpen] = useState(false);
   const [orgDialogMode, setOrgDialogMode] = useState<"add" | "rename">("add");
-  const [orgDialogTarget, setOrgDialogTarget] = useState("");
+  const [orgDialogTarget, setOrgDialogTarget] = useState(""); // parentId for add, nodeId for rename
   const [orgDialogInitName, setOrgDialogInitName] = useState("");
 
-  const handleOrgAddChild = useCallback((parentId: string) => {
+  // Delete confirmation
+  const [deleteTarget, setDeleteTarget] = useState<OrgNode | null>(null);
+
+  /* ── Org tree mutations ── */
+  const addNodeUnder = useCallback((parentId: string, name: string) => {
+    const newNode: OrgNode = { id: `org-${Date.now()}`, name };
+    const insert = (nodes: OrgNode[]): OrgNode[] =>
+      nodes.map(n => {
+        if (n.id === parentId) return { ...n, children: [...(n.children || []), newNode] };
+        return { ...n, children: n.children ? insert(n.children) : undefined };
+      });
+    setOrgTree(prev => insert(prev));
+    toast.success(`已创建组织「${name}」`);
+  }, []);
+
+  const addSiblingOf = useCallback((nodeId: string, name: string) => {
+    const newNode: OrgNode = { id: `org-${Date.now()}`, name };
+    const insertSibling = (nodes: OrgNode[]): OrgNode[] => {
+      // Check if nodeId is a direct child here
+      const idx = nodes.findIndex(n => n.id === nodeId);
+      if (idx !== -1) {
+        const copy = [...nodes];
+        copy.splice(idx + 1, 0, newNode); // insert after current
+        return copy;
+      }
+      return nodes.map(n => ({ ...n, children: n.children ? insertSibling(n.children) : undefined }));
+    };
+    setOrgTree(prev => insertSibling(prev));
+    toast.success(`已创建组织「${name}」`);
+  }, []);
+
+  const renameNode = useCallback((nodeId: string, name: string) => {
+    const rename = (nodes: OrgNode[]): OrgNode[] =>
+      nodes.map(n => {
+        if (n.id === nodeId) return { ...n, name };
+        return { ...n, children: n.children ? rename(n.children) : undefined };
+      });
+    setOrgTree(prev => rename(prev));
+    toast.success(`已重命名为「${name}」`);
+  }, []);
+
+  const deleteNode = useCallback((nodeId: string) => {
+    const remove = (nodes: OrgNode[]): OrgNode[] =>
+      nodes.filter(n => n.id !== nodeId).map(n => ({ ...n, children: n.children ? remove(n.children) : undefined }));
+    setOrgTree(prev => remove(prev));
+    if (selectedOrg === nodeId) setSelectedOrg("all");
+    toast.success("组织已删除");
+  }, [selectedOrg]);
+
+  // Unified action handler from tree nodes
+  const [pendingAction, setPendingAction] = useState<{ type: "add-sibling" | "add-child"; nodeId: string } | null>(null);
+
+  const handleTreeAction = useCallback((action: "add-sibling" | "add-child" | "rename" | "delete", node: OrgNode) => {
+    switch (action) {
+      case "add-child":
+        setPendingAction({ type: "add-child", nodeId: node.id });
+        setOrgDialogMode("add");
+        setOrgDialogTarget(node.id);
+        setOrgDialogInitName("");
+        setOrgDialogOpen(true);
+        break;
+      case "add-sibling":
+        setPendingAction({ type: "add-sibling", nodeId: node.id });
+        setOrgDialogMode("add");
+        setOrgDialogTarget(node.id);
+        setOrgDialogInitName("");
+        setOrgDialogOpen(true);
+        break;
+      case "rename":
+        setPendingAction(null);
+        setOrgDialogMode("rename");
+        setOrgDialogTarget(node.id);
+        setOrgDialogInitName(node.name);
+        setOrgDialogOpen(true);
+        break;
+      case "delete":
+        setDeleteTarget(node);
+        break;
+    }
+  }, []);
+
+  const handleOrgConfirm = useCallback((name: string) => {
+    if (orgDialogMode === "rename") {
+      renameNode(orgDialogTarget, name);
+    } else if (pendingAction?.type === "add-child") {
+      addNodeUnder(pendingAction.nodeId, name);
+    } else if (pendingAction?.type === "add-sibling") {
+      addSiblingOf(pendingAction.nodeId, name);
+    }
+    setOrgDialogOpen(false);
+    setPendingAction(null);
+  }, [orgDialogMode, orgDialogTarget, pendingAction, renameNode, addNodeUnder, addSiblingOf]);
+
+  // Global "新建" = add level-1 org (direct child of "all")
+  const handleGlobalAdd = useCallback(() => {
+    setPendingAction({ type: "add-child", nodeId: "all" });
     setOrgDialogMode("add");
-    setOrgDialogTarget(parentId);
+    setOrgDialogTarget("all");
     setOrgDialogInitName("");
     setOrgDialogOpen(true);
   }, []);
 
-  const handleOrgRename = useCallback((id: string, name: string) => {
-    setOrgDialogMode("rename");
-    setOrgDialogTarget(id);
-    setOrgDialogInitName(name);
-    setOrgDialogOpen(true);
-  }, []);
+  /* ── Filtered staff data ── */
+  const filteredData = useMemo(() => {
+    let list = data;
 
-  const handleOrgDelete = useCallback((id: string) => {
-    const deleteNode = (nodes: OrgNode[]): OrgNode[] =>
-      nodes.filter((n) => n.id !== id).map((n) => ({ ...n, children: n.children ? deleteNode(n.children) : undefined }));
-    setOrgTree((prev) => deleteNode(prev));
-    toast.success("部门已删除");
-  }, []);
-
-  const handleOrgConfirm = useCallback((name: string) => {
-    if (orgDialogMode === "add") {
-      const addChild = (nodes: OrgNode[]): OrgNode[] =>
-        nodes.map((n) => {
-          if (n.id === orgDialogTarget) {
-            const newChild: OrgNode = { id: `org-${Date.now()}`, name, count: 0 };
-            return { ...n, children: [...(n.children || []), newChild] };
-          }
-          return { ...n, children: n.children ? addChild(n.children) : undefined };
-        });
-      setOrgTree((prev) => addChild(prev));
-      toast.success(`已添加部门「${name}」`);
-    } else {
-      const rename = (nodes: OrgNode[]): OrgNode[] =>
-        nodes.map((n) => {
-          if (n.id === orgDialogTarget) return { ...n, name };
-          return { ...n, children: n.children ? rename(n.children) : undefined };
-        });
-      setOrgTree((prev) => rename(prev));
-      toast.success(`部门已重命名为「${name}」`);
+    // Filter by selected org
+    if (selectedOrg === "unset") {
+      list = list.filter(s => s.orgIds.length === 0);
+    } else if (selectedOrg !== "all") {
+      const validIds = new Set(collectOrgIds(orgTree, selectedOrg));
+      list = list.filter(s => s.orgIds.some(oid => validIds.has(oid)));
     }
-    setOrgDialogOpen(false);
-  }, [orgDialogMode, orgDialogTarget]);
+
+    // Dedup by id
+    const seen = new Set<string>();
+    list = list.filter(s => {
+      if (seen.has(s.id)) return false;
+      seen.add(s.id);
+      return true;
+    });
+
+    // Apply text filters
+    if (filters.name) list = list.filter(s => s.name.includes(filters.name));
+    if (filters.phone) list = list.filter(s => s.phone.includes(filters.phone));
+    if (filters.status) list = list.filter(s => s.status === filters.status);
+    if (filters.role) list = list.filter(s => s.role === filters.role);
+
+    return list;
+  }, [data, selectedOrg, orgTree, filters]);
+
+  const totalItems = filteredData.length;
 
   const actions: ActionItem<StaffMember>[] = [
     { label: "查看", onClick: (r) => navigate(`/enterprise/staff/detail/${r.id}`) },
@@ -431,7 +580,7 @@ export default function StaffList() {
       <FilterBar
         fields={filterFields}
         values={filters}
-        onChange={(key, value) => setFilters((prev) => ({ ...prev, [key]: value }))}
+        onChange={(key, value) => setFilters(prev => ({ ...prev, [key]: value }))}
         onSearch={() => {}}
         onReset={() => setFilters({})}
         maxVisible={4}
@@ -448,20 +597,24 @@ export default function StaffList() {
             </div>
             <button
               className="text-[12px] text-primary hover:text-primary/80 transition-colors font-medium flex items-center gap-1"
-              onClick={() => handleOrgAddChild("all")}
+              onClick={handleGlobalAdd}
             >
               <Plus className="h-3.5 w-3.5" /> 新建
             </button>
           </div>
           <div className="p-2 max-h-[500px] overflow-y-auto">
-            <OrgTree
-              nodes={orgTree}
-              selectedId={selectedOrg}
-              onSelect={setSelectedOrg}
-              onAddChild={handleOrgAddChild}
-              onRename={handleOrgRename}
-              onDelete={handleOrgDelete}
-            />
+            {orgTree.map(node => (
+              <OrgTreeNode
+                key={node.id}
+                node={node}
+                selectedId={selectedOrg}
+                onSelect={setSelectedOrg}
+                onAction={handleTreeAction}
+                depth={0}
+                staffData={data}
+                orgTree={orgTree}
+              />
+            ))}
           </div>
         </div>
 
@@ -469,12 +622,12 @@ export default function StaffList() {
         <div className="flex-1 min-w-0 space-y-4">
           <AdminTable
             columns={columns}
-            data={data}
+            data={filteredData}
             rowKey={(r) => r.id}
             actions={actions}
             maxVisibleActions={2}
           />
-          <div className="bg-card rounded-xl border" style={{ boxShadow: 'var(--shadow-xs)' }}>
+          <div className="bg-card rounded-xl border" style={{ boxShadow: "var(--shadow-xs)" }}>
             <Pagination
               current={currentPage}
               total={totalItems}
@@ -489,11 +642,32 @@ export default function StaffList() {
       {/* Org Edit Dialog */}
       <OrgEditDialog
         open={orgDialogOpen}
-        onClose={() => setOrgDialogOpen(false)}
+        onClose={() => { setOrgDialogOpen(false); setPendingAction(null); }}
         mode={orgDialogMode}
         initialName={orgDialogInitName}
         onConfirm={handleOrgConfirm}
       />
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除组织</AlertDialogTitle>
+            <AlertDialogDescription>
+              删除「{deleteTarget?.name}」后，该组织及其所有子组织将被移除，归属人员将变为未分配状态。此操作不可撤销。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => { if (deleteTarget) deleteNode(deleteTarget.id); setDeleteTarget(null); }}
+            >
+              确认删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
