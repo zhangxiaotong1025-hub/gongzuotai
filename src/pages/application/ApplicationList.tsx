@@ -32,6 +32,9 @@ interface Application {
   // linked enterprise (if created)
   enterpriseId?: string;
   enterpriseName?: string;
+  // close reason
+  closeReason?: string;
+  closeTime?: string;
 }
 
 /* ── Mock Data ── */
@@ -72,6 +75,8 @@ const initialData: Application[] = Array.from({ length: 30 }, (_, i) => {
     source: SOURCES[Math.floor(Math.random() * SOURCES.length)],
     enterpriseId: status === "created" ? `ENT${String(Math.floor(Math.random() * 100) + 1).padStart(3, "0")}` : undefined,
     enterpriseName: status === "created" ? NAMES[Math.floor(Math.random() * NAMES.length)] : undefined,
+    closeReason: status === "closed" ? ["信息不完整，无法核实", "重复申请", "客户主动放弃", "不符合准入条件"][Math.floor(Math.random() * 4)] : undefined,
+    closeTime: status === "closed" ? "2020-2-10 14:30" : undefined,
   };
 });
 
@@ -121,7 +126,13 @@ const columns: TableColumn<Application>[] = [
       const app = row as Application;
       return (
         <div className="flex items-center gap-1.5">
-          <span className={cfg.className}>{cfg.label}</span>
+          {v === "closed" && app.closeReason ? (
+            <span className={cfg.className} title={`关闭原因：${app.closeReason}`} style={{ cursor: "help" }}>
+              {cfg.label}
+            </span>
+          ) : (
+            <span className={cfg.className}>{cfg.label}</span>
+          )}
           {v === "created" && app.enterpriseId && (
             <a
               href={`/enterprise/detail/${app.enterpriseId}`}
@@ -258,6 +269,7 @@ export default function ApplicationList() {
   const [processTarget, setProcessTarget] = useState<Application | null>(null);
   const [closeConfirm, setCloseConfirm] = useState<Application | null>(null);
   const [createTarget, setCreateTarget] = useState<Application | null>(null);
+  const [closeReason, setCloseReason] = useState("");
   const totalItems = 1200;
 
   const updateApplication = useCallback((id: string, patch: Partial<Application>) => {
@@ -273,7 +285,10 @@ export default function ApplicationList() {
     setProcessTarget(null);
     if (action === "close") {
       const target = data.find((a) => a.id === id);
-      if (target) setCloseConfirm(target);
+      if (target) {
+        setCloseReason("");
+        setCloseConfirm(target);
+      }
     } else {
       const app = data.find((a) => a.id === id);
       if (app) setCreateTarget(app);
@@ -289,10 +304,15 @@ export default function ApplicationList() {
 
   const handleCloseConfirm = useCallback(() => {
     if (!closeConfirm) return;
-    updateApplication(closeConfirm.id, { status: "closed" });
+    updateApplication(closeConfirm.id, {
+      status: "closed",
+      closeReason: closeReason.trim() || undefined,
+      closeTime: new Date().toLocaleString("zh-CN"),
+    });
     toast.success("申请已关闭");
     setCloseConfirm(null);
-  }, [closeConfirm, updateApplication]);
+    setCloseReason("");
+  }, [closeConfirm, closeReason, updateApplication]);
 
   const listActions: ActionItem<Application>[] = [
     {
@@ -311,14 +331,9 @@ export default function ApplicationList() {
     },
     {
       label: "关闭",
-      onClick: (r) => setCloseConfirm(r),
+      onClick: (r) => { setCloseReason(""); setCloseConfirm(r); },
       visible: (r) => r.status === "pending",
       danger: true,
-      confirm: {
-        title: "确认关闭该申请？",
-        description: "关闭后该申请将标记为无效，后续不可恢复。",
-        confirmLabel: "确认关闭",
-      },
     },
   ];
 
@@ -370,31 +385,50 @@ export default function ApplicationList() {
         onProcess={handleProcess}
       />
 
-      {/* Close Confirm */}
-      <AlertDialog open={Boolean(closeConfirm)} onOpenChange={(o) => { if (!o) setCloseConfirm(null); }}>
-        <AlertDialogContent
-          className="max-w-[420px] overflow-hidden rounded-xl border bg-card p-0"
-          style={{ boxShadow: "var(--shadow-md)" }}
-        >
-          <div className="border-b bg-muted/40 px-5 py-4">
-            <AlertDialogTitle className="text-[15px] font-semibold text-foreground">
-              确认关闭该申请？
-            </AlertDialogTitle>
-            <AlertDialogDescription className="mt-1 text-[13px] leading-6 text-muted-foreground">
-              关闭后该申请将标记为无效，后续不可恢复。
-            </AlertDialogDescription>
+      {/* Close Reason Dialog */}
+      {closeConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setCloseConfirm(null)} />
+          <div
+            className="relative w-full max-w-[480px] rounded-xl border bg-card p-0 animate-in fade-in-0 zoom-in-95 duration-200 overflow-hidden"
+            style={{ boxShadow: "var(--shadow-md)" }}
+          >
+            <div className="border-b bg-muted/40 px-5 py-4">
+              <h3 className="text-[15px] font-semibold text-foreground">关闭申请</h3>
+              <p className="mt-1 text-[13px] text-muted-foreground">
+                关闭后该申请将标记为无效，后续不可恢复。
+              </p>
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              <div className="flex items-center gap-2 text-[13px]">
+                <span className="text-muted-foreground w-[70px] text-right shrink-0">企业名称：</span>
+                <span className="text-foreground font-medium">{closeConfirm.name}</span>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[13px] text-muted-foreground">
+                  关闭原因 <span className="text-destructive">*</span>
+                </label>
+                <textarea
+                  className="filter-input w-full min-h-[80px] resize-y"
+                  placeholder="请填写关闭原因..."
+                  value={closeReason}
+                  onChange={(e) => setCloseReason(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 px-5 py-4 border-t">
+              <button className="btn-secondary flex-1" onClick={() => setCloseConfirm(null)}>取消</button>
+              <button
+                className="btn-primary flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={!closeReason.trim()}
+                onClick={handleCloseConfirm}
+              >
+                确认关闭
+              </button>
+            </div>
           </div>
-          <AlertDialogFooter className="gap-2 px-5 py-4">
-            <AlertDialogCancel className="mt-0 h-9 rounded-lg px-4 text-[13px]">取消</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleCloseConfirm}
-              className="h-9 rounded-lg px-4 text-[13px] bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              确认关闭
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        </div>
+      )}
 
       {/* Create Enterprise Type Dialog */}
       <CreateEnterpriseDialog
