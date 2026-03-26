@@ -257,11 +257,17 @@ export default function ApplicationList() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [processTarget, setProcessTarget] = useState<Application | null>(null);
   const [closeConfirm, setCloseConfirm] = useState<Application | null>(null);
+  const [createTarget, setCreateTarget] = useState<Application | null>(null);
   const totalItems = 1200;
 
   const updateApplication = useCallback((id: string, patch: Partial<Application>) => {
     setData((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   }, []);
+
+  const TYPE_KEY_MAP: Record<string, string> = {
+    "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
+    "卖场": "mall", "门店": "store", "工作室": "studio",
+  };
 
   const handleProcess = useCallback((id: string, action: "close" | "create") => {
     setProcessTarget(null);
@@ -269,18 +275,17 @@ export default function ApplicationList() {
       const target = data.find((a) => a.id === id);
       if (target) setCloseConfirm(target);
     } else {
-      // Navigate to enterprise creation with pre-filled data
       const app = data.find((a) => a.id === id);
-      if (app) {
-        const typeKeyMap: Record<string, string> = {
-          "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
-          "卖场": "mall", "门店": "store", "工作室": "studio",
-        };
-        const typeKey = typeKeyMap[app.type] || "brand";
-        navigate(`/enterprise/create?type=${typeKey}&fromApplication=${app.id}`);
-      }
+      if (app) setCreateTarget(app);
     }
-  }, [data, navigate]);
+  }, [data]);
+
+  const handleTypeSelected = useCallback((type: string) => {
+    if (createTarget) {
+      navigate(`/enterprise/create?type=${type}&fromApplication=${createTarget.id}`);
+      setCreateTarget(null);
+    }
+  }, [createTarget, navigate]);
 
   const handleCloseConfirm = useCallback(() => {
     if (!closeConfirm) return;
