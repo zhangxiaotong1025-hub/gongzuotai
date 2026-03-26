@@ -32,22 +32,42 @@ const ENTERPRISE_NAMES = [
   "金牌厨柜家居科技股份有限公司", "志邦家居股份有限公司", "我乐家居股份有限公司",
   "好莱客创意家居股份有限公司", "皮阿诺家居股份有限公司", "顶固集创家居股份有限公司",
 ];
-const TYPES = ["品牌商", "经销商", "装企", "卖场", "门店"];
+const TYPES = ["品牌商", "经销商", "装修公司", "卖场", "门店", "工作室", "供应商"];
 const PRODUCTS = ["国内3D", "国际3D", "智能导购", "VR全景"];
 const CREATORS = ["张伟", "李娜", "王强", "赵敏", "刘洋", "陈静", "杨帆"];
+
+// Type key mapping for sub-enterprise creation
+const TYPE_KEY_MAP: Record<string, string> = {
+  "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
+  "卖场": "mall", "门店": "store", "工作室": "studio", "供应商": "supplier",
+};
+
+// Sub-enterprise allowed types by parent type
+const SUB_TYPE_MAP: Record<string, string[]> = {
+  "品牌商": ["品牌商", "经销商", "装修公司", "门店", "工作室"],
+  "经销商": ["经销商", "装修公司", "门店", "工作室"],
+  "装修公司": ["装修公司", "门店", "工作室"],
+  "门店": ["门店", "工作室"],
+  "工作室": ["工作室"],
+  "供应商": ["供应商"],
+  "卖场": ["品牌商", "经销商", "装修公司", "门店", "工作室"],
+};
 
 function randomPick<T>(arr: T[], count?: number): T[] {
   const c = count || Math.ceil(Math.random() * arr.length);
   return [...arr].sort(() => Math.random() - 0.5).slice(0, Math.min(c, arr.length));
 }
 
-function generateEnterprise(id: string, depth = 0): Enterprise {
-  const hasChildren = depth === 0 && Math.random() > 0.4;
-  const childCount = hasChildren ? Math.floor(Math.random() * 4) + 1 : 0;
+function generateEnterprise(id: string, depth = 0, parentType?: string): Enterprise {
+  const maxDepth = 2; // 0-indexed: 0=HQ, 1=二级, 2=三级
+  const hasChildren = depth < maxDepth && Math.random() > (depth === 0 ? 0.3 : 0.5);
+  const childCount = hasChildren ? Math.floor(Math.random() * 3) + 1 : 0;
+  const allowedTypes = depth === 0 ? TYPES : (parentType ? (SUB_TYPE_MAP[parentType] || TYPES) : TYPES);
+  const type = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
   return {
     id,
     name: ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)],
-    type: TYPES[Math.floor(Math.random() * TYPES.length)],
+    type,
     status: Math.random() > 0.25 ? "active" : "inactive",
     admin: Math.random() > 0.4 ? CREATORS[Math.floor(Math.random() * CREATORS.length)] : undefined,
     products: randomPick(PRODUCTS, Math.floor(Math.random() * 3) + 1),
@@ -57,7 +77,7 @@ function generateEnterprise(id: string, depth = 0): Enterprise {
     creator: CREATORS[Math.floor(Math.random() * CREATORS.length)],
     updatedAt: `2026-0${Math.floor(Math.random() * 3) + 1}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")} ${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
     note: ["核心战略客户", "稳定续费客户，主要销售硬装瓷砖", "新签约客户，试用期", "重点关注客户", "年度合作伙伴"][Math.floor(Math.random() * 5)],
-    children: hasChildren ? Array.from({ length: childCount }, (_, i) => generateEnterprise(`${id}-${i + 1}`, depth + 1)) : [],
+    children: hasChildren ? Array.from({ length: childCount }, (_, i) => generateEnterprise(`${id}-${i + 1}`, depth + 1, type)) : [],
   };
 }
 
@@ -217,7 +237,15 @@ export default function EnterpriseList() {
       visible: (r) => r.status === "inactive",
     },
     { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
-    { label: "新建子企业", onClick: (r) => console.log("sub", r.id), visible: (r) => !r._level },
+    {
+      label: "新建子企业",
+      onClick: (r) => {
+        const typeKey = TYPE_KEY_MAP[r.type] || "brand";
+        const level = (r._level || 0) + 1;
+        navigate(`/enterprise/create?type=${typeKey}&parentId=${r.id}&parentType=${typeKey}&parentName=${encodeURIComponent(r.name)}&level=${level}`);
+      },
+      visible: (r) => (r._level || 0) < 2, // max 3 levels (0,1,2)
+    },
     { label: "权益配置", onClick: (r) => console.log("entitlement", r.id) },
   ];
 

@@ -9,8 +9,22 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 
 const TYPE_LABELS: Record<string, string> = {
-  mall: "卖场", brand: "品牌商", dealer: "经销商", decoration: "装修公司", studio: "工作室", store: "门店",
+  mall: "卖场", brand: "品牌商", dealer: "经销商", decoration: "装修公司", studio: "工作室", store: "门店", supplier: "供应商",
 };
+
+// Sub-enterprise allowed types by parent type key
+const SUB_TYPE_ALLOWED: Record<string, string[]> = {
+  brand: ["brand", "dealer", "decoration", "store", "studio"],
+  dealer: ["dealer", "decoration", "store", "studio"],
+  decoration: ["decoration", "store", "studio"],
+  store: ["store", "studio"],
+  studio: ["studio"],
+  supplier: ["supplier"],
+  mall: ["brand", "dealer", "decoration", "store", "studio"],
+};
+
+const ORG_STRUCTURES = ["上级/本级", "独立运营", "分公司", "办事处"];
+const REGIONS = ["华东", "华南", "华北", "华中", "西南", "西北", "东北"];
 
 const ALL_STEPS = [
   { key: "basic", label: "基础信息" },
@@ -174,16 +188,29 @@ const CATEGORIES = ["瓷砖", "卫浴", "地板", "涂料", "灯具", "家具", 
 export default function EnterpriseCreate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const type = searchParams.get("type") || "brand";
+  const parentType = searchParams.get("parentType") || "";
+  const parentId = searchParams.get("parentId") || "";
+  const parentName = searchParams.get("parentName") ? decodeURIComponent(searchParams.get("parentName")!) : "";
+  const level = parseInt(searchParams.get("level") || "0", 10);
+  const isSub = Boolean(parentId);
+
+  // For sub-enterprise, need to select sub-type first if not provided
+  const [selectedSubType, setSelectedSubType] = useState(searchParams.get("type") || "brand");
+  const type = isSub ? selectedSubType : (searchParams.get("type") || "brand");
+
   const brandRelation = TYPE_BRAND_RELATION[type] || "none";
   const steps = useMemo(() => getStepsForType(type), [type]);
   const [currentStep, setCurrentStep] = useState(0);
+
+  const allowedSubTypes = isSub ? (SUB_TYPE_ALLOWED[parentType] || []) : [];
 
   const [form, setForm] = useState({
     name: "", license: "2020220", authType: "营业执照认证", industry: "家居建材",
     province: "广东", licenseFile: null as File | null,
     contactName: "", contactPhone: "", legalPerson: "", legalPhone: "",
     regCapital: "", brand: "",
+    // Sub-enterprise specific fields
+    orgStructure: "上级/本级", region: "", address: "",
     enabledProducts: ["domestic3d", "smartGuide"] as string[],
     joinSupplyChain: true,
     enableGenericConfig: false,
@@ -321,8 +348,14 @@ export default function EnterpriseCreate() {
           企业管理
         </button>
         <span className="text-muted-foreground text-xs">/</span>
+        {isSub && parentName && (
+          <>
+            <span className="text-[13px] text-muted-foreground">{parentName}</span>
+            <span className="text-muted-foreground text-xs">/</span>
+          </>
+        )}
         <span className="text-[13px] text-foreground font-semibold">
-          新建{TYPE_LABELS[type] || "企业"}
+          {isSub ? `新建子企业` : `新建${TYPE_LABELS[type] || "企业"}`}
         </span>
       </div>
 
@@ -359,7 +392,18 @@ export default function EnterpriseCreate() {
 
       {/* Step Content */}
       <div className="bg-card rounded-xl border" style={{ boxShadow: 'var(--shadow-xs)' }}>
-        {currentStepKey === "basic" && <StepBasic form={form} update={update} />}
+        {currentStepKey === "basic" && (
+          isSub
+            ? <StepSubBasic
+                form={form}
+                update={update}
+                parentName={parentName}
+                allowedSubTypes={allowedSubTypes}
+                selectedSubType={selectedSubType}
+                onSubTypeChange={setSelectedSubType}
+              />
+            : <StepBasic form={form} update={update} />
+        )}
         {currentStepKey === "product" && (
           <StepBenefits
             form={form}
@@ -456,6 +500,66 @@ function StepBasic({ form, update }: { form: any; update: (k: string, v: any) =>
         </FormRow>
         <FormRow label="品牌标识">
           <input className="filter-input w-full" placeholder="请输入" value={form.brand} onChange={(e) => update("brand", e.target.value)} />
+        </FormRow>
+      </div>
+    </div>
+  );
+}
+
+/* ============ Step 1-Sub: 子企业基础信息 ============ */
+function StepSubBasic({
+  form, update, parentName, allowedSubTypes, selectedSubType, onSubTypeChange,
+}: {
+  form: any;
+  update: (k: string, v: any) => void;
+  parentName: string;
+  allowedSubTypes: string[];
+  selectedSubType: string;
+  onSubTypeChange: (t: string) => void;
+}) {
+  return (
+    <div className="p-6">
+      <SectionTitle title="基础信息" />
+      <div className="max-w-[640px] mx-auto space-y-5 mt-5">
+        <FormRow label="上级企业">
+          <input className="filter-input w-full bg-muted/30" value={parentName} disabled />
+        </FormRow>
+        <FormRow label="企业类型" required>
+          <select
+            className="filter-select w-full"
+            value={selectedSubType}
+            onChange={(e) => onSubTypeChange(e.target.value)}
+          >
+            {allowedSubTypes.map((t) => (
+              <option key={t} value={t}>{TYPE_LABELS[t]}</option>
+            ))}
+          </select>
+        </FormRow>
+        <FormRow label="企业名称" required>
+          <input className="filter-input w-full" placeholder="请输入" value={form.name} onChange={(e) => update("name", e.target.value)} />
+        </FormRow>
+        <FormRow label="企业ID">
+          <input className="filter-input w-full bg-muted/30" value={form.license} disabled />
+        </FormRow>
+        <FormRow label="组织结构">
+          <select className="filter-select w-full" value={form.orgStructure} onChange={(e) => update("orgStructure", e.target.value)}>
+            {ORG_STRUCTURES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </FormRow>
+        <FormRow label="企业联系人">
+          <input className="filter-input w-full" placeholder="请输入" value={form.contactName} onChange={(e) => update("contactName", e.target.value)} />
+        </FormRow>
+        <FormRow label="联系人手机号">
+          <input className="filter-input w-full" placeholder="请输入" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} />
+        </FormRow>
+        <FormRow label="覆盖区域">
+          <select className="filter-select w-full" value={form.region} onChange={(e) => update("region", e.target.value)}>
+            <option value="">请选择</option>
+            {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </FormRow>
+        <FormRow label="详细地址">
+          <input className="filter-input w-full" placeholder="请输入" value={form.address} onChange={(e) => update("address", e.target.value)} />
         </FormRow>
       </div>
     </div>
