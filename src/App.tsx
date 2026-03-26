@@ -10,6 +10,8 @@ import EnterpriseDetail from "./pages/enterprise/EnterpriseDetail";
 import StaffList from "./pages/staff/StaffList";
 import StaffDetail from "./pages/staff/StaffDetail";
 import StaffCreate from "./pages/staff/StaffCreate";
+import ApplicationList from "./pages/application/ApplicationList";
+import ApplicationDetail from "./pages/application/ApplicationDetail";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
@@ -30,7 +32,8 @@ const App = () => (
             <Route path="/enterprise/staff" element={<StaffList />} />
             <Route path="/enterprise/staff/detail/:id" element={<StaffDetail />} />
             <Route path="/enterprise/staff/create" element={<StaffCreate />} />
-            <Route path="/enterprise/apply" element={<PlaceholderPage title="企业入驻申请" />} />
+            <Route path="/enterprise/apply" element={<ApplicationList />} />
+            <Route path="/enterprise/apply/detail/:id" element={<ApplicationDetail />} />
             <Route path="/permission" element={<PlaceholderPage title="权限管理" />} />
             <Route path="/entitlement" element={<PlaceholderPage title="权益管理" />} />
             <Route path="/brand" element={<PlaceholderPage title="品牌管理" />} />
