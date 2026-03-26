@@ -8,7 +8,7 @@
         │ 1:N
         ▼
    EntitlementRule (权益规则 = 额度 + 周期 + 策略)
-        │ 1:N
+        │ N:M (sku_rules)
         ▼
       SKU (商品)
         │ N:M (BundleItems)
@@ -167,7 +167,7 @@ export interface Sku {
   name: string;
   code: string;
   appId: string;              // N:1 → Application
-  ruleId: string;             // N:1 → EntitlementRule
+  ruleIds: string[];          // N:M → EntitlementRule
   price: number;
   billingCycle: BillingCycle;
   salesStatus: "on_sale" | "off_sale";
@@ -183,21 +183,16 @@ export const BILLING_CYCLES: { value: BillingCycle; label: string }[] = [
 ];
 
 export const skuData: Sku[] = [
-  // 单次充值商品
-  { id: "sku1",  name: "4K普通图",         code: "SKU_4K_SINGLE",    appId: "app1", ruleId: "rule28", price: 3,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 1,  description: "单次4K渲染",    createdAt: "2026-03-12" },
-  { id: "sku2",  name: "8K普通图",         code: "SKU_8K_SINGLE",    appId: "app1", ruleId: "rule29", price: 8,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 2,  description: "单次8K渲染",    createdAt: "2026-03-12" },
-  { id: "sku3",  name: "AI积分100·基础包", code: "SKU_AI_100",       appId: "app1", ruleId: "rule31", price: 9.9,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 3,  description: "100次AI积分",   createdAt: "2026-03-12" },
-  { id: "sku4",  name: "AI积分200·专业包", code: "SKU_AI_200",       appId: "app1", ruleId: "rule32", price: 19.9,  billingCycle: "once",    salesStatus: "on_sale", sortOrder: 4,  description: "200次AI积分",   createdAt: "2026-03-12" },
-  { id: "sku5",  name: "AI积分2000·高级包",code: "SKU_AI_2000",      appId: "app1", ruleId: "rule33", price: 169,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 5,  description: "2000次AI积分",  createdAt: "2026-03-12" },
-  // 会员套餐用SKU（价格体现在套餐）
-  { id: "sku6",  name: "AI设计100次/日",   code: "SKU_AI_100_DAY",   appId: "app1", ruleId: "rule1",  price: 0,     billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 10, description: "免费版AI设计",  createdAt: "2026-03-12" },
-  { id: "sku7",  name: "AI设计300次/日",   code: "SKU_AI_300_DAY",   appId: "app1", ruleId: "rule2",  price: 0,     billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 11, description: "基础版AI设计",  createdAt: "2026-03-12" },
-  { id: "sku8",  name: "AI设计500次/日",   code: "SKU_AI_500_DAY",   appId: "app1", ruleId: "rule3",  price: 0,     billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 12, description: "旗舰版AI设计",  createdAt: "2026-03-12" },
-  { id: "sku9",  name: "4K渲染2次/日",     code: "SKU_4K_2_DAY",     appId: "app1", ruleId: "rule4",  price: 0,     billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 13, description: "基础版4K渲染",  createdAt: "2026-03-12" },
-  { id: "sku10", name: "4K渲染4次/日",     code: "SKU_4K_4_DAY",     appId: "app1", ruleId: "rule5",  price: 0,     billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 14, description: "旗舰版4K渲染",  createdAt: "2026-03-12" },
-  { id: "sku11", name: "8K渲染1次/日",     code: "SKU_8K_1_DAY",     appId: "app1", ruleId: "rule6",  price: 0,     billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 15, description: "旗舰版8K渲染",  createdAt: "2026-03-12" },
-  { id: "sku12", name: "云存储200MB",      code: "SKU_STORAGE_200",  appId: "app1", ruleId: "rule25", price: 0,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 20, description: "免费版云存储",  createdAt: "2026-03-12" },
-  { id: "sku13", name: "云存储4GB",        code: "SKU_STORAGE_4GB",  appId: "app1", ruleId: "rule26", price: 0,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 21, description: "旗舰版云存储",  createdAt: "2026-03-12" },
+  // 单次充值商品（单规则）
+  { id: "sku1",  name: "4K普通图",         code: "SKU_4K_SINGLE",    appId: "app1", ruleIds: ["rule28"],          price: 3,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 1,  description: "单次4K渲染",    createdAt: "2026-03-12" },
+  { id: "sku2",  name: "8K普通图",         code: "SKU_8K_SINGLE",    appId: "app1", ruleIds: ["rule29"],          price: 8,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 2,  description: "单次8K渲染",    createdAt: "2026-03-12" },
+  { id: "sku3",  name: "AI积分100·基础包", code: "SKU_AI_100",       appId: "app1", ruleIds: ["rule31"],          price: 9.9,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 3,  description: "100次AI积分",   createdAt: "2026-03-12" },
+  { id: "sku4",  name: "AI积分200·专业包", code: "SKU_AI_200",       appId: "app1", ruleIds: ["rule32"],          price: 19.9,  billingCycle: "once",    salesStatus: "on_sale", sortOrder: 4,  description: "200次AI积分",   createdAt: "2026-03-12" },
+  { id: "sku5",  name: "AI积分2000·高级包",code: "SKU_AI_2000",      appId: "app1", ruleIds: ["rule33"],          price: 169,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 5,  description: "2000次AI积分",  createdAt: "2026-03-12" },
+  // 会员商品（多规则组合）
+  { id: "sku6",  name: "免费版权益",       code: "SKU_FREE",         appId: "app1", ruleIds: ["rule1", "rule25", "rule7"], price: 0, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 10, description: "免费版：AI设计100次/日 + 云存储200MB + 全景图1次/日", createdAt: "2026-03-12" },
+  { id: "sku7",  name: "基础会员权益",     code: "SKU_BASIC",        appId: "app1", ruleIds: ["rule2", "rule4", "rule9", "rule11", "rule12", "rule13", "rule14", "rule25"], price: 9.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 11, description: "基础会员：AI设计300次/日 + 4K渲染2次/日 + 素材库", createdAt: "2026-03-12" },
+  { id: "sku8",  name: "旗舰会员权益",     code: "SKU_PRO",          appId: "app1", ruleIds: ["rule3", "rule5", "rule6", "rule8", "rule10", "rule11", "rule12", "rule13", "rule14", "rule15", "rule16", "rule17", "rule18", "rule19", "rule20", "rule21", "rule22", "rule23", "rule24", "rule26"], price: 150, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 12, description: "旗舰会员：全能力开放", createdAt: "2026-03-12" },
 ];
 
 /* ── Bundle (套餐) ── */
@@ -269,7 +264,7 @@ export const STATUS_MAP: Record<string, { label: string; className: string }> = 
 /* ── Helpers ── */
 export const getCapabilitiesByApp = (appId: string) => capabilityData.filter((c) => c.appId === appId);
 export const getRulesByCapability = (capId: string) => ruleData.filter((r) => r.capabilityId === capId);
-export const getSkusByRule = (ruleId: string) => skuData.filter((s) => s.ruleId === ruleId);
+export const getSkusByRule = (ruleId: string) => skuData.filter((s) => s.ruleIds.includes(ruleId));
 export const getSkusByApp = (appId: string) => skuData.filter((s) => s.appId === appId);
 export const getBundlesByApp = (appId: string) => bundleData.filter((b) => b.appId === appId);
 export const getCapability = (id: string) => capabilityData.find((c) => c.id === id);
@@ -278,4 +273,8 @@ export const getRule = (id: string) => ruleData.find((r) => r.id === id);
 export const getRulesByApp = (appId: string) => {
   const capIds = getCapabilitiesByApp(appId).map((c) => c.id);
   return ruleData.filter((r) => capIds.includes(r.capabilityId));
+};
+export const getRulesBySkuId = (skuId: string) => {
+  const sku = skuData.find((s) => s.id === skuId);
+  return sku ? sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean) as EntitlementRule[] : [];
 };
