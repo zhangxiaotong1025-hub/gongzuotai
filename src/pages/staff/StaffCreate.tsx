@@ -61,26 +61,21 @@ interface OrgNode {
 
 const orgTreeData: OrgNode[] = [
   {
-    id: "all", name: "全部", children: [
-      { id: "unset", name: "未设置组织架构" },
+    id: "hq", name: "总部", children: [
+      { id: "model", name: "模型部" },
+      { id: "design", name: "设计部" },
+    ]
+  },
+  {
+    id: "supply", name: "供应链", children: [
       {
-        id: "hq", name: "总部", children: [
-          { id: "model", name: "模型部" },
-          { id: "design", name: "设计部" },
+        id: "south", name: "华南供应链", children: [
+          { id: "sd-supply", name: "山东供应链" },
+          { id: "hb-supply", name: "河北供应链" },
+          { id: "tj-supply", name: "天津供应链" },
         ]
       },
-      {
-        id: "supply", name: "供应链", children: [
-          {
-            id: "south", name: "华南供应链", children: [
-              { id: "sd-supply", name: "山东供应链" },
-              { id: "hb-supply", name: "河北供应链" },
-              { id: "tj-supply", name: "天津供应链" },
-            ]
-          },
-          { id: "north", name: "华北供应链" },
-        ]
-      },
+      { id: "north", name: "华北供应链" },
     ]
   },
 ];
@@ -103,8 +98,8 @@ function findOrgName(nodes: OrgNode[], id: string): string | null {
 function flattenOrg(nodes: OrgNode[], depth = 0): { id: string; name: string; depth: number }[] {
   const result: { id: string; name: string; depth: number }[] = [];
   for (const n of nodes) {
-    if (n.id !== "all") result.push({ id: n.id, name: n.name, depth });
-    if (n.children) result.push(...flattenOrg(n.children, n.id === "all" ? depth : depth + 1));
+    result.push({ id: n.id, name: n.name, depth });
+    if (n.children) result.push(...flattenOrg(n.children, depth + 1));
   }
   return result;
 }
@@ -226,7 +221,7 @@ function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
   onToggle: (id: string) => void;
   depth: number;
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(["all", "hq", "supply", "south"]));
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(["hq", "supply", "south"]));
 
   return (
     <>
@@ -234,7 +229,6 @@ function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
         const hasChildren = node.children && node.children.length > 0;
         const isExpanded = expanded.has(node.id);
         const isSelected = selectedIds.includes(node.id);
-        const isRoot = node.id === "all";
 
         return (
           <div key={node.id}>
@@ -260,26 +254,24 @@ function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
               ) : (
                 <span className="w-[18px] shrink-0" />
               )}
-              {!isRoot && (
-                <div
-                  className={cn(
-                    "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all cursor-pointer",
-                    isSelected ? "bg-primary border-primary" : "border-border bg-card"
-                  )}
-                  onClick={() => onToggle(node.id)}
-                >
-                  {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
-                </div>
-              )}
+              <div
+                className={cn(
+                  "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all cursor-pointer",
+                  isSelected ? "bg-primary border-primary" : "border-border bg-card"
+                )}
+                onClick={() => onToggle(node.id)}
+              >
+                {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+              </div>
               <span
-                className={cn("flex-1 truncate", isRoot && "font-medium text-muted-foreground")}
-                onClick={() => !isRoot && onToggle(node.id)}
+                className="flex-1 truncate"
+                onClick={() => onToggle(node.id)}
               >
                 {node.name}
               </span>
             </div>
             {hasChildren && isExpanded && (
-              <OrgTreeDropdown nodes={node.children!} selectedIds={selectedIds} onToggle={onToggle} depth={isRoot ? depth : depth + 1} />
+              <OrgTreeDropdown nodes={node.children!} selectedIds={selectedIds} onToggle={onToggle} depth={depth + 1} />
             )}
           </div>
         );
