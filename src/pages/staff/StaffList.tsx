@@ -516,7 +516,7 @@ export default function StaffList() {
   ];
 
   return (
-    <div ref={pageRef} className="space-y-4">
+    <div className="space-y-4">
       <PageHeader title="人员管理" subtitle={`共 ${totalItems} 位人员`} actions={
         <>
           <button className="btn-secondary"><Download className="h-4 w-4" />权益购买</button>
