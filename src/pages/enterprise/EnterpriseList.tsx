@@ -307,6 +307,26 @@ export default function EnterpriseList() {
         }}
       />
 
+      {/* Sub-enterprise type selection dialog */}
+      {subParent && (() => {
+        const parentTypeKey = TYPE_KEY_MAP[subParent.type] || "brand";
+        const allowed = (SUB_TYPE_MAP[subParent.type] || []).map((t) => TYPE_KEY_MAP[t]).filter(Boolean);
+        const level = (subParent._level || 0) + 1;
+        return (
+          <CreateEnterpriseDialog
+            open
+            title="新建子企业"
+            subtitle={`请选择「${subParent.name}」的子企业类型`}
+            allowedTypes={allowed}
+            onClose={() => setSubParent(null)}
+            onSelect={(type) => {
+              setSubParent(null);
+              navigate(`/enterprise/create?type=${type}&parentId=${subParent.id}&parentType=${parentTypeKey}&parentName=${encodeURIComponent(subParent.name)}&level=${level}`);
+            }}
+          />
+        );
+      })()}
+
       <SetAdminDialog
         open={Boolean(adminTarget)}
         onClose={() => setAdminTarget(null)}
