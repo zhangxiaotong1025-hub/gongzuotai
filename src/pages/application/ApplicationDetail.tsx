@@ -407,39 +407,15 @@ export default function ApplicationDetail() {
         </div>
       )}
 
-      {/* Process Dialog - Create Enterprise Confirm */}
-      {showProcessDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowProcessDialog(false)} />
-          <div
-            className="relative w-full max-w-[480px] rounded-xl border bg-card p-0 animate-in fade-in-0 zoom-in-95 duration-200 overflow-hidden"
-            style={{ boxShadow: "var(--shadow-md)" }}
-          >
-            <div className="border-b bg-muted/40 px-5 py-4">
-              <h3 className="text-[15px] font-semibold text-foreground">创建企业</h3>
-              <p className="mt-1 text-[13px] text-muted-foreground">
-                将基于该申请信息创建企业账号，申请记录将与创建的企业建立关联。
-              </p>
-            </div>
-            <div className="px-5 py-4 space-y-2 text-[13px]">
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground w-[70px] text-right shrink-0">企业名称：</span>
-                <span className="text-foreground font-medium">{d.name}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground w-[70px] text-right shrink-0">企业类型：</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground">{d.type}</span>
-              </div>
-            </div>
-            <div className="flex gap-3 px-5 py-4 border-t">
-              <button className="btn-secondary flex-1" onClick={() => setShowProcessDialog(false)}>取消</button>
-              <button className="btn-primary flex-1" onClick={handleCreateEnterprise}>
-                确认创建
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Create Enterprise Type Dialog */}
+      <CreateEnterpriseDialog
+        open={showTypeDialog}
+        onClose={() => setShowTypeDialog(false)}
+        onSelect={handleTypeSelected}
+        defaultType={TYPE_KEY_MAP[d.type] || "brand"}
+        title="创建企业"
+        subtitle={`基于「${d.name}」的申请创建企业，请确认或修改企业类型`}
+      />
     </div>
   );
 }
