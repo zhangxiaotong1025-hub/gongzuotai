@@ -60,6 +60,52 @@ const BENEFIT_CATALOG: Record<string, { name: string; desc: string; color: strin
   ],
 };
 
+/* ── Date Range Picker Component ── */
+function DateRangePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const parts = (value || "").split(" ~ ");
+  const startDate = parts[0] ? new Date(parts[0]) : undefined;
+  const endDate = parts[1] ? new Date(parts[1]) : undefined;
+
+  const handleSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (!range) { onChange(""); return; }
+    const from = range.from ? format(range.from, "yyyy-MM-dd") : "";
+    const to = range.to ? format(range.to, "yyyy-MM-dd") : "";
+    onChange(to ? `${from} ~ ${to}` : from);
+  };
+
+  const displayText = startDate && endDate
+    ? `${format(startDate, "yyyy/MM/dd")} ~ ${format(endDate, "yyyy/MM/dd")}`
+    : startDate
+    ? `${format(startDate, "yyyy/MM/dd")} ~ 结束日期`
+    : "";
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-7 w-full justify-start text-left font-normal text-[12px] px-2",
+            !value && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-1.5 h-3 w-3 opacity-50 shrink-0" />
+          {displayText || <span>选择时间段</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="range"
+          selected={startDate && endDate ? { from: startDate, to: endDate } : startDate ? { from: startDate, to: undefined } : undefined}
+          onSelect={handleSelect as any}
+          numberOfMonths={2}
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 interface BenefitRow {
   id: string;
   packageName: string;
