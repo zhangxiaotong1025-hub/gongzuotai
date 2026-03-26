@@ -69,6 +69,8 @@ export function DetailActionBar({
           </button>
         </div>
 
+        {extraActions}
+
         {onEdit && (
           <button onClick={onEdit} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5">
             <Pencil className="h-3 w-3" /> 编辑
