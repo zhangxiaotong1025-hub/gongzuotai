@@ -147,10 +147,34 @@ const createRow = (name?: string): BenefitRow => ({
   dateRange: "2026-01-01 ~ 2028-12-31",
 });
 
+interface OwnedBrand {
+  id: string;
+  name: string;
+  logo: null;
+  country: string;
+  info: string;
+  categories: string[];
+  series: string[];
+}
+
+const MOCK_AGENT_BRANDS = [
+  { id: "b1", name: "马可波罗", logo: "🏷️" },
+  { id: "b2", name: "东鹏瓷砖", logo: "🏷️" },
+  { id: "b3", name: "诺贝尔瓷砖", logo: "🏷️" },
+  { id: "b4", name: "蒙娜丽莎", logo: "🏷️" },
+  { id: "b5", name: "冠珠陶瓷", logo: "🏷️" },
+  { id: "b6", name: "新中源陶瓷", logo: "🏷️" },
+];
+
+const COUNTRIES = ["中国", "美国", "日本", "韩国", "德国", "意大利", "法国", "英国"];
+const CATEGORIES = ["瓷砖", "卫浴", "地板", "涂料", "灯具", "家具", "橱柜", "门窗", "五金", "墙纸"];
+
 export default function EnterpriseCreate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type") || "brand";
+  const brandRelation = TYPE_BRAND_RELATION[type] || "none";
+  const steps = useMemo(() => getStepsForType(type), [type]);
   const [currentStep, setCurrentStep] = useState(0);
 
   const [form, setForm] = useState({
@@ -184,6 +208,9 @@ export default function EnterpriseCreate() {
     maxSubCompanies: 30,
     autoGrantSub: false,
     expireDate: "2027-12-31",
+    // Brand config
+    ownedBrands: [] as OwnedBrand[],
+    agentBrandIds: [] as string[],
   });
 
   const update = (key: string, value: any) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -259,7 +286,29 @@ export default function EnterpriseCreate() {
     });
   };
 
-  const goNext = () => setCurrentStep((s) => Math.min(s + 1, STEPS.length - 1));
+  // Owned brand CRUD
+  const addOwnedBrand = () => {
+    update("ownedBrands", [
+      ...form.ownedBrands,
+      { id: crypto.randomUUID(), name: "", logo: null, country: "中国", info: "", categories: [], series: [] },
+    ]);
+  };
+  const removeOwnedBrand = (id: string) => update("ownedBrands", form.ownedBrands.filter((b: OwnedBrand) => b.id !== id));
+  const updateOwnedBrand = (id: string, field: string, value: any) => {
+    update("ownedBrands", form.ownedBrands.map((b: OwnedBrand) => b.id === id ? { ...b, [field]: value } : b));
+  };
+
+  // Agent brand toggle
+  const toggleAgentBrand = (brandId: string) => {
+    const ids = form.agentBrandIds as string[];
+    update("agentBrandIds", ids.includes(brandId) ? ids.filter((id) => id !== brandId) : [...ids, brandId]);
+  };
+
+  const currentStepKey = steps[currentStep]?.key;
+  const lastStepIndex = steps.length - 1;
+  const isLastContentStep = currentStep === lastStepIndex - 1; // step before "done"
+
+  const goNext = () => setCurrentStep((s) => Math.min(s + 1, lastStepIndex));
   const goPrev = () => setCurrentStep((s) => Math.max(s - 1, 0));
 
   return (
@@ -278,7 +327,7 @@ export default function EnterpriseCreate() {
       {/* Stepper */}
       <div className="bg-card rounded-xl border p-6 mb-5" style={{ boxShadow: 'var(--shadow-xs)' }}>
         <div className="flex items-center justify-center max-w-[600px] mx-auto">
-          {STEPS.map((step, i) => {
+          {steps.map((step, i) => {
             const isCompleted = i < currentStep;
             const isCurrent = i === currentStep;
             return (
@@ -295,7 +344,7 @@ export default function EnterpriseCreate() {
                     {step.label}
                   </span>
                 </div>
-                {i < STEPS.length - 1 && (
+                {i < steps.length - 1 && (
                   <div className="flex-1 mx-4">
                     <div className={`h-px ${i < currentStep ? "bg-primary" : "bg-border"}`} />
                   </div>
@@ -308,8 +357,8 @@ export default function EnterpriseCreate() {
 
       {/* Step Content */}
       <div className="bg-card rounded-xl border" style={{ boxShadow: 'var(--shadow-xs)' }}>
-        {currentStep === 0 && <StepBasic form={form} update={update} />}
-        {currentStep === 1 && (
+        {currentStepKey === "basic" && <StepBasic form={form} update={update} />}
+        {currentStepKey === "product" && (
           <StepBenefits
             form={form}
             update={update}
@@ -320,270 +369,41 @@ export default function EnterpriseCreate() {
             updateProductAccountCount={updateProductAccountCount}
           />
         )}
-        {currentStep === 2 && <StepBrandConfig form={form} update={update} />}
-        {currentStep === 3 && <StepDone type={type} />}
+        {currentStepKey === "config" && (
+          <StepBrandConfig
+            form={form}
+            update={update}
+            brandRelation={brandRelation}
+            addOwnedBrand={addOwnedBrand}
+            removeOwnedBrand={removeOwnedBrand}
+            updateOwnedBrand={updateOwnedBrand}
+            toggleAgentBrand={toggleAgentBrand}
+          />
+        )}
+        {currentStepKey === "done" && <StepDone type={type} />}
 
         {/* Actions */}
         <div className="flex justify-center gap-3 px-6 py-5 border-t">
-          {currentStep > 0 && currentStep < 3 && (
-            <button onClick={() => { if (currentStep === 1) { setCurrentStep(0); } else goPrev(); }} className="btn-secondary">取消</button>
-          )}
           {currentStep === 0 && (
             <button onClick={() => navigate("/enterprise")} className="btn-secondary">取消</button>
           )}
-          {currentStep > 0 && currentStep < 3 && (
-            <button onClick={goPrev} className="btn-secondary">上一步</button>
+          {currentStep > 0 && currentStepKey !== "done" && (
+            <>
+              <button onClick={() => navigate("/enterprise")} className="btn-secondary">取消</button>
+              <button onClick={goPrev} className="btn-secondary">上一步</button>
+            </>
           )}
-          {currentStep < 3 && (
+          {currentStepKey !== "done" && (
             <button onClick={goNext} className="btn-primary">
-              {currentStep === 2 ? "提交" : "下一步"}
+              {isLastContentStep ? "提交" : "下一步"}
             </button>
           )}
-          {currentStep === 3 && (
+          {currentStepKey === "done" && (
             <button onClick={() => navigate("/enterprise")} className="btn-primary">返回列表</button>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-/* ============ Step 1: 基础信息 ============ */
-function StepBasic({ form, update }: { form: any; update: (k: string, v: any) => void }) {
-  return (
-    <div className="p-6">
-      <SectionTitle title="基础信息" />
-      <div className="max-w-[640px] mx-auto space-y-5 mt-5">
-        <FormRow label="企业名称" required>
-          <input className="filter-input w-full" placeholder="请输入" value={form.name} onChange={(e) => update("name", e.target.value)} />
-        </FormRow>
-        <FormRow label="营业证" required>
-          <input className="filter-input w-full" value={form.license} onChange={(e) => update("license", e.target.value)} />
-        </FormRow>
-        <FormRow label="资质认证">
-          <select className="filter-select w-full" value={form.authType} onChange={(e) => update("authType", e.target.value)}>
-            {AUTH_TYPES.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </FormRow>
-        <FormRow label="行业">
-          <select className="filter-select w-full" value={form.industry} onChange={(e) => update("industry", e.target.value)}>
-            {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
-          </select>
-        </FormRow>
-        <FormRow label="营业范围">
-          <select className="filter-select w-full" value={form.province} onChange={(e) => update("province", e.target.value)}>
-            {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </FormRow>
-        <FormRow label="证件照">
-          <div className="w-20 h-20 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer text-muted-foreground hover:border-primary hover:text-primary transition-colors">
-            <Upload className="h-5 w-5" />
-            <span className="text-[10px]">点击上传</span>
-          </div>
-        </FormRow>
-        <FormRow label="对接销售/顾问">
-          <input className="filter-input w-full" placeholder="请输入" value={form.contactName} onChange={(e) => update("contactName", e.target.value)} />
-        </FormRow>
-        <FormRow label="企业人数" required>
-          <input className="filter-input w-full" placeholder="请输入" value={form.legalPerson} onChange={(e) => update("legalPerson", e.target.value)} />
-        </FormRow>
-        <FormRow label="企业手机号" required>
-          <input className="filter-input w-full" placeholder="请输入" value={form.legalPhone} onChange={(e) => update("legalPhone", e.target.value)} />
-        </FormRow>
-        <FormRow label="注册资金">
-          <input className="filter-input w-full" placeholder="请输入" value={form.regCapital} onChange={(e) => update("regCapital", e.target.value)} />
-        </FormRow>
-        <FormRow label="品牌标识">
-          <input className="filter-input w-full" placeholder="请输入" value={form.brand} onChange={(e) => update("brand", e.target.value)} />
-        </FormRow>
-      </div>
-    </div>
-  );
-}
-
-/* ============ Step 2: 权益配置 ============ */
-function StepBenefits({
-  form, update, toggleProduct, addRow, removeRow, updateRow, updateProductAccountCount,
-}: {
-  form: any;
-  update: (k: string, v: any) => void;
-  toggleProduct: (key: string) => void;
-  addRow: (productKey: string, type: "packageRows" | "productRows") => void;
-  removeRow: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
-  updateRow: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: any) => void;
-  updateProductAccountCount: (productKey: string, count: number) => void;
-}) {
-  return (
-    <div>
-      {/* 产品权益 Section Header */}
-      <div className="px-6 py-4 border-b bg-muted/30">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <div className="w-1 h-4 rounded-full bg-primary" />
-          产品权益
-        </h3>
-      </div>
-
-      <div className="p-6 space-y-6">
-        {/* 基础权益 */}
-        <div className="space-y-4">
-          <FormRow label="开通产品" wide>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-              {AVAILABLE_PRODUCTS.map((p) => {
-                const checked = form.enabledProducts.includes(p.key);
-                return (
-                  <label
-                    key={p.key}
-                    className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none group"
-                    onClick={(e) => { e.preventDefault(); toggleProduct(p.key); }}
-                  >
-                    <div className={`w-4 h-4 rounded border-[1.5px] flex items-center justify-center transition-all ${
-                      checked ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
-                    }`}>
-                      {checked && <Check className="h-3 w-3 text-primary-foreground" />}
-                    </div>
-                    <span className={checked ? "text-foreground font-medium" : "text-muted-foreground"}>{p.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </FormRow>
-          <FormRow label="是否加入供应链" wide>
-            <div className="flex items-center gap-5">
-              {[{ val: true, label: "加入" }, { val: false, label: "不加入" }].map((opt) => (
-                <label key={String(opt.val)} className="inline-flex items-center gap-2 text-[13px] cursor-pointer">
-                  <div className={`w-4 h-4 rounded-full border-[1.5px] flex items-center justify-center transition-all ${
-                    form.joinSupplyChain === opt.val ? "border-primary" : "border-border"
-                  }`}>
-                    {form.joinSupplyChain === opt.val && <div className="w-2 h-2 rounded-full bg-primary" />}
-                  </div>
-                  <span className={form.joinSupplyChain === opt.val ? "text-foreground" : "text-muted-foreground"}>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-          </FormRow>
-          <FormRow label="通用权益配置" wide>
-            <ToggleSwitch checked={form.enableGenericConfig} onChange={() => update("enableGenericConfig", !form.enableGenericConfig)} />
-          </FormRow>
-        </div>
-
-        {/* Per-product configurations */}
-        {AVAILABLE_PRODUCTS.filter((p) => form.enabledProducts.includes(p.key)).map((product) => {
-          const cfg: ProductConfig = form.productConfigs[product.key] || { packageRows: [], productRows: [] };
-          return (
-            <ProductConfigCard
-              key={product.key}
-              product={product}
-              cfg={cfg}
-              addRow={addRow}
-              removeRow={removeRow}
-              updateRow={updateRow}
-              updateProductAccountCount={updateProductAccountCount}
-            />
-          );
-        })}
-      </div>
-
-      {/* 企业权益 Section Header */}
-      <div className="px-6 py-4 border-y bg-muted/30">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <div className="w-1 h-4 rounded-full bg-primary" />
-          企业权益
-        </h3>
-      </div>
-
-      <div className="p-6">
-        <div className="max-w-[640px] space-y-5">
-          <FormRow label="子企业上限数">
-            <input className="filter-input w-60" type="number" value={form.maxSubCompanies} onChange={(e) => update("maxSubCompanies", Number(e.target.value))} />
-          </FormRow>
-          <FormRow label="独立设置子企业权益">
-            <ToggleSwitch checked={form.autoGrantSub} onChange={() => update("autoGrantSub", !form.autoGrantSub)} />
-          </FormRow>
-          <FormRow label="到期时间">
-            <input className="filter-input w-60" type="date" value={form.expireDate} onChange={(e) => update("expireDate", e.target.value)} />
-          </FormRow>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ============ Product Config Card ============ */
-function ProductConfigCard({
-  product, cfg, addRow, removeRow, updateRow, updateProductAccountCount,
-}: {
-  product: { key: string; label: string };
-  cfg: ProductConfig;
-  addRow: (pk: string, t: "packageRows" | "productRows", name?: string) => void;
-  removeRow: (pk: string, t: "packageRows" | "productRows", id: string) => void;
-  updateRow: (pk: string, t: "packageRows" | "productRows", id: string, f: string, v: any) => void;
-  updateProductAccountCount: (pk: string, c: number) => void;
-}) {
-  const catalog = BENEFIT_CATALOG[product.key] || [];
-
-  return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 bg-muted/40 border-b">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary" />
-          <span className="text-[13px] font-semibold text-foreground">{product.label}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] text-muted-foreground mr-1">产品人数</span>
-          <input
-            className="filter-input h-7 text-[12px] w-[72px] text-center"
-            type="number"
-            value={cfg.accountCount ?? 30}
-            onChange={(e) => updateProductAccountCount(product.key, Number(e.target.value))}
-          />
-          <span className="text-[12px] text-muted-foreground">人</span>
-        </div>
-      </div>
-
-      <div className="p-4 space-y-5">
-        <BenefitListSection
-          label="权益套餐"
-          rows={cfg.packageRows}
-          productKey={product.key}
-          type="packageRows"
-          catalog={catalog}
-          onAddWithName={(name) => addRow(product.key, "packageRows", name)}
-          onUpdate={updateRow}
-          onRemove={removeRow}
-        />
-        <BenefitListSection
-          label="权益商品"
-          rows={cfg.productRows}
-          productKey={product.key}
-          type="productRows"
-          catalog={catalog}
-          onAddWithName={(name) => addRow(product.key, "productRows", name)}
-          onUpdate={updateRow}
-          onRemove={removeRow}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* ============ Benefit List Section (table with tag display) ============ */
-function BenefitListSection({
-  label, rows, productKey, type, catalog, onAddWithName, onUpdate, onRemove,
-}: {
-  label: string;
-  rows: BenefitRow[];
-  productKey: string;
-  type: "packageRows" | "productRows";
-  catalog: { name: string; desc: string; color: string }[];
-  onAddWithName: (name: string) => void;
-  onUpdate: (pk: string, t: "packageRows" | "productRows", id: string, field: string, value: any) => void;
-  onRemove: (pk: string, t: "packageRows" | "productRows", id: string) => void;
-}) {
-  const [showPicker, setShowPicker] = useState(false);
-  const [search, setSearch] = useState("");
-
-  const filtered = catalog.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const getTagColor = (name: string) => {
