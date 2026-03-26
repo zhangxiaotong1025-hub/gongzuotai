@@ -358,15 +358,16 @@ function OrgTreeNode({
         setMenuOpen(false);
       }
     };
+    const closeMenu = () => setMenuOpen(false);
 
     document.addEventListener("mousedown", handlePointerDown);
-    window.addEventListener("scroll", () => setMenuOpen(false), true);
-    window.addEventListener("resize", () => setMenuOpen(false));
+    window.addEventListener("scroll", closeMenu, true);
+    window.addEventListener("resize", closeMenu);
 
     return () => {
       document.removeEventListener("mousedown", handlePointerDown);
-      window.removeEventListener("scroll", () => setMenuOpen(false), true);
-      window.removeEventListener("resize", () => setMenuOpen(false));
+      window.removeEventListener("scroll", closeMenu, true);
+      window.removeEventListener("resize", closeMenu);
     };
   }, [menuOpen, updateMenuPosition]);
 
