@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdminLayout } from "@/components/AdminLayout";
 import EnterpriseList from "./pages/enterprise/EnterpriseList";
 import EnterpriseCreate from "./pages/enterprise/EnterpriseCreate";
+import EnterpriseDetail from "./pages/enterprise/EnterpriseDetail";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
