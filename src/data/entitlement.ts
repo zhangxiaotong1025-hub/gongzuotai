@@ -599,7 +599,23 @@ export const orderData: EntitlementOrder[] = [
   },
 ];
 
-/* ── EntitlementAccount (权益账户) ── */
+/* ── AllocationRecord (分配记录 — 订单维度的权益分配) ── */
+export interface AllocationRecord {
+  id: string;
+  orderId: string;
+  orderNo: string;
+  itemType: "sku" | "bundle";
+  itemId: string;
+  itemName: string;
+  appId: string;
+  appName: string;
+  capabilityCount: number;  // 包含权益数
+  instanceCount: number;    // 有效实例数
+  usageRate: number;        // 使用率 0-100
+  allocatedAt: string;
+}
+
+/* ── EntitlementAccount (权益账户 — 按客户维度聚合) ── */
 export interface AccountCapability {
   capabilityId: string;
   capabilityName: string;
@@ -618,19 +634,40 @@ export interface EntitlementAccount {
   id: string;
   customerId: string;
   customerName: string;
-  appId: string;
-  appName: string;
-  orderIds: string[];
+  customerType: CustomerType;
+  /** 涉及的应用IDs */
+  appIds: string[];
+  appNames: string[];
+  /** 分配记录 */
+  allocations: AllocationRecord[];
   capabilities: AccountCapability[];
+  orderIds: string[];
   status: "active" | "inactive";
   createdAt: string;
   updatedAt: string;
 }
 
+/** 聚合客户维度的统计 */
+export function getAccountStats(acc: EntitlementAccount) {
+  const productCount = acc.appIds.length;
+  const capCount = new Set(acc.capabilities.map((c) => c.capabilityId)).size;
+  const instanceCount = acc.capabilities.length;
+  const totalUsed = acc.capabilities.filter((c) => c.unit !== "布尔").reduce((s, c) => s + c.usedQuota, 0);
+  const totalQuota = acc.capabilities.filter((c) => c.unit !== "布尔").reduce((s, c) => s + c.totalQuota, 0);
+  const usageRate = totalQuota > 0 ? Math.round((totalUsed / totalQuota) * 100 * 10) / 10 : 0;
+  return { productCount, capCount, instanceCount, usageRate };
+}
+
 export const accountData: EntitlementAccount[] = [
   {
-    id: "acc1", customerId: "cust1", customerName: "欧派家居集团股份有限公司", appId: "app1", appName: "国内3D工具",
+    id: "acc1", customerId: "cust1", customerName: "欧派家居集团股份有限公司", customerType: "B",
+    appIds: ["app1"], appNames: ["国内3D工具"],
     orderIds: ["ord1", "ord4", "ord6"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-16",
+    allocations: [
+      { id: "alloc1", orderId: "ord1", orderNo: "ORD202603120001", itemType: "bundle", itemId: "bun3", itemName: "旗舰会员（国内3D工具）", appId: "app1", appName: "国内3D工具", capabilityCount: 3, instanceCount: 3, usageRate: 15.2, allocatedAt: "2026-03-12 10:00:00" },
+      { id: "alloc2", orderId: "ord4", orderNo: "ORD202603140001", itemType: "sku", itemId: "sku1", itemName: "4K普通图", appId: "app1", appName: "国内3D工具", capabilityCount: 1, instanceCount: 1, usageRate: 0, allocatedAt: "2026-03-14 16:00:00" },
+      { id: "alloc3", orderId: "ord4", orderNo: "ORD202603140001", itemType: "sku", itemId: "sku2", itemName: "8K普通图", appId: "app1", appName: "国内3D工具", capabilityCount: 1, instanceCount: 1, usageRate: 0, allocatedAt: "2026-03-14 16:00:00" },
+    ],
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 128,  unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
       { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule5",  ruleName: "4K渲染4次/日",       totalQuota: 4,     usedQuota: 2,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
@@ -643,51 +680,60 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc2", customerId: "cust2", customerName: "索菲亚家居股份有限公司", appId: "app1", appName: "国内3D工具",
+    id: "acc2", customerId: "cust2", customerName: "索菲亚家居股份有限公司", customerType: "B",
+    appIds: ["app1", "app3", "app4"], appNames: ["国内3D工具", "智能导购", "AI设计家"],
     orderIds: ["ord2", "ord5", "ord10"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-20",
+    allocations: [
+      { id: "alloc4", orderId: "ord10", orderNo: "ORD202603200001", itemType: "bundle", itemId: "bun3", itemName: "旗舰会员（国内3D工具）", appId: "app1", appName: "国内3D工具", capabilityCount: 3, instanceCount: 3, usageRate: 89.1, allocatedAt: "2026-03-20 10:10:00" },
+      { id: "alloc5", orderId: "ord5", orderNo: "ORD202603150001", itemType: "sku", itemId: "sku31", itemName: "导购高级版", appId: "app3", appName: "智能导购", capabilityCount: 2, instanceCount: 2, usageRate: 24.0, allocatedAt: "2026-03-15 09:25:00" },
+      { id: "alloc6", orderId: "ord10", orderNo: "ORD202603200001", itemType: "bundle", itemId: "bun5", itemName: "AI设计家套装", appId: "app4", appName: "AI设计家", capabilityCount: 2, instanceCount: 2, usageRate: 20.7, allocatedAt: "2026-03-20 10:10:00" },
+    ],
     capabilities: [
-      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 45,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord10"] },
+      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 445,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord10"] },
       { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule5",  ruleName: "4K渲染4次/日",       totalQuota: 4,     usedQuota: 0,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord10"] },
       { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule26", ruleName: "云存储4GB",          totalQuota: 4096,  usedQuota: 56,   unit: "MB",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord10"] },
-    ],
-  },
-  {
-    id: "acc3", customerId: "cust2", customerName: "索菲亚家居股份有限公司", appId: "app3", appName: "智能导购",
-    orderIds: ["ord5", "ord10"], status: "active", createdAt: "2026-03-15", updatedAt: "2026-03-20",
-    capabilities: [
       { capabilityId: "cap40", capabilityName: "导购推荐",   ruleId: "rule50", ruleName: "导购推荐500次/月", totalQuota: 500, usedQuota: 120, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord5", "ord10"] },
       { capabilityId: "cap41", capabilityName: "客户画像",   ruleId: "rule51", ruleName: "客户画像开通",     totalQuota: 1,   usedQuota: 0,   unit: "布尔", periodType: "PERMANENT", grantType: "ONE_TIME", sourceOrderIds: ["ord5", "ord10"] },
-    ],
-  },
-  {
-    id: "acc4", customerId: "cust2", customerName: "索菲亚家居股份有限公司", appId: "app4", appName: "AI设计家",
-    orderIds: ["ord10"], status: "active", createdAt: "2026-03-20", updatedAt: "2026-03-20",
-    capabilities: [
       { capabilityId: "cap30", capabilityName: "AI方案生成", ruleId: "rule40", ruleName: "AI方案100次/月",   totalQuota: 100, usedQuota: 23, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord10"] },
       { capabilityId: "cap31", capabilityName: "AI风格迁移", ruleId: "rule41", ruleName: "AI风格50次/月",    totalQuota: 50,  usedQuota: 8,  unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord10"] },
     ],
   },
   {
-    id: "acc5", customerId: "cust3", customerName: "尚品宅配家居股份有限公司", appId: "app4", appName: "AI设计家",
+    id: "acc3", customerId: "cust3", customerName: "尚品宅配家居股份有限公司", customerType: "B",
+    appIds: ["app4", "app5"], appNames: ["AI设计家", "精准客资"],
     orderIds: ["ord7"], status: "active", createdAt: "2026-03-17", updatedAt: "2026-03-17",
+    allocations: [
+      { id: "alloc7", orderId: "ord7", orderNo: "ORD202603170001", itemType: "sku", itemId: "sku21", itemName: "AI设计家专业版", appId: "app4", appName: "AI设计家", capabilityCount: 2, instanceCount: 2, usageRate: 5.3, allocatedAt: "2026-03-17 14:00:00" },
+      { id: "alloc8", orderId: "ord7", orderNo: "ORD202603170001", itemType: "sku", itemId: "sku40", itemName: "客资基础包", appId: "app5", appName: "精准客资", capabilityCount: 1, instanceCount: 1, usageRate: 32.0, allocatedAt: "2026-03-17 14:00:00" },
+    ],
     capabilities: [
       { capabilityId: "cap30", capabilityName: "AI方案生成", ruleId: "rule40", ruleName: "AI方案100次/月",   totalQuota: 100, usedQuota: 5, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
       { capabilityId: "cap31", capabilityName: "AI风格迁移", ruleId: "rule41", ruleName: "AI风格50次/月",    totalQuota: 50,  usedQuota: 0, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
-    ],
-  },
-  {
-    id: "acc6", customerId: "cust3", customerName: "尚品宅配家居股份有限公司", appId: "app5", appName: "精准客资",
-    orderIds: ["ord7"], status: "active", createdAt: "2026-03-17", updatedAt: "2026-03-17",
-    capabilities: [
       { capabilityId: "cap50", capabilityName: "线索获取",   ruleId: "rule60", ruleName: "线索100条/月",     totalQuota: 100, usedQuota: 32, unit: "条", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
     ],
   },
   {
-    id: "acc7", customerId: "cust4", customerName: "金牌厨柜家居科技股份有限公司", appId: "app1", appName: "国内3D工具",
+    id: "acc4", customerId: "cust4", customerName: "金牌厨柜家居科技股份有限公司", customerType: "B",
+    appIds: ["app1"], appNames: ["国内3D工具"],
     orderIds: ["ord8"], status: "active", createdAt: "2026-03-18", updatedAt: "2026-03-18",
+    allocations: [
+      { id: "alloc9", orderId: "ord8", orderNo: "ORD202603180001", itemType: "bundle", itemId: "bun1", itemName: "免费版（国内3D工具）", appId: "app1", appName: "国内3D工具", capabilityCount: 2, instanceCount: 2, usageRate: 6.0, allocatedAt: "2026-03-18 08:00:00" },
+    ],
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule1",  ruleName: "AI设计100次/日",     totalQuota: 100, usedQuota: 12, unit: "次", periodType: "DAY", grantType: "DAILY_REFRESH", sourceOrderIds: ["ord8"] },
       { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule25", ruleName: "云存储200MB",        totalQuota: 200, usedQuota: 0,  unit: "MB", periodType: "PERMANENT", grantType: "ONE_TIME", sourceOrderIds: ["ord8"] },
+    ],
+  },
+  {
+    id: "acc5", customerId: "user3", customerName: "王五", customerType: "C",
+    appIds: ["app1"], appNames: ["国内3D工具"],
+    orderIds: ["ord11"], status: "active", createdAt: "2026-03-21", updatedAt: "2026-03-21",
+    allocations: [
+      { id: "alloc10", orderId: "ord11", orderNo: "ORD202603210001", itemType: "bundle", itemId: "bun2", itemName: "基础会员", appId: "app1", appName: "国内3D工具", capabilityCount: 2, instanceCount: 2, usageRate: 8.3, allocatedAt: "2026-03-21 09:30:00" },
+    ],
+    capabilities: [
+      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule2",  ruleName: "AI设计200次/日",     totalQuota: 200, usedQuota: 15, unit: "次", periodType: "DAY", grantType: "DAILY_REFRESH", sourceOrderIds: ["ord11"] },
+      { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule25", ruleName: "云存储200MB",        totalQuota: 200, usedQuota: 18,  unit: "MB", periodType: "PERMANENT", grantType: "ONE_TIME", sourceOrderIds: ["ord11"] },
     ],
   },
 ];
