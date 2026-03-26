@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Check, ChevronLeft, Upload, X, Plus, Info, Search, Package, CalendarIcon } from "lucide-react";
+import { SetAdminDialog } from "./SetAdminDialog";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -869,6 +870,8 @@ function StepBrandConfig({
 
 /* ============ Step 4: 完成 ============ */
 function StepDone({ type, form, navigate }: { type: string; form: any; navigate: (path: string) => void }) {
+  const [showAdminDialog, setShowAdminDialog] = useState(false);
+
   return (
     <div className="py-10">
       {/* Success Icon & Message */}
@@ -883,7 +886,7 @@ function StepDone({ type, form, navigate }: { type: string; form: any; navigate:
         <div className="flex items-center gap-3 mt-6">
           <button onClick={() => navigate("/enterprise")} className="btn-secondary">查看详情</button>
           <button onClick={() => navigate(`/enterprise/create?type=${type}`)} className="btn-secondary">继续创建</button>
-          <button className="btn-primary">设置管理员</button>
+          <button className="btn-primary" onClick={() => setShowAdminDialog(true)}>设置管理员</button>
         </div>
       </div>
 
@@ -933,6 +936,16 @@ function StepDone({ type, form, navigate }: { type: string; form: any; navigate:
           </div>
         </div>
       </div>
+
+      <SetAdminDialog
+        open={showAdminDialog}
+        onClose={() => setShowAdminDialog(false)}
+        enterpriseName={form.name || "未填写"}
+        onConfirm={(data) => {
+          console.log("设置管理员", data);
+          setShowAdminDialog(false);
+        }}
+      />
     </div>
   );
 }
