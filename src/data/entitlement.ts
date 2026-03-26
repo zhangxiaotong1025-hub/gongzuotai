@@ -253,6 +253,154 @@ export const bundleData: Bundle[] = [
   },
 ];
 
+/* ── EntitlementOrder (权益订单) ── */
+export type OrderStatus = "pending" | "paid" | "cancelled" | "expired";
+export type OrderSource = "purchase" | "gift" | "promotion" | "system";
+
+export interface OrderItem {
+  type: "sku" | "bundle";
+  itemId: string;
+  itemName: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface EntitlementOrder {
+  id: string;
+  orderNo: string;
+  customerId: string;
+  customerName: string;
+  appId: string;
+  items: OrderItem[];
+  totalAmount: number;
+  status: OrderStatus;
+  source: OrderSource;
+  paidAt?: string;
+  expireAt?: string;
+  remark: string;
+  createdAt: string;
+}
+
+export const ORDER_STATUS: { value: OrderStatus; label: string; className: string }[] = [
+  { value: "pending", label: "待支付", className: "badge-warning" },
+  { value: "paid", label: "已支付", className: "badge-active" },
+  { value: "cancelled", label: "已取消", className: "badge-inactive" },
+  { value: "expired", label: "已过期", className: "badge-inactive" },
+];
+
+export const ORDER_SOURCES: { value: OrderSource; label: string }[] = [
+  { value: "purchase", label: "购买" },
+  { value: "gift", label: "赠送" },
+  { value: "promotion", label: "促销" },
+  { value: "system", label: "系统发放" },
+];
+
+export const orderData: EntitlementOrder[] = [
+  {
+    id: "ord1", orderNo: "ENT202603120001", customerId: "cust1", customerName: "北京居然之家家居连锁集团",
+    appId: "app1", totalAmount: 150, status: "paid", source: "purchase", paidAt: "2026-03-12 14:30:00", expireAt: "2027-03-12", remark: "旗舰会员月付", createdAt: "2026-03-12",
+    items: [{ type: "bundle", itemId: "bun3", itemName: "旗舰会员", quantity: 1, unitPrice: 150 }],
+  },
+  {
+    id: "ord2", orderNo: "ENT202603120002", customerId: "cust2", customerName: "上海设计工作室",
+    appId: "app1", totalAmount: 9.9, status: "paid", source: "purchase", paidAt: "2026-03-13 09:15:00", expireAt: "2027-03-13", remark: "基础会员", createdAt: "2026-03-13",
+    items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 9.9 }],
+  },
+  {
+    id: "ord3", orderNo: "ENT202603120003", customerId: "cust1", customerName: "北京居然之家家居连锁集团",
+    appId: "app1", totalAmount: 11, status: "paid", source: "purchase", paidAt: "2026-03-14 16:00:00", remark: "充值渲染次数", createdAt: "2026-03-14",
+    items: [
+      { type: "sku", itemId: "sku1", itemName: "4K普通图", quantity: 1, unitPrice: 3 },
+      { type: "sku", itemId: "sku2", itemName: "8K普通图", quantity: 1, unitPrice: 8 },
+    ],
+  },
+  {
+    id: "ord4", orderNo: "ENT202603120004", customerId: "cust3", customerName: "深圳家装设计有限公司",
+    appId: "app1", totalAmount: 0, status: "paid", source: "system", paidAt: "2026-03-15 10:00:00", remark: "系统发放免费版", createdAt: "2026-03-15",
+    items: [{ type: "bundle", itemId: "bun1", itemName: "免费版", quantity: 1, unitPrice: 0 }],
+  },
+  {
+    id: "ord5", orderNo: "ENT202603120005", customerId: "cust2", customerName: "上海设计工作室",
+    appId: "app1", totalAmount: 169, status: "pending", source: "purchase", remark: "AI积分充值", createdAt: "2026-03-16",
+    items: [{ type: "sku", itemId: "sku5", itemName: "AI积分2000·高级包", quantity: 1, unitPrice: 169 }],
+  },
+  {
+    id: "ord6", orderNo: "ENT202603120006", customerId: "cust1", customerName: "北京居然之家家居连锁集团",
+    appId: "app1", totalAmount: 1200, status: "paid", source: "promotion", paidAt: "2026-03-17 11:30:00", expireAt: "2027-03-17", remark: "年卡促销活动", createdAt: "2026-03-17",
+    items: [{ type: "bundle", itemId: "bun4", itemName: "旗舰会员年卡", quantity: 1, unitPrice: 1200 }],
+  },
+];
+
+/* ── EntitlementAccount (权益账户) ── */
+export interface AccountCapability {
+  capabilityId: string;
+  capabilityName: string;
+  ruleId: string;
+  ruleName: string;
+  totalQuota: number;
+  usedQuota: number;
+  unit: string;
+  periodType: PeriodType;
+  grantType: GrantType;
+  expireAt?: string;
+  sourceOrderIds: string[];
+}
+
+export interface EntitlementAccount {
+  id: string;
+  customerId: string;
+  customerName: string;
+  appId: string;
+  appName: string;
+  orderIds: string[];
+  capabilities: AccountCapability[];
+  status: "active" | "inactive";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const accountData: EntitlementAccount[] = [
+  {
+    id: "acc1", customerId: "cust1", customerName: "北京居然之家家居连锁集团", appId: "app1", appName: "居然设计家",
+    orderIds: ["ord1", "ord3", "ord6"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-17",
+    capabilities: [
+      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 128,  unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
+      { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule5",  ruleName: "4K渲染4次/日",       totalQuota: 4,     usedQuota: 2,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
+      { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule28", ruleName: "4K渲染1次",          totalQuota: 1,     usedQuota: 0,    unit: "次",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord3"] },
+      { capabilityId: "cap3", capabilityName: "8K渲染",     ruleId: "rule6",  ruleName: "8K渲染1次/日",       totalQuota: 1,     usedQuota: 1,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
+      { capabilityId: "cap3", capabilityName: "8K渲染",     ruleId: "rule29", ruleName: "8K渲染1次",          totalQuota: 1,     usedQuota: 0,    unit: "次",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord3"] },
+      { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule26", ruleName: "云存储4GB",          totalQuota: 4096,  usedQuota: 1280, unit: "MB",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord1", "ord6"] },
+      { capabilityId: "cap5", capabilityName: "2D效果图导出", ruleId: "rule10", ruleName: "2D效果图无限导出", totalQuota: 1,     usedQuota: 0,    unit: "布尔", periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord1"] },
+      { capabilityId: "cap6", capabilityName: "全屋模型库",  ruleId: "rule11", ruleName: "全屋模型库访问",   totalQuota: 1,     usedQuota: 0,    unit: "布尔", periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord1"] },
+    ],
+  },
+  {
+    id: "acc2", customerId: "cust2", customerName: "上海设计工作室", appId: "app1", appName: "居然设计家",
+    orderIds: ["ord2"], status: "active", createdAt: "2026-03-13", updatedAt: "2026-03-13",
+    capabilities: [
+      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule2",  ruleName: "AI设计300次/日",     totalQuota: 300,   usedQuota: 45,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord2"] },
+      { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule4",  ruleName: "4K渲染2次/日",       totalQuota: 2,     usedQuota: 0,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord2"] },
+      { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule25", ruleName: "云存储200MB",        totalQuota: 200,   usedQuota: 56,   unit: "MB",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord2"] },
+    ],
+  },
+  {
+    id: "acc3", customerId: "cust3", customerName: "深圳家装设计有限公司", appId: "app1", appName: "居然设计家",
+    orderIds: ["ord4"], status: "active", createdAt: "2026-03-15", updatedAt: "2026-03-15",
+    capabilities: [
+      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule1",  ruleName: "AI设计100次/日",     totalQuota: 100,   usedQuota: 12,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord4"] },
+      { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule25", ruleName: "云存储200MB",        totalQuota: 200,   usedQuota: 0,    unit: "MB",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord4"] },
+      { capabilityId: "cap4", capabilityName: "全景图导出", ruleId: "rule7",  ruleName: "全景图导出1次/日",   totalQuota: 1,     usedQuota: 0,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord4"] },
+    ],
+  },
+];
+
+/* ── Helpers (Order & Account) ── */
+export const getOrdersByCustomer = (custId: string) => orderData.filter((o) => o.customerId === custId);
+export const getOrdersByApp = (appId: string) => orderData.filter((o) => o.appId === appId);
+export const getAccountsByCustomer = (custId: string) => accountData.filter((a) => a.customerId === custId);
+export const getOrder = (id: string) => orderData.find((o) => o.id === id);
+export const getAccount = (id: string) => accountData.find((a) => a.id === id);
+
 /* ── Shared constants ── */
 export const STATUS_MAP: Record<string, { label: string; className: string }> = {
   active: { label: "启用", className: "badge-active" },
