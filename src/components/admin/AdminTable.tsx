@@ -86,8 +86,6 @@ function ActionCell<T>({
   useEffect(() => {
     if (!open) return;
 
-    updatePosition();
-
     const handlePointerDown = (e: MouseEvent) => {
       const target = e.target as Node;
       if (
@@ -152,7 +150,10 @@ function ActionCell<T>({
                   closeMenu();
                   return;
                 }
-                updatePosition();
+                if (triggerRef.current) {
+                  const rect = triggerRef.current.getBoundingClientRect();
+                  setMenuPos({ top: rect.bottom + 6, left: rect.right });
+                }
                 setOpen(true);
               }}
               className="admin-action-trigger"
