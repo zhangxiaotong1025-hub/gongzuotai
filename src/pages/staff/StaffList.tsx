@@ -556,7 +556,7 @@ export default function StaffList() {
       <FilterBar fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onSearch={() => {}} onReset={() => setFilters({})} maxVisible={4} />
 
       <div className="grid grid-cols-[260px_minmax(0,1fr)] gap-4 items-start">
-        <section className="sticky top-4 flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card max-h-[calc(100vh-100px)]" style={{ boxShadow: "var(--shadow-xs)" }}>
+        <section className="sticky top-4 flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card h-[calc(100vh-100px)]" style={{ boxShadow: "var(--shadow-xs)" }}>
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
