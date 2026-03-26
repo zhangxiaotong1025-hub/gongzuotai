@@ -432,23 +432,7 @@ export default function StaffList() {
   const [editingMode, setEditingMode] = useState<"create" | "rename" | null>(null);
   const [editingOriginName, setEditingOriginName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<OrgNode | null>(null);
-  const [panelHeight, setPanelHeight] = useState(560);
-  const panelRowRef = useRef<HTMLDivElement>(null);
-  const pageRef = useRef<HTMLDivElement>(null);
   const [benefitDialogStaff, setBenefitDialogStaff] = useState<StaffMember | null>(null);
-
-  useEffect(() => {
-    const updateHeight = () => {
-      if (!panelRowRef.current) return;
-      const top = panelRowRef.current.getBoundingClientRect().top;
-      setPanelHeight(Math.max(window.innerHeight - top - 24, 360));
-    };
-    updateHeight();
-    const observer = new ResizeObserver(updateHeight);
-    if (pageRef.current) observer.observe(pageRef.current);
-    window.addEventListener("resize", updateHeight);
-    return () => { observer.disconnect(); window.removeEventListener("resize", updateHeight); };
-  }, []);
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
@@ -532,7 +516,7 @@ export default function StaffList() {
   ];
 
   return (
-    <div ref={pageRef} className="space-y-4">
+    <div className="space-y-4">
       <PageHeader title="人员管理" subtitle={`共 ${totalItems} 位人员`} actions={
         <>
           <button className="btn-secondary"><Download className="h-4 w-4" />权益购买</button>
@@ -571,8 +555,8 @@ export default function StaffList() {
 
       <FilterBar fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onSearch={() => {}} onReset={() => setFilters({})} maxVisible={4} />
 
-      <div ref={panelRowRef} className="grid min-h-0 grid-cols-[260px_minmax(0,1fr)] gap-4" style={{ height: panelHeight }}>
-        <section className="flex min-h-0 h-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card" style={{ boxShadow: "var(--shadow-xs)" }}>
+      <div className="grid grid-cols-[260px_minmax(0,1fr)] gap-4 items-start">
+        <section className="sticky top-4 flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card max-h-[calc(100vh-100px)]" style={{ boxShadow: "var(--shadow-xs)" }}>
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
@@ -592,7 +576,7 @@ export default function StaffList() {
           </div>
         </section>
 
-        <section className="flex min-h-0 h-full flex-col overflow-hidden">
+        <section>
           <div className="mb-3 flex items-center justify-between rounded-xl border border-border/80 bg-card px-4 py-3" style={{ boxShadow: "var(--shadow-xs)" }}>
             <div>
               <div className="text-[14px] font-semibold text-foreground">{selectedOrgNode?.name || "全部人员"}</div>
@@ -600,14 +584,10 @@ export default function StaffList() {
             </div>
             <div className="text-[12px] text-muted-foreground">共 {totalItems} 人</div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-            <div className="space-y-4">
-              <AdminTable columns={columns} data={filteredData} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
-              <div className="rounded-xl border bg-card" style={{ boxShadow: "var(--shadow-xs)" }}>
-                <Pagination current={currentPage} total={totalItems} pageSize={pageSize} onPageChange={setCurrentPage}
-                  onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />
-              </div>
-            </div>
+          <AdminTable columns={columns} data={filteredData} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
+          <div className="rounded-xl border bg-card mt-4" style={{ boxShadow: "var(--shadow-xs)" }}>
+            <Pagination current={currentPage} total={totalItems} pageSize={pageSize} onPageChange={setCurrentPage}
+              onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />
           </div>
         </section>
       </div>
