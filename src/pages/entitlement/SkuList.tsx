@@ -34,7 +34,7 @@ function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; onClose:
         <div className="border-b bg-muted/40 px-5 py-4 flex items-center justify-between">
           <div>
             <h3 className="text-[15px] font-semibold text-foreground">{isEdit ? "编辑商品" : "新建商品"}</h3>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">商品SKU是可售卖的最小单元，必须关联权益产品</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">商品SKU是可售卖的最小单元，必须关联一条权益规则</p>
           </div>
           <button onClick={onClose} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><X className="h-4 w-4" /></button>
         </div>
@@ -59,12 +59,12 @@ function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; onClose:
             </select>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[13px] text-muted-foreground">关联权益产品 <span className="text-destructive">*</span></label>
+            <label className="text-[13px] text-muted-foreground">关联权益规则 <span className="text-destructive">*</span></label>
             <select className="filter-input w-full" value={form.productId} onChange={(e) => {
               const p = entitlementProductData.find((p) => p.id === e.target.value);
               setForm({ ...form, productId: e.target.value, productName: p?.name || "" });
             }}>
-              <option value="">请选择权益产品</option>
+              <option value="">请选择权益规则</option>
               {availableProducts.map((p) => <option key={p.id} value={p.id}>{p.name}（{p.capabilityName} · {p.quota}{p.period === "daily" ? "/日" : ""}）</option>)}
             </select>
           </div>
@@ -127,7 +127,7 @@ export default function SkuList() {
     { key: "name", title: "商品名称", minWidth: 140, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/sku/detail/${(row as Sku).id}`)}>{v}</button> },
     { key: "code", title: "编码", minWidth: 140, render: (v) => <code className="text-[12px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">{v}</code> },
     { key: "appName", title: "所属应用", minWidth: 130, render: (v, row) => <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20" onClick={() => navigate(`/entitlement/app/detail/${(row as Sku).appId}`)}>{v}</button> },
-    { key: "productName", title: "关联权益产品", minWidth: 150, render: (v, row) => <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-muted/80" onClick={() => navigate(`/entitlement/rule/detail/${(row as Sku).productId}`)}>{v}</button> },
+    { key: "productName", title: "关联权益规则", minWidth: 150, render: (v, row) => <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-muted/80" onClick={() => navigate(`/entitlement/rule/detail/${(row as Sku).productId}`)}>{v}</button> },
     { key: "price", title: "价格", minWidth: 80, align: "right" as const, render: (v: number) => <span className={`font-medium ${v > 0 ? "text-foreground" : "text-muted-foreground"}`}>{v > 0 ? `¥${v}` : "¥0"}</span> },
     { key: "billingCycle", title: "计费", minWidth: 60, render: (v: string) => <span className="text-[12px]">{BILLING_CYCLES.find((b) => b.value === v)?.label}</span> },
     { key: "salesStatus", title: "状态", minWidth: 80, render: (v: string) => { const cfg = STATUS_MAP[v]; return <span className={cfg.className}>{cfg.label}</span>; } },
@@ -143,7 +143,7 @@ export default function SkuList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="商品SKU" subtitle="可售卖的商品，是权益交易的最小单元，必须关联一个权益产品" actions={
+      <PageHeader title="商品SKU" subtitle="可售卖的商品单元，每个商品必须关联一条权益规则" actions={
         <div className="flex gap-2">
           <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 新建</button>
           <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>

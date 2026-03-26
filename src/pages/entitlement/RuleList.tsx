@@ -9,13 +9,13 @@ import { Plus, Download, X } from "lucide-react";
 import { entitlementProductData as initialData, appData, capabilityData, meteringRuleData, skuData, PERIOD_TYPES, STATUS_MAP, type EntitlementProduct, type PeriodType, getSkuRefCount, getCapabilitiesByApp, getRulesByCapability } from "@/data/entitlement";
 
 const filterFields: FilterField[] = [
-  { key: "name", label: "产品名称/编码", type: "input", placeholder: "请输入", width: 200 },
+  { key: "name", label: "规则名称/编码", type: "input", placeholder: "请输入", width: 200 },
   { key: "appId", label: "所属应用", type: "select", options: appData.map((a) => ({ label: a.name, value: a.id })), width: 160 },
   { key: "capabilityId", label: "关联能力", type: "select", options: capabilityData.map((c) => ({ label: c.name, value: c.id })), width: 140 },
   { key: "status", label: "状态", type: "select", options: [{ label: "启用", value: "active" }, { label: "停用", value: "inactive" }], width: 100 },
 ];
 
-function ProductDialog({ open, onClose, onSave, initial }: { open: boolean; onClose: () => void; onSave: (d: any) => void; initial?: EntitlementProduct | null }) {
+function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; onClose: () => void; onSave: (d: any) => void; initial?: EntitlementProduct | null }) {
   const [form, setForm] = useState({
     name: initial?.name || "", code: initial?.code || "",
     appId: initial?.appId || appData[0]?.id, appName: initial?.appName || appData[0]?.name,
@@ -38,19 +38,19 @@ function ProductDialog({ open, onClose, onSave, initial }: { open: boolean; onCl
       <div className="relative w-full max-w-[600px] rounded-xl border bg-card p-0 animate-in fade-in-0 zoom-in-95 duration-200 overflow-hidden" style={{ boxShadow: "var(--shadow-md)" }}>
         <div className="border-b bg-muted/40 px-5 py-4 flex items-center justify-between">
           <div>
-            <h3 className="text-[15px] font-semibold text-foreground">{isEdit ? "编辑权益产品" : "新建权益产品"}</h3>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">定义能力+额度+周期，连接应用和能力</p>
+            <h3 className="text-[15px] font-semibold text-foreground">{isEdit ? "编辑权益规则" : "新建权益规则"}</h3>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">定义能力+额度+周期+策略，连接应用与能力的计量配置</p>
           </div>
           <button onClick={onClose} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><X className="h-4 w-4" /></button>
         </div>
         <div className="px-5 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[13px] text-muted-foreground">产品名称 <span className="text-destructive">*</span></label>
-              <input className="filter-input w-full" placeholder="如：AI设计额度300次" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <label className="text-[13px] text-muted-foreground">规则名称 <span className="text-destructive">*</span></label>
+              <input className="filter-input w-full" placeholder="如：AI设计额度300次/日" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[13px] text-muted-foreground">产品编码 <span className="text-destructive">*</span></label>
+              <label className="text-[13px] text-muted-foreground">规则编码 <span className="text-destructive">*</span></label>
               <input className="filter-input w-full font-mono" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} disabled={isEdit} />
             </div>
           </div>
@@ -129,10 +129,10 @@ export default function RuleList() {
   const handleSave = useCallback((form: any) => {
     if (editTarget) {
       setData((prev) => prev.map((a) => a.id === editTarget.id ? { ...a, ...form } : a));
-      toast.success("权益产品已更新");
+      toast.success("权益规则已更新");
     } else {
       setData((prev) => [{ id: String(Date.now()), ...form, status: "active", createdAt: new Date().toLocaleDateString("zh-CN") }, ...prev]);
-      toast.success("权益产品已创建");
+      toast.success("权益规则已创建");
     }
     setDialogOpen(false); setEditTarget(null);
   }, [editTarget]);
@@ -143,7 +143,7 @@ export default function RuleList() {
   }, []);
 
   const columns: TableColumn<EntitlementProduct>[] = [
-    { key: "name", title: "产品名称", minWidth: 160, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/rule/detail/${(row as EntitlementProduct).id}`)}>{v}</button> },
+    { key: "name", title: "规则名称", minWidth: 160, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/rule/detail/${(row as EntitlementProduct).id}`)}>{v}</button> },
     { key: "appName", title: "所属应用", minWidth: 130, render: (v, row) => <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors" onClick={() => navigate(`/entitlement/app/detail/${(row as EntitlementProduct).appId}`)}>{v}</button> },
     { key: "capabilityName", title: "关联能力", minWidth: 100, render: (v, row) => <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-muted/80" onClick={() => navigate(`/entitlement/capability/detail/${(row as EntitlementProduct).capabilityId}`)}>{v}</button> },
     { key: "meteringRuleName", title: "计量规则", minWidth: 100, render: (v) => <span className="text-[12px] text-muted-foreground">{v}</span> },
@@ -166,14 +166,14 @@ export default function RuleList() {
     { label: "编辑", onClick: (r) => { setEditTarget(r); setDialogOpen(true); } },
     { label: (r) => r.status === "active" ? "停用" : "启用", onClick: toggleStatus },
     { label: "删除", danger: true, onClick: (r) => {
-      if (getSkuRefCount(r.id) > 0) { toast.error("被商品引用的产品不能删除，只能停用"); return; }
+      if (getSkuRefCount(r.id) > 0) { toast.error("被商品引用的规则不能删除，只能停用"); return; }
       setData((p) => p.filter((a) => a.id !== r.id)); toast.success("已删除");
     }},
   ];
 
   return (
     <div className="space-y-4">
-      <PageHeader title="权益产品管理" subtitle="定义能力+额度+周期，连接应用和能力，是商品的基础配置" actions={
+      <PageHeader title="权益规则管理" subtitle="定义能力+额度+周期+策略，是商品SKU的基础配置单元" actions={
         <div className="flex gap-2">
           <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 新建</button>
           <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>
@@ -182,7 +182,7 @@ export default function RuleList() {
       <FilterBar fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onSearch={() => {}} onReset={() => setFilters({})} maxVisible={4} />
       <AdminTable columns={columns} data={data} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
       <div className="bg-card rounded-xl border" style={{ boxShadow: "var(--shadow-xs)" }}><Pagination current={currentPage} total={data.length} pageSize={pageSize} onPageChange={setCurrentPage} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} /></div>
-      <ProductDialog open={dialogOpen} onClose={() => { setDialogOpen(false); setEditTarget(null); }} onSave={handleSave} initial={editTarget} />
+      <RuleDialog open={dialogOpen} onClose={() => { setDialogOpen(false); setEditTarget(null); }} onSave={handleSave} initial={editTarget} />
     </div>
   );
 }

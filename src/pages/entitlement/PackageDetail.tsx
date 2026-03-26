@@ -13,9 +13,9 @@ export default function PackageDetail() {
   // Enrich items with full chain
   const enrichedItems = bundle.items.map((item) => {
     const sku = skuData.find((s) => s.id === item.skuId);
-    const product = sku ? entitlementProductData.find((p) => p.id === sku.productId) : null;
-    const cap = product ? capabilityData.find((c) => c.id === product.capabilityId) : null;
-    return { ...item, sku, product, cap };
+    const rule = sku ? entitlementProductData.find((p) => p.id === sku.productId) : null;
+    const cap = rule ? capabilityData.find((c) => c.id === rule.capabilityId) : null;
+    return { ...item, sku, rule, cap };
   });
 
   return (
@@ -48,7 +48,7 @@ export default function PackageDetail() {
             <thead><tr className="border-b text-muted-foreground">
               <th className="text-left py-2 font-medium">商品名称</th>
               <th className="text-center py-2 font-medium">数量</th>
-              <th className="text-left py-2 font-medium">权益产品</th>
+              <th className="text-left py-2 font-medium">权益规则</th>
               <th className="text-left py-2 font-medium">能力</th>
               <th className="text-right py-2 font-medium">额度</th>
               <th className="text-left py-2 font-medium">周期</th>
@@ -56,14 +56,14 @@ export default function PackageDetail() {
               <th className="text-left py-2 font-medium">操作</th>
             </tr></thead>
             <tbody>
-              {enrichedItems.map(({ skuId, skuName, quantity, sku, product, cap }) => (
+              {enrichedItems.map(({ skuId, skuName, quantity, sku, rule, cap }) => (
                 <tr key={skuId} className="border-b border-border/40 hover:bg-muted/30">
                   <td className="py-2 font-medium text-foreground">{skuName}</td>
                   <td className="py-2 text-center">{quantity > 1 ? <span className="text-primary font-medium">×{quantity}</span> : "1"}</td>
-                  <td className="py-2">{product ? <Link to={`/entitlement/rule/detail/${product.id}`} className="text-primary hover:underline text-[12px]">{product.name}</Link> : "—"}</td>
+                  <td className="py-2">{rule ? <Link to={`/entitlement/rule/detail/${rule.id}`} className="text-primary hover:underline text-[12px]">{rule.name}</Link> : "—"}</td>
                   <td className="py-2">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-muted-foreground hover:text-primary text-[12px]">{cap.name}</Link> : "—"}</td>
-                  <td className="py-2 text-right font-medium">{product ? `${product.quota.toLocaleString()}` : "—"}</td>
-                  <td className="py-2 text-muted-foreground">{product ? PERIOD_TYPES.find((p) => p.value === product.period)?.label : "—"}</td>
+                  <td className="py-2 text-right font-medium">{rule ? `${rule.quota.toLocaleString()}` : "—"}</td>
+                  <td className="py-2 text-muted-foreground">{rule ? PERIOD_TYPES.find((p) => p.value === rule.period)?.label : "—"}</td>
                   <td className="py-2 text-right">{sku && sku.price > 0 ? `¥${sku.price}` : "—"}</td>
                   <td className="py-2"><Link to={`/entitlement/sku/detail/${skuId}`} className="text-primary hover:underline text-[12px]">查看</Link></td>
                 </tr>

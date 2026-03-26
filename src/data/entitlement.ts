@@ -165,9 +165,9 @@ export const skuData: Sku[] = [
   { id: "sku8", name: "4K渲染5次", code: "SKU_4K_5", appId: "app1", appName: "国内3D设计工具", productId: "ep6", productName: "4K渲染额度5次", price: 0, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 8, description: "旗舰会员用", createdAt: "2026-03-10" },
   { id: "sku9", name: "8K渲染1次", code: "SKU_8K_1", appId: "app1", appName: "国内3D设计工具", productId: "ep7", productName: "8K渲染额度1次", price: 0, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 9, description: "旗舰会员用", createdAt: "2026-03-10" },
   // AI App
-  { id: "sku10", name: "AI积分100", code: "SKU_TOKEN_100", appId: "app3", appName: "AI App", productId: "ep9", productName: "AI Token 100", price: 10, billingCycle: "once", salesStatus: "on_sale", sortOrder: 1, description: "", createdAt: "2026-03-11" },
-  { id: "sku11", name: "AI积分200", code: "SKU_TOKEN_200", appId: "app3", appName: "AI App", productId: "ep10", productName: "AI Token 200", price: 18, billingCycle: "once", salesStatus: "on_sale", sortOrder: 2, description: "", createdAt: "2026-03-11" },
-  { id: "sku12", name: "AI积分2000", code: "SKU_TOKEN_2000", appId: "app3", appName: "AI App", productId: "ep11", productName: "AI Token 2000", price: 168, billingCycle: "once", salesStatus: "on_sale", sortOrder: 3, description: "", createdAt: "2026-03-11" },
+  { id: "sku10", name: "AI积分100·基础包", code: "SKU_TOKEN_100", appId: "app3", appName: "AI App", productId: "ep9", productName: "AI Token 100", price: 9.9, billingCycle: "once", salesStatus: "on_sale", sortOrder: 1, description: "100积分基础包", createdAt: "2026-03-11" },
+  { id: "sku11", name: "AI积分200·专业包", code: "SKU_TOKEN_200", appId: "app3", appName: "AI App", productId: "ep10", productName: "AI Token 200", price: 19.9, billingCycle: "once", salesStatus: "on_sale", sortOrder: 2, description: "200积分专业包", createdAt: "2026-03-11" },
+  { id: "sku12", name: "AI积分2000·高级包", code: "SKU_TOKEN_2000", appId: "app3", appName: "AI App", productId: "ep11", productName: "AI Token 2000", price: 169, billingCycle: "once", salesStatus: "on_sale", sortOrder: 3, description: "2000积分高级包", createdAt: "2026-03-11" },
 ];
 
 /* ── Bundle (套餐) — N:M with SKU ── */
@@ -202,14 +202,22 @@ export const bundleData: Bundle[] = [
     ],
   },
   {
-    id: "bun2", name: "基础会员", code: "BUN_BASIC", appId: "app1", appName: "国内3D设计工具", price: 99, billingCycle: "monthly", status: "on_sale", sortOrder: 2, description: "基础会员套餐", createdAt: "2026-03-10",
+    id: "bun2", name: "基础会员", code: "BUN_BASIC", appId: "app1", appName: "国内3D设计工具", price: 9.9, billingCycle: "monthly", status: "on_sale", sortOrder: 2, description: "基础会员套餐", createdAt: "2026-03-10",
     items: [
       { skuId: "sku4", skuName: "AI设计300次", quantity: 1 },
       { skuId: "sku7", skuName: "4K渲染2次", quantity: 1 },
     ],
   },
   {
-    id: "bun3", name: "旗舰会员", code: "BUN_PRO", appId: "app1", appName: "国内3D设计工具", price: 299, originalPrice: 399, billingCycle: "monthly", status: "on_sale", sortOrder: 3, description: "旗舰会员套餐，全部权益", createdAt: "2026-03-10",
+    id: "bun3", name: "旗舰会员", code: "BUN_PRO", appId: "app1", appName: "国内3D设计工具", price: 150, originalPrice: 199, billingCycle: "monthly", status: "on_sale", sortOrder: 3, description: "旗舰会员套餐，全部权益", createdAt: "2026-03-10",
+    items: [
+      { skuId: "sku5", skuName: "AI设计900次", quantity: 1 },
+      { skuId: "sku8", skuName: "4K渲染5次", quantity: 1 },
+      { skuId: "sku9", skuName: "8K渲染1次", quantity: 1 },
+    ],
+  },
+  {
+    id: "bun4", name: "旗舰会员年卡", code: "BUN_PRO_YEARLY", appId: "app1", appName: "国内3D设计工具", price: 1200, originalPrice: 1800, billingCycle: "yearly", status: "on_sale", sortOrder: 4, description: "旗舰会员年度套餐", createdAt: "2026-03-10",
     items: [
       { skuId: "sku5", skuName: "AI设计900次", quantity: 1 },
       { skuId: "sku8", skuName: "4K渲染5次", quantity: 1 },

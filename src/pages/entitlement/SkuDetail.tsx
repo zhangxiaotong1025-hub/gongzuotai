@@ -8,8 +8,8 @@ export default function SkuDetail() {
   const sku = skuData.find((s) => s.id === id);
   if (!sku) return <div className="p-10 text-center text-muted-foreground">商品不存在</div>;
 
-  const product = entitlementProductData.find((p) => p.id === sku.productId);
-  const cap = product ? capabilityData.find((c) => c.id === product.capabilityId) : null;
+  const rule = entitlementProductData.find((p) => p.id === sku.productId);
+  const cap = rule ? capabilityData.find((c) => c.id === rule.capabilityId) : null;
   const bundles = bundleData.filter((b) => b.items.some((i) => i.skuId === sku.id));
 
   return (
@@ -50,8 +50,8 @@ export default function SkuDetail() {
           </div>
           <span className="text-muted-foreground">→</span>
           <div className="px-4 py-3 rounded-lg border bg-muted/30 text-center">
-            <div className="text-[11px] text-muted-foreground mb-1">权益产品</div>
-            {product ? <Link to={`/entitlement/rule/detail/${product.id}`} className="text-primary hover:underline font-medium">{product.name}</Link> : <span>—</span>}
+            <div className="text-[11px] text-muted-foreground mb-1">权益规则</div>
+            {rule ? <Link to={`/entitlement/rule/detail/${rule.id}`} className="text-primary hover:underline font-medium">{rule.name}</Link> : <span>—</span>}
           </div>
           <span className="text-muted-foreground">→</span>
           <div className="px-4 py-3 rounded-lg border border-primary/40 bg-primary/5 text-center">
@@ -68,15 +68,15 @@ export default function SkuDetail() {
         </div>
       </div>
 
-      {/* Product detail */}
-      {product && (
+      {/* Rule detail */}
+      {rule && (
         <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益产品</h3>
+          <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益规则</h3>
           <div className="grid grid-cols-4 gap-4 text-[13px]">
-            <div><span className="text-muted-foreground">产品名称</span><div className="mt-0.5"><Link to={`/entitlement/rule/detail/${product.id}`} className="text-primary hover:underline font-medium">{product.name}</Link></div></div>
-            <div><span className="text-muted-foreground">额度</span><div className="font-medium text-foreground mt-0.5">{product.quota.toLocaleString()}</div></div>
-            <div><span className="text-muted-foreground">周期</span><div className="text-foreground mt-0.5">{PERIOD_TYPES.find((p) => p.value === product.period)?.label}</div></div>
-            <div><span className="text-muted-foreground">有效期</span><div className="text-foreground mt-0.5">{product.validDays > 0 ? `${product.validDays}天` : "永久"}</div></div>
+            <div><span className="text-muted-foreground">规则名称</span><div className="mt-0.5"><Link to={`/entitlement/rule/detail/${rule.id}`} className="text-primary hover:underline font-medium">{rule.name}</Link></div></div>
+            <div><span className="text-muted-foreground">额度</span><div className="font-medium text-foreground mt-0.5">{rule.quota.toLocaleString()}</div></div>
+            <div><span className="text-muted-foreground">周期</span><div className="text-foreground mt-0.5">{PERIOD_TYPES.find((p) => p.value === rule.period)?.label}</div></div>
+            <div><span className="text-muted-foreground">有效期</span><div className="text-foreground mt-0.5">{rule.validDays > 0 ? `${rule.validDays}天` : "永久"}</div></div>
           </div>
         </div>
       )}
@@ -92,7 +92,7 @@ export default function SkuDetail() {
                   <span className="font-medium text-foreground text-[13px]">{b.name}</span>
                   <span className={STATUS_MAP[b.status].className}>{STATUS_MAP[b.status].label}</span>
                 </div>
-                <div className="text-[12px] text-muted-foreground mt-1">{b.price > 0 ? `¥${b.price}/月` : "免费"} · {b.items.length}个商品</div>
+                <div className="text-[12px] text-muted-foreground mt-1">{b.price > 0 ? `¥${b.price}/${BILLING_CYCLES.find((c) => c.value === b.billingCycle)?.label}` : "免费"} · {b.items.length}个商品</div>
               </Link>
             ))}
           </div>
