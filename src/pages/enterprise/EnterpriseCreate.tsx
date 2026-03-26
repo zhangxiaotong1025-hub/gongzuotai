@@ -9,8 +9,22 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 
 const TYPE_LABELS: Record<string, string> = {
-  mall: "卖场", brand: "品牌商", dealer: "经销商", decoration: "装修公司", studio: "工作室", store: "门店",
+  mall: "卖场", brand: "品牌商", dealer: "经销商", decoration: "装修公司", studio: "工作室", store: "门店", supplier: "供应商",
 };
+
+// Sub-enterprise allowed types by parent type key
+const SUB_TYPE_ALLOWED: Record<string, string[]> = {
+  brand: ["brand", "dealer", "decoration", "store", "studio"],
+  dealer: ["dealer", "decoration", "store", "studio"],
+  decoration: ["decoration", "store", "studio"],
+  store: ["store", "studio"],
+  studio: ["studio"],
+  supplier: ["supplier"],
+  mall: ["brand", "dealer", "decoration", "store", "studio"],
+};
+
+const ORG_STRUCTURES = ["上级/本级", "独立运营", "分公司", "办事处"];
+const REGIONS = ["华东", "华南", "华北", "华中", "西南", "西北", "东北"];
 
 const ALL_STEPS = [
   { key: "basic", label: "基础信息" },
