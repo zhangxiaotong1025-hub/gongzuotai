@@ -322,26 +322,50 @@ export const cUserData: CUser[] = [
   { id: "user8", name: "吴十", phone: "186****0123", email: "wushi@example.com" },
 ];
 
-/** B端企业模拟数据（从企业管理引用） */
+/** B端企业模拟数据（支持层级结构） */
 export interface BEnterprise {
   id: string;
   name: string;
   type: string;
+  level: number; // 0=总部, 1=子企业, 2=孙企业
+  parentId?: string;
+  parentName?: string;
 }
 
 export const bEnterpriseData: BEnterprise[] = [
-  { id: "cust1", name: "欧派家居集团股份有限公司", type: "品牌商" },
-  { id: "cust2", name: "索菲亚家居股份有限公司", type: "品牌商" },
-  { id: "cust3", name: "尚品宅配家居股份有限公司", type: "品牌商" },
-  { id: "cust4", name: "金牌厨柜家居科技股份有限公司", type: "品牌商" },
-  { id: "cust5", name: "志邦家居股份有限公司", type: "品牌商" },
-  { id: "cust6", name: "我乐家居股份有限公司", type: "品牌商" },
-  { id: "cust7", name: "好莱客创意家居股份有限公司", type: "品牌商" },
-  { id: "cust8", name: "北京金隅装饰工程有限公司", type: "装修公司" },
-  { id: "cust9", name: "上海东易日盛装饰有限公司", type: "装修公司" },
-  { id: "cust10", name: "居然之家投资控股集团", type: "卖场" },
-  { id: "cust11", name: "红星美凯龙家居集团", type: "卖场" },
-  { id: "cust12", name: "深圳市名雕装饰股份有限公司", type: "装修公司" },
+  // 总部（0级）
+  { id: "cust1", name: "欧派家居集团股份有限公司", type: "品牌商", level: 0 },
+  { id: "cust2", name: "索菲亚家居股份有限公司", type: "品牌商", level: 0 },
+  { id: "cust3", name: "尚品宅配家居股份有限公司", type: "品牌商", level: 0 },
+  { id: "cust4", name: "金牌厨柜家居科技股份有限公司", type: "品牌商", level: 0 },
+  { id: "cust5", name: "志邦家居股份有限公司", type: "品牌商", level: 0 },
+  { id: "cust6", name: "我乐家居股份有限公司", type: "品牌商", level: 0 },
+  { id: "cust7", name: "好莱客创意家居股份有限公司", type: "品牌商", level: 0 },
+  { id: "cust8", name: "居然之家投资控股集团", type: "卖场", level: 0 },
+  { id: "cust9", name: "红星美凯龙家居集团", type: "卖场", level: 0 },
+  // 欧派子企业（1级）
+  { id: "cust1-1", name: "欧派家居北京经销商", type: "经销商", level: 1, parentId: "cust1", parentName: "欧派家居集团股份有限公司" },
+  { id: "cust1-2", name: "欧派家居上海经销商", type: "经销商", level: 1, parentId: "cust1", parentName: "欧派家居集团股份有限公司" },
+  { id: "cust1-3", name: "欧派家居广州旗舰店", type: "门店", level: 1, parentId: "cust1", parentName: "欧派家居集团股份有限公司" },
+  // 欧派孙企业（2级）
+  { id: "cust1-1-1", name: "欧派北京朝阳门店", type: "门店", level: 2, parentId: "cust1-1", parentName: "欧派家居北京经销商" },
+  { id: "cust1-1-2", name: "欧派北京海淀门店", type: "门店", level: 2, parentId: "cust1-1", parentName: "欧派家居北京经销商" },
+  { id: "cust1-2-1", name: "欧派上海浦东门店", type: "门店", level: 2, parentId: "cust1-2", parentName: "欧派家居上海经销商" },
+  // 索菲亚子企业（1级）
+  { id: "cust2-1", name: "索菲亚华南经销商", type: "经销商", level: 1, parentId: "cust2", parentName: "索菲亚家居股份有限公司" },
+  { id: "cust2-2", name: "索菲亚西南装修合作商", type: "装修公司", level: 1, parentId: "cust2", parentName: "索菲亚家居股份有限公司" },
+  // 索菲亚孙企业（2级）
+  { id: "cust2-1-1", name: "索菲亚深圳南山门店", type: "门店", level: 2, parentId: "cust2-1", parentName: "索菲亚华南经销商" },
+  // 居然之家子企业
+  { id: "cust8-1", name: "居然之家北京北四环店", type: "门店", level: 1, parentId: "cust8", parentName: "居然之家投资控股集团" },
+  { id: "cust8-2", name: "居然之家上海真北店", type: "门店", level: 1, parentId: "cust8", parentName: "居然之家投资控股集团" },
+  // 红星美凯龙子企业
+  { id: "cust9-1", name: "红星美凯龙杭州商场", type: "门店", level: 1, parentId: "cust9", parentName: "红星美凯龙家居集团" },
+  { id: "cust9-2", name: "红星美凯龙南京商场", type: "门店", level: 1, parentId: "cust9", parentName: "红星美凯龙家居集团" },
+  // 独立装修公司
+  { id: "cust10", name: "北京金隅装饰工程有限公司", type: "装修公司", level: 0 },
+  { id: "cust11", name: "上海东易日盛装饰有限公司", type: "装修公司", level: 0 },
+  { id: "cust12", name: "深圳市名雕装饰股份有限公司", type: "装修公司", level: 0 },
 ];
 
 export interface EntitlementOrder {
