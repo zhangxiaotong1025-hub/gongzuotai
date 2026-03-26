@@ -395,6 +395,16 @@ export default function ApplicationList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create Enterprise Type Dialog */}
+      <CreateEnterpriseDialog
+        open={Boolean(createTarget)}
+        onClose={() => setCreateTarget(null)}
+        onSelect={handleTypeSelected}
+        defaultType={createTarget ? (TYPE_KEY_MAP[createTarget.type] || "brand") : undefined}
+        title="创建企业"
+        subtitle={`基于「${createTarget?.name || ""}」的申请创建企业，请确认或修改企业类型`}
+      />
     </div>
   );
 }
