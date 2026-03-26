@@ -154,7 +154,7 @@ const columns: TableColumn<Enterprise>[] = [
 // ===== Actions =====
 const actions: ActionItem<Enterprise>[] = [
   { label: "查看", onClick: (r) => console.log("查看", r.id) },
-  { label: "停用", onClick: (r) => console.log("停用", r.id), visible: (r) => r.status === "active", danger: true },
+  { label: "终止", onClick: (r) => console.log("终止", r.id), visible: (r) => r.status === "active", danger: true },
   { label: "启用", onClick: (r) => console.log("启用", r.id), visible: (r) => r.status === "inactive" },
   { label: "设置管理员", onClick: (r) => console.log("admin", r.id) },
   { label: "新建子企业", onClick: (r) => console.log("sub", r.id), visible: (r) => !r._level },

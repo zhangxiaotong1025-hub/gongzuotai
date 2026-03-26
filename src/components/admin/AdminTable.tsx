@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, ReactNode } from "react";
+import { useState, useRef, useEffect, useCallback, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { MoreHorizontal } from "lucide-react";
 
 export interface TableColumn<T> {
@@ -43,22 +44,42 @@ function ActionCell<T>({
   maxVisible: number;
 }) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
 
   const visibleActions = actions.filter((a) => !a.visible || a.visible(record));
   const shown = visibleActions.slice(0, maxVisible);
   const overflow = visibleActions.slice(maxVisible);
 
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setMenuPos({
+      top: rect.bottom + 4,
+      left: rect.right,
+    });
+  }, []);
+
   useEffect(() => {
     if (!open) return;
+    updatePosition();
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        menuRef.current && !menuRef.current.contains(target) &&
+        triggerRef.current && !triggerRef.current.contains(target)
+      ) {
         setOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+    window.addEventListener("scroll", () => setOpen(false), true);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      window.removeEventListener("scroll", () => setOpen(false), true);
+    };
+  }, [open, updatePosition]);
 
   return (
     <div className="flex items-center gap-0.5">
@@ -72,17 +93,24 @@ function ActionCell<T>({
         </button>
       ))}
       {overflow.length > 0 && (
-        <div className="relative" ref={menuRef}>
+        <>
           <button
+            ref={triggerRef}
             onClick={() => setOpen(!open)}
             className="p-1.5 rounded-md hover:bg-muted text-muted-foreground transition-colors"
           >
             <MoreHorizontal className="h-4 w-4" />
           </button>
-          {open && (
+          {open && createPortal(
             <div
-              className="absolute right-0 top-full mt-1 bg-card border rounded-lg py-1 z-50 min-w-[140px]"
-              style={{ boxShadow: 'var(--shadow-md)' }}
+              ref={menuRef}
+              className="fixed bg-card border rounded-lg py-1 z-[9999] min-w-[140px] animate-in fade-in-0 zoom-in-95 duration-100"
+              style={{
+                top: menuPos.top,
+                left: menuPos.left,
+                transform: "translateX(-100%)",
+                boxShadow: "0 8px 24px -4px hsl(220 20% 10% / 0.12), 0 2px 8px -2px hsl(220 20% 10% / 0.08)",
+              }}
             >
               {overflow.map((action) => (
                 <button
@@ -100,9 +128,10 @@ function ActionCell<T>({
                   {action.label}
                 </button>
               ))}
-            </div>
+            </div>,
+            document.body
           )}
-        </div>
+        </>
       )}
     </div>
   );
