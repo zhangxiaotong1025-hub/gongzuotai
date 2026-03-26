@@ -1,10 +1,14 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Download, ChevronRight, ChevronDown, Users, MoreHorizontal } from "lucide-react";
+import { Plus, Download, ChevronRight, ChevronDown, Users, MoreHorizontal, Edit2, Trash2, FolderPlus } from "lucide-react";
 import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 /* ── Types ── */
 interface OrgNode {
@@ -29,7 +33,7 @@ interface StaffMember {
 }
 
 /* ── Mock Org Tree ── */
-const ORG_TREE: OrgNode[] = [
+const initialOrgTree: OrgNode[] = [
   {
     id: "all", name: "全部", count: 38, children: [
       { id: "unset", name: "未设置组织架构", count: 24 },
@@ -140,13 +144,17 @@ const columns: TableColumn<StaffMember>[] = [
 ];
 
 /* ── Org Tree Component ── */
-function OrgTree({ nodes, selectedId, onSelect, depth = 0 }: {
+function OrgTree({ nodes, selectedId, onSelect, onAddChild, onRename, onDelete, depth = 0 }: {
   nodes: OrgNode[];
   selectedId: string;
   onSelect: (id: string) => void;
+  onAddChild: (parentId: string) => void;
+  onRename: (id: string, name: string) => void;
+  onDelete: (id: string) => void;
   depth?: number;
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(["all", "supply", "south"]));
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(["all", "supply", "south", "hq"]));
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
 
   return (
     <div className={depth > 0 ? "ml-3" : ""}>
@@ -154,10 +162,11 @@ function OrgTree({ nodes, selectedId, onSelect, depth = 0 }: {
         const hasChildren = node.children && node.children.length > 0;
         const isExpanded = expanded.has(node.id);
         const isSelected = selectedId === node.id;
+        const isMenuOpen = menuOpen === node.id;
         return (
           <div key={node.id}>
             <div
-              className={`flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-[13px] group ${
+              className={`flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-[13px] group relative ${
                 isSelected ? "bg-primary/5 text-primary font-medium" : "text-foreground hover:bg-muted/60"
               }`}
               onClick={() => onSelect(node.id)}
@@ -185,12 +194,50 @@ function OrgTree({ nodes, selectedId, onSelect, depth = 0 }: {
               <span className="text-[11px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                 ({node.count}人)
               </span>
-              <button className="p-0.5 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
-                <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-              </button>
+              {node.id !== "all" && (
+                <button
+                  className="p-0.5 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen(isMenuOpen ? null : node.id);
+                  }}
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              )}
+              {/* Context menu */}
+              {isMenuOpen && node.id !== "all" && (
+                <div
+                  className="absolute right-0 top-full z-50 mt-1 w-[140px] rounded-lg border bg-popover py-1"
+                  style={{ boxShadow: "var(--shadow-lg)" }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-foreground hover:bg-muted transition-colors"
+                    onClick={() => { onAddChild(node.id); setMenuOpen(null); }}
+                  >
+                    <FolderPlus className="h-3.5 w-3.5" /> 添加子部门
+                  </button>
+                  <button
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] text-foreground hover:bg-muted transition-colors"
+                    onClick={() => { onRename(node.id, node.name); setMenuOpen(null); }}
+                  >
+                    <Edit2 className="h-3.5 w-3.5" /> 重命名
+                  </button>
+                  {node.id !== "unset" && (
+                    <button
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] hover:bg-muted transition-colors"
+                      style={{ color: "hsl(var(--destructive))" }}
+                      onClick={() => { onDelete(node.id); setMenuOpen(null); }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> 删除
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
             {hasChildren && isExpanded && (
-              <OrgTree nodes={node.children!} selectedId={selectedId} onSelect={onSelect} depth={depth + 1} />
+              <OrgTree nodes={node.children!} selectedId={selectedId} onSelect={onSelect} onAddChild={onAddChild} onRename={onRename} onDelete={onDelete} depth={depth + 1} />
             )}
           </div>
         );
@@ -223,15 +270,117 @@ function MiniBenefitCard({ pkg }: { pkg: BenefitSummary }) {
   );
 }
 
+/* ── Org Edit Dialog ── */
+function OrgEditDialog({ open, onClose, mode, initialName, onConfirm }: {
+  open: boolean;
+  onClose: () => void;
+  mode: "add" | "rename";
+  initialName: string;
+  onConfirm: (name: string) => void;
+}) {
+  const [name, setName] = useState(initialName);
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-[420px] overflow-hidden rounded-xl border bg-card p-0" style={{ boxShadow: "var(--shadow-md)" }}>
+        <div className="border-b px-5 py-4" style={{ background: "hsl(var(--muted) / 0.3)" }}>
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-[15px] font-semibold text-foreground">
+              {mode === "add" ? "添加子部门" : "重命名部门"}
+            </DialogTitle>
+            <DialogDescription className="text-[13px] text-muted-foreground">
+              {mode === "add" ? "请输入新部门名称" : "请输入新的部门名称"}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+        <div className="px-5 py-5">
+          <div className="flex items-center gap-3">
+            <label className="text-[13px] text-muted-foreground shrink-0 w-[70px] text-right">部门名称</label>
+            <input
+              className="filter-input flex-1"
+              placeholder="请输入部门名称"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2 border-t px-5 py-4">
+          <button className="btn-secondary" onClick={onClose}>取消</button>
+          <button
+            className="btn-primary"
+            disabled={!name.trim()}
+            onClick={() => { onConfirm(name.trim()); setName(""); }}
+          >
+            确认
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function StaffList() {
   const navigate = useNavigate();
   const [data] = useState<StaffMember[]>(generateStaff);
+  const [orgTree, setOrgTree] = useState<OrgNode[]>(initialOrgTree);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
   const [selectedOrg, setSelectedOrg] = useState("all");
   const [activeTab, setActiveTab] = useState("全部");
   const totalItems = 38;
+
+  // Org edit state
+  const [orgDialogOpen, setOrgDialogOpen] = useState(false);
+  const [orgDialogMode, setOrgDialogMode] = useState<"add" | "rename">("add");
+  const [orgDialogTarget, setOrgDialogTarget] = useState("");
+  const [orgDialogInitName, setOrgDialogInitName] = useState("");
+
+  const handleOrgAddChild = useCallback((parentId: string) => {
+    setOrgDialogMode("add");
+    setOrgDialogTarget(parentId);
+    setOrgDialogInitName("");
+    setOrgDialogOpen(true);
+  }, []);
+
+  const handleOrgRename = useCallback((id: string, name: string) => {
+    setOrgDialogMode("rename");
+    setOrgDialogTarget(id);
+    setOrgDialogInitName(name);
+    setOrgDialogOpen(true);
+  }, []);
+
+  const handleOrgDelete = useCallback((id: string) => {
+    const deleteNode = (nodes: OrgNode[]): OrgNode[] =>
+      nodes.filter((n) => n.id !== id).map((n) => ({ ...n, children: n.children ? deleteNode(n.children) : undefined }));
+    setOrgTree((prev) => deleteNode(prev));
+    toast.success("部门已删除");
+  }, []);
+
+  const handleOrgConfirm = useCallback((name: string) => {
+    if (orgDialogMode === "add") {
+      const addChild = (nodes: OrgNode[]): OrgNode[] =>
+        nodes.map((n) => {
+          if (n.id === orgDialogTarget) {
+            const newChild: OrgNode = { id: `org-${Date.now()}`, name, count: 0 };
+            return { ...n, children: [...(n.children || []), newChild] };
+          }
+          return { ...n, children: n.children ? addChild(n.children) : undefined };
+        });
+      setOrgTree((prev) => addChild(prev));
+      toast.success(`已添加部门「${name}」`);
+    } else {
+      const rename = (nodes: OrgNode[]): OrgNode[] =>
+        nodes.map((n) => {
+          if (n.id === orgDialogTarget) return { ...n, name };
+          return { ...n, children: n.children ? rename(n.children) : undefined };
+        });
+      setOrgTree((prev) => rename(prev));
+      toast.success(`部门已重命名为「${name}」`);
+    }
+    setOrgDialogOpen(false);
+  }, [orgDialogMode, orgDialogTarget]);
 
   const actions: ActionItem<StaffMember>[] = [
     { label: "查看", onClick: (r) => navigate(`/enterprise/staff/detail/${r.id}`) },
@@ -299,13 +448,20 @@ export default function StaffList() {
             </div>
             <button
               className="text-[12px] text-primary hover:text-primary/80 transition-colors font-medium flex items-center gap-1"
-              onClick={() => navigate("/enterprise/staff/create")}
+              onClick={() => handleOrgAddChild("all")}
             >
               <Plus className="h-3.5 w-3.5" /> 新建
             </button>
           </div>
           <div className="p-2 max-h-[500px] overflow-y-auto">
-            <OrgTree nodes={ORG_TREE} selectedId={selectedOrg} onSelect={setSelectedOrg} />
+            <OrgTree
+              nodes={orgTree}
+              selectedId={selectedOrg}
+              onSelect={setSelectedOrg}
+              onAddChild={handleOrgAddChild}
+              onRename={handleOrgRename}
+              onDelete={handleOrgDelete}
+            />
           </div>
         </div>
 
@@ -329,6 +485,15 @@ export default function StaffList() {
           </div>
         </div>
       </div>
+
+      {/* Org Edit Dialog */}
+      <OrgEditDialog
+        open={orgDialogOpen}
+        onClose={() => setOrgDialogOpen(false)}
+        mode={orgDialogMode}
+        initialName={orgDialogInitName}
+        onConfirm={handleOrgConfirm}
+      />
     </div>
   );
 }

@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, Plus, Info } from "lucide-react";
+import { X, Plus, ChevronDown, ChevronUp, CalendarIcon, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 
 /* ── Constants ── */
 const PRODUCTS = [
@@ -23,17 +27,76 @@ const VARIANT_VARS: Record<BenefitTone, string> = {
 interface BenefitPkg {
   id: string;
   name: string;
-  date: string;
-  used: number;
-  total: number;
+  desc: string;
   tone: BenefitTone;
+  dateRange: string;
+  applyMode: "指定人员" | "全部人员";
+  applyCount: number;
 }
 
-const AVAILABLE_BENEFITS: BenefitPkg[] = [
-  { id: "b1", name: "3D工具渲染权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, tone: "blue" },
-  { id: "b2", name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, tone: "teal" },
-  { id: "b3", name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, tone: "rose" },
-];
+const BENEFIT_CATALOG: Record<string, { name: string; desc: string; tone: BenefitTone }[]> = {
+  domestic3d: [
+    { name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" },
+    { name: "3D工具设计权益包", desc: "含户型绘制、方案设计、模型库", tone: "teal" },
+    { name: "VR漫游权益包", desc: "含VR全景漫游、场景切换", tone: "violet" },
+  ],
+  international3d: [
+    { name: "国际版渲染权益包", desc: "含8K渲染、HDR输出", tone: "blue" },
+    { name: "国际版设计权益包", desc: "含全球模型库、多语言支持", tone: "teal" },
+  ],
+  smartGuide: [
+    { name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "teal" },
+    { name: "导购数据权益包", desc: "含客户画像、行为分析", tone: "blue" },
+  ],
+  customerData: [
+    { name: "精准客资权益包", desc: "含线索分配、客户管理", tone: "rose" },
+    { name: "客资分析权益包", desc: "含转化分析、ROI报表", tone: "amber" },
+  ],
+};
+
+/* ── Date Range Picker (reused from enterprise) ── */
+function DateRangePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const parts = (value || "").split(" ~ ");
+  const startDate = parts[0] ? new Date(parts[0]) : undefined;
+  const endDate = parts[1] ? new Date(parts[1]) : undefined;
+
+  const handleSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (!range) { onChange(""); return; }
+    const from = range.from ? format(range.from, "yyyy-MM-dd") : "";
+    const to = range.to ? format(range.to, "yyyy-MM-dd") : "";
+    onChange(to ? `${from} ~ ${to}` : from);
+  };
+
+  const displayText = startDate && endDate
+    ? `${format(startDate, "yyyy/MM/dd")} ~ ${format(endDate, "yyyy/MM/dd")}`
+    : startDate ? `${format(startDate, "yyyy/MM/dd")} ~ 结束日期` : "";
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-9 w-full justify-start rounded-lg border-input bg-card px-3 text-left text-[13px] font-normal shadow-none hover:bg-muted/40",
+            !value && "text-muted-foreground",
+          )}
+        >
+          <CalendarIcon className="mr-2 h-3.5 w-3.5 opacity-50 shrink-0" />
+          {displayText || <span>选择时间段</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto rounded-xl p-0" align="start">
+        <Calendar
+          mode="range"
+          selected={startDate && endDate ? { from: startDate, to: endDate } : startDate ? { from: startDate, to: undefined } : undefined}
+          onSelect={handleSelect as never}
+          numberOfMonths={2}
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 /* ── Form Row ── */
 function FormRow({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
@@ -43,44 +106,84 @@ function FormRow({ label, required, children }: { label: string; required?: bool
         {required && <span className="text-destructive mr-0.5">*</span>}
         {label}
       </label>
-      <div className="flex-1 min-w-0 flex items-center">{children}</div>
+      <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
 }
 
-/* ── Benefit Card (selectable) ── */
-function BenefitCardSelect({ pkg, selected, onToggle, onRemove }: {
-  pkg: BenefitPkg; selected?: boolean; onToggle?: () => void; onRemove?: () => void;
+/* ── Benefit Row Card (same pattern as enterprise config) ── */
+function BenefitRowCard({ pkg, onUpdate, onRemove }: {
+  pkg: BenefitPkg;
+  onUpdate: (field: string, value: unknown) => void;
+  onRemove: () => void;
 }) {
   const cssVar = VARIANT_VARS[pkg.tone];
+  const [expanded, setExpanded] = useState(true);
+
   return (
     <div
-      className="rounded-xl p-4 w-[220px] relative overflow-hidden transition-all"
-      style={{
-        border: `1px solid hsl(${cssVar.replace('--', 'var(--')}) / 0.2)`,
-        background: `hsl(${cssVar.replace('--', 'var(--')}) / 0.03)`,
-      }}
+      className="rounded-xl border overflow-hidden transition-all"
+      style={{ borderColor: `hsl(${cssVar.replace('--', 'var(--')}) / 0.15)` }}
     >
-      <div className="absolute top-0 left-0 right-0 h-[2px] opacity-60" style={{ background: `hsl(var(${cssVar}))` }} />
-      {onRemove && (
-        <button
-          className="absolute top-2 right-2 p-0.5 rounded-full hover:bg-muted transition-colors"
-          onClick={onRemove}
-        >
-          <X className="h-3.5 w-3.5 text-muted-foreground" />
-        </button>
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-4 py-3 cursor-pointer"
+        style={{ background: `hsl(${cssVar.replace('--', 'var(--')}) / 0.03)` }}
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-4 rounded-full" style={{ background: `hsl(var(${cssVar}))` }} />
+          <span className="text-[13px] font-semibold" style={{ color: `hsl(var(${cssVar}))` }}>{pkg.name}</span>
+          <Info className="h-3.5 w-3.5 opacity-30" style={{ color: `hsl(var(${cssVar}))` }} />
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            className="p-1 rounded hover:bg-muted/60 transition-colors"
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          >
+            <X className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+          {expanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+        </div>
+      </div>
+
+      {/* Body */}
+      {expanded && (
+        <div className="px-4 py-4 space-y-4 border-t" style={{ borderColor: `hsl(${cssVar.replace('--', 'var(--')}) / 0.1)` }}>
+          <div className="text-[12px] text-muted-foreground mb-2">{pkg.desc}</div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[12px] text-muted-foreground font-medium">使用周期</label>
+              <DateRangePicker
+                value={pkg.dateRange}
+                onChange={(v) => onUpdate("dateRange", v)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[12px] text-muted-foreground font-medium">适用模式</label>
+              <select
+                className="filter-select w-full"
+                value={pkg.applyMode}
+                onChange={(e) => onUpdate("applyMode", e.target.value)}
+              >
+                <option value="指定人员">指定人员</option>
+                <option value="全部人员">全部人员</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[12px] text-muted-foreground font-medium">配额数量</label>
+            <input
+              type="number"
+              className="filter-input w-[160px]"
+              value={pkg.applyCount}
+              onChange={(e) => onUpdate("applyCount", Number(e.target.value))}
+            />
+          </div>
+        </div>
       )}
-      <div className="flex items-start justify-between gap-1 mb-2 pr-5">
-        <span className="text-[12px] font-semibold leading-tight" style={{ color: `hsl(var(${cssVar}))` }}>{pkg.name}</span>
-        <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 opacity-30" style={{ color: `hsl(var(${cssVar}))` }} />
-      </div>
-      <div className="text-[11px] mb-3 text-muted-foreground">{pkg.date}</div>
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] text-muted-foreground">已授权/已购买</span>
-        <span className="text-[13px] font-semibold" style={{ color: `hsl(var(${cssVar}))` }}>
-          {pkg.used}<span className="opacity-40 font-normal">/{pkg.total}</span>
-        </span>
-      </div>
     </div>
   );
 }
@@ -98,7 +201,11 @@ export default function StaffCreate() {
     orgStructure: "当前企业组织结构树",
     enabledProducts: ["domestic3d", "smartGuide"] as string[],
     roles: isEdit ? ["设计师", "企业管理员"] : [] as string[],
-    benefits: isEdit ? AVAILABLE_BENEFITS.slice(0, 3) : [] as BenefitPkg[],
+    benefits: isEdit ? [
+      { id: "b1", name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23", applyMode: "指定人员" as const, applyCount: 30 },
+      { id: "b2", name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "teal" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23", applyMode: "全部人员" as const, applyCount: 20 },
+      { id: "b3", name: "精准客资权益包", desc: "含线索分配、客户管理", tone: "rose" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23", applyMode: "指定人员" as const, applyCount: 10 },
+    ] : [] as BenefitPkg[],
     status: "active" as "active" | "inactive",
     remark: "",
   });
@@ -115,24 +222,45 @@ export default function StaffCreate() {
     update("roles", arr.includes(role) ? arr.filter((r) => r !== role) : [...arr, role]);
   };
 
-  const addBenefit = (pkg: BenefitPkg) => {
-    if (!form.benefits.find((b) => b.id === pkg.id)) {
-      update("benefits", [...form.benefits, pkg]);
-    }
+  // Get available benefits based on enabled products
+  const availableBenefits = useMemo(() => {
+    const all: { name: string; desc: string; tone: BenefitTone; productKey: string }[] = [];
+    form.enabledProducts.forEach((pk) => {
+      (BENEFIT_CATALOG[pk] || []).forEach((b) => {
+        all.push({ ...b, productKey: pk });
+      });
+    });
+    return all;
+  }, [form.enabledProducts]);
+
+  const addBenefit = (item: typeof availableBenefits[0]) => {
+    if (form.benefits.find((b) => b.name === item.name)) return;
+    update("benefits", [...form.benefits, {
+      id: `b-${Date.now()}`,
+      name: item.name,
+      desc: item.desc,
+      tone: item.tone,
+      dateRange: "2026-01-01 ~ 2028-12-31",
+      applyMode: "指定人员" as const,
+      applyCount: 10,
+    }]);
   };
 
   const removeBenefit = (id: string) => {
     update("benefits", form.benefits.filter((b) => b.id !== id));
   };
 
+  const updateBenefit = (id: string, field: string, value: unknown) => {
+    update("benefits", form.benefits.map((b) => b.id === id ? { ...b, [field]: value } : b));
+  };
+
   const handleSubmit = () => {
-    if (!form.name.trim()) {
-      toast.error("请填写姓名");
-      return;
-    }
-    toast.success(isEdit ? "人员信息已更新" : "人员创建成功，已进入审核流程");
+    if (!form.name.trim()) { toast.error("请填写姓名"); return; }
+    toast.success(isEdit ? "人员信息已更新" : "人员创建成功");
     navigate("/enterprise/staff");
   };
+
+  const [showBenefitPicker, setShowBenefitPicker] = useState(false);
 
   return (
     <div className="space-y-5 pb-6">
@@ -150,7 +278,7 @@ export default function StaffCreate() {
       {/* Form Card */}
       <div className="bg-card rounded-2xl border border-border/70 overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
         <div className="p-6">
-          <div className="max-w-[680px] mx-auto space-y-5">
+          <div className="max-w-[760px] mx-auto space-y-5">
             <FormRow label="姓名" required>
               <input className="filter-input w-full" placeholder="请输入" value={form.name} onChange={(e) => update("name", e.target.value)} />
             </FormRow>
@@ -178,7 +306,7 @@ export default function StaffCreate() {
                   <label key={p.key} className="flex items-center gap-2 cursor-pointer text-[13px]">
                     <div
                       className={cn(
-                        "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
+                        "w-4 h-4 rounded border-2 flex items-center justify-center transition-all cursor-pointer",
                         form.enabledProducts.includes(p.key)
                           ? "bg-primary border-primary"
                           : "border-border bg-card"
@@ -199,47 +327,83 @@ export default function StaffCreate() {
 
             {/* Roles */}
             <FormRow label="角色">
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap gap-2 p-2 border rounded-lg bg-card min-h-[38px]">
-                  {form.roles.map((r) => (
-                    <span
-                      key={r}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[12px] font-medium"
-                      style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}
-                    >
-                      {r}
-                      <X className="h-3 w-3 cursor-pointer hover:opacity-70" onClick={() => toggleRole(r)} />
-                    </span>
-                  ))}
-                  <select
-                    className="text-[13px] text-muted-foreground bg-transparent border-none outline-none flex-1 min-w-[100px] h-6"
-                    value=""
-                    onChange={(e) => { if (e.target.value) toggleRole(e.target.value); }}
+              <div className="flex flex-wrap gap-2 p-2 border rounded-lg bg-card min-h-[38px]">
+                {form.roles.map((r) => (
+                  <span
+                    key={r}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[12px] font-medium"
+                    style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}
                   >
-                    <option value="" disabled>选择角色...</option>
-                    {ROLES.filter((r) => !form.roles.includes(r)).map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
-                </div>
+                    {r}
+                    <X className="h-3 w-3 cursor-pointer hover:opacity-70" onClick={() => toggleRole(r)} />
+                  </span>
+                ))}
+                <select
+                  className="text-[13px] text-muted-foreground bg-transparent border-none outline-none flex-1 min-w-[100px] h-6"
+                  value=""
+                  onChange={(e) => { if (e.target.value) toggleRole(e.target.value); }}
+                >
+                  <option value="" disabled>选择角色...</option>
+                  {ROLES.filter((r) => !form.roles.includes(r)).map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
               </div>
             </FormRow>
 
-            {/* Benefits */}
+            {/* Benefits — expanded list with per-item config */}
             <FormRow label="权益配置">
-              <div className="flex-1 min-w-0 space-y-3">
+              <div className="space-y-3">
                 {form.benefits.map((pkg) => (
-                  <BenefitCardSelect key={pkg.id} pkg={pkg} onRemove={() => removeBenefit(pkg.id)} />
+                  <BenefitRowCard
+                    key={pkg.id}
+                    pkg={pkg}
+                    onUpdate={(field, value) => updateBenefit(pkg.id, field, value)}
+                    onRemove={() => removeBenefit(pkg.id)}
+                  />
                 ))}
-                <button
-                  className="flex items-center gap-1.5 text-[12px] text-primary/70 hover:text-primary transition-colors mt-2"
-                  onClick={() => {
-                    const next = AVAILABLE_BENEFITS.find((b) => !form.benefits.find((fb) => fb.id === b.id));
-                    if (next) addBenefit(next);
-                  }}
-                >
-                  <Plus className="h-3.5 w-3.5" /> 添加品类
-                </button>
+
+                {/* Add benefit selector */}
+                <div className="relative">
+                  <button
+                    className="flex items-center gap-1.5 text-[12px] text-primary/70 hover:text-primary transition-colors"
+                    onClick={() => setShowBenefitPicker(!showBenefitPicker)}
+                  >
+                    <Plus className="h-3.5 w-3.5" /> 添加品类
+                  </button>
+                  {showBenefitPicker && (
+                    <div
+                      className="absolute left-0 top-full mt-2 z-50 w-[320px] rounded-xl border bg-popover py-1 max-h-[280px] overflow-y-auto"
+                      style={{ boxShadow: "var(--shadow-lg)" }}
+                    >
+                      {availableBenefits.length === 0 && (
+                        <div className="px-4 py-3 text-[12px] text-muted-foreground">请先开启产品</div>
+                      )}
+                      {availableBenefits.map((item, i) => {
+                        const already = form.benefits.find((b) => b.name === item.name);
+                        const cssVar = VARIANT_VARS[item.tone];
+                        return (
+                          <button
+                            key={i}
+                            className={cn(
+                              "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors",
+                              already ? "opacity-40 cursor-not-allowed" : "hover:bg-muted cursor-pointer"
+                            )}
+                            disabled={!!already}
+                            onClick={() => { addBenefit(item); setShowBenefitPicker(false); }}
+                          >
+                            <div className="w-1 h-5 rounded-full shrink-0" style={{ background: `hsl(var(${cssVar}))` }} />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[13px] font-medium text-foreground">{item.name}</div>
+                              <div className="text-[11px] text-muted-foreground">{item.desc}</div>
+                            </div>
+                            {already && <span className="text-[11px] text-muted-foreground">已添加</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </FormRow>
 

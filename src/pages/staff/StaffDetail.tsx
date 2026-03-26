@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Edit3, User, Package, Info, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, Edit3, User, Package, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AuditDialog, AuditTimeline, type AuditRecord } from "../enterprise/AuditDialog";
 
 /* ── Benefit Card Palette ── */
 const VARIANT_VARS: Record<string, string> = {
@@ -27,11 +26,6 @@ const MOCK = {
     { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "violet" },
     { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "amber" },
   ],
-  auditStatus: "approved" as "pending" | "approved" | "rejected",
-  auditRecords: [
-    { id: "ar-1", action: "submit" as const, operator: "李娜", time: "2026-01-15 09:30", remark: "新人员创建，提交审核" },
-    { id: "ar-2", action: "approve" as const, operator: "王强", time: "2026-01-16 14:20", remark: "信息核实无误" },
-  ] as AuditRecord[],
 };
 
 /* ── Section Header ── */
@@ -91,19 +85,7 @@ function BenefitCard({ pkg }: { pkg: typeof MOCK.benefits[0] }) {
 export default function StaffDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [d, setD] = useState(MOCK);
-  const [showAuditDialog, setShowAuditDialog] = useState(false);
-
-  const handleAuditConfirm = (result: { action: "approve" | "reject"; remark: string }) => {
-    const now = new Date();
-    const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    setD((prev) => ({
-      ...prev,
-      auditStatus: (result.action === "approve" ? "approved" : "rejected") as typeof d.auditStatus,
-      auditRecords: [...prev.auditRecords, { id: `ar-${Date.now()}`, action: result.action, operator: "当前用户", time: timeStr, remark: result.remark }],
-    }));
-    setShowAuditDialog(false);
-  };
+  const [d] = useState(MOCK);
 
   return (
     <div className="space-y-5">
@@ -126,11 +108,6 @@ export default function StaffDetail() {
           <Button variant="outline" size="sm" className="h-8 text-[13px] px-4 rounded-lg" onClick={() => navigate("/enterprise/staff")}>
             返回列表
           </Button>
-          {d.auditStatus === "pending" && (
-            <Button size="sm" className="h-8 text-[13px] px-4 gap-1.5 rounded-lg" onClick={() => setShowAuditDialog(true)}>
-              <FileText className="h-3.5 w-3.5" /> 审核
-            </Button>
-          )}
           <Button
             size="sm"
             className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
@@ -198,23 +175,7 @@ export default function StaffDetail() {
             </div>
           </div>
         </div>
-
-        {/* 审核记录 */}
-        <SectionHeader title="审核记录" icon={FileText} />
-        <div className="px-6 py-5">
-          {d.auditRecords.length > 0
-            ? <AuditTimeline records={[...d.auditRecords].reverse()} />
-            : <div className="text-[13px] text-muted-foreground py-4 text-center">暂无审核记录</div>
-          }
-        </div>
       </div>
-
-      <AuditDialog
-        open={showAuditDialog}
-        onClose={() => setShowAuditDialog(false)}
-        enterpriseName={d.name}
-        onConfirm={handleAuditConfirm}
-      />
     </div>
   );
 }
