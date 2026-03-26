@@ -41,8 +41,11 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-    --info: 221 83% 53%;
+    --info: 210 80% 55%;
     --info-foreground: 0 0% 100%;
+
+    /* Standard label width for form rows */
+    --form-label-width: 100px;
 
     /* Table */
     --table-header: 220 16% 96%;
