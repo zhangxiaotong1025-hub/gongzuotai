@@ -6,7 +6,7 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download, X } from "lucide-react";
-import { appData as initialData, capabilityData, type AppItem, STATUS_MAP } from "@/data/entitlement";
+import { appData as initialData, getCapabilitiesByApp, getProductsByApp, type AppItem, STATUS_MAP } from "@/data/entitlement";
 
 const filterFields: FilterField[] = [
   { key: "name", label: "应用名称/编码", type: "input", placeholder: "请输入", width: 220 },
@@ -35,7 +35,7 @@ function AppDialog({ open, onClose, onSave, initial }: { open: boolean; onClose:
           </div>
           <div className="space-y-1.5">
             <label className="text-[13px] text-muted-foreground">应用编码 <span className="text-destructive">*</span></label>
-            <input className="filter-input w-full font-mono" placeholder="如：JURAN_DESIGN" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} disabled={isEdit} />
+            <input className="filter-input w-full font-mono" placeholder="如：DOMESTIC_3D" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} disabled={isEdit} />
             {isEdit && <p className="text-[11px] text-muted-foreground/70">编码创建后不可修改</p>}
           </div>
           <div className="space-y-1.5">
@@ -69,8 +69,7 @@ export default function AppList() {
       setData((prev) => [{ id: String(Date.now()), ...form, status: "active", createdAt: new Date().toLocaleDateString("zh-CN"), updatedAt: new Date().toLocaleDateString("zh-CN") }, ...prev]);
       toast.success("应用已创建");
     }
-    setDialogOpen(false);
-    setEditTarget(null);
+    setDialogOpen(false); setEditTarget(null);
   }, [editTarget]);
 
   const toggleStatus = useCallback((item: AppItem) => {
@@ -80,17 +79,12 @@ export default function AppList() {
 
   const columns: TableColumn<AppItem>[] = [
     { key: "name", title: "应用名称", minWidth: 180, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/app/detail/${(row as AppItem).id}`)}>{v}</button> },
-    { key: "code", title: "应用编码", minWidth: 160, render: (v) => <code className="text-[12px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">{v}</code> },
-    { key: "description", title: "描述", minWidth: 240, render: (v) => <span className="text-muted-foreground">{v || "—"}</span> },
-    {
-      key: "id", title: "关联能力", minWidth: 80, align: "center" as const,
-      render: (_v, row) => {
-        const count = capabilityData.filter((c) => c.appId === (row as AppItem).id).length;
-        return <span className="text-primary font-medium">{count}个</span>;
-      },
-    },
+    { key: "code", title: "应用编码", minWidth: 140, render: (v) => <code className="text-[12px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">{v}</code> },
+    { key: "description", title: "描述", minWidth: 200, render: (v) => <span className="text-muted-foreground">{v || "—"}</span> },
+    { key: "id", title: "关联能力", minWidth: 80, align: "center" as const, render: (_v, row) => <span className="text-primary font-medium">{getCapabilitiesByApp((row as AppItem).id).length}个</span> },
+    { key: "updatedAt", title: "权益产品", minWidth: 80, align: "center" as const, render: (_v, row) => <span className="text-primary font-medium">{getProductsByApp((row as AppItem).id).length}个</span> },
     { key: "status", title: "状态", minWidth: 80, render: (v: string) => { const cfg = STATUS_MAP[v]; return <span className={cfg.className}>{cfg.label}</span>; } },
-    { key: "createdAt", title: "创建时间", minWidth: 120, render: (v) => <span className="text-muted-foreground">{v}</span> },
+    { key: "createdAt", title: "创建时间", minWidth: 110, render: (v) => <span className="text-muted-foreground">{v}</span> },
   ];
 
   const actions: ActionItem<AppItem>[] = [
@@ -102,7 +96,7 @@ export default function AppList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="应用管理" subtitle="管理平台的应用产品，用于隔离不同产品线的商业模型" actions={
+      <PageHeader title="应用管理" subtitle="定义平台的应用产品，用于隔离不同产品线的商业模型" actions={
         <div className="flex gap-2">
           <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 新建</button>
           <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>
@@ -110,9 +104,7 @@ export default function AppList() {
       } />
       <FilterBar fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onSearch={() => {}} onReset={() => setFilters({})} maxVisible={3} />
       <AdminTable columns={columns} data={data} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
-      <div className="bg-card rounded-xl border" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <Pagination current={currentPage} total={data.length} pageSize={pageSize} onPageChange={setCurrentPage} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />
-      </div>
+      <div className="bg-card rounded-xl border" style={{ boxShadow: "var(--shadow-xs)" }}><Pagination current={currentPage} total={data.length} pageSize={pageSize} onPageChange={setCurrentPage} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} /></div>
       <AppDialog open={dialogOpen} onClose={() => { setDialogOpen(false); setEditTarget(null); }} onSave={handleSave} initial={editTarget} />
     </div>
   );

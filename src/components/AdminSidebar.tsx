@@ -42,17 +42,17 @@ const navItems: NavItem[] = [
     icon: Gift,
     children: [
       { label: "应用管理", path: "/entitlement/app" },
-      { label: "权益能力管理", path: "/entitlement/capability" },
-      { label: "权益规则管理", path: "/entitlement/rule" },
+      { label: "能力管理", path: "/entitlement/capability" },
+      { label: "权益产品", path: "/entitlement/rule" },
       {
-        label: "权益商品管理",
+        label: "商品管理",
         path: "/entitlement/sku",
         children: [
-          { label: "权益商品", path: "/entitlement/sku" },
-          { label: "权益包", path: "/entitlement/package" },
+          { label: "商品SKU", path: "/entitlement/sku" },
+          { label: "商品套餐", path: "/entitlement/package" },
         ],
       },
-      { label: "权益订单管理", path: "/entitlement/order" },
+      { label: "订单管理", path: "/entitlement/order" },
       { label: "权益账户", path: "/entitlement/account" },
     ],
   },
