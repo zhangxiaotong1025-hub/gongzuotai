@@ -1055,11 +1055,11 @@ function SectionTitle({ title }: { title: string }) {
 function FormRow({ label, required, children, wide }: { label: string; required?: boolean; children: React.ReactNode; wide?: boolean }) {
   return (
     <div className="flex items-start gap-3">
-      <label className="text-[13px] text-muted-foreground pt-[7px] text-right shrink-0 w-[100px]">
+      <label className={`text-[13px] text-muted-foreground pt-[7px] text-right shrink-0 ${wide ? "w-[120px]" : "w-[100px]"}`}>
         {required && <span className="text-destructive mr-0.5">*</span>}
         {label}
       </label>
-      <div className="flex-1 min-w-0">{children}</div>
+      <div className="flex-1 min-w-0 flex items-center">{children}</div>
     </div>
   );
 }
