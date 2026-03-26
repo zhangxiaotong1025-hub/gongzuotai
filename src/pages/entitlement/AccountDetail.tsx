@@ -104,19 +104,20 @@ export default function AccountDetail() {
               <th className="text-left py-2 font-medium">订单号</th>
               <th className="text-left py-2 font-medium">商品/套餐</th>
               <th className="text-right py-2 font-medium">金额</th>
-              <th className="text-left py-2 font-medium">来源</th>
-              <th className="text-left py-2 font-medium">状态</th>
+              <th className="text-left py-2 font-medium">订单类型</th>
+              <th className="text-left py-2 font-medium">订单状态</th>
               <th className="text-left py-2 font-medium">时间</th>
             </tr></thead>
             <tbody>
               {relatedOrders.map((order) => {
-                const statusCfg = ORDER_STATUS.find((s) => s.value === order.status);
+                const statusCfg = ORDER_STATUS.find((s) => s.value === order.orderStatus);
+                const typeCfg = ORDER_TYPES.find((t) => t.value === order.orderType);
                 return (
                   <tr key={order.id} className="border-b border-border/40 hover:bg-muted/30">
                     <td className="py-2"><Link to={`/entitlement/order/detail/${order.id}`} className="text-primary hover:underline font-mono text-[12px]">{order.orderNo}</Link></td>
                     <td className="py-2">{order.items.map((i) => i.itemName).join("、")}</td>
                     <td className="py-2 text-right font-medium">{order.totalAmount > 0 ? `¥${order.totalAmount}` : "¥0"}</td>
-                    <td className="py-2 text-muted-foreground">{ORDER_SOURCES.find((s) => s.value === order.source)?.label}</td>
+                    <td className="py-2"><span className={`text-[12px] font-medium ${typeCfg?.className || ""}`}>{typeCfg?.label}</span></td>
                     <td className="py-2"><span className={statusCfg?.className}>{statusCfg?.label}</span></td>
                     <td className="py-2 text-muted-foreground">{order.createdAt}</td>
                   </tr>
