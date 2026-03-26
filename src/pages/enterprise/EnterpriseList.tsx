@@ -49,6 +49,7 @@ function generateEnterprise(id: string, depth = 0): Enterprise {
     name: ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)],
     type: TYPES[Math.floor(Math.random() * TYPES.length)],
     status: Math.random() > 0.25 ? "active" : "inactive",
+    admin: Math.random() > 0.4 ? CREATORS[Math.floor(Math.random() * CREATORS.length)] : undefined,
     products: randomPick(PRODUCTS, Math.floor(Math.random() * 3) + 1),
     subsidiaries: Math.floor(Math.random() * 50) + 1,
     staff: Math.floor(Math.random() * 200) + 5,
