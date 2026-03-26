@@ -21,6 +21,7 @@ interface Enterprise {
   creator: string;
   updatedAt: string;
   note: string;
+  admin?: string;
   children?: Enterprise[];
   _level?: number;
 }
@@ -48,6 +49,7 @@ function generateEnterprise(id: string, depth = 0): Enterprise {
     name: ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)],
     type: TYPES[Math.floor(Math.random() * TYPES.length)],
     status: Math.random() > 0.25 ? "active" : "inactive",
+    admin: Math.random() > 0.4 ? CREATORS[Math.floor(Math.random() * CREATORS.length)] : undefined,
     products: randomPick(PRODUCTS, Math.floor(Math.random() * 3) + 1),
     subsidiaries: Math.floor(Math.random() * 50) + 1,
     staff: Math.floor(Math.random() * 200) + 5,
@@ -59,7 +61,7 @@ function generateEnterprise(id: string, depth = 0): Enterprise {
   };
 }
 
-const mockData: Enterprise[] = Array.from({ length: 10 }, (_, i) =>
+const initialData: Enterprise[] = Array.from({ length: 10 }, (_, i) =>
   generateEnterprise(`ENT${String(i + 1).padStart(3, "0")}`)
 );
 
@@ -154,6 +156,7 @@ const columns: TableColumn<Enterprise>[] = [
 
 export default function EnterpriseList() {
   const navigate = useNavigate();
+  const [data, setData] = useState<Enterprise[]>(initialData);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["ENT001"]));
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
@@ -170,11 +173,36 @@ export default function EnterpriseList() {
     });
   }, []);
 
+  // Recursively update an enterprise by id in the tree
+  const updateEnterprise = useCallback((id: string, patch: Partial<Enterprise>) => {
+    const updateTree = (items: Enterprise[]): Enterprise[] =>
+      items.map((e) => ({
+        ...e,
+        ...(e.id === id ? patch : {}),
+        children: e.children ? updateTree(e.children) : e.children,
+      }));
+    setData((prev) => updateTree(prev));
+  }, []);
+
+  const handleToggleStatus = useCallback((record: Enterprise) => {
+    const newStatus = record.status === "active" ? "inactive" : "active";
+    updateEnterprise(record.id, { status: newStatus });
+  }, [updateEnterprise]);
+
+  const handleEnableClick = useCallback((record: Enterprise) => {
+    if (!record.admin) {
+      // No admin set → open admin dialog instead
+      setAdminTarget(record);
+      return;
+    }
+    handleToggleStatus(record);
+  }, [handleToggleStatus]);
+
   const listActions: ActionItem<Enterprise>[] = [
     { label: "查看", onClick: (r) => console.log("查看", r.id) },
     {
       label: "停用",
-      onClick: (r) => console.log("停用", r.id),
+      onClick: handleToggleStatus,
       visible: (r) => r.status === "active",
       danger: true,
       confirm: {
@@ -185,13 +213,8 @@ export default function EnterpriseList() {
     },
     {
       label: "启用",
-      onClick: (r) => console.log("启用", r.id),
+      onClick: handleEnableClick,
       visible: (r) => r.status === "inactive",
-      confirm: {
-        title: "确认启用该企业？",
-        description: "启用前请确认该企业已完成管理员配置，启用后企业即可正常使用相关能力。",
-        confirmLabel: "确认启用",
-      },
     },
     { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
     { label: "新建子企业", onClick: (r) => console.log("sub", r.id), visible: (r) => !r._level },
@@ -228,7 +251,7 @@ export default function EnterpriseList() {
 
       <AdminTable
         columns={columns}
-        data={mockData}
+        data={data}
         rowKey={(r) => r.id}
         actions={listActions}
         maxVisibleActions={2}
@@ -263,8 +286,13 @@ export default function EnterpriseList() {
         open={Boolean(adminTarget)}
         onClose={() => setAdminTarget(null)}
         enterpriseName={adminTarget?.name}
-        onConfirm={(data) => {
-          console.log("设置管理员", adminTarget?.id, data);
+        onConfirm={(result) => {
+          if (adminTarget) {
+            updateEnterprise(adminTarget.id, {
+              admin: result.adminName,
+              status: result.status,
+            });
+          }
           setAdminTarget(null);
         }}
       />
