@@ -249,60 +249,68 @@ function BenefitConfigDialog({ open, onClose, staffName }: { open: boolean; onCl
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[560px] max-h-[80vh] overflow-y-auto rounded-xl p-0">
+      <DialogContent className="max-w-[600px] max-h-[80vh] overflow-y-auto rounded-xl p-0">
         <div className="border-b px-5 py-4" style={{ background: "hsl(var(--muted) / 0.3)" }}>
           <DialogHeader>
             <DialogTitle className="text-[15px] font-semibold">权益设置 — {staffName}</DialogTitle>
             <DialogDescription className="text-[13px] text-muted-foreground">配置该人员的权益包及使用周期</DialogDescription>
           </DialogHeader>
         </div>
-        <div className="px-5 py-4 space-y-3">
-          {benefits.map((pkg) => {
-            const cssVar = VARIANT_VARS[pkg.tone];
-            return (
-              <div key={pkg.id} className="rounded-xl border overflow-hidden" style={{ borderColor: `hsl(var(${cssVar}) / 0.15)` }}>
-                <div className="flex items-center justify-between px-4 py-3" style={{ background: `hsl(var(${cssVar}) / 0.03)` }}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full" style={{ background: `hsl(var(${cssVar}))` }} />
-                    <span className="text-[13px] font-semibold" style={{ color: `hsl(var(${cssVar}))` }}>{pkg.name}</span>
+        <div className="px-5 py-4 space-y-4">
+          {/* Available benefits list — same pattern as enterprise create */}
+          <div>
+            <div className="text-[12px] font-medium text-muted-foreground mb-2">可选权益包</div>
+            <div className="rounded-xl border border-border/70 divide-y divide-border/50 overflow-hidden">
+              {allCatalog.map((item, i) => {
+                const already = benefits.find((b) => b.name === item.name);
+                const cssVar = VARIANT_VARS[item.tone];
+                return (
+                  <div key={i} className={cn(
+                    "flex items-center gap-3 px-4 py-2.5 transition-colors",
+                    already ? "opacity-40 bg-muted/20" : "hover:bg-muted/40 cursor-pointer"
+                  )} onClick={() => !already && addBenefit(item)}>
+                    <div className="w-1 h-5 rounded-full shrink-0" style={{ background: `hsl(var(${cssVar}))` }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] font-medium text-foreground">{item.name}</div>
+                      <div className="text-[11px] text-muted-foreground">{item.desc}</div>
+                    </div>
+                    {already
+                      ? <span className="text-[11px] text-muted-foreground shrink-0">已添加</span>
+                      : <Plus className="h-3.5 w-3.5 text-primary shrink-0" />}
                   </div>
-                  <button className="p-1 rounded hover:bg-muted/60 transition-colors" onClick={() => removeBenefit(pkg.id)}>
-                    <X className="h-3.5 w-3.5 text-muted-foreground" />
-                  </button>
-                </div>
-                <div className="px-4 py-3 border-t space-y-1.5" style={{ borderColor: `hsl(var(${cssVar}) / 0.1)` }}>
-                  <div className="text-[12px] text-muted-foreground">{pkg.desc}</div>
-                  <label className="text-[12px] text-muted-foreground font-medium">使用周期</label>
-                  <DateRangePicker value={pkg.dateRange} onChange={(v) => updateBenefit(pkg.id, "dateRange", v)} />
-                </div>
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          </div>
 
-          <div className="relative">
-            <button className="flex items-center gap-1.5 text-[12px] text-primary/70 hover:text-primary transition-colors" onClick={() => setShowPicker(!showPicker)}>
-              <Plus className="h-3.5 w-3.5" /> 添加权益包
-            </button>
-            {showPicker && (
-              <div className="absolute left-0 top-full mt-2 z-50 w-[320px] rounded-xl border bg-popover py-1 max-h-[280px] overflow-y-auto" style={{ boxShadow: "var(--shadow-lg)" }}>
-                {allCatalog.map((item, i) => {
-                  const already = benefits.find((b) => b.name === item.name);
-                  const cssVar = VARIANT_VARS[item.tone];
+          {/* Added benefits with date config */}
+          {benefits.length > 0 && (
+            <div>
+              <div className="text-[12px] font-medium text-muted-foreground mb-2">已配置权益（{benefits.length}）</div>
+              <div className="space-y-3">
+                {benefits.map((pkg) => {
+                  const cssVar = VARIANT_VARS[pkg.tone];
                   return (
-                    <button key={i} className={cn("flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors", already ? "opacity-40 cursor-not-allowed" : "hover:bg-muted cursor-pointer")}
-                      disabled={!!already} onClick={() => { addBenefit(item); setShowPicker(false); }}>
-                      <div className="w-1 h-5 rounded-full shrink-0" style={{ background: `hsl(var(${cssVar}))` }} />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-medium text-foreground">{item.name}</div>
-                        <div className="text-[11px] text-muted-foreground">{item.desc}</div>
+                    <div key={pkg.id} className="rounded-xl border overflow-hidden" style={{ borderColor: `hsl(var(${cssVar}) / 0.15)` }}>
+                      <div className="flex items-center justify-between px-4 py-2.5" style={{ background: `hsl(var(${cssVar}) / 0.03)` }}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1 h-4 rounded-full" style={{ background: `hsl(var(${cssVar}))` }} />
+                          <span className="text-[13px] font-semibold" style={{ color: `hsl(var(${cssVar}))` }}>{pkg.name}</span>
+                        </div>
+                        <button className="p-1 rounded hover:bg-muted/60 transition-colors" onClick={() => removeBenefit(pkg.id)}>
+                          <X className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
                       </div>
-                      {already && <span className="text-[11px] text-muted-foreground">已添加</span>}
-                    </button>
+                      <div className="px-4 py-3 border-t space-y-1.5" style={{ borderColor: `hsl(var(${cssVar}) / 0.1)` }}>
+                        <label className="text-[12px] text-muted-foreground font-medium">使用周期</label>
+                        <DateRangePicker value={pkg.dateRange} onChange={(v) => updateBenefit(pkg.id, "dateRange", v)} />
+                      </div>
+                    </div>
                   );
                 })}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         <div className="flex justify-end gap-2 px-5 py-4 border-t">
           <button className="btn-secondary" onClick={onClose}>取消</button>
