@@ -275,7 +275,7 @@ export const bundleData: Bundle[] = [
 ];
 
 /* ══════════════════════════════════════════════════
-   权益订单 — 完整状态模型
+   权益订单 — 支持跨应用多商品
    ══════════════════════════════════════════════════ */
 
 export type OrderType = "user_purchase" | "internal_grant" | "system_grant";
@@ -302,7 +302,7 @@ export interface EntitlementOrder {
   orderNo: string;
   customerId: string;
   customerName: string;
-  appId: string;
+  /** 订单不绑定单一应用，涉及的应用从 items 中的商品/套餐推导 */
   orderType: OrderType;
   items: OrderItem[];
   totalAmount: number;
@@ -313,6 +313,33 @@ export interface EntitlementOrder {
   remark: string;
   createdAt: string;
   statusHistory: StatusHistoryEntry[];
+}
+
+/** 从订单条目推导涉及的应用ID列表（去重） */
+export function getOrderAppIds(order: EntitlementOrder): string[] {
+  const appIds = new Set<string>();
+  for (const item of order.items) {
+    if (item.type === "sku") {
+      const sku = skuData.find((s) => s.id === item.itemId);
+      if (sku) appIds.add(sku.appId);
+    } else {
+      const bundle = bundleData.find((b) => b.id === item.itemId);
+      if (bundle) appIds.add(bundle.appId);
+      // 套餐中的SKU可能跨应用
+      if (bundle) {
+        for (const bi of bundle.items) {
+          const sku = skuData.find((s) => s.id === bi.skuId);
+          if (sku) appIds.add(sku.appId);
+        }
+      }
+    }
+  }
+  return Array.from(appIds);
+}
+
+/** 获取订单涉及的应用对象列表 */
+export function getOrderApps(order: EntitlementOrder): AppItem[] {
+  return getOrderAppIds(order).map((id) => appData.find((a) => a.id === id)).filter(Boolean) as AppItem[];
 }
 
 export const ORDER_TYPES: { value: OrderType; label: string; className: string }[] = [
@@ -335,7 +362,6 @@ export const ORDER_STATUS: { value: OrderStatus; label: string; className: strin
   { value: "closed",    label: "已关闭",  className: "badge-inactive" },
 ];
 
-// Keep ORDER_SOURCES for backward compatibility
 export type OrderSource = "purchase" | "gift" | "promotion" | "system";
 export const ORDER_SOURCES: { value: OrderSource; label: string }[] = [
   { value: "purchase", label: "购买" },
@@ -347,7 +373,7 @@ export const ORDER_SOURCES: { value: OrderSource; label: string }[] = [
 export const orderData: EntitlementOrder[] = [
   {
     id: "ord1", orderNo: "ORD202603120001", customerId: "cust1", customerName: "企业A",
-    appId: "app1", orderType: "user_purchase", totalAmount: 299, paymentStatus: "paid", orderStatus: "completed",
+    orderType: "user_purchase", totalAmount: 299, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-12 10:05:00", expireAt: "2027-03-12", remark: "旗舰会员月付", createdAt: "2026-03-12 10:00:00",
     items: [{ type: "bundle", itemId: "bun3", itemName: "旗舰会员", quantity: 1, unitPrice: 299 }],
     statusHistory: [
@@ -359,7 +385,7 @@ export const orderData: EntitlementOrder[] = [
   },
   {
     id: "ord2", orderNo: "ORD202603120002", customerId: "cust2", customerName: "企业B",
-    appId: "app1", orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "内部发放基础会员", createdAt: "2026-03-12 11:00:00",
     items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 }],
     statusHistory: [
@@ -370,7 +396,7 @@ export const orderData: EntitlementOrder[] = [
   },
   {
     id: "ord3", orderNo: "ORD202603120003", customerId: "cust3", customerName: "企业C",
-    appId: "app4", orderType: "user_purchase", totalAmount: 10, paymentStatus: "pending", orderStatus: "pending",
+    orderType: "user_purchase", totalAmount: 9.9, paymentStatus: "pending", orderStatus: "pending",
     remark: "AI积分充值", createdAt: "2026-03-12 12:00:00",
     items: [{ type: "sku", itemId: "sku3", itemName: "AI积分100·基础包", quantity: 1, unitPrice: 9.9 }],
     statusHistory: [
@@ -379,7 +405,7 @@ export const orderData: EntitlementOrder[] = [
   },
   {
     id: "ord4", orderNo: "ORD202603140001", customerId: "cust1", customerName: "企业A",
-    appId: "app1", orderType: "user_purchase", totalAmount: 11, paymentStatus: "paid", orderStatus: "completed",
+    orderType: "user_purchase", totalAmount: 11, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-14 16:05:00", remark: "充值渲染次数", createdAt: "2026-03-14 16:00:00",
     items: [
       { type: "sku", itemId: "sku1", itemName: "4K普通图", quantity: 1, unitPrice: 3 },
@@ -393,20 +419,23 @@ export const orderData: EntitlementOrder[] = [
     ],
   },
   {
+    // 跨应用订单：国内3D + 智能导购
     id: "ord5", orderNo: "ORD202603150001", customerId: "cust2", customerName: "企业B",
-    appId: "app3", orderType: "user_purchase", totalAmount: 199, paymentStatus: "paid", orderStatus: "completed",
-    paidAt: "2026-03-15 09:30:00", remark: "智能导购开通", createdAt: "2026-03-15 09:25:00",
-    items: [{ type: "sku", itemId: "sku31", itemName: "导购高级版", quantity: 1, unitPrice: 199 }],
+    orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    remark: "企业入驻权益配置 — 3D工具+导购", createdAt: "2026-03-15 09:25:00",
+    items: [
+      { type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 },
+      { type: "sku", itemId: "sku31", itemName: "导购高级版", quantity: 1, unitPrice: 0 },
+    ],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-15 09:25:00", remark: "用户下单" },
-      { status: "paid",      label: "支付完成", time: "2026-03-15 09:30:00", remark: "微信支付" },
-      { status: "granted",   label: "权益发放", time: "2026-03-15 09:30:05", remark: "自动发放" },
-      { status: "completed", label: "订单完成", time: "2026-03-15 09:30:10" },
+      { status: "created",   label: "订单创建", time: "2026-03-15 09:25:00", remark: "企业入驻自动生成" },
+      { status: "granted",   label: "权益发放", time: "2026-03-15 09:25:05", remark: "自动发放至对应应用账户" },
+      { status: "completed", label: "订单完成", time: "2026-03-15 09:25:10" },
     ],
   },
   {
     id: "ord6", orderNo: "ORD202603160001", customerId: "cust1", customerName: "企业A",
-    appId: "app1", orderType: "user_purchase", totalAmount: 2388, paymentStatus: "paid", orderStatus: "completed",
+    orderType: "user_purchase", totalAmount: 2388, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-16 11:30:00", expireAt: "2027-03-16", remark: "年卡升级", createdAt: "2026-03-16 11:25:00",
     items: [{ type: "bundle", itemId: "bun4", itemName: "旗舰会员年卡", quantity: 1, unitPrice: 2388 }],
     statusHistory: [
@@ -417,19 +446,23 @@ export const orderData: EntitlementOrder[] = [
     ],
   },
   {
+    // 跨应用订单：AI设计家 + 精准客资
     id: "ord7", orderNo: "ORD202603170001", customerId: "cust3", customerName: "企业C",
-    appId: "app4", orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
-    remark: "内部赠送AI设计家", createdAt: "2026-03-17 14:00:00",
-    items: [{ type: "sku", itemId: "sku21", itemName: "AI设计家专业版", quantity: 1, unitPrice: 0 }],
+    orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    remark: "企业入驻权益配置 — AI设计家+客资", createdAt: "2026-03-17 14:00:00",
+    items: [
+      { type: "sku", itemId: "sku21", itemName: "AI设计家专业版", quantity: 1, unitPrice: 0 },
+      { type: "sku", itemId: "sku40", itemName: "客资基础包", quantity: 1, unitPrice: 0 },
+    ],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-17 14:00:00", remark: "运营创建内部订单" },
+      { status: "created",   label: "订单创建", time: "2026-03-17 14:00:00", remark: "企业入驻自动生成" },
       { status: "granted",   label: "权益发放", time: "2026-03-17 14:00:05", remark: "自动发放" },
       { status: "completed", label: "订单完成", time: "2026-03-17 14:00:10" },
     ],
   },
   {
     id: "ord8", orderNo: "ORD202603180001", customerId: "cust4", customerName: "企业D",
-    appId: "app1", orderType: "system_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    orderType: "system_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "新企业注册赠送免费版", createdAt: "2026-03-18 08:00:00",
     items: [{ type: "bundle", itemId: "bun1", itemName: "免费版", quantity: 1, unitPrice: 0 }],
     statusHistory: [
@@ -440,7 +473,7 @@ export const orderData: EntitlementOrder[] = [
   },
   {
     id: "ord9", orderNo: "ORD202603190001", customerId: "cust1", customerName: "企业A",
-    appId: "app1", orderType: "user_purchase", totalAmount: 169, paymentStatus: "paid", orderStatus: "refunded",
+    orderType: "user_purchase", totalAmount: 169, paymentStatus: "paid", orderStatus: "refunded",
     paidAt: "2026-03-19 15:00:00", remark: "已申请退款", createdAt: "2026-03-19 14:55:00",
     items: [{ type: "sku", itemId: "sku5", itemName: "AI积分2000·高级包", quantity: 1, unitPrice: 169 }],
     statusHistory: [
@@ -451,14 +484,19 @@ export const orderData: EntitlementOrder[] = [
     ],
   },
   {
+    // 跨3个应用的大订单
     id: "ord10", orderNo: "ORD202603200001", customerId: "cust2", customerName: "企业B",
-    appId: "app4", orderType: "user_purchase", totalAmount: 79.9, paymentStatus: "paid", orderStatus: "completed",
-    paidAt: "2026-03-20 10:15:00", remark: "AI设计家套装", createdAt: "2026-03-20 10:10:00",
-    items: [{ type: "bundle", itemId: "bun5", itemName: "AI设计家套装", quantity: 1, unitPrice: 79.9 }],
+    orderType: "user_purchase", totalAmount: 528.8, paymentStatus: "paid", orderStatus: "completed",
+    paidAt: "2026-03-20 10:15:00", remark: "企业升级套装 — 3D+AI+导购", createdAt: "2026-03-20 10:10:00",
+    items: [
+      { type: "bundle", itemId: "bun3", itemName: "旗舰会员", quantity: 1, unitPrice: 299 },
+      { type: "bundle", itemId: "bun5", itemName: "AI设计家套装", quantity: 1, unitPrice: 79.9 },
+      { type: "sku", itemId: "sku31", itemName: "导购高级版", quantity: 1, unitPrice: 199 },
+    ],
     statusHistory: [
       { status: "created",   label: "订单创建", time: "2026-03-20 10:10:00", remark: "用户下单" },
       { status: "paid",      label: "支付完成", time: "2026-03-20 10:15:00", remark: "支付宝" },
-      { status: "granted",   label: "权益发放", time: "2026-03-20 10:15:05", remark: "自动发放" },
+      { status: "granted",   label: "权益发放", time: "2026-03-20 10:15:05", remark: "自动发放至3个应用账户" },
       { status: "completed", label: "订单完成", time: "2026-03-20 10:15:10" },
     ],
   },
@@ -509,19 +547,19 @@ export const accountData: EntitlementAccount[] = [
   },
   {
     id: "acc2", customerId: "cust2", customerName: "企业B", appId: "app1", appName: "国内3D工具",
-    orderIds: ["ord2"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-12",
+    orderIds: ["ord2", "ord5", "ord10"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-20",
     capabilities: [
-      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule2",  ruleName: "AI设计300次/日",     totalQuota: 300,   usedQuota: 45,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord2"] },
-      { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule4",  ruleName: "4K渲染2次/日",       totalQuota: 2,     usedQuota: 0,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord2"] },
-      { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule25", ruleName: "云存储200MB",        totalQuota: 200,   usedQuota: 56,   unit: "MB",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord2"] },
+      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 45,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord10"] },
+      { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule5",  ruleName: "4K渲染4次/日",       totalQuota: 4,     usedQuota: 0,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord10"] },
+      { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule26", ruleName: "云存储4GB",          totalQuota: 4096,  usedQuota: 56,   unit: "MB",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord10"] },
     ],
   },
   {
     id: "acc3", customerId: "cust2", customerName: "企业B", appId: "app3", appName: "智能导购",
-    orderIds: ["ord5"], status: "active", createdAt: "2026-03-15", updatedAt: "2026-03-15",
+    orderIds: ["ord5", "ord10"], status: "active", createdAt: "2026-03-15", updatedAt: "2026-03-20",
     capabilities: [
-      { capabilityId: "cap40", capabilityName: "导购推荐",   ruleId: "rule50", ruleName: "导购推荐500次/月", totalQuota: 500, usedQuota: 120, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord5"] },
-      { capabilityId: "cap41", capabilityName: "客户画像",   ruleId: "rule51", ruleName: "客户画像开通",     totalQuota: 1,   usedQuota: 0,   unit: "布尔", periodType: "PERMANENT", grantType: "ONE_TIME", sourceOrderIds: ["ord5"] },
+      { capabilityId: "cap40", capabilityName: "导购推荐",   ruleId: "rule50", ruleName: "导购推荐500次/月", totalQuota: 500, usedQuota: 120, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord5", "ord10"] },
+      { capabilityId: "cap41", capabilityName: "客户画像",   ruleId: "rule51", ruleName: "客户画像开通",     totalQuota: 1,   usedQuota: 0,   unit: "布尔", periodType: "PERMANENT", grantType: "ONE_TIME", sourceOrderIds: ["ord5", "ord10"] },
     ],
   },
   {
@@ -541,7 +579,14 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc6", customerId: "cust4", customerName: "企业D", appId: "app1", appName: "国内3D工具",
+    id: "acc6", customerId: "cust3", customerName: "企业C", appId: "app5", appName: "精准客资",
+    orderIds: ["ord7"], status: "active", createdAt: "2026-03-17", updatedAt: "2026-03-17",
+    capabilities: [
+      { capabilityId: "cap50", capabilityName: "线索获取",   ruleId: "rule60", ruleName: "线索100条/月",     totalQuota: 100, usedQuota: 32, unit: "条", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
+    ],
+  },
+  {
+    id: "acc7", customerId: "cust4", customerName: "企业D", appId: "app1", appName: "国内3D工具",
     orderIds: ["ord8"], status: "active", createdAt: "2026-03-18", updatedAt: "2026-03-18",
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule1",  ruleName: "AI设计100次/日",     totalQuota: 100, usedQuota: 12, unit: "次", periodType: "DAY", grantType: "DAILY_REFRESH", sourceOrderIds: ["ord8"] },
@@ -575,7 +620,8 @@ export const getRulesBySkuId = (skuId: string) => {
   return sku ? sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean) as EntitlementRule[] : [];
 };
 export const getOrdersByCustomer = (custId: string) => orderData.filter((o) => o.customerId === custId);
-export const getOrdersByApp = (appId: string) => orderData.filter((o) => o.appId === appId);
 export const getAccountsByCustomer = (custId: string) => accountData.filter((a) => a.customerId === custId);
 export const getOrder = (id: string) => orderData.find((o) => o.id === id);
 export const getAccount = (id: string) => accountData.find((a) => a.id === id);
+/** 根据应用ID筛选订单（只要订单中有任一商品属于该应用即匹配） */
+export const getOrdersByApp = (appId: string) => orderData.filter((o) => getOrderAppIds(o).includes(appId));

@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { orderData, accountData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, skuData, bundleData, getApp, getRule, getCapability, type EntitlementOrder } from "@/data/entitlement";
+import { orderData, accountData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, skuData, bundleData, getOrderApps, getRule, getCapability, type EntitlementOrder } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { toast } from "sonner";
 
@@ -10,28 +10,29 @@ export default function OrderDetail() {
 
   if (!order) return <div className="p-10 text-center text-muted-foreground">订单不存在</div>;
 
-  const app = getApp(order.appId);
+  const apps = getOrderApps(order);
   const prevOrder = orderIndex > 0 ? orderData[orderIndex - 1] : null;
   const nextOrder = orderIndex < orderData.length - 1 ? orderData[orderIndex + 1] : null;
   const statusCfg = ORDER_STATUS.find((s) => s.value === order.orderStatus);
   const typeCfg = ORDER_TYPES.find((t) => t.value === order.orderType);
   const payCfg = PAYMENT_STATUS.find((p) => p.value === order.paymentStatus);
 
-  const relatedAccount = accountData.find((a) => a.customerId === order.customerId && a.appId === order.appId);
+  // Find related accounts (could be multiple, one per app)
+  const relatedAccounts = accountData.filter((a) => a.customerId === order.customerId && a.orderIds.includes(order.id));
 
-  // Resolve items to rules
+  // Resolve items to rules, grouped by app
   const resolvedItems = order.items.map((item) => {
     if (item.type === "sku") {
       const sku = skuData.find((s) => s.id === item.itemId);
       const rules = sku ? sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean) : [];
-      return { ...item, sku, rules };
+      return { ...item, sku, bundle: undefined, rules, appName: sku ? (apps.find((a) => a.id === sku.appId)?.name || "") : "" };
     } else {
       const bundle = bundleData.find((b) => b.id === item.itemId);
       const allRules = bundle ? bundle.items.flatMap((bi) => {
         const sku = skuData.find((s) => s.id === bi.skuId);
         return sku ? sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean) : [];
       }) : [];
-      return { ...item, bundle, rules: allRules };
+      return { ...item, sku: undefined, bundle, rules: allRules, appName: bundle ? (apps.find((a) => a.id === bundle.appId)?.name || "") : "" };
     }
   });
 
@@ -70,14 +71,23 @@ export default function OrderDetail() {
         <div className="grid grid-cols-4 gap-x-8 gap-y-3 text-[13px]">
           <div><span className="text-muted-foreground">订单号</span><div className="font-medium text-foreground mt-0.5 font-mono text-[12px]">{order.orderNo}</div></div>
           <div><span className="text-muted-foreground">企业</span><div className="font-medium text-foreground mt-0.5">{order.customerName}</div></div>
-          <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5">{app ? <Link to={`/entitlement/app/detail/${app.id}`} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20">{app.name}</Link> : "—"}</div></div>
+          <div>
+            <span className="text-muted-foreground">所属应用</span>
+            <div className="mt-0.5 flex flex-wrap gap-1">
+              {apps.map((app) => (
+                <Link key={app.id} to={`/entitlement/app/detail/${app.id}`} className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary hover:bg-primary/20">
+                  {app.name}
+                </Link>
+              ))}
+            </div>
+          </div>
           <div><span className="text-muted-foreground">订单类型</span><div className={`mt-0.5 font-medium ${typeCfg?.className || ""}`}>{typeCfg?.label}</div></div>
           <div><span className="text-muted-foreground">创建时间</span><div className="text-foreground mt-0.5">{order.createdAt}</div></div>
           <div><span className="text-muted-foreground">备注</span><div className="text-foreground mt-0.5">{order.remark || "—"}</div></div>
         </div>
       </div>
 
-      {/* 商品信息 */}
+      {/* 商品信息 — 按应用分组 */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <h3 className="text-[14px] font-semibold text-foreground mb-3">商品信息</h3>
         <div className="overflow-x-auto">
@@ -85,17 +95,19 @@ export default function OrderDetail() {
             <thead><tr className="border-b text-muted-foreground">
               <th className="text-left py-2 font-medium">商品名称</th>
               <th className="text-left py-2 font-medium">类型</th>
+              <th className="text-left py-2 font-medium">应用</th>
               <th className="text-right py-2 font-medium">单价</th>
               <th className="text-right py-2 font-medium">数量</th>
               <th className="text-right py-2 font-medium">小计</th>
             </tr></thead>
             <tbody>
-              {order.items.map((item, idx) => (
+              {resolvedItems.map((item, idx) => (
                 <tr key={idx} className="border-b border-border/40 hover:bg-muted/30">
                   <td className="py-2.5">
                     <Link to={item.type === "bundle" ? `/entitlement/package/detail/${item.itemId}` : `/entitlement/sku/detail/${item.itemId}`} className="text-primary hover:underline font-medium">{item.itemName}</Link>
                   </td>
                   <td className="py-2.5"><span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${item.type === "bundle" ? "bg-accent text-accent-foreground" : "bg-primary/10 text-primary"}`}>{item.type === "bundle" ? "商品套餐" : "商品SKU"}</span></td>
+                  <td className="py-2.5 text-muted-foreground">{item.appName}</td>
                   <td className="py-2.5 text-right">{item.unitPrice > 0 ? `¥${item.unitPrice.toFixed(2)}` : "¥0.00"}</td>
                   <td className="py-2.5 text-right">{item.quantity}</td>
                   <td className="py-2.5 text-right font-medium text-destructive">{(item.unitPrice * item.quantity) > 0 ? `¥${(item.unitPrice * item.quantity).toFixed(2)}` : "¥0.00"}</td>
@@ -129,7 +141,6 @@ export default function OrderDetail() {
           <div>
             <p className="text-[13px] text-muted-foreground mb-3">状态变更历史：</p>
             <div className="relative ml-2">
-              {/* vertical line */}
               <div className="absolute left-[5px] top-2 bottom-2 w-px bg-border" />
               <div className="space-y-4">
                 {order.statusHistory.map((entry, idx) => (
@@ -156,6 +167,7 @@ export default function OrderDetail() {
             <table className="w-full text-[13px]">
               <thead><tr className="border-b text-muted-foreground">
                 <th className="text-left py-2 font-medium">来源商品</th>
+                <th className="text-left py-2 font-medium">应用</th>
                 <th className="text-left py-2 font-medium">规则名称</th>
                 <th className="text-left py-2 font-medium">能力</th>
                 <th className="text-right py-2 font-medium">额度</th>
@@ -170,6 +182,7 @@ export default function OrderDetail() {
                     return (
                       <tr key={`${item.itemId}-${ri}`} className="border-b border-border/40 hover:bg-muted/30">
                         {ri === 0 ? <td className="py-2 font-medium" rowSpan={item.rules.length}>{item.itemName}</td> : null}
+                        {ri === 0 ? <td className="py-2 text-muted-foreground" rowSpan={item.rules.length}>{item.appName}</td> : null}
                         <td className="py-2"><Link to={`/entitlement/rule/detail/${rule.id}`} className="text-primary hover:underline">{rule.name}</Link></td>
                         <td className="py-2 text-muted-foreground">{cap?.name || "—"}</td>
                         <td className="py-2 text-right font-medium">{rule.quota.toLocaleString()} {cap?.unit || ""}</td>
@@ -185,17 +198,24 @@ export default function OrderDetail() {
         </div>
       )}
 
-      {/* 关联账户 */}
-      {relatedAccount && (
+      {/* 关联账户 — 可能跨多个应用 */}
+      {relatedAccounts.length > 0 && (
         <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益账户</h3>
-          <Link to={`/entitlement/account/detail/${relatedAccount.id}`} className="block border rounded-lg p-4 hover:border-primary/40 hover:bg-primary/5 transition-all">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-foreground text-[13px]">{relatedAccount.customerName} · {relatedAccount.appName}</span>
-              <span className="badge-active">活跃</span>
-            </div>
-            <div className="text-[12px] text-muted-foreground mt-1">{relatedAccount.capabilities.length}项能力 · {relatedAccount.orderIds.length}个关联订单</div>
-          </Link>
+          <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益账户 ({relatedAccounts.length})</h3>
+          <div className="space-y-2">
+            {relatedAccounts.map((acc) => (
+              <Link key={acc.id} to={`/entitlement/account/detail/${acc.id}`} className="block border rounded-lg p-4 hover:border-primary/40 hover:bg-primary/5 transition-all">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground text-[13px]">{acc.customerName}</span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{acc.appName}</span>
+                  </div>
+                  <span className="badge-active">活跃</span>
+                </div>
+                <div className="text-[12px] text-muted-foreground mt-1">{acc.capabilities.length}项能力 · {acc.orderIds.length}个关联订单</div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

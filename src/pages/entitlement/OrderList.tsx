@@ -6,7 +6,7 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download } from "lucide-react";
-import { orderData as initialData, appData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, type EntitlementOrder } from "@/data/entitlement";
+import { orderData as initialData, appData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, getOrderApps, getOrderAppIds, type EntitlementOrder } from "@/data/entitlement";
 import { OrderDialog } from "./dialogs/OrderDialog";
 
 const filterFields: FilterField[] = [
@@ -44,7 +44,7 @@ export default function OrderList() {
 
   const filtered = data.filter((d) => {
     if (filters.orderNo && !d.orderNo.includes(filters.orderNo) && !d.customerName.includes(filters.orderNo)) return false;
-    if (filters.appId && d.appId !== filters.appId) return false;
+    if (filters.appId && !getOrderAppIds(d).includes(filters.appId)) return false;
     if (filters.orderType && d.orderType !== filters.orderType) return false;
     if (filters.paymentStatus && d.paymentStatus !== filters.paymentStatus) return false;
     if (filters.orderStatus && d.orderStatus !== filters.orderStatus) return false;
@@ -59,10 +59,18 @@ export default function OrderList() {
         {v}
       </button>
     )},
-    { key: "customerName", title: "企业", minWidth: 140 },
-    { key: "appId", title: "所属应用", minWidth: 100, render: (_v, row) => {
-      const app = appData.find((a) => a.id === (row as EntitlementOrder).appId);
-      return app ? <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20" onClick={() => navigate(`/entitlement/app/detail/${app.id}`)}>{app.name}</button> : "—";
+    { key: "customerName", title: "企业", minWidth: 120 },
+    { key: "items", title: "所属应用", minWidth: 160, render: (_v, row) => {
+      const apps = getOrderApps(row as EntitlementOrder);
+      return (
+        <div className="flex flex-wrap gap-1">
+          {apps.map((app) => (
+            <button key={app.id} className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary hover:bg-primary/20 transition-colors" onClick={() => navigate(`/entitlement/app/detail/${app.id}`)}>
+              {app.name}
+            </button>
+          ))}
+        </div>
+      );
     }},
     { key: "orderType", title: "订单类型", minWidth: 90, render: (v: string) => {
       const cfg = ORDER_TYPES.find((t) => t.value === v);
@@ -74,7 +82,7 @@ export default function OrderList() {
     }},
     { key: "totalAmount", title: "订单金额", minWidth: 100, align: "right" as const, render: (v: number) => (
       <span className={`font-medium ${v > 0 ? "text-destructive" : "text-muted-foreground"}`}>
-        {v > 0 ? `¥${v.toFixed(2)}` : "¥0.00"}
+        ¥{v > 0 ? v.toFixed(2) : "0.00"}
       </span>
     )},
     { key: "paymentStatus", title: "支付状态", minWidth: 90, render: (v: string) => {
@@ -118,7 +126,7 @@ export default function OrderList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="订单管理" subtitle="统一管理所有权益订单（用户购买+内部发放+系统发放）" actions={
+      <PageHeader title="订单管理" subtitle="统一管理所有权益订单（用户购买+内部发放+系统发放），订单可包含多个应用的商品" actions={
         <div className="flex gap-2">
           <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 创建内部订单</button>
           <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>
