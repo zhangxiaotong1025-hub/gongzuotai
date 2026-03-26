@@ -6,11 +6,12 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download } from "lucide-react";
-import { orderData as initialData, appData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, getOrderApps, getOrderAppIds, type EntitlementOrder } from "@/data/entitlement";
+import { orderData as initialData, appData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, CUSTOMER_TYPES, getOrderApps, getOrderAppIds, type EntitlementOrder } from "@/data/entitlement";
 import { OrderDialog } from "./dialogs/OrderDialog";
 
 const filterFields: FilterField[] = [
-  { key: "orderNo", label: "订单号/企业", type: "input", placeholder: "请输入", width: 200 },
+  { key: "orderNo", label: "订单号/客户", type: "input", placeholder: "请输入", width: 200 },
+  { key: "customerType", label: "账户类型", type: "select", options: CUSTOMER_TYPES.map((t) => ({ label: t.label, value: t.value })), width: 120 },
   { key: "appId", label: "所属应用", type: "select", options: appData.map((a) => ({ label: a.name, value: a.id })), width: 160 },
   { key: "orderType", label: "订单类型", type: "select", options: ORDER_TYPES.map((s) => ({ label: s.label, value: s.value })), width: 120 },
   { key: "paymentStatus", label: "支付状态", type: "select", options: PAYMENT_STATUS.map((s) => ({ label: s.label, value: s.value })), width: 120 },
@@ -44,6 +45,7 @@ export default function OrderList() {
 
   const filtered = data.filter((d) => {
     if (filters.orderNo && !d.orderNo.includes(filters.orderNo) && !d.customerName.includes(filters.orderNo)) return false;
+    if (filters.customerType && d.customerType !== filters.customerType) return false;
     if (filters.appId && !getOrderAppIds(d).includes(filters.appId)) return false;
     if (filters.orderType && d.orderType !== filters.orderType) return false;
     if (filters.paymentStatus && d.paymentStatus !== filters.paymentStatus) return false;
@@ -59,8 +61,13 @@ export default function OrderList() {
         {v}
       </button>
     )},
-    { key: "customerName", title: "企业", minWidth: 120 },
-    { key: "items", title: "所属应用", minWidth: 160, render: (_v, row) => {
+    { key: "customerType", title: "账户类型", minWidth: 80, render: (v: string) => (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${v === "B" ? "bg-primary/10 text-primary" : "bg-accent text-accent-foreground"}`}>
+        {v === "B" ? "B端企业" : "C端用户"}
+      </span>
+    )},
+    { key: "customerName", title: "客户名称", minWidth: 120 },
+    { key: "_apps", title: "所属应用", minWidth: 160, render: (_v, row) => {
       const apps = getOrderApps(row as EntitlementOrder);
       return (
         <div className="flex flex-wrap gap-1">

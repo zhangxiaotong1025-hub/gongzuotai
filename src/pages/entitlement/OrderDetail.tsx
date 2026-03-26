@@ -70,7 +70,8 @@ export default function OrderDetail() {
         <h3 className="text-[14px] font-semibold text-foreground mb-4">基本信息</h3>
         <div className="grid grid-cols-4 gap-x-8 gap-y-3 text-[13px]">
           <div><span className="text-muted-foreground">订单号</span><div className="font-medium text-foreground mt-0.5 font-mono text-[12px]">{order.orderNo}</div></div>
-          <div><span className="text-muted-foreground">企业</span><div className="font-medium text-foreground mt-0.5">{order.customerName}</div></div>
+          <div><span className="text-muted-foreground">账户类型</span><div className="mt-0.5"><span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${order.customerType === "B" ? "bg-primary/10 text-primary" : "bg-accent text-accent-foreground"}`}>{order.customerType === "B" ? "B端企业" : "C端用户"}</span></div></div>
+          <div><span className="text-muted-foreground">客户名称</span><div className="font-medium text-foreground mt-0.5">{order.customerName}</div></div>
           <div>
             <span className="text-muted-foreground">所属应用</span>
             <div className="mt-0.5 flex flex-wrap gap-1">

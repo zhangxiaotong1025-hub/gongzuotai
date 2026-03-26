@@ -297,9 +297,57 @@ export interface OrderItem {
   unitPrice: number;
 }
 
+export type CustomerType = "B" | "C";
+export const CUSTOMER_TYPES: { value: CustomerType; label: string }[] = [
+  { value: "B", label: "B端企业" },
+  { value: "C", label: "C端用户" },
+];
+
+/** C端用户模拟数据 */
+export interface CUser {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+}
+
+export const cUserData: CUser[] = [
+  { id: "user1", name: "张三", phone: "138****1234", email: "zhangsan@example.com" },
+  { id: "user2", name: "李四", phone: "139****5678", email: "lisi@example.com" },
+  { id: "user3", name: "王五", phone: "137****9012" },
+  { id: "user4", name: "赵六", phone: "136****3456", email: "zhaoliu@example.com" },
+  { id: "user5", name: "刘七", phone: "135****7890" },
+  { id: "user6", name: "陈八", phone: "158****2345", email: "chba@example.com" },
+  { id: "user7", name: "周九", phone: "159****6789" },
+  { id: "user8", name: "吴十", phone: "186****0123", email: "wushi@example.com" },
+];
+
+/** B端企业模拟数据（从企业管理引用） */
+export interface BEnterprise {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export const bEnterpriseData: BEnterprise[] = [
+  { id: "cust1", name: "欧派家居集团股份有限公司", type: "品牌商" },
+  { id: "cust2", name: "索菲亚家居股份有限公司", type: "品牌商" },
+  { id: "cust3", name: "尚品宅配家居股份有限公司", type: "品牌商" },
+  { id: "cust4", name: "金牌厨柜家居科技股份有限公司", type: "品牌商" },
+  { id: "cust5", name: "志邦家居股份有限公司", type: "品牌商" },
+  { id: "cust6", name: "我乐家居股份有限公司", type: "品牌商" },
+  { id: "cust7", name: "好莱客创意家居股份有限公司", type: "品牌商" },
+  { id: "cust8", name: "北京金隅装饰工程有限公司", type: "装修公司" },
+  { id: "cust9", name: "上海东易日盛装饰有限公司", type: "装修公司" },
+  { id: "cust10", name: "居然之家投资控股集团", type: "卖场" },
+  { id: "cust11", name: "红星美凯龙家居集团", type: "卖场" },
+  { id: "cust12", name: "深圳市名雕装饰股份有限公司", type: "装修公司" },
+];
+
 export interface EntitlementOrder {
   id: string;
   orderNo: string;
+  customerType: CustomerType;
   customerId: string;
   customerName: string;
   /** 订单不绑定单一应用，涉及的应用从 items 中的商品/套餐推导 */
@@ -372,7 +420,7 @@ export const ORDER_SOURCES: { value: OrderSource; label: string }[] = [
 
 export const orderData: EntitlementOrder[] = [
   {
-    id: "ord1", orderNo: "ORD202603120001", customerId: "cust1", customerName: "企业A",
+    id: "ord1", orderNo: "ORD202603120001", customerType: "B", customerId: "cust1", customerName: "欧派家居集团股份有限公司",
     orderType: "user_purchase", totalAmount: 299, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-12 10:05:00", expireAt: "2027-03-12", remark: "旗舰会员月付", createdAt: "2026-03-12 10:00:00",
     items: [{ type: "bundle", itemId: "bun3", itemName: "旗舰会员", quantity: 1, unitPrice: 299 }],
@@ -384,7 +432,7 @@ export const orderData: EntitlementOrder[] = [
     ],
   },
   {
-    id: "ord2", orderNo: "ORD202603120002", customerId: "cust2", customerName: "企业B",
+    id: "ord2", orderNo: "ORD202603120002", customerType: "B", customerId: "cust2", customerName: "索菲亚家居股份有限公司",
     orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "内部发放基础会员", createdAt: "2026-03-12 11:00:00",
     items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 }],
@@ -395,7 +443,7 @@ export const orderData: EntitlementOrder[] = [
     ],
   },
   {
-    id: "ord3", orderNo: "ORD202603120003", customerId: "cust3", customerName: "企业C",
+    id: "ord3", orderNo: "ORD202603120003", customerType: "C", customerId: "user1", customerName: "张三",
     orderType: "user_purchase", totalAmount: 9.9, paymentStatus: "pending", orderStatus: "pending",
     remark: "AI积分充值", createdAt: "2026-03-12 12:00:00",
     items: [{ type: "sku", itemId: "sku3", itemName: "AI积分100·基础包", quantity: 1, unitPrice: 9.9 }],
@@ -404,7 +452,7 @@ export const orderData: EntitlementOrder[] = [
     ],
   },
   {
-    id: "ord4", orderNo: "ORD202603140001", customerId: "cust1", customerName: "企业A",
+    id: "ord4", orderNo: "ORD202603140001", customerType: "B", customerId: "cust1", customerName: "欧派家居集团股份有限公司",
     orderType: "user_purchase", totalAmount: 11, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-14 16:05:00", remark: "充值渲染次数", createdAt: "2026-03-14 16:00:00",
     items: [
@@ -420,7 +468,7 @@ export const orderData: EntitlementOrder[] = [
   },
   {
     // 跨应用订单：国内3D + 智能导购
-    id: "ord5", orderNo: "ORD202603150001", customerId: "cust2", customerName: "企业B",
+    id: "ord5", orderNo: "ORD202603150001", customerType: "B", customerId: "cust2", customerName: "索菲亚家居股份有限公司",
     orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "企业入驻权益配置 — 3D工具+导购", createdAt: "2026-03-15 09:25:00",
     items: [
@@ -434,7 +482,7 @@ export const orderData: EntitlementOrder[] = [
     ],
   },
   {
-    id: "ord6", orderNo: "ORD202603160001", customerId: "cust1", customerName: "企业A",
+    id: "ord6", orderNo: "ORD202603160001", customerType: "B", customerId: "cust1", customerName: "欧派家居集团股份有限公司",
     orderType: "user_purchase", totalAmount: 2388, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-16 11:30:00", expireAt: "2027-03-16", remark: "年卡升级", createdAt: "2026-03-16 11:25:00",
     items: [{ type: "bundle", itemId: "bun4", itemName: "旗舰会员年卡", quantity: 1, unitPrice: 2388 }],
@@ -447,7 +495,7 @@ export const orderData: EntitlementOrder[] = [
   },
   {
     // 跨应用订单：AI设计家 + 精准客资
-    id: "ord7", orderNo: "ORD202603170001", customerId: "cust3", customerName: "企业C",
+    id: "ord7", orderNo: "ORD202603170001", customerType: "B", customerId: "cust3", customerName: "尚品宅配家居股份有限公司",
     orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "企业入驻权益配置 — AI设计家+客资", createdAt: "2026-03-17 14:00:00",
     items: [
@@ -461,7 +509,7 @@ export const orderData: EntitlementOrder[] = [
     ],
   },
   {
-    id: "ord8", orderNo: "ORD202603180001", customerId: "cust4", customerName: "企业D",
+    id: "ord8", orderNo: "ORD202603180001", customerType: "B", customerId: "cust4", customerName: "金牌厨柜家居科技股份有限公司",
     orderType: "system_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "新企业注册赠送免费版", createdAt: "2026-03-18 08:00:00",
     items: [{ type: "bundle", itemId: "bun1", itemName: "免费版", quantity: 1, unitPrice: 0 }],
@@ -472,7 +520,7 @@ export const orderData: EntitlementOrder[] = [
     ],
   },
   {
-    id: "ord9", orderNo: "ORD202603190001", customerId: "cust1", customerName: "企业A",
+    id: "ord9", orderNo: "ORD202603190001", customerType: "C", customerId: "user2", customerName: "李四",
     orderType: "user_purchase", totalAmount: 169, paymentStatus: "paid", orderStatus: "refunded",
     paidAt: "2026-03-19 15:00:00", remark: "已申请退款", createdAt: "2026-03-19 14:55:00",
     items: [{ type: "sku", itemId: "sku5", itemName: "AI积分2000·高级包", quantity: 1, unitPrice: 169 }],
@@ -485,7 +533,7 @@ export const orderData: EntitlementOrder[] = [
   },
   {
     // 跨3个应用的大订单
-    id: "ord10", orderNo: "ORD202603200001", customerId: "cust2", customerName: "企业B",
+    id: "ord10", orderNo: "ORD202603200001", customerType: "B", customerId: "cust2", customerName: "索菲亚家居股份有限公司",
     orderType: "user_purchase", totalAmount: 528.8, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-20 10:15:00", remark: "企业升级套装 — 3D+AI+导购", createdAt: "2026-03-20 10:10:00",
     items: [
@@ -498,6 +546,31 @@ export const orderData: EntitlementOrder[] = [
       { status: "paid",      label: "支付完成", time: "2026-03-20 10:15:00", remark: "支付宝" },
       { status: "granted",   label: "权益发放", time: "2026-03-20 10:15:05", remark: "自动发放至3个应用账户" },
       { status: "completed", label: "订单完成", time: "2026-03-20 10:15:10" },
+    ],
+  },
+  {
+    // C端用户购买
+    id: "ord11", orderNo: "ORD202603210001", customerType: "C", customerId: "user3", customerName: "王五",
+    orderType: "user_purchase", totalAmount: 99, paymentStatus: "paid", orderStatus: "completed",
+    paidAt: "2026-03-21 09:30:00", remark: "个人购买基础会员", createdAt: "2026-03-21 09:25:00",
+    items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 99 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-21 09:25:00", remark: "用户下单" },
+      { status: "paid",      label: "支付完成", time: "2026-03-21 09:30:00", remark: "微信支付" },
+      { status: "granted",   label: "权益发放", time: "2026-03-21 09:30:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-21 09:30:10" },
+    ],
+  },
+  {
+    // C端系统赠送
+    id: "ord12", orderNo: "ORD202603220001", customerType: "C", customerId: "user4", customerName: "赵六",
+    orderType: "system_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    remark: "新用户注册赠送体验包", createdAt: "2026-03-22 14:00:00",
+    items: [{ type: "bundle", itemId: "bun1", itemName: "免费版", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-22 14:00:00", remark: "系统自动创建" },
+      { status: "granted",   label: "权益发放", time: "2026-03-22 14:00:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-22 14:00:10" },
     ],
   },
 ];
@@ -532,7 +605,7 @@ export interface EntitlementAccount {
 
 export const accountData: EntitlementAccount[] = [
   {
-    id: "acc1", customerId: "cust1", customerName: "企业A", appId: "app1", appName: "国内3D工具",
+    id: "acc1", customerId: "cust1", customerName: "欧派家居集团股份有限公司", appId: "app1", appName: "国内3D工具",
     orderIds: ["ord1", "ord4", "ord6"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-16",
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 128,  unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
@@ -546,7 +619,7 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc2", customerId: "cust2", customerName: "企业B", appId: "app1", appName: "国内3D工具",
+    id: "acc2", customerId: "cust2", customerName: "索菲亚家居股份有限公司", appId: "app1", appName: "国内3D工具",
     orderIds: ["ord2", "ord5", "ord10"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-20",
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 45,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord10"] },
@@ -555,7 +628,7 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc3", customerId: "cust2", customerName: "企业B", appId: "app3", appName: "智能导购",
+    id: "acc3", customerId: "cust2", customerName: "索菲亚家居股份有限公司", appId: "app3", appName: "智能导购",
     orderIds: ["ord5", "ord10"], status: "active", createdAt: "2026-03-15", updatedAt: "2026-03-20",
     capabilities: [
       { capabilityId: "cap40", capabilityName: "导购推荐",   ruleId: "rule50", ruleName: "导购推荐500次/月", totalQuota: 500, usedQuota: 120, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord5", "ord10"] },
@@ -563,7 +636,7 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc4", customerId: "cust2", customerName: "企业B", appId: "app4", appName: "AI设计家",
+    id: "acc4", customerId: "cust2", customerName: "索菲亚家居股份有限公司", appId: "app4", appName: "AI设计家",
     orderIds: ["ord10"], status: "active", createdAt: "2026-03-20", updatedAt: "2026-03-20",
     capabilities: [
       { capabilityId: "cap30", capabilityName: "AI方案生成", ruleId: "rule40", ruleName: "AI方案100次/月",   totalQuota: 100, usedQuota: 23, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord10"] },
@@ -571,7 +644,7 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc5", customerId: "cust3", customerName: "企业C", appId: "app4", appName: "AI设计家",
+    id: "acc5", customerId: "cust3", customerName: "尚品宅配家居股份有限公司", appId: "app4", appName: "AI设计家",
     orderIds: ["ord7"], status: "active", createdAt: "2026-03-17", updatedAt: "2026-03-17",
     capabilities: [
       { capabilityId: "cap30", capabilityName: "AI方案生成", ruleId: "rule40", ruleName: "AI方案100次/月",   totalQuota: 100, usedQuota: 5, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
@@ -579,14 +652,14 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc6", customerId: "cust3", customerName: "企业C", appId: "app5", appName: "精准客资",
+    id: "acc6", customerId: "cust3", customerName: "尚品宅配家居股份有限公司", appId: "app5", appName: "精准客资",
     orderIds: ["ord7"], status: "active", createdAt: "2026-03-17", updatedAt: "2026-03-17",
     capabilities: [
       { capabilityId: "cap50", capabilityName: "线索获取",   ruleId: "rule60", ruleName: "线索100条/月",     totalQuota: 100, usedQuota: 32, unit: "条", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
     ],
   },
   {
-    id: "acc7", customerId: "cust4", customerName: "企业D", appId: "app1", appName: "国内3D工具",
+    id: "acc7", customerId: "cust4", customerName: "金牌厨柜家居科技股份有限公司", appId: "app1", appName: "国内3D工具",
     orderIds: ["ord8"], status: "active", createdAt: "2026-03-18", updatedAt: "2026-03-18",
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule1",  ruleName: "AI设计100次/日",     totalQuota: 100, usedQuota: 12, unit: "次", periodType: "DAY", grantType: "DAILY_REFRESH", sourceOrderIds: ["ord8"] },

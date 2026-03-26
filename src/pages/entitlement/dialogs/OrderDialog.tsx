@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Search, Package, Layers } from "lucide-react";
-import { appData, skuData, bundleData, ORDER_TYPES, BILLING_CYCLES, type EntitlementOrder, type OrderItem, type Sku, type Bundle } from "@/data/entitlement";
+import { X, Search, Package, Layers, Building2, User } from "lucide-react";
+import { appData, skuData, bundleData, ORDER_TYPES, BILLING_CYCLES, CUSTOMER_TYPES, bEnterpriseData, cUserData, type EntitlementOrder, type OrderItem, type Sku, type Bundle, type CustomerType } from "@/data/entitlement";
 
 interface OrderDialogProps {
   open: boolean;
@@ -16,7 +16,11 @@ interface OrderDialogProps {
 }
 
 export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps) {
+  const [customerType, setCustomerType] = useState<CustomerType>("B");
+  const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   const [orderType, setOrderType] = useState<string>("internal_grant");
   const [remark, setRemark] = useState("");
   const [items, setItems] = useState<OrderItem[]>([]);
@@ -24,12 +28,43 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
 
   useEffect(() => {
     if (open) {
+      setCustomerType(initial?.customerType || "B");
+      setCustomerId(initial?.customerId || "");
       setCustomerName(initial?.customerName || "");
+      setCustomerSearch("");
       setOrderType(initial?.orderType || "internal_grant");
       setRemark(initial?.remark || "");
       setItems(initial?.items || []);
+      setCustomerDropdownOpen(false);
     }
   }, [open, initial]);
+
+  // Filtered customer list based on type and search
+  const filteredCustomers = useMemo(() => {
+    if (customerType === "B") {
+      return bEnterpriseData.filter((e) =>
+        !customerSearch || e.name.includes(customerSearch) || e.id.includes(customerSearch)
+      );
+    } else {
+      return cUserData.filter((u) =>
+        !customerSearch || u.name.includes(customerSearch) || u.phone.includes(customerSearch)
+      );
+    }
+  }, [customerType, customerSearch]);
+
+  const handleSelectCustomer = (id: string, name: string) => {
+    setCustomerId(id);
+    setCustomerName(name);
+    setCustomerDropdownOpen(false);
+    setCustomerSearch("");
+  };
+
+  const handleChangeCustomerType = (type: CustomerType) => {
+    setCustomerType(type);
+    setCustomerId("");
+    setCustomerName("");
+    setCustomerSearch("");
+  };
 
   const totalAmount = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
   const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
@@ -48,11 +83,11 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
   const selectedApps = appData.filter((a) => selectedAppIds.has(a.id));
 
   const handleSubmit = () => {
-    if (!customerName.trim()) return;
+    if (!customerId) return;
     const paymentStatus = orderType === "internal_grant" || orderType === "system_grant" ? "no_payment" as const : "pending" as const;
     const orderStatus = paymentStatus === "no_payment" ? "completed" as const : "pending" as const;
     onSave({
-      customerName, orderType: orderType as any, remark, items,
+      customerType, customerId, customerName, orderType: orderType as any, remark, items,
       totalAmount, paymentStatus, orderStatus,
     });
   };
@@ -66,10 +101,26 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
           </DialogHeader>
 
           <div className="space-y-4 py-2">
+            {/* 账户类型 + 选择账户 */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px]">企业名称 *</Label>
-                <Input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="请输入企业名称" />
+                <Label className="text-[13px]">账户类型 *</Label>
+                <div className="flex gap-1 bg-muted rounded-lg p-0.5">
+                  {CUSTOMER_TYPES.map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => handleChangeCustomerType(t.value)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] font-medium rounded-md transition-colors ${
+                        customerType === t.value
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {t.value === "B" ? <Building2 className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[13px]">订单类型</Label>
@@ -77,6 +128,81 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{ORDER_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            {/* 选择账户 */}
+            <div className="space-y-1.5">
+              <Label className="text-[13px]">{customerType === "B" ? "选择企业" : "选择用户"} *</Label>
+              <div className="relative">
+                {customerId ? (
+                  <div className="flex items-center justify-between border rounded-md px-3 py-2 bg-muted/30">
+                    <div className="flex items-center gap-2 text-[13px]">
+                      {customerType === "B" ? <Building2 className="h-3.5 w-3.5 text-primary" /> : <User className="h-3.5 w-3.5 text-primary" />}
+                      <span className="font-medium">{customerName}</span>
+                      {customerType === "B" && (() => {
+                        const ent = bEnterpriseData.find((e) => e.id === customerId);
+                        return ent ? <span className="text-[11px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{ent.type}</span> : null;
+                      })()}
+                      {customerType === "C" && (() => {
+                        const user = cUserData.find((u) => u.id === customerId);
+                        return user ? <span className="text-[11px] text-muted-foreground">{user.phone}</span> : null;
+                      })()}
+                    </div>
+                    <button onClick={() => { setCustomerId(""); setCustomerName(""); }} className="text-muted-foreground hover:text-destructive">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        value={customerSearch}
+                        onChange={(e) => { setCustomerSearch(e.target.value); setCustomerDropdownOpen(true); }}
+                        onFocus={() => setCustomerDropdownOpen(true)}
+                        placeholder={customerType === "B" ? "搜索企业名称..." : "搜索用户名/手机号..."}
+                        className="pl-8 text-[13px]"
+                      />
+                    </div>
+                    {customerDropdownOpen && (
+                      <div className="absolute z-50 w-full mt-1 bg-popover border rounded-lg shadow-lg max-h-[200px] overflow-y-auto">
+                        {filteredCustomers.length > 0 ? (
+                          customerType === "B" ? (
+                            (filteredCustomers as typeof bEnterpriseData).map((ent) => (
+                              <button
+                                key={ent.id}
+                                onClick={() => handleSelectCustomer(ent.id, ent.name)}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-muted/60 transition-colors text-left"
+                              >
+                                <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                <span className="truncate flex-1">{ent.name}</span>
+                                <span className="text-[11px] text-muted-foreground shrink-0">{ent.type}</span>
+                              </button>
+                            ))
+                          ) : (
+                            (filteredCustomers as typeof cUserData).map((user) => (
+                              <button
+                                key={user.id}
+                                onClick={() => handleSelectCustomer(user.id, user.name)}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-[13px] hover:bg-muted/60 transition-colors text-left"
+                              >
+                                <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                <span className="font-medium">{user.name}</span>
+                                <span className="text-[11px] text-muted-foreground">{user.phone}</span>
+                                {user.email && <span className="text-[11px] text-muted-foreground">{user.email}</span>}
+                              </button>
+                            ))
+                          )
+                        ) : (
+                          <div className="px-3 py-4 text-center text-[12px] text-muted-foreground">
+                            未找到匹配的{customerType === "B" ? "企业" : "用户"}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -141,7 +267,7 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
 
           <DialogFooter>
             <Button variant="outline" onClick={onClose}>取消</Button>
-            <Button onClick={handleSubmit} disabled={!customerName.trim() || items.length === 0}>确认</Button>
+            <Button onClick={handleSubmit} disabled={!customerId || items.length === 0}>确认</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -187,7 +313,6 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
     (!search || b.name.includes(search) || b.code.includes(search))
   );
 
-  // Group by app for display
   const skusByApp = appData.filter((a) => appFilter === "all" || a.id === appFilter).map((app) => ({
     app,
     skus: filteredSkus.filter((s) => s.appId === app.id),
@@ -216,7 +341,6 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
           <DialogTitle>选择商品/套餐（支持跨应用）</DialogTitle>
         </DialogHeader>
 
-        {/* Tabs + App filter + Search */}
         <div className="flex items-center gap-3 pb-3 border-b">
           <div className="flex gap-1 bg-muted rounded-lg p-0.5 shrink-0">
             <button onClick={() => setTab("sku")} className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors ${tab === "sku" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
@@ -240,7 +364,6 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
           <span className="text-[12px] text-muted-foreground whitespace-nowrap">已选 {localItems.length} 项</span>
         </div>
 
-        {/* List grouped by app */}
         <div className="flex-1 overflow-y-auto min-h-[300px] py-2">
           {tab === "sku" ? (
             <div className="space-y-3">
