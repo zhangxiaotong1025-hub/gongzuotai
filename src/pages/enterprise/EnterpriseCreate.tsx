@@ -508,14 +508,12 @@ function StepBasic({ form, update }: { form: any; update: (k: string, v: any) =>
 
 /* ============ Step 1-Sub: 子企业基础信息 ============ */
 function StepSubBasic({
-  form, update, parentName, allowedSubTypes, selectedSubType, onSubTypeChange,
+  form, update, parentName, type,
 }: {
   form: any;
   update: (k: string, v: any) => void;
   parentName: string;
-  allowedSubTypes: string[];
-  selectedSubType: string;
-  onSubTypeChange: (t: string) => void;
+  type: string;
 }) {
   return (
     <div className="p-6">
@@ -524,16 +522,8 @@ function StepSubBasic({
         <FormRow label="上级企业">
           <input className="filter-input w-full bg-muted/30" value={parentName} disabled />
         </FormRow>
-        <FormRow label="企业类型" required>
-          <select
-            className="filter-select w-full"
-            value={selectedSubType}
-            onChange={(e) => onSubTypeChange(e.target.value)}
-          >
-            {allowedSubTypes.map((t) => (
-              <option key={t} value={t}>{TYPE_LABELS[t]}</option>
-            ))}
-          </select>
+        <FormRow label="企业类型">
+          <input className="filter-input w-full bg-muted/30" value={TYPE_LABELS[type] || type} disabled />
         </FormRow>
         <FormRow label="企业名称" required>
           <input className="filter-input w-full" placeholder="请输入" value={form.name} onChange={(e) => update("name", e.target.value)} />
