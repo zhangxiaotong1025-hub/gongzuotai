@@ -33,6 +33,10 @@ export interface ActionItem<T> {
   };
 }
 
+function resolveLabel<T>(label: string | ((record: T) => string), record: T): string {
+  return typeof label === "function" ? label(record) : label;
+}
+
 interface AdminTableProps<T> {
   columns: TableColumn<T>[];
   data: T[];
