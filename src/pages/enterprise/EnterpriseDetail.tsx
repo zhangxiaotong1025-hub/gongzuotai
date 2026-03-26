@@ -1,34 +1,49 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info, Shield, Building2, Package, Tag, CheckCircle2, XCircle, Clock, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+/* ── Types ── */
+type AuditStatus = "pending" | "approved" | "rejected";
 
 /* ── Mock Detail Data ── */
 const MOCK_DETAIL = {
   id: "202020",
-  name: "上海XXXX股份有限公司",
+  name: "欧派家居集团股份有限公司",
   orgStructure: "总部",
-  orgName: "上海XXXX股份有限公司",
-  type: "品牌商",
-  industry: "上海XXXX股份有限公司",
-  region: "202020",
+  orgName: "欧派家居集团股份有限公司",
+  type: "brand",
+  typeName: "品牌商",
+  industry: "家居建材",
+  region: "华东",
   businessLicense: "",
-  licenseNo: "上海XXXX股份有限公司",
+  licenseNo: "91440000MA5XXXXXX",
   legalRep: "王小二",
   legalPhone: "18686886788",
-  address: "上海XXXX股份有限公司详细地址上海市陆家嘴中心8LXXX号",
-  activationCode: "202020",
+  address: "上海市浦东新区陆家嘴金融中心8号楼XXX室",
+  activationCode: "ACT-2025-0088",
   status: "active" as const,
+  auditStatus: "approved" as AuditStatus,
   admin: "张伟",
-  // 权益
   enabledProducts: ["国内3D工具", "国际3D工具", "精准客资"],
   supplyChain: "加入",
   renderRight: "未开启",
   benefitPackages: [
-    { name: "3D工具渲染权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, color: "hsl(var(--primary))" },
-    { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, color: "hsl(var(--info))" },
-    { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, color: "hsl(var(--destructive))" },
-    { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, color: "hsl(var(--primary))" },
-    { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, color: "hsl(var(--destructive))" },
+    { name: "3D工具渲染权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "primary" as const },
+    { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "info" as const },
+    { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "danger" as const },
+    { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "primary" as const },
+    { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "danger" as const },
   ],
   serviceType: "豪华版",
   accountCount: { used: 10, total: 10 },
@@ -40,58 +55,87 @@ const MOCK_DETAIL = {
   subEnterpriseLimit: { used: 20, total: 30 },
   subEnterpriseRight: "开启",
   subEnterpriseExpiry: "2027-12-31",
-  // 品牌
   ownedBrands: ["欧派", "索菲亚", "尚品宅配", "金牌厨柜"],
   agentBrands: ["志邦", "我乐", "好莱客", "皮阿诺", "顶固", "百得胜", "诗尼曼"],
 };
 
+/* ── Audit Status Config ── */
+const AUDIT_CFG: Record<AuditStatus, { label: string; icon: typeof Clock; colorClass: string; bgClass: string }> = {
+  pending: { label: "待审核", icon: Clock, colorClass: "text-warning", bgClass: "bg-warning/8" },
+  approved: { label: "审核通过", icon: CheckCircle2, colorClass: "text-success", bgClass: "bg-success/8" },
+  rejected: { label: "审核驳回", icon: XCircle, colorClass: "text-destructive", bgClass: "bg-destructive/8" },
+};
+
 /* ── Section Header ── */
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({ title, icon: Icon }: { title: string; icon: typeof Shield }) {
   return (
-    <div className="flex items-center gap-2 px-6 py-3 bg-muted/60 border-b border-border">
-      <div className="w-1 h-4 rounded-full bg-primary" />
-      <span className="text-sm font-semibold text-foreground">{title}</span>
+    <div className="flex items-center gap-2.5 px-6 py-3.5 border-b border-border" style={{ background: "hsl(var(--muted) / 0.5)" }}>
+      <Icon className="h-4 w-4 text-primary" />
+      <span className="text-[13px] font-semibold text-foreground tracking-wide">{title}</span>
     </div>
   );
 }
 
-/* ── Detail Field ── */
-function DetailField({ label, value, highlight, className }: { label: string; value: React.ReactNode; highlight?: boolean; className?: string }) {
+/* ── Sub-section Title ── */
+function SubTitle({ title }: { title: string }) {
   return (
-    <div className={`flex items-start gap-2 min-w-0 ${className || ""}`}>
-      <span className="text-sm text-muted-foreground whitespace-nowrap shrink-0">{label}：</span>
-      <span className={`text-sm ${highlight ? "text-primary" : "text-foreground"}`}>{value}</span>
+    <div className="flex items-center gap-2 mb-4">
+      <div className="w-0.5 h-3.5 rounded-full bg-primary/60" />
+      <h4 className="text-[13px] font-semibold text-foreground">{title}</h4>
+    </div>
+  );
+}
+
+/* ── Detail Row (Label + Value pair) ── */
+function DetailItem({ label, value, highlight, className }: { label: string; value: React.ReactNode; highlight?: boolean; className?: string }) {
+  return (
+    <div className={`flex items-start gap-1 min-w-0 ${className || ""}`}>
+      <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right">{label}：</span>
+      <span className={`text-[13px] min-w-0 ${highlight ? "text-primary font-medium" : "text-foreground"}`}>{value}</span>
     </div>
   );
 }
 
 /* ── Benefit Package Card ── */
+const VARIANT_COLORS: Record<string, { border: string; bg: string; text: string; bar: string }> = {
+  primary: { border: "hsl(var(--primary) / 0.2)", bg: "hsl(var(--primary) / 0.03)", text: "hsl(var(--primary))", bar: "hsl(var(--primary))" },
+  info: { border: "hsl(var(--info) / 0.2)", bg: "hsl(var(--info) / 0.03)", text: "hsl(var(--info))", bar: "hsl(var(--info))" },
+  danger: { border: "hsl(var(--destructive) / 0.2)", bg: "hsl(var(--destructive) / 0.03)", text: "hsl(var(--destructive))", bar: "hsl(var(--destructive))" },
+};
+
 function BenefitCard({ pkg }: { pkg: typeof MOCK_DETAIL.benefitPackages[0] }) {
   const ratio = pkg.total > 0 ? pkg.used / pkg.total : 0;
-  const isWarning = ratio >= 0.8;
+  const c = VARIANT_COLORS[pkg.variant] || VARIANT_COLORS.primary;
 
   return (
-    <div className="rounded-lg border border-border bg-card p-3 min-w-[180px] max-w-[200px] relative">
-      <div className="flex items-start justify-between gap-1 mb-1">
-        <span className="text-xs font-medium text-foreground leading-tight line-clamp-2">{pkg.name}</span>
-        <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+    <div
+      className="rounded-xl p-3.5 min-w-[185px] max-w-[200px] relative overflow-hidden transition-shadow hover:shadow-md"
+      style={{ border: `1px solid ${c.border}`, background: c.bg }}
+    >
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: c.bar }} />
+      <div className="flex items-start justify-between gap-1 mb-1.5">
+        <span className="text-xs font-semibold leading-tight line-clamp-2" style={{ color: c.text }}>{pkg.name}</span>
+        <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 cursor-pointer opacity-40 hover:opacity-80 transition-opacity" style={{ color: c.text }} />
       </div>
-      <div className="text-[11px] text-muted-foreground mb-2" style={{ color: pkg.color }}>{pkg.date}</div>
+      <div className="text-[11px] mb-3 opacity-70" style={{ color: c.text }}>{pkg.date}</div>
+      {/* Progress bar */}
+      <div className="h-1.5 rounded-full mb-2" style={{ background: `${c.bar}15` }}>
+        <div className="h-full rounded-full transition-all" style={{ width: `${ratio * 100}%`, background: c.bar }} />
+      </div>
       <div className="flex items-center justify-between">
         <span className="text-[11px] text-muted-foreground">已授权/已购买</span>
-        <span className={`text-sm font-semibold ${isWarning ? "text-destructive" : "text-foreground"}`}>
-          {pkg.used}/{pkg.total}
-        </span>
+        <span className="text-sm font-bold" style={{ color: c.text }}>{pkg.used}<span className="opacity-50">/{pkg.total}</span></span>
       </div>
     </div>
   );
 }
 
-/* ── Brand Placeholder ── */
-function BrandBlock({ name }: { name: string }) {
+/* ── Brand Card ── */
+function BrandCard({ name }: { name: string }) {
   return (
-    <div className="w-16 h-16 rounded-lg bg-muted border border-border flex items-center justify-center">
-      <span className="text-[10px] text-muted-foreground text-center leading-tight px-1">{name}</span>
+    <div className="w-[72px] h-[72px] rounded-xl border border-border bg-muted/40 flex items-center justify-center transition-all hover:shadow-sm hover:border-primary/20 cursor-default">
+      <span className="text-[11px] text-muted-foreground text-center leading-tight font-medium">{name}</span>
     </div>
   );
 }
@@ -99,81 +143,148 @@ function BrandBlock({ name }: { name: string }) {
 export default function EnterpriseDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const d = MOCK_DETAIL;
+  const [d, setD] = useState(MOCK_DETAIL);
+  const [confirmDialog, setConfirmDialog] = useState<{ type: "approve" | "reject" } | null>(null);
+
+  const auditCfg = AUDIT_CFG[d.auditStatus];
+  const AuditIcon = auditCfg.icon;
+
+  const handleAudit = (action: "approve" | "reject") => {
+    setD((prev) => ({
+      ...prev,
+      auditStatus: action === "approve" ? "approved" : "rejected",
+    }));
+    setConfirmDialog(null);
+  };
+
+  const hasBrands = d.type === "brand" || d.type === "mall";
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
+    <div className="space-y-5">
+      {/* Breadcrumb + Actions */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground cursor-pointer hover:text-primary" onClick={() => navigate("/enterprise")}>企业管理</span>
-          <span className="text-muted-foreground">/</span>
-          <span className="font-semibold text-foreground text-base">企业详情</span>
+        <div className="flex items-center gap-1.5 text-sm">
+          <span className="text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/enterprise")}>企业管理</span>
+          <span className="text-muted-foreground/50">/</span>
+          <span className="font-semibold text-foreground">企业详情</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1">
+          <Button variant="outline" size="sm" className="gap-1 text-[13px]">
             <ChevronLeft className="h-3.5 w-3.5" /> 上一个
           </Button>
-          <Button variant="outline" size="sm" className="gap-1">
+          <Button variant="outline" size="sm" className="gap-1 text-[13px]">
             下一个 <ChevronRight className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/enterprise")}>返回列表</Button>
-          <Button variant="outline" size="sm">审核</Button>
-          <Button size="sm">编辑</Button>
+          <Button variant="outline" size="sm" className="text-[13px]" onClick={() => navigate("/enterprise")}>返回列表</Button>
+          {d.auditStatus === "pending" && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-[13px] border-destructive/30 text-destructive hover:bg-destructive/5"
+                onClick={() => setConfirmDialog({ type: "reject" })}
+              >
+                驳回
+              </Button>
+              <Button
+                size="sm"
+                className="text-[13px] gap-1"
+                style={{ background: "hsl(var(--success))" }}
+                onClick={() => setConfirmDialog({ type: "approve" })}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" /> 审核通过
+              </Button>
+            </>
+          )}
+          <Button
+            size="sm"
+            className="text-[13px] gap-1.5"
+            onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}`)}
+          >
+            <Edit3 className="h-3.5 w-3.5" /> 编辑
+          </Button>
         </div>
       </div>
 
       {/* Main Card */}
       <div className="bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
-        {/* Enterprise Name */}
-        <div className="px-6 py-4 border-b border-border">
-          <span className="text-base font-semibold text-foreground">{d.name}</span>
+        {/* Top: Name + Status Banner */}
+        <div className="px-6 py-5 flex items-center justify-between border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.08)" }}>
+              <Building2 className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <div className="text-base font-semibold text-foreground">{d.name}</div>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-muted text-muted-foreground">{d.typeName}</span>
+                <span className="text-xs text-muted-foreground">ID: {d.id}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Audit Badge */}
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${auditCfg.colorClass}`} style={{ background: `hsl(var(--${d.auditStatus === "pending" ? "warning" : d.auditStatus === "approved" ? "success" : "destructive"}) / 0.08)` }}>
+              <AuditIcon className="h-3.5 w-3.5" />
+              {auditCfg.label}
+            </div>
+            {/* Business Status */}
+            {d.auditStatus === "approved" && (
+              <span className={d.status === "active" ? "badge-active" : "badge-inactive"}>
+                {d.status === "active" ? "已启用" : "已停用"}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* 基础信息 */}
-        <SectionHeader title="基础信息" />
-        <div className="px-6 py-5 space-y-4">
-          <div className="grid grid-cols-3 gap-x-8 gap-y-4">
-            <DetailField label="企业名称" value={d.name} />
-            <DetailField label="企业ID" value={d.id} />
-            <DetailField label="组织结构" value={
+        <SectionHeader title="基础信息" icon={Building2} />
+        <div className="px-6 py-5">
+          <div className="grid grid-cols-3 gap-x-6 gap-y-4">
+            <DetailItem label="企业名称" value={d.name} />
+            <DetailItem label="企业ID" value={d.id} />
+            <DetailItem label="组织结构" value={
               <span className="flex items-center gap-1.5">
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-primary/10 text-primary border border-primary/20">{d.orgStructure}</span>
-                <span>{d.orgName}</span>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}>{d.orgStructure}</span>
+                <span className="text-foreground">{d.orgName}</span>
               </span>
             } />
-            <DetailField label="行业" value={d.industry} />
-            <DetailField label="覆盖区域" value={d.region} />
-            <DetailField label="营业执照" value={
-              d.businessLicense ? <img src={d.businessLicense} alt="营业执照" className="w-12 h-12 rounded border" /> : <span className="w-12 h-12 rounded bg-muted border border-border inline-block" />
+            <DetailItem label="行业" value={d.industry} />
+            <DetailItem label="覆盖区域" value={d.region} />
+            <DetailItem label="营业执照" value={
+              <span className="w-14 h-14 rounded-lg border border-border bg-muted/50 inline-flex items-center justify-center text-[10px] text-muted-foreground">暂无</span>
             } />
-            <DetailField label="营业执照编号" value={d.licenseNo} />
-            <DetailField label="法人代表" value={d.legalRep} />
-            <DetailField label="法人手机号" value={d.legalPhone} />
-            <DetailField label="详细地址" value={d.address} className="col-span-2" />
-            <DetailField label="激活券码" value={d.activationCode} />
+            <DetailItem label="执照编号" value={d.licenseNo} />
+            <DetailItem label="法人代表" value={d.legalRep} />
+            <DetailItem label="法人手机号" value={d.legalPhone} />
+            <DetailItem label="详细地址" value={d.address} className="col-span-2" />
+            <DetailItem label="激活券码" value={d.activationCode} />
           </div>
         </div>
 
         {/* 权益配置 */}
-        <SectionHeader title="权益配置" />
-        <div className="px-6 py-5 space-y-6">
+        <SectionHeader title="权益配置" icon={Package} />
+        <div className="px-6 py-5 space-y-7">
           {/* 基础权益 */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground mb-3">基础权益</h4>
-            <div className="grid grid-cols-3 gap-x-8 gap-y-3">
-              <DetailField label="开启产品" value={d.enabledProducts.join("  ")} />
-              <DetailField label="是否加入供应链" value={d.supplyChain} />
-              <DetailField label="通用渲染权益" value={d.renderRight} />
+            <SubTitle title="基础权益" />
+            <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+              <DetailItem label="开启产品" value={
+                <div className="flex gap-1.5 flex-wrap">
+                  {d.enabledProducts.map((p) => <span key={p} className="badge-product">{p}</span>)}
+                </div>
+              } />
+              <DetailItem label="加入供应链" value={d.supplyChain} />
+              <DetailItem label="通用渲染权益" value={d.renderRight} />
             </div>
           </div>
 
           {/* 3D工具权益 */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground mb-3">3D工具权益</h4>
-            <div className="mb-4">
-              <div className="flex items-start gap-2 mb-3">
-                <span className="text-sm text-muted-foreground whitespace-nowrap shrink-0 mt-1">权益包：</span>
+            <SubTitle title="3D工具权益" />
+            <div className="mb-5">
+              <div className="flex items-start gap-1 mb-3">
+                <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right">权益包：</span>
                 <div className="flex gap-3 flex-wrap">
                   {d.benefitPackages.map((pkg, i) => (
                     <BenefitCard key={i} pkg={pkg} />
@@ -181,51 +292,79 @@ export default function EnterpriseDetail() {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-x-8 gap-y-3">
-              <DetailField label="服务类型" value={d.serviceType} />
-              <DetailField label="账号数量" value={
-                <span className="text-primary">{d.accountCount.used} / {d.accountCount.total}个</span>
-              } highlight />
-              <DetailField label="功能权益" value={d.funcRights} />
-              <DetailField label="渲染名额" value={
-                <span className="text-primary">{d.renderQuota.used} / {d.renderQuota.total}人</span>
-              } highlight />
-              <DetailField label="渲染配额" value={d.renderLimit} />
-              <DetailField label="企业素材库" value={d.materialLib} />
-              <DetailField label="开启环境" value={d.environments.join("  ")} />
+            <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+              <DetailItem label="服务类型" value={d.serviceType} />
+              <DetailItem label="账号数量" value={<>{d.accountCount.used} / {d.accountCount.total}个</>} highlight />
+              <DetailItem label="功能权益" value={d.funcRights} />
+              <DetailItem label="渲染名额" value={<>{d.renderQuota.used} / {d.renderQuota.total}人</>} highlight />
+              <DetailItem label="渲染配额" value={d.renderLimit} />
+              <DetailItem label="企业素材库" value={d.materialLib} />
+              <DetailItem label="开启环境" value={
+                <div className="flex gap-1.5">
+                  {d.environments.map((e) => <span key={e} className="badge-product">{e}</span>)}
+                </div>
+              } />
             </div>
           </div>
 
           {/* 企业权益 */}
           <div>
-            <h4 className="text-sm font-semibold text-foreground mb-3">企业权益</h4>
-            <div className="grid grid-cols-3 gap-x-8 gap-y-3">
-              <DetailField label="子企业上限数" value={
-                <span className="text-primary">{d.subEnterpriseLimit.used} / {d.subEnterpriseLimit.total}个</span>
-              } highlight />
-              <DetailField label="设置子企业权益" value={d.subEnterpriseRight} />
-              <DetailField label="到期时间" value={d.subEnterpriseExpiry} />
+            <SubTitle title="企业权益" />
+            <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+              <DetailItem label="子企业上限" value={<>{d.subEnterpriseLimit.used} / {d.subEnterpriseLimit.total}个</>} highlight />
+              <DetailItem label="子企业权益" value={d.subEnterpriseRight} />
+              <DetailItem label="到期时间" value={d.subEnterpriseExpiry} />
             </div>
           </div>
         </div>
 
         {/* 品牌设置 */}
-        <SectionHeader title="品牌设置" />
-        <div className="px-6 py-5 space-y-5">
-          <div className="flex items-start gap-2">
-            <span className="text-sm text-muted-foreground whitespace-nowrap shrink-0 mt-2">拥有品牌：</span>
-            <div className="flex gap-3 flex-wrap">
-              {d.ownedBrands.map((b) => <BrandBlock key={b} name={b} />)}
+        {hasBrands && (
+          <>
+            <SectionHeader title="品牌设置" icon={Tag} />
+            <div className="px-6 py-5 space-y-5">
+              <div className="flex items-start gap-1">
+                <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right mt-5">拥有品牌：</span>
+                <div className="flex gap-3 flex-wrap">
+                  {d.ownedBrands.map((b) => <BrandCard key={b} name={b} />)}
+                </div>
+              </div>
+              <div className="flex items-start gap-1">
+                <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right mt-5">代理品牌：</span>
+                <div className="flex gap-3 flex-wrap">
+                  {d.agentBrands.map((b) => <BrandCard key={b} name={b} />)}
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-sm text-muted-foreground whitespace-nowrap shrink-0 mt-2">代理品牌：</span>
-            <div className="flex gap-3 flex-wrap">
-              {d.agentBrands.map((b) => <BrandBlock key={b} name={b} />)}
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
+
+      {/* Audit Confirmation Dialogs */}
+      <AlertDialog open={!!confirmDialog} onOpenChange={() => setConfirmDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDialog?.type === "approve" ? "确认审核通过？" : "确认驳回该企业？"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog?.type === "approve"
+                ? "审核通过后该企业可以被启用，并正常使用已配置的产品和权益。"
+                : "驳回后企业信息需要重新编辑并提交审核，当前配置将保留。"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className={confirmDialog?.type === "reject" ? "bg-destructive hover:bg-destructive/90" : ""}
+              style={confirmDialog?.type === "approve" ? { background: "hsl(var(--success))" } : undefined}
+              onClick={() => confirmDialog && handleAudit(confirmDialog.type)}
+            >
+              {confirmDialog?.type === "approve" ? "确认通过" : "确认驳回"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
