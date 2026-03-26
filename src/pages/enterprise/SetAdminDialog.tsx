@@ -24,17 +24,14 @@ export function SetAdminDialog({ open, onClose, onConfirm, enterpriseName }: Set
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Overlay */}
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-
-      {/* Dialog */}
       <div
         className="relative w-full max-w-[520px] rounded-xl border bg-card overflow-hidden animate-in fade-in-0 zoom-in-95 duration-150"
         style={{ boxShadow: "var(--shadow-md)" }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b">
-          <h3 className="text-base font-semibold text-foreground">设置管理员</h3>
+        {/* Header — matches AdminTable confirm dialog style */}
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ background: "hsl(var(--muted) / 0.4)" }}>
+          <h3 className="text-[15px] font-semibold text-foreground">设置管理员</h3>
           <button
             onClick={onClose}
             className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -43,7 +40,7 @@ export function SetAdminDialog({ open, onClose, onConfirm, enterpriseName }: Set
           </button>
         </div>
 
-        {/* Body */}
+        {/* Body — unified label width 100px, gap-3 */}
         <div className="px-6 py-6 space-y-5">
           {enterpriseName && (
             <div className="flex items-center gap-3">
@@ -69,7 +66,7 @@ export function SetAdminDialog({ open, onClose, onConfirm, enterpriseName }: Set
           <div className="flex items-center gap-3">
             <label className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">
               <span className="text-destructive mr-0.5">*</span>
-              管理员手机号：
+              管理员手机：
             </label>
             <input
               className="filter-input flex-1"
@@ -83,34 +80,20 @@ export function SetAdminDialog({ open, onClose, onConfirm, enterpriseName }: Set
           <div className="flex items-center gap-3">
             <label className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">企业状态：</label>
             <div className="flex items-center gap-4">
-              <label
-                className="flex items-center gap-1.5 cursor-pointer"
-                onClick={() => setStatus("inactive")}
-              >
-                <div
-                  className={`w-4 h-4 rounded-full border-2 transition-colors ${
-                    status === "inactive" ? "border-[5px] border-foreground" : "border-border"
-                  }`}
-                />
+              <label className="flex items-center gap-1.5 cursor-pointer" onClick={() => setStatus("inactive")}>
+                <div className={`w-4 h-4 rounded-full border-2 transition-colors ${status === "inactive" ? "border-[5px] border-foreground" : "border-border"}`} />
                 <span className="text-[13px] text-foreground">停用</span>
               </label>
-              <label
-                className="flex items-center gap-1.5 cursor-pointer"
-                onClick={() => setStatus("active")}
-              >
-                <div
-                  className={`w-4 h-4 rounded-full border-2 transition-colors ${
-                    status === "active" ? "border-[5px] border-foreground" : "border-border"
-                  }`}
-                />
+              <label className="flex items-center gap-1.5 cursor-pointer" onClick={() => setStatus("active")}>
+                <div className={`w-4 h-4 rounded-full border-2 transition-colors ${status === "active" ? "border-[5px] border-foreground" : "border-border"}`} />
                 <span className="text-[13px] text-foreground">启用</span>
               </label>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-center gap-3 px-6 py-5 border-t">
+        {/* Footer — matches system dialog pattern */}
+        <div className="flex items-center justify-center gap-3 px-5 py-4 border-t">
           <button onClick={onClose} className="btn-secondary">取消</button>
           <button
             onClick={handleConfirm}
