@@ -1,6 +1,11 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Check, ChevronLeft, Upload, X, Plus, Info, Search, Package } from "lucide-react";
+import { Check, ChevronLeft, Upload, X, Plus, Info, Search, Package, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 
 const TYPE_LABELS: Record<string, string> = {
   brand: "品牌商", dealer: "经销商", hq: "总部公司", studio: "工作室", supplier: "供应商",
@@ -54,6 +59,52 @@ const BENEFIT_CATALOG: Record<string, { name: string; desc: string; color: strin
     { name: "直播权益包", desc: "含直播推流、互动工具", color: "hsl(221 83% 53%)" },
   ],
 };
+
+/* ── Date Range Picker Component ── */
+function DateRangePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const parts = (value || "").split(" ~ ");
+  const startDate = parts[0] ? new Date(parts[0]) : undefined;
+  const endDate = parts[1] ? new Date(parts[1]) : undefined;
+
+  const handleSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (!range) { onChange(""); return; }
+    const from = range.from ? format(range.from, "yyyy-MM-dd") : "";
+    const to = range.to ? format(range.to, "yyyy-MM-dd") : "";
+    onChange(to ? `${from} ~ ${to}` : from);
+  };
+
+  const displayText = startDate && endDate
+    ? `${format(startDate, "yyyy/MM/dd")} ~ ${format(endDate, "yyyy/MM/dd")}`
+    : startDate
+    ? `${format(startDate, "yyyy/MM/dd")} ~ 结束日期`
+    : "";
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-7 w-full justify-start text-left font-normal text-[12px] px-2",
+            !value && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-1.5 h-3 w-3 opacity-50 shrink-0" />
+          {displayText || <span>选择时间段</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="range"
+          selected={startDate && endDate ? { from: startDate, to: endDate } : startDate ? { from: startDate, to: undefined } : undefined}
+          onSelect={handleSelect as any}
+          numberOfMonths={2}
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 interface BenefitRow {
   id: string;
@@ -554,7 +605,6 @@ function BenefitListSection({
           {/* Rows */}
           {rows.map((row) => {
             const color = getTagColor(row.packageName);
-            const [startDate, endDate] = (row.dateRange || "").split(" ~ ");
             return (
               <div
                 key={row.id}
@@ -594,20 +644,11 @@ function BenefitListSection({
                     <span className="text-[12px] text-muted-foreground">全员</span>
                   )}
                 </div>
-                {/* Date range */}
-                <div className="px-3 py-2.5 flex items-center gap-1.5">
-                  <input
-                    type="date"
-                    className="filter-input h-7 text-[12px] flex-1 px-1.5 min-w-0"
-                    value={startDate?.trim() || ""}
-                    onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${e.target.value} ~ ${endDate?.trim() || ""}`)}
-                  />
-                  <span className="text-[11px] text-muted-foreground shrink-0">~</span>
-                  <input
-                    type="date"
-                    className="filter-input h-7 text-[12px] flex-1 px-1.5 min-w-0"
-                    value={endDate?.trim() || ""}
-                    onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${startDate?.trim() || ""} ~ ${e.target.value}`)}
+                {/* Date range picker */}
+                <div className="px-3 py-2.5">
+                  <DateRangePicker
+                    value={row.dateRange}
+                    onChange={(val) => onUpdate(productKey, type, row.id, "dateRange", val)}
                   />
                 </div>
                 {/* Delete */}
