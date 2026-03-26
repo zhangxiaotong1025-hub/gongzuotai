@@ -61,7 +61,7 @@ function generateEnterprise(id: string, depth = 0): Enterprise {
   };
 }
 
-const mockData: Enterprise[] = Array.from({ length: 10 }, (_, i) =>
+const initialData: Enterprise[] = Array.from({ length: 10 }, (_, i) =>
   generateEnterprise(`ENT${String(i + 1).padStart(3, "0")}`)
 );
 
