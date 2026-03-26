@@ -23,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Navigate to="/enterprise" replace />} />
             <Route path="/enterprise" element={<EnterpriseList />} />
             <Route path="/enterprise/create" element={<EnterpriseCreate />} />
+            <Route path="/enterprise/detail/:id" element={<EnterpriseDetail />} />
             <Route path="/enterprise/staff" element={<PlaceholderPage title="人员管理" />} />
             <Route path="/enterprise/apply" element={<PlaceholderPage title="企业入驻申请" />} />
             <Route path="/permission" element={<PlaceholderPage title="权限管理" />} />

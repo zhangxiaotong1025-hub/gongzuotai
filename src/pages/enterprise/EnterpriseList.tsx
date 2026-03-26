@@ -220,7 +220,7 @@ export default function EnterpriseList() {
   }, [handleToggleStatus]);
 
   const listActions: ActionItem<Enterprise>[] = [
-    { label: "查看", onClick: (r) => console.log("查看", r.id) },
+    { label: "查看", onClick: (r) => navigate(`/enterprise/detail/${r.id}`) },
     {
       label: "停用",
       onClick: handleToggleStatus,
