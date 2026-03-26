@@ -1,6 +1,11 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Check, ChevronLeft, Upload, X, Plus, Info, Search, Package } from "lucide-react";
+import { Check, ChevronLeft, Upload, X, Plus, Info, Search, Package, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 
 const TYPE_LABELS: Record<string, string> = {
   brand: "品牌商", dealer: "经销商", hq: "总部公司", studio: "工作室", supplier: "供应商",
@@ -594,20 +599,11 @@ function BenefitListSection({
                     <span className="text-[12px] text-muted-foreground">全员</span>
                   )}
                 </div>
-                {/* Date range */}
-                <div className="px-3 py-2.5 flex items-center gap-1.5">
-                  <input
-                    type="date"
-                    className="filter-input h-7 text-[12px] flex-1 px-1.5 min-w-0"
-                    value={startDate?.trim() || ""}
-                    onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${e.target.value} ~ ${endDate?.trim() || ""}`)}
-                  />
-                  <span className="text-[11px] text-muted-foreground shrink-0">~</span>
-                  <input
-                    type="date"
-                    className="filter-input h-7 text-[12px] flex-1 px-1.5 min-w-0"
-                    value={endDate?.trim() || ""}
-                    onChange={(e) => onUpdate(productKey, type, row.id, "dateRange", `${startDate?.trim() || ""} ~ ${e.target.value}`)}
+                {/* Date range picker */}
+                <div className="px-3 py-2.5">
+                  <DateRangePicker
+                    value={row.dateRange}
+                    onChange={(val) => onUpdate(productKey, type, row.id, "dateRange", val)}
                   />
                 </div>
                 {/* Delete */}
