@@ -139,6 +139,26 @@
     @apply w-1.5 h-1.5 rounded-full;
     background: hsl(var(--muted-foreground));
   }
+  .badge-warning {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(var(--warning) / 0.08);
+    color: hsl(var(--warning));
+  }
+  .badge-warning::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full;
+    background: hsl(var(--warning));
+  }
+  .badge-danger {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+    background: hsl(var(--destructive) / 0.08);
+    color: hsl(var(--destructive));
+  }
+  .badge-danger::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full;
+    background: hsl(var(--destructive));
+  }
   .badge-product {
     @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-normal;
     background: hsl(var(--primary) / 0.06);
