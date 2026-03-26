@@ -55,7 +55,7 @@ export default function CapabilityDetail() {
             </tr></thead>
             <tbody>
               {rules.map((r) => {
-                const skuCount = skuData.filter((s) => s.ruleId === r.id).length;
+                const skuCount = skuData.filter((s) => s.ruleIds.includes(r.id)).length;
                 return (
                   <tr key={r.id} className="border-b border-border/40 hover:bg-muted/30">
                     <td className="py-2"><Link to={`/entitlement/rule/detail/${r.id}`} className="text-primary hover:underline font-medium">{r.name}</Link></td>

@@ -97,7 +97,7 @@ function BundleDialog({ open, onClose, onSave, initial }: { open: boolean; onClo
                       {form.selectedSkuIds.includes(s.id) && <Check className="h-3 w-3 text-primary-foreground" />}
                     </button>
                     <span className={`flex-1 ${form.selectedSkuIds.includes(s.id) ? "text-primary font-medium" : "text-foreground"}`}>{s.name}</span>
-                    <span className="text-[11px] text-muted-foreground">{rule?.name || ""}</span>
+                    <span className="text-[11px] text-muted-foreground">{s.ruleIds.length}条规则</span>
                     {form.selectedSkuIds.includes(s.id) && (
                       <div className="flex items-center gap-1">
                         <span className="text-[11px] text-muted-foreground">×</span>

@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { bundleData, skuData, ruleData, capabilityData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, getRule, getCapability } from "@/data/entitlement";
+import { bundleData, skuData, ruleData, capabilityData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, getRule, getCapability, getRulesBySkuId } from "@/data/entitlement";
 import { ArrowLeft } from "lucide-react";
 
 export default function PackageDetail() {
@@ -12,9 +12,8 @@ export default function PackageDetail() {
 
   const enrichedItems = bundle.items.map((item) => {
     const sku = skuData.find((s) => s.id === item.skuId);
-    const rule = sku ? getRule(sku.ruleId) : null;
-    const cap = rule ? getCapability(rule.capabilityId) : null;
-    return { ...item, sku, rule, cap };
+    const rules = sku ? getRulesBySkuId(sku.id) : [];
+    return { ...item, sku, rules };
   });
 
   return (
@@ -46,22 +45,24 @@ export default function PackageDetail() {
             <thead><tr className="border-b text-muted-foreground">
               <th className="text-left py-2 font-medium">商品名称</th>
               <th className="text-center py-2 font-medium">数量</th>
-              <th className="text-left py-2 font-medium">权益规则</th>
-              <th className="text-left py-2 font-medium">能力</th>
-              <th className="text-right py-2 font-medium">额度</th>
-              <th className="text-left py-2 font-medium">发放方式</th>
+              <th className="text-left py-2 font-medium">包含规则</th>
               <th className="text-right py-2 font-medium">单价</th>
               <th className="text-left py-2 font-medium">操作</th>
             </tr></thead>
             <tbody>
-              {enrichedItems.map(({ skuId, skuName, quantity, sku, rule, cap }) => (
+              {enrichedItems.map(({ skuId, skuName, quantity, sku, rules }) => (
                 <tr key={skuId} className="border-b border-border/40 hover:bg-muted/30">
                   <td className="py-2 font-medium text-foreground">{skuName}</td>
                   <td className="py-2 text-center">{quantity > 1 ? <span className="text-primary font-medium">×{quantity}</span> : "1"}</td>
-                  <td className="py-2">{rule ? <Link to={`/entitlement/rule/detail/${rule.id}`} className="text-primary hover:underline text-[12px]">{rule.name}</Link> : "—"}</td>
-                  <td className="py-2">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-muted-foreground hover:text-primary text-[12px]">{cap.name}</Link> : "—"}</td>
-                  <td className="py-2 text-right font-medium">{rule ? `${rule.quota.toLocaleString()} ${cap?.unit || ""}` : "—"}</td>
-                  <td className="py-2 text-muted-foreground">{rule ? GRANT_TYPES.find((g) => g.value === rule.grantType)?.label : "—"}</td>
+                  <td className="py-2">
+                    <div className="flex flex-wrap gap-1">
+                      {rules.map((r) => {
+                        const cap = getCapability(r.capabilityId);
+                        return <Link key={r.id} to={`/entitlement/rule/detail/${r.id}`} className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-muted text-muted-foreground hover:text-primary">{r.name}</Link>;
+                      })}
+                      {rules.length === 0 && <span className="text-muted-foreground">—</span>}
+                    </div>
+                  </td>
                   <td className="py-2 text-right">{sku && sku.price > 0 ? `¥${sku.price}` : "—"}</td>
                   <td className="py-2"><Link to={`/entitlement/sku/detail/${skuId}`} className="text-primary hover:underline text-[12px]">查看</Link></td>
                 </tr>

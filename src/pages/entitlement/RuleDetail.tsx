@@ -10,7 +10,7 @@ export default function RuleDetail() {
 
   const cap = getCapability(rule.capabilityId);
   const app = cap ? getApp(cap.appId) : null;
-  const skus = skuData.filter((s) => s.ruleId === rule.id);
+  const skus = skuData.filter((s) => s.ruleIds.includes(rule.id));
   const bundles = bundleData.filter((b) => b.items.some((i) => skus.some((s) => s.id === i.skuId)));
 
   return (
