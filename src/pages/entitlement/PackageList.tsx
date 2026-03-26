@@ -170,7 +170,25 @@ export default function PackageList() {
         }
       />
       <FilterBar fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onSearch={() => {}} onReset={() => setFilters({})} maxVisible={3} />
-      <AdminTable columns={columns} data={data} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} renderExpandedRow={renderExpandedRow} />
+      <AdminTable columns={columns} data={data} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
+
+      {/* Expanded rows shown below the table */}
+      {data.filter((d) => expandedRows.has(d.id)).map((row) => (
+        <div key={row.id} className="bg-card rounded-xl border px-5 py-4" style={{ boxShadow: "var(--shadow-xs)" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[13px] font-semibold text-foreground">{row.name}</span>
+            <span className="text-[12px] text-muted-foreground">包含权益（{row.skuList.length}项）</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {row.skuList.map((sku) => (
+              <span key={sku.name} className={`inline-flex items-center px-2.5 py-1 rounded text-[12px] ${sku.isCore ? "bg-primary/10 text-primary font-medium" : "bg-muted text-muted-foreground"}`}>
+                {sku.isCore && <span className="w-1 h-1 rounded-full bg-primary mr-1.5" />}
+                {sku.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
       <div className="bg-card rounded-xl border" style={{ boxShadow: "var(--shadow-xs)" }}>
         <Pagination current={currentPage} total={data.length} pageSize={pageSize} onPageChange={setCurrentPage} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} />
       </div>
