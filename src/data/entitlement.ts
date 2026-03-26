@@ -297,9 +297,57 @@ export interface OrderItem {
   unitPrice: number;
 }
 
+export type CustomerType = "B" | "C";
+export const CUSTOMER_TYPES: { value: CustomerType; label: string }[] = [
+  { value: "B", label: "B端企业" },
+  { value: "C", label: "C端用户" },
+];
+
+/** C端用户模拟数据 */
+export interface CUser {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+}
+
+export const cUserData: CUser[] = [
+  { id: "user1", name: "张三", phone: "138****1234", email: "zhangsan@example.com" },
+  { id: "user2", name: "李四", phone: "139****5678", email: "lisi@example.com" },
+  { id: "user3", name: "王五", phone: "137****9012" },
+  { id: "user4", name: "赵六", phone: "136****3456", email: "zhaoliu@example.com" },
+  { id: "user5", name: "刘七", phone: "135****7890" },
+  { id: "user6", name: "陈八", phone: "158****2345", email: "chba@example.com" },
+  { id: "user7", name: "周九", phone: "159****6789" },
+  { id: "user8", name: "吴十", phone: "186****0123", email: "wushi@example.com" },
+];
+
+/** B端企业模拟数据（从企业管理引用） */
+export interface BEnterprise {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export const bEnterpriseData: BEnterprise[] = [
+  { id: "cust1", name: "欧派家居集团股份有限公司", type: "品牌商" },
+  { id: "cust2", name: "索菲亚家居股份有限公司", type: "品牌商" },
+  { id: "cust3", name: "尚品宅配家居股份有限公司", type: "品牌商" },
+  { id: "cust4", name: "金牌厨柜家居科技股份有限公司", type: "品牌商" },
+  { id: "cust5", name: "志邦家居股份有限公司", type: "品牌商" },
+  { id: "cust6", name: "我乐家居股份有限公司", type: "品牌商" },
+  { id: "cust7", name: "好莱客创意家居股份有限公司", type: "品牌商" },
+  { id: "cust8", name: "北京金隅装饰工程有限公司", type: "装修公司" },
+  { id: "cust9", name: "上海东易日盛装饰有限公司", type: "装修公司" },
+  { id: "cust10", name: "居然之家投资控股集团", type: "卖场" },
+  { id: "cust11", name: "红星美凯龙家居集团", type: "卖场" },
+  { id: "cust12", name: "深圳市名雕装饰股份有限公司", type: "装修公司" },
+];
+
 export interface EntitlementOrder {
   id: string;
   orderNo: string;
+  customerType: CustomerType;
   customerId: string;
   customerName: string;
   /** 订单不绑定单一应用，涉及的应用从 items 中的商品/套餐推导 */
