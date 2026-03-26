@@ -90,7 +90,6 @@ function BundleDialog({ open, onClose, onSave, initial }: { open: boolean; onClo
             <label className="text-[13px] text-muted-foreground">包含商品 <span className="text-destructive">*</span> <span className="text-[11px]">（已选{form.selectedSkuIds.length}个）</span></label>
             <div className="border rounded-lg p-2 max-h-[220px] overflow-y-auto space-y-0.5">
               {availableSkus.map((s) => {
-                const rule = getRule(s.ruleId);
                 return (
                   <div key={s.id} className={`flex items-center gap-3 px-3 py-2 rounded-md text-[13px] transition-all ${form.selectedSkuIds.includes(s.id) ? "bg-primary/10" : "hover:bg-muted/60"}`}>
                     <button onClick={() => toggleSku(s.id)} className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${form.selectedSkuIds.includes(s.id) ? "bg-primary border-primary" : "border-border"}`}>

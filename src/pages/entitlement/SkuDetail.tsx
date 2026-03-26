@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { skuData, ruleData, capabilityData, appData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, DATA_TYPES, getCapability, getApp, getRule } from "@/data/entitlement";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { skuData, ruleData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, DATA_TYPES, getCapability, getApp, getRule } from "@/data/entitlement";
+import { ArrowLeft } from "lucide-react";
 
 export default function SkuDetail() {
   const { id } = useParams();
@@ -8,8 +8,7 @@ export default function SkuDetail() {
   const sku = skuData.find((s) => s.id === id);
   if (!sku) return <div className="p-10 text-center text-muted-foreground">商品不存在</div>;
 
-  const rule = getRule(sku.ruleId);
-  const cap = rule ? getCapability(rule.capabilityId) : null;
+  const rules = sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean);
   const app = getApp(sku.appId);
   const bundles = bundleData.filter((b) => b.items.some((i) => i.skuId === sku.id));
 
@@ -36,53 +35,40 @@ export default function SkuDetail() {
         {sku.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t">{sku.description}</p>}
       </div>
 
-      {/* Full relationship chain */}
+      {/* Rules table */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <h3 className="text-[14px] font-semibold text-foreground mb-4">完整关联链路</h3>
-        <div className="flex items-center gap-3 text-[13px] flex-wrap">
-          <div className="px-4 py-3 rounded-lg border bg-muted/30 text-center">
-            <div className="text-[11px] text-muted-foreground mb-1">应用</div>
-            {app ? <Link to={`/entitlement/app/detail/${app.id}`} className="text-primary hover:underline font-medium">{app.name}</Link> : <span>—</span>}
-          </div>
-          <span className="text-muted-foreground">→</span>
-          <div className="px-4 py-3 rounded-lg border bg-muted/30 text-center">
-            <div className="text-[11px] text-muted-foreground mb-1">能力</div>
-            {cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-primary hover:underline font-medium">{cap.name}</Link> : <span>—</span>}
-          </div>
-          <span className="text-muted-foreground">→</span>
-          <div className="px-4 py-3 rounded-lg border bg-muted/30 text-center">
-            <div className="text-[11px] text-muted-foreground mb-1">权益规则</div>
-            {rule ? <Link to={`/entitlement/rule/detail/${rule.id}`} className="text-primary hover:underline font-medium">{rule.name}</Link> : <span>—</span>}
-          </div>
-          <span className="text-muted-foreground">→</span>
-          <div className="px-4 py-3 rounded-lg border border-primary/40 bg-primary/5 text-center">
-            <div className="text-[11px] text-primary mb-1">当前商品</div>
-            <span className="font-semibold text-foreground">{sku.name}</span>
-          </div>
-          {bundles.length > 0 && <>
-            <span className="text-muted-foreground">→</span>
-            <div className="px-4 py-3 rounded-lg border bg-muted/30 text-center">
-              <div className="text-[11px] text-muted-foreground mb-1">套餐</div>
-              <span className="text-primary font-medium">{bundles.length}个</span>
-            </div>
-          </>}
+        <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益规则 ({rules.length})</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead><tr className="border-b text-muted-foreground">
+              <th className="text-left py-2 font-medium">规则名称</th>
+              <th className="text-left py-2 font-medium">能力</th>
+              <th className="text-right py-2 font-medium">额度</th>
+              <th className="text-left py-2 font-medium">周期</th>
+              <th className="text-left py-2 font-medium">发放方式</th>
+              <th className="text-left py-2 font-medium">累积</th>
+              <th className="text-left py-2 font-medium">过期策略</th>
+            </tr></thead>
+            <tbody>
+              {rules.map((r) => {
+                if (!r) return null;
+                const cap = getCapability(r.capabilityId);
+                return (
+                  <tr key={r.id} className="border-b border-border/40 hover:bg-muted/30">
+                    <td className="py-2"><Link to={`/entitlement/rule/detail/${r.id}`} className="text-primary hover:underline font-medium">{r.name}</Link></td>
+                    <td className="py-2">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-muted-foreground hover:text-primary">{cap.name}</Link> : "—"}</td>
+                    <td className="py-2 text-right font-medium">{r.quota.toLocaleString()} {cap?.unit || ""}</td>
+                    <td className="py-2 text-muted-foreground">{PERIOD_TYPES.find((p) => p.value === r.periodType)?.label}{r.periodValue > 0 ? `·${r.periodValue}` : ""}</td>
+                    <td className="py-2 text-muted-foreground">{GRANT_TYPES.find((g) => g.value === r.grantType)?.label}</td>
+                    <td className="py-2">{r.isCumulative ? <span className="text-primary font-medium">是</span> : <span className="text-muted-foreground">否</span>}</td>
+                    <td className="py-2 text-muted-foreground">{EXPIRE_POLICIES.find((e) => e.value === r.expirePolicy)?.label}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      {/* Rule detail */}
-      {rule && (
-        <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益规则</h3>
-          <div className="grid grid-cols-6 gap-4 text-[13px]">
-            <div><span className="text-muted-foreground">规则名称</span><div className="mt-0.5"><Link to={`/entitlement/rule/detail/${rule.id}`} className="text-primary hover:underline font-medium">{rule.name}</Link></div></div>
-            <div><span className="text-muted-foreground">额度</span><div className="font-medium text-foreground mt-0.5">{rule.quota.toLocaleString()} {cap?.unit}</div></div>
-            <div><span className="text-muted-foreground">周期</span><div className="text-foreground mt-0.5">{PERIOD_TYPES.find((p) => p.value === rule.periodType)?.label}</div></div>
-            <div><span className="text-muted-foreground">发放方式</span><div className="text-foreground mt-0.5">{GRANT_TYPES.find((g) => g.value === rule.grantType)?.label}</div></div>
-            <div><span className="text-muted-foreground">累积</span><div className={`mt-0.5 ${rule.isCumulative ? "text-primary font-medium" : "text-muted-foreground"}`}>{rule.isCumulative ? "是" : "否"}</div></div>
-            <div><span className="text-muted-foreground">过期策略</span><div className="text-foreground mt-0.5">{EXPIRE_POLICIES.find((e) => e.value === rule.expirePolicy)?.label}</div></div>
-          </div>
-        </div>
-      )}
 
       {/* Bundles */}
       {bundles.length > 0 && (
