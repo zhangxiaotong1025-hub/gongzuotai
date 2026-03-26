@@ -6,7 +6,7 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download, X } from "lucide-react";
-import { skuData as initialData, appData, entitlementProductData, getProductsByApp, BILLING_CYCLES, STATUS_MAP, type Sku, type BillingCycle } from "@/data/entitlement";
+import { skuData as initialData, appData, ruleData, BILLING_CYCLES, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, type Sku, type BillingCycle, getCapability, getApp, getRulesByApp } from "@/data/entitlement";
 
 const filterFields: FilterField[] = [
   { key: "name", label: "商品名称/编码", type: "input", placeholder: "请输入", width: 200 },
@@ -15,17 +15,18 @@ const filterFields: FilterField[] = [
 ];
 
 function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; onClose: () => void; onSave: (d: any) => void; initial?: Sku | null }) {
+  const initApp = initial ? initial.appId : appData[0]?.id;
   const [form, setForm] = useState({
     name: initial?.name || "", code: initial?.code || "",
-    appId: initial?.appId || appData[0]?.id, appName: initial?.appName || appData[0]?.name,
-    productId: initial?.productId || "", productName: initial?.productName || "",
+    appId: initApp,
+    ruleId: initial?.ruleId || "",
     price: initial?.price ?? 0, billingCycle: (initial?.billingCycle || "once") as BillingCycle,
     sortOrder: initial?.sortOrder ?? 1, description: initial?.description || "",
   });
   const isEdit = Boolean(initial);
   if (!open) return null;
 
-  const availableProducts = getProductsByApp(form.appId).filter((p) => p.status === "active");
+  const availableRules = getRulesByApp(form.appId).filter((r) => r.status === "active");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -51,21 +52,18 @@ function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; onClose:
           </div>
           <div className="space-y-1.5">
             <label className="text-[13px] text-muted-foreground">所属应用 <span className="text-destructive">*</span></label>
-            <select className="filter-input w-full" value={form.appId} onChange={(e) => {
-              const app = appData.find((a) => a.id === e.target.value);
-              setForm({ ...form, appId: e.target.value, appName: app?.name || "", productId: "", productName: "" });
-            }}>
+            <select className="filter-input w-full" value={form.appId} onChange={(e) => setForm({ ...form, appId: e.target.value, ruleId: "" })}>
               {appData.filter((a) => a.status === "active").map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
           </div>
           <div className="space-y-1.5">
             <label className="text-[13px] text-muted-foreground">关联权益规则 <span className="text-destructive">*</span></label>
-            <select className="filter-input w-full" value={form.productId} onChange={(e) => {
-              const p = entitlementProductData.find((p) => p.id === e.target.value);
-              setForm({ ...form, productId: e.target.value, productName: p?.name || "" });
-            }}>
+            <select className="filter-input w-full" value={form.ruleId} onChange={(e) => setForm({ ...form, ruleId: e.target.value })}>
               <option value="">请选择权益规则</option>
-              {availableProducts.map((p) => <option key={p.id} value={p.id}>{p.name}（{p.capabilityName} · {p.quota}{p.period === "daily" ? "/日" : ""}）</option>)}
+              {availableRules.map((r) => {
+                const cap = getCapability(r.capabilityId);
+                return <option key={r.id} value={r.id}>{r.name}（{cap?.name} · {r.quota}{cap?.unit}）</option>;
+              })}
             </select>
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -91,7 +89,7 @@ function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; onClose:
         </div>
         <div className="flex gap-3 px-5 py-4 border-t">
           <button className="btn-secondary flex-1" onClick={onClose}>取消</button>
-          <button className="btn-primary flex-1" disabled={!form.name.trim() || !form.code.trim() || !form.productId} onClick={() => onSave(form)}>{isEdit ? "保存" : "创建"}</button>
+          <button className="btn-primary flex-1" disabled={!form.name.trim() || !form.code.trim() || !form.ruleId} onClick={() => onSave(form)}>{isEdit ? "保存" : "创建"}</button>
         </div>
       </div>
     </div>
@@ -124,10 +122,10 @@ export default function SkuList() {
   }, []);
 
   const columns: TableColumn<Sku>[] = [
-    { key: "name", title: "商品名称", minWidth: 140, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/sku/detail/${(row as Sku).id}`)}>{v}</button> },
+    { key: "name", title: "商品名称", minWidth: 160, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/sku/detail/${(row as Sku).id}`)}>{v}</button> },
     { key: "code", title: "编码", minWidth: 140, render: (v) => <code className="text-[12px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">{v}</code> },
-    { key: "appName", title: "所属应用", minWidth: 130, render: (v, row) => <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20" onClick={() => navigate(`/entitlement/app/detail/${(row as Sku).appId}`)}>{v}</button> },
-    { key: "productName", title: "关联权益规则", minWidth: 150, render: (v, row) => <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-muted/80" onClick={() => navigate(`/entitlement/rule/detail/${(row as Sku).productId}`)}>{v}</button> },
+    { key: "appId", title: "所属应用", minWidth: 120, render: (v: string) => { const app = getApp(v); return app ? <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20" onClick={() => navigate(`/entitlement/app/detail/${v}`)}>{app.name}</button> : <span>—</span>; } },
+    { key: "ruleId", title: "关联规则", minWidth: 150, render: (v: string) => { const rule = ruleData.find((r) => r.id === v); return rule ? <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-muted/80" onClick={() => navigate(`/entitlement/rule/detail/${v}`)}>{rule.name}</button> : <span>—</span>; } },
     { key: "price", title: "价格", minWidth: 80, align: "right" as const, render: (v: number) => <span className={`font-medium ${v > 0 ? "text-foreground" : "text-muted-foreground"}`}>{v > 0 ? `¥${v}` : "¥0"}</span> },
     { key: "billingCycle", title: "计费", minWidth: 60, render: (v: string) => <span className="text-[12px]">{BILLING_CYCLES.find((b) => b.value === v)?.label}</span> },
     { key: "salesStatus", title: "状态", minWidth: 80, render: (v: string) => { const cfg = STATUS_MAP[v]; return <span className={cfg.className}>{cfg.label}</span>; } },

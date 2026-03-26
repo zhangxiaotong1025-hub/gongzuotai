@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { appData, capabilityData, entitlementProductData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES } from "@/data/entitlement";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { appData, capabilityData, ruleData, skuData, bundleData, STATUS_MAP, DATA_TYPES, PERIOD_TYPES, GRANT_TYPES, getCapabilitiesByApp, getRulesByApp } from "@/data/entitlement";
+import { ArrowLeft } from "lucide-react";
 
 export default function AppDetail() {
   const { id } = useParams();
@@ -8,8 +8,8 @@ export default function AppDetail() {
   const app = appData.find((a) => a.id === id);
   if (!app) return <div className="p-10 text-center text-muted-foreground">应用不存在</div>;
 
-  const caps = capabilityData.filter((c) => c.appIds.includes(app.id));
-  const products = entitlementProductData.filter((p) => p.appId === app.id);
+  const caps = getCapabilitiesByApp(app.id);
+  const rules = getRulesByApp(app.id);
   const skus = skuData.filter((s) => s.appId === app.id);
   const bundles = bundleData.filter((b) => b.appId === app.id);
 
@@ -28,8 +28,8 @@ export default function AppDetail() {
         </div>
         <div className="grid grid-cols-5 gap-4 text-[13px]">
           <div><span className="text-muted-foreground">应用编码</span><div className="font-mono text-foreground mt-0.5">{app.code}</div></div>
-          <div><span className="text-muted-foreground">关联能力</span><div className="text-primary font-medium mt-0.5">{caps.length}个</div></div>
-          <div><span className="text-muted-foreground">权益产品</span><div className="text-primary font-medium mt-0.5">{products.length}个</div></div>
+          <div><span className="text-muted-foreground">能力</span><div className="text-primary font-medium mt-0.5">{caps.length}个</div></div>
+          <div><span className="text-muted-foreground">规则</span><div className="text-primary font-medium mt-0.5">{rules.length}条</div></div>
           <div><span className="text-muted-foreground">商品SKU</span><div className="text-primary font-medium mt-0.5">{skus.length}个</div></div>
           <div><span className="text-muted-foreground">套餐</span><div className="text-primary font-medium mt-0.5">{bundles.length}个</div></div>
         </div>
@@ -37,42 +37,28 @@ export default function AppDetail() {
 
       {/* Capabilities */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <h3 className="text-[14px] font-semibold text-foreground mb-3">关联能力 ({caps.length}) <span className="text-[12px] text-muted-foreground font-normal">— 能力可跨应用共享</span></h3>
-        <div className="flex flex-wrap gap-2">
-          {caps.map((c) => (
-            <Link key={c.id} to={`/entitlement/capability/detail/${c.id}`} className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border hover:border-primary/40 hover:bg-primary/5 transition-all text-[12px]">
-              <span className="font-medium text-foreground">{c.name}</span>
-              <span className="text-muted-foreground">{c.type}</span>
-              <span className="text-[11px] text-muted-foreground/70">共{c.appIds.length}个应用</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* EntitlementProducts */}
-      <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <h3 className="text-[14px] font-semibold text-foreground mb-3">权益产品 ({products.length})</h3>
+        <h3 className="text-[14px] font-semibold text-foreground mb-3">能力 ({caps.length})</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead><tr className="border-b text-muted-foreground">
-              <th className="text-left py-2 font-medium">产品名称</th>
-              <th className="text-left py-2 font-medium">关联能力</th>
-              <th className="text-right py-2 font-medium">额度</th>
-              <th className="text-left py-2 font-medium">周期</th>
-              <th className="text-center py-2 font-medium">引用商品数</th>
+              <th className="text-left py-2 font-medium">能力名称</th>
+              <th className="text-left py-2 font-medium">编码</th>
+              <th className="text-left py-2 font-medium">数据类型</th>
+              <th className="text-left py-2 font-medium">单位</th>
+              <th className="text-center py-2 font-medium">规则数</th>
               <th className="text-left py-2 font-medium">状态</th>
             </tr></thead>
             <tbody>
-              {products.map((p) => {
-                const refCount = skuData.filter((s) => s.productId === p.id).length;
+              {caps.map((c) => {
+                const ruleCount = ruleData.filter((r) => r.capabilityId === c.id).length;
                 return (
-                  <tr key={p.id} className="border-b border-border/40 hover:bg-muted/30">
-                    <td className="py-2 font-medium text-foreground">{p.name}</td>
-                    <td className="py-2"><Link to={`/entitlement/capability/detail/${p.capabilityId}`} className="text-primary hover:underline text-[12px]">{p.capabilityName}</Link></td>
-                    <td className="py-2 text-right font-medium">{p.quota.toLocaleString()}</td>
-                    <td className="py-2 text-muted-foreground">{PERIOD_TYPES.find((t) => t.value === p.period)?.label}</td>
-                    <td className="py-2 text-center"><span className={refCount > 0 ? "text-primary font-medium" : "text-muted-foreground"}>{refCount}</span></td>
-                    <td className="py-2"><span className={STATUS_MAP[p.status].className}>{STATUS_MAP[p.status].label}</span></td>
+                  <tr key={c.id} className="border-b border-border/40 hover:bg-muted/30">
+                    <td className="py-2"><Link to={`/entitlement/capability/detail/${c.id}`} className="text-primary hover:underline font-medium">{c.name}</Link></td>
+                    <td className="py-2"><code className="text-[11px] px-1 py-0.5 rounded bg-muted text-muted-foreground font-mono">{c.code}</code></td>
+                    <td className="py-2 text-muted-foreground">{DATA_TYPES.find((t) => t.value === c.dataType)?.label.split("（")[0]}</td>
+                    <td className="py-2 text-muted-foreground">{c.unit}</td>
+                    <td className="py-2 text-center"><span className={ruleCount > 0 ? "text-primary font-medium" : "text-muted-foreground"}>{ruleCount}</span></td>
+                    <td className="py-2"><span className={STATUS_MAP[c.status].className}>{STATUS_MAP[c.status].label}</span></td>
                   </tr>
                 );
               })}

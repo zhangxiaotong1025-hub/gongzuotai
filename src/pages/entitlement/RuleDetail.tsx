@@ -1,16 +1,16 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { entitlementProductData, capabilityData, appData, skuData, bundleData, meteringRuleData, STATUS_MAP, PERIOD_TYPES, BILLING_CYCLES } from "@/data/entitlement";
+import { ruleData, capabilityData, appData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp } from "@/data/entitlement";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 
 export default function RuleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const rule = entitlementProductData.find((p) => p.id === id);
+  const rule = ruleData.find((r) => r.id === id);
   if (!rule) return <div className="p-10 text-center text-muted-foreground">权益规则不存在</div>;
 
-  const cap = capabilityData.find((c) => c.id === rule.capabilityId);
-  const meter = meteringRuleData.find((r) => r.id === rule.meteringRuleId);
-  const skus = skuData.filter((s) => s.productId === rule.id);
+  const cap = getCapability(rule.capabilityId);
+  const app = cap ? getApp(cap.appId) : null;
+  const skus = skuData.filter((s) => s.ruleId === rule.id);
   const bundles = bundleData.filter((b) => b.items.some((i) => skus.some((s) => s.id === i.skuId)));
 
   return (
@@ -28,15 +28,17 @@ export default function RuleDetail() {
         </div>
         <div className="grid grid-cols-4 gap-4 text-[13px]">
           <div><span className="text-muted-foreground">规则编码</span><div className="font-mono text-foreground mt-0.5">{rule.code}</div></div>
-          <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5"><Link to={`/entitlement/app/detail/${rule.appId}`} className="text-primary hover:underline inline-flex items-center gap-1">{rule.appName} <ExternalLink className="h-3 w-3" /></Link></div></div>
-          <div><span className="text-muted-foreground">关联能力</span><div className="mt-0.5"><Link to={`/entitlement/capability/detail/${rule.capabilityId}`} className="text-primary hover:underline inline-flex items-center gap-1">{rule.capabilityName} <ExternalLink className="h-3 w-3" /></Link></div></div>
-          <div><span className="text-muted-foreground">计量规则</span><div className="text-foreground mt-0.5">{meter?.name} ({meter?.unit})</div></div>
+          <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5">{app ? <Link to={`/entitlement/app/detail/${app.id}`} className="text-primary hover:underline inline-flex items-center gap-1">{app.name} <ExternalLink className="h-3 w-3" /></Link> : "—"}</div></div>
+          <div><span className="text-muted-foreground">关联能力</span><div className="mt-0.5">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-primary hover:underline inline-flex items-center gap-1">{cap.name} <ExternalLink className="h-3 w-3" /></Link> : "—"}</div></div>
+          <div><span className="text-muted-foreground">数据类型</span><div className="text-foreground mt-0.5">{cap ? `${DATA_TYPES.find((t) => t.value === cap.dataType)?.label.split("（")[0]} · ${cap.unit}` : "—"}</div></div>
         </div>
-        <div className="grid grid-cols-4 gap-4 text-[13px] mt-4 pt-4 border-t">
-          <div><span className="text-muted-foreground">额度</span><div className="text-foreground font-medium mt-0.5">{rule.quota.toLocaleString()} {meter?.unit}</div></div>
-          <div><span className="text-muted-foreground">周期</span><div className="text-foreground mt-0.5">{PERIOD_TYPES.find((p) => p.value === rule.period)?.label}</div></div>
-          <div><span className="text-muted-foreground">有效期</span><div className="text-foreground mt-0.5">{rule.validDays > 0 ? `${rule.validDays}天` : "永久"}</div></div>
-          <div><span className="text-muted-foreground">引用商品数</span><div className={`font-medium mt-0.5 ${skus.length > 0 ? "text-primary" : "text-muted-foreground"}`}>{skus.length}</div></div>
+        <div className="grid grid-cols-6 gap-4 text-[13px] mt-4 pt-4 border-t">
+          <div><span className="text-muted-foreground">额度</span><div className="text-foreground font-medium mt-0.5">{rule.quota.toLocaleString()} {cap?.unit}</div></div>
+          <div><span className="text-muted-foreground">周期</span><div className="text-foreground mt-0.5">{PERIOD_TYPES.find((p) => p.value === rule.periodType)?.label}{rule.periodValue > 0 ? ` · ${rule.periodValue}` : ""}</div></div>
+          <div><span className="text-muted-foreground">发放方式</span><div className="text-foreground mt-0.5">{GRANT_TYPES.find((g) => g.value === rule.grantType)?.label}</div></div>
+          <div><span className="text-muted-foreground">是否累积</span><div className={`mt-0.5 font-medium ${rule.isCumulative ? "text-primary" : "text-muted-foreground"}`}>{rule.isCumulative ? "是" : "否"}</div></div>
+          <div><span className="text-muted-foreground">过期策略</span><div className="text-foreground mt-0.5">{EXPIRE_POLICIES.find((e) => e.value === rule.expirePolicy)?.label}</div></div>
+          <div><span className="text-muted-foreground">引用SKU</span><div className={`font-medium mt-0.5 ${skus.length > 0 ? "text-primary" : "text-muted-foreground"}`}>{skus.length}</div></div>
         </div>
         {rule.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t">{rule.description}</p>}
       </div>
@@ -47,12 +49,12 @@ export default function RuleDetail() {
         <div className="flex items-center gap-3 text-[13px]">
           <div className="px-4 py-3 rounded-lg border bg-muted/30 text-center">
             <div className="text-[11px] text-muted-foreground mb-1">应用</div>
-            <Link to={`/entitlement/app/detail/${rule.appId}`} className="text-primary hover:underline font-medium">{rule.appName}</Link>
+            {app ? <Link to={`/entitlement/app/detail/${app.id}`} className="text-primary hover:underline font-medium">{app.name}</Link> : <span>—</span>}
           </div>
           <span className="text-muted-foreground">→</span>
           <div className="px-4 py-3 rounded-lg border bg-muted/30 text-center">
             <div className="text-[11px] text-muted-foreground mb-1">能力</div>
-            <Link to={`/entitlement/capability/detail/${rule.capabilityId}`} className="text-primary hover:underline font-medium">{rule.capabilityName}</Link>
+            {cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-primary hover:underline font-medium">{cap.name}</Link> : <span>—</span>}
           </div>
           <span className="text-muted-foreground">→</span>
           <div className="px-4 py-3 rounded-lg border border-primary/40 bg-primary/5 text-center">

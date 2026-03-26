@@ -6,7 +6,7 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download, X } from "lucide-react";
-import { appData as initialData, getCapabilitiesByApp, getProductsByApp, type AppItem, STATUS_MAP } from "@/data/entitlement";
+import { appData as initialData, getCapabilitiesByApp, getRulesByApp, type AppItem, STATUS_MAP } from "@/data/entitlement";
 
 const filterFields: FilterField[] = [
   { key: "name", label: "应用名称/编码", type: "input", placeholder: "请输入", width: 220 },
@@ -31,11 +31,11 @@ function AppDialog({ open, onClose, onSave, initial }: { open: boolean; onClose:
         <div className="px-5 py-5 space-y-4">
           <div className="space-y-1.5">
             <label className="text-[13px] text-muted-foreground">应用名称 <span className="text-destructive">*</span></label>
-            <input className="filter-input w-full" placeholder="如：国内3D设计工具" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <input className="filter-input w-full" placeholder="如：居然设计家" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </div>
           <div className="space-y-1.5">
             <label className="text-[13px] text-muted-foreground">应用编码 <span className="text-destructive">*</span></label>
-            <input className="filter-input w-full font-mono" placeholder="如：DOMESTIC_3D" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} disabled={isEdit} />
+            <input className="filter-input w-full font-mono" placeholder="如：JURAN_DESIGN" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} disabled={isEdit} />
             {isEdit && <p className="text-[11px] text-muted-foreground/70">编码创建后不可修改</p>}
           </div>
           <div className="space-y-1.5">
@@ -81,8 +81,8 @@ export default function AppList() {
     { key: "name", title: "应用名称", minWidth: 180, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/app/detail/${(row as AppItem).id}`)}>{v}</button> },
     { key: "code", title: "应用编码", minWidth: 140, render: (v) => <code className="text-[12px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">{v}</code> },
     { key: "description", title: "描述", minWidth: 200, render: (v) => <span className="text-muted-foreground">{v || "—"}</span> },
-    { key: "id", title: "关联能力", minWidth: 80, align: "center" as const, render: (_v, row) => <span className="text-primary font-medium">{getCapabilitiesByApp((row as AppItem).id).length}个</span> },
-    { key: "updatedAt", title: "权益产品", minWidth: 80, align: "center" as const, render: (_v, row) => <span className="text-primary font-medium">{getProductsByApp((row as AppItem).id).length}个</span> },
+    { key: "id", title: "能力", minWidth: 60, align: "center" as const, render: (_v, row) => <span className="text-primary font-medium">{getCapabilitiesByApp((row as AppItem).id).length}</span> },
+    { key: "updatedAt", title: "规则", minWidth: 60, align: "center" as const, render: (_v, row) => <span className="text-primary font-medium">{getRulesByApp((row as AppItem).id).length}</span> },
     { key: "status", title: "状态", minWidth: 80, render: (v: string) => { const cfg = STATUS_MAP[v]; return <span className={cfg.className}>{cfg.label}</span>; } },
     { key: "createdAt", title: "创建时间", minWidth: 110, render: (v) => <span className="text-muted-foreground">{v}</span> },
   ];
