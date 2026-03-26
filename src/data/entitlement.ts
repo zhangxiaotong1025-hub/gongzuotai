@@ -605,7 +605,7 @@ export interface EntitlementAccount {
 
 export const accountData: EntitlementAccount[] = [
   {
-    id: "acc1", customerId: "cust1", customerName: "企业A", appId: "app1", appName: "国内3D工具",
+    id: "acc1", customerId: "cust1", customerName: "欧派家居集团股份有限公司", appId: "app1", appName: "国内3D工具",
     orderIds: ["ord1", "ord4", "ord6"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-16",
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 128,  unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
@@ -619,7 +619,7 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc2", customerId: "cust2", customerName: "企业B", appId: "app1", appName: "国内3D工具",
+    id: "acc2", customerId: "cust2", customerName: "索菲亚家居股份有限公司", appId: "app1", appName: "国内3D工具",
     orderIds: ["ord2", "ord5", "ord10"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-20",
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 45,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord10"] },
@@ -628,7 +628,7 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc3", customerId: "cust2", customerName: "企业B", appId: "app3", appName: "智能导购",
+    id: "acc3", customerId: "cust2", customerName: "索菲亚家居股份有限公司", appId: "app3", appName: "智能导购",
     orderIds: ["ord5", "ord10"], status: "active", createdAt: "2026-03-15", updatedAt: "2026-03-20",
     capabilities: [
       { capabilityId: "cap40", capabilityName: "导购推荐",   ruleId: "rule50", ruleName: "导购推荐500次/月", totalQuota: 500, usedQuota: 120, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord5", "ord10"] },
@@ -636,7 +636,7 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc4", customerId: "cust2", customerName: "企业B", appId: "app4", appName: "AI设计家",
+    id: "acc4", customerId: "cust2", customerName: "索菲亚家居股份有限公司", appId: "app4", appName: "AI设计家",
     orderIds: ["ord10"], status: "active", createdAt: "2026-03-20", updatedAt: "2026-03-20",
     capabilities: [
       { capabilityId: "cap30", capabilityName: "AI方案生成", ruleId: "rule40", ruleName: "AI方案100次/月",   totalQuota: 100, usedQuota: 23, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord10"] },
@@ -644,7 +644,7 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc5", customerId: "cust3", customerName: "企业C", appId: "app4", appName: "AI设计家",
+    id: "acc5", customerId: "cust3", customerName: "尚品宅配家居股份有限公司", appId: "app4", appName: "AI设计家",
     orderIds: ["ord7"], status: "active", createdAt: "2026-03-17", updatedAt: "2026-03-17",
     capabilities: [
       { capabilityId: "cap30", capabilityName: "AI方案生成", ruleId: "rule40", ruleName: "AI方案100次/月",   totalQuota: 100, usedQuota: 5, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
@@ -652,14 +652,14 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc6", customerId: "cust3", customerName: "企业C", appId: "app5", appName: "精准客资",
+    id: "acc6", customerId: "cust3", customerName: "尚品宅配家居股份有限公司", appId: "app5", appName: "精准客资",
     orderIds: ["ord7"], status: "active", createdAt: "2026-03-17", updatedAt: "2026-03-17",
     capabilities: [
       { capabilityId: "cap50", capabilityName: "线索获取",   ruleId: "rule60", ruleName: "线索100条/月",     totalQuota: 100, usedQuota: 32, unit: "条", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
     ],
   },
   {
-    id: "acc7", customerId: "cust4", customerName: "企业D", appId: "app1", appName: "国内3D工具",
+    id: "acc7", customerId: "cust4", customerName: "金牌厨柜家居科技股份有限公司", appId: "app1", appName: "国内3D工具",
     orderIds: ["ord8"], status: "active", createdAt: "2026-03-18", updatedAt: "2026-03-18",
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule1",  ruleName: "AI设计100次/日",     totalQuota: 100, usedQuota: 12, unit: "次", periodType: "DAY", grantType: "DAILY_REFRESH", sourceOrderIds: ["ord8"] },
