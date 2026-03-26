@@ -584,7 +584,6 @@ export default function StaffList() {
             </div>
             <div className="text-[12px] text-muted-foreground">共 {totalItems} 人</div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
           <AdminTable columns={columns} data={filteredData} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
           <div className="rounded-xl border bg-card mt-4" style={{ boxShadow: "var(--shadow-xs)" }}>
             <Pagination current={currentPage} total={totalItems} pageSize={pageSize} onPageChange={setCurrentPage}
