@@ -166,7 +166,7 @@ const filterFields: FilterField[] = [
 
 /* ── Columns ── */
 const columns: TableColumn<StaffMember>[] = [
-  { key: "name", title: (<span className="inline-flex items-center gap-1">人员<TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent side="top"><p className="text-xs">当前列表仅展示该组织下可见人员，重复归属自动去重</p></TooltipContent></Tooltip></TooltipProvider></span>) as unknown as string, minWidth: 80, render: (v) => <span className="font-medium text-foreground">{v}</span> },
+  { key: "name", title: (<span className="inline-flex items-center gap-1">人员<TooltipProvider><Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent side="top"><p className="text-xs">当前列表仅展示该组织下可见人员，重复归属自动去重</p></TooltipContent></Tooltip></TooltipProvider></span>), minWidth: 80, render: (v) => <span className="font-medium text-foreground">{v}</span> },
   { key: "enterprise", title: "归属企业", minWidth: 200, render: (v) => <span className="text-foreground">{v}</span> },
   { key: "phone", title: "手机号", minWidth: 120 },
   { key: "status", title: "人员状态", minWidth: 90, render: (v) => <span className={v === "active" ? "badge-active" : "badge-inactive"}>{v === "active" ? "正常" : "停用"}</span> },
