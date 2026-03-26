@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { capabilityData, ruleData, skuData, DATA_TYPES, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getApp } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { CapDialog } from "./dialogs/CapDialog";
 import { toast } from "sonner";
 import { ExternalLink } from "lucide-react";
 
@@ -9,12 +11,18 @@ export default function CapabilityDetail() {
   const navigate = useNavigate();
   const capIndex = capabilityData.findIndex((c) => c.id === id);
   const cap = capIndex >= 0 ? capabilityData[capIndex] : null;
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogInitial, setDialogInitial] = useState(cap);
+
   if (!cap) return <div className="p-10 text-center text-muted-foreground">能力不存在</div>;
 
   const app = getApp(cap.appId);
   const rules = ruleData.filter((r) => r.capabilityId === cap.id);
   const prevCap = capIndex > 0 ? capabilityData[capIndex - 1] : null;
   const nextCap = capIndex < capabilityData.length - 1 ? capabilityData[capIndex + 1] : null;
+
+  const handleEdit = () => { setDialogInitial(cap); setDialogOpen(true); };
+  const handleCopy = () => { setDialogInitial({ ...cap, id: "", name: `${cap.name}（副本）`, code: `${cap.code}_COPY` }); setDialogOpen(true); };
 
   return (
     <div className="space-y-5 pb-6">
@@ -24,8 +32,8 @@ export default function CapabilityDetail() {
         currentName={cap.name}
         prevPath={prevCap ? `/entitlement/capability/detail/${prevCap.id}` : null}
         nextPath={nextCap ? `/entitlement/capability/detail/${nextCap.id}` : null}
-        onEdit={() => toast.info("编辑功能开发中")}
-        onCopy={() => toast.success("能力已复制（功能开发中）")}
+        onEdit={handleEdit}
+        onCopy={handleCopy}
         statusToggle={{
           currentActive: cap.status === "active",
           onToggle: () => toast.info(cap.status === "active" ? "已停用" : "已启用"),
@@ -86,6 +94,8 @@ export default function CapabilityDetail() {
           </table>
         </div>
       </div>
+
+      <CapDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSave={(form) => { toast.success(dialogInitial?.id === cap.id ? "能力已更新" : "能力已创建（副本）"); setDialogOpen(false); }} initial={dialogInitial} />
     </div>
   );
 }

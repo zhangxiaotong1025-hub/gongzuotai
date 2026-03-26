@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { appData, capabilityData, ruleData, skuData, bundleData, STATUS_MAP, DATA_TYPES, getCapabilitiesByApp, getRulesByApp } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { AppDialog } from "./dialogs/AppDialog";
 import { toast } from "sonner";
 
 export default function AppDetail() {
@@ -8,6 +10,9 @@ export default function AppDetail() {
   const navigate = useNavigate();
   const appIndex = appData.findIndex((a) => a.id === id);
   const app = appIndex >= 0 ? appData[appIndex] : null;
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogInitial, setDialogInitial] = useState(app);
+
   if (!app) return <div className="p-10 text-center text-muted-foreground">应用不存在</div>;
 
   const caps = getCapabilitiesByApp(app.id);
@@ -17,6 +22,9 @@ export default function AppDetail() {
   const prevApp = appIndex > 0 ? appData[appIndex - 1] : null;
   const nextApp = appIndex < appData.length - 1 ? appData[appIndex + 1] : null;
 
+  const handleEdit = () => { setDialogInitial(app); setDialogOpen(true); };
+  const handleCopy = () => { setDialogInitial({ ...app, id: "", name: `${app.name}（副本）`, code: `${app.code}_COPY` }); setDialogOpen(true); };
+
   return (
     <div className="space-y-5 pb-6">
       <DetailActionBar
@@ -25,8 +33,8 @@ export default function AppDetail() {
         currentName={app.name}
         prevPath={prevApp ? `/entitlement/app/detail/${prevApp.id}` : null}
         nextPath={nextApp ? `/entitlement/app/detail/${nextApp.id}` : null}
-        onEdit={() => toast.info("编辑功能开发中")}
-        onCopy={() => toast.success("应用已复制（功能开发中）")}
+        onEdit={handleEdit}
+        onCopy={handleCopy}
         statusToggle={{
           currentActive: app.status === "active",
           onToggle: () => toast.info(app.status === "active" ? "已停用" : "已启用"),
@@ -94,6 +102,8 @@ export default function AppDetail() {
           </div>
         </div>
       )}
+
+      <AppDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSave={(form) => { toast.success(dialogInitial?.id === app.id ? "应用已更新" : "应用已创建（副本）"); setDialogOpen(false); }} initial={dialogInitial} />
     </div>
   );
 }

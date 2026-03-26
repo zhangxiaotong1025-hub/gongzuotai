@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { bundleData, skuData, STATUS_MAP, BILLING_CYCLES, getCapability, getRulesBySkuId } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { BundleDialog } from "./dialogs/BundleDialog";
 import { toast } from "sonner";
 
 export default function PackageDetail() {
@@ -8,6 +10,9 @@ export default function PackageDetail() {
   const navigate = useNavigate();
   const bundleIndex = bundleData.findIndex((b) => b.id === id);
   const bundle = bundleIndex >= 0 ? bundleData[bundleIndex] : null;
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogInitial, setDialogInitial] = useState(bundle);
+
   if (!bundle) return <div className="p-10 text-center text-muted-foreground">套餐不存在</div>;
 
   const cycle = BILLING_CYCLES.find((b) => b.value === bundle.billingCycle)?.label || bundle.billingCycle;
@@ -20,6 +25,9 @@ export default function PackageDetail() {
     return { ...item, sku, rules };
   });
 
+  const handleEdit = () => { setDialogInitial(bundle); setDialogOpen(true); };
+  const handleCopy = () => { setDialogInitial({ ...bundle, id: "", name: `${bundle.name}（副本）`, code: `${bundle.code}_COPY` }); setDialogOpen(true); };
+
   return (
     <div className="space-y-5 pb-6">
       <DetailActionBar
@@ -28,8 +36,8 @@ export default function PackageDetail() {
         currentName={bundle.name}
         prevPath={prevBundle ? `/entitlement/package/detail/${prevBundle.id}` : null}
         nextPath={nextBundle ? `/entitlement/package/detail/${nextBundle.id}` : null}
-        onEdit={() => toast.info("编辑功能开发中")}
-        onCopy={() => toast.success("套餐已复制（功能开发中）")}
+        onEdit={handleEdit}
+        onCopy={handleCopy}
         statusToggle={{
           currentActive: bundle.status === "on_sale",
           activeLabel: "上架",
@@ -84,6 +92,8 @@ export default function PackageDetail() {
           </table>
         </div>
       </div>
+
+      <BundleDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSave={(form) => { toast.success(dialogInitial?.id === bundle.id ? "套餐已更新" : "套餐已创建（副本）"); setDialogOpen(false); }} initial={dialogInitial} />
     </div>
   );
 }
