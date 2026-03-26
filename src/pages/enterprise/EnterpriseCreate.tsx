@@ -986,35 +986,35 @@ function StepDone({ type, form, navigate }: { type: string; form: any; navigate:
       <div className="max-w-[720px] mx-auto mt-10 rounded-xl bg-muted/50 border p-6">
         <div className="grid grid-cols-2 gap-x-12 gap-y-5">
           <div className="flex items-start gap-3">
-            <span className="text-[13px] text-muted-foreground w-[90px] shrink-0 text-right">公司名称：</span>
+            <span className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">公司名称：</span>
             <span className="text-[13px] text-foreground font-medium">{form.name || "未填写"}</span>
           </div>
           <div className="flex items-start gap-3">
-            <span className="text-[13px] text-muted-foreground w-[90px] shrink-0 text-right">公司类型：</span>
+            <span className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">公司类型：</span>
             <span className="text-[13px] text-foreground font-medium">{TYPE_LABELS[type]}</span>
           </div>
           <div className="flex items-start gap-3">
-            <span className="text-[13px] text-muted-foreground w-[90px] shrink-0 text-right">法人代表：</span>
+            <span className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">法人代表：</span>
             <span className="text-[13px] text-foreground font-medium">{form.legalPerson || "未填写"}</span>
           </div>
           <div className="flex items-start gap-3">
-            <span className="text-[13px] text-muted-foreground w-[90px] shrink-0 text-right">法人手机号：</span>
+            <span className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">法人手机号：</span>
             <span className="text-[13px] text-foreground font-medium">{form.legalPhone || "未填写"}</span>
           </div>
           <div className="flex items-start gap-3">
-            <span className="text-[13px] text-muted-foreground w-[90px] shrink-0 text-right">开启产品：</span>
+            <span className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">开启产品：</span>
             <div className="flex flex-wrap gap-1.5">
               {(form.enabledProducts || []).map((pk: string) => {
                 const prod = AVAILABLE_PRODUCTS.find(p => p.key === pk);
                 return prod ? (
-                  <span key={pk} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary/10 text-primary font-medium">{prod.label}</span>
+                  <span key={pk} className="badge-product">{prod.label}</span>
                 ) : null;
               })}
               {(!form.enabledProducts || form.enabledProducts.length === 0) && <span className="text-[13px] text-muted-foreground">未开启</span>}
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <span className="text-[13px] text-muted-foreground w-[90px] shrink-0 text-right">企业状态：</span>
+            <span className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">企业状态：</span>
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-1.5 cursor-default">
                 <div className="w-4 h-4 rounded-full border-[5px] border-foreground" />
@@ -1055,7 +1055,7 @@ function SectionTitle({ title }: { title: string }) {
 function FormRow({ label, required, children, wide }: { label: string; required?: boolean; children: React.ReactNode; wide?: boolean }) {
   return (
     <div className="flex items-start gap-3">
-      <label className={`text-[13px] text-muted-foreground pt-[7px] text-right shrink-0 ${wide ? "w-[120px]" : "w-[100px]"}`}>
+      <label className="text-[13px] text-muted-foreground pt-[7px] text-right shrink-0 w-[100px]">
         {required && <span className="text-destructive mr-0.5">*</span>}
         {label}
       </label>
