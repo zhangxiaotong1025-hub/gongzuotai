@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 
 const TYPE_LABELS: Record<string, string> = {
-  brand: "品牌商", dealer: "经销商", hq: "总部公司", studio: "工作室", supplier: "供应商",
+  mall: "卖场", brand: "品牌商", dealer: "经销商", decoration: "装修公司", studio: "工作室", store: "门店",
 };
 
 const ALL_STEPS = [
@@ -19,14 +19,15 @@ const ALL_STEPS = [
 ];
 
 // 企业类型与品牌关系映射
-// brand(品牌商) → 拥有品牌(创建); dealer(经销商) → 代理品牌(关联); hq → 两者皆有; studio/supplier → 无品牌配置
+// mall(卖场) → 拥有+代理; brand(品牌商) → 拥有+代理; dealer(经销商) → 代理; decoration(装修公司) → 无关; studio(工作室) → 无关; store(门店) → 无关
 type BrandRelation = "own" | "agent" | "both" | "none";
 const TYPE_BRAND_RELATION: Record<string, BrandRelation> = {
-  brand: "own",
+  mall: "both",
+  brand: "both",
   dealer: "agent",
-  hq: "both",
+  decoration: "none",
   studio: "none",
-  supplier: "none",
+  store: "none",
 };
 
 function getStepsForType(type: string) {
@@ -714,6 +715,20 @@ function StepBrandConfig({
 
   return (
     <div className="p-6 space-y-8">
+      {/* 权限说明 */}
+      <div className="flex items-start gap-2 px-4 py-3 rounded-lg bg-muted/50 border text-[12px] text-muted-foreground">
+        <Info className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+        <div>
+          {showOwn && showAgent ? (
+            <span><strong className="text-foreground">拥有品牌</strong>：可上传公有模型，拥有品牌完整管理权限；<strong className="text-foreground">代理品牌</strong>：可使用品牌资源，但不可上传公有模型。</span>
+          ) : showOwn ? (
+            <span><strong className="text-foreground">拥有品牌</strong>：可上传公有模型，拥有品牌完整管理权限。</span>
+          ) : (
+            <span><strong className="text-foreground">代理品牌</strong>：可使用品牌资源，但不可上传公有模型。</span>
+          )}
+        </div>
+      </div>
+
       {/* 拥有品牌 Section */}
       {showOwn && (
         <div>

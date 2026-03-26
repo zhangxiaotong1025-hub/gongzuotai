@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Building2, Store, Landmark, Briefcase, Truck, X } from "lucide-react";
+import { Building2, Store, Landmark, Briefcase, ShoppingBag, HardHat, X } from "lucide-react";
 
 const ENTERPRISE_TYPES = [
-  { key: "brand", label: "品牌商", icon: Building2, desc: "自有品牌的生产制造企业" },
-  { key: "dealer", label: "经销商", icon: Store, desc: "品牌代理与分销企业" },
-  { key: "hq", label: "总部公司", icon: Landmark, desc: "集团总部或控股公司" },
+  { key: "mall", label: "卖场", icon: ShoppingBag, desc: "大型零售卖场，可拥有或代理品牌" },
+  { key: "brand", label: "品牌商", icon: Building2, desc: "品牌拥有者，可创建或代理品牌" },
+  { key: "dealer", label: "经销商", icon: Store, desc: "品牌代理商，代理品牌销售" },
+  { key: "decoration", label: "装修公司", icon: HardHat, desc: "提供装修设计服务" },
   { key: "studio", label: "工作室", icon: Briefcase, desc: "独立设计工作室" },
-  { key: "supplier", label: "供应商", icon: Truck, desc: "原材料或配件供应企业" },
+  { key: "store", label: "门店", icon: Landmark, desc: "零售门店" },
 ];
 
 interface CreateEnterpriseDialogProps {
