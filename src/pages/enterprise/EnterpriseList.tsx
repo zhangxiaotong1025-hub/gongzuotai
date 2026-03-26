@@ -183,7 +183,7 @@ export default function EnterpriseList() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [adminTarget, setAdminTarget] = useState<Enterprise | null>(null);
-  const totalItems = 1200;
+  const [subParent, setSubParent] = useState<Enterprise | null>(null);
 
   const toggleExpand = useCallback((id: string) => {
     setExpanded((prev) => {
@@ -239,12 +239,8 @@ export default function EnterpriseList() {
     { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
     {
       label: "新建子企业",
-      onClick: (r) => {
-        const typeKey = TYPE_KEY_MAP[r.type] || "brand";
-        const level = (r._level || 0) + 1;
-        navigate(`/enterprise/create?type=${typeKey}&parentId=${r.id}&parentType=${typeKey}&parentName=${encodeURIComponent(r.name)}&level=${level}`);
-      },
-      visible: (r) => (r._level || 0) < 2, // max 3 levels (0,1,2)
+      onClick: (r) => setSubParent(r),
+      visible: (r) => (r._level || 0) < 2,
     },
     { label: "权益配置", onClick: (r) => console.log("entitlement", r.id) },
   ];
