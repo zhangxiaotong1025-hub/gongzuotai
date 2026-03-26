@@ -110,6 +110,10 @@ export default function ApplicationDetail() {
   const handleSave = () => {
     setD((prev) => ({ ...prev, ...editForm }));
     setEditing(false);
+    setOpLogs((prev) => [...prev, {
+      time: new Date().toLocaleString("zh-CN"), operator: "当前用户", action: "编辑信息",
+      detail: "修改了联系人信息/备注",
+    }]);
     toast.success("保存成功");
   };
 
