@@ -21,7 +21,7 @@ export interface TableColumn<T> {
 }
 
 export interface ActionItem<T> {
-  label: string;
+  label: string | ((record: T) => string);
   onClick: (record: T) => void;
   visible?: (record: T) => boolean;
   danger?: boolean;
