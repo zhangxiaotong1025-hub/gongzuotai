@@ -21,6 +21,7 @@ interface Enterprise {
   creator: string;
   updatedAt: string;
   note: string;
+  admin?: string;
   children?: Enterprise[];
   _level?: number;
 }
