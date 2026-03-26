@@ -48,11 +48,6 @@ export default function AccountDetail() {
 
   const relatedOrders = orderData.filter((o) => acc.orderIds.includes(o.id));
 
-  const handleAllocate = useCallback((form: any) => {
-    toast.success("权益已分配，订单已自动生成");
-    setDialogOpen(false);
-  }, []);
-
   return (
     <div className="space-y-5 pb-6">
       <DetailActionBar
