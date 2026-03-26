@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Building2, FileText, Edit3, ExternalLink, X as XIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Building2, FileText, Edit3, ExternalLink, X as XIcon, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { CreateEnterpriseDialog } from "@/pages/enterprise/CreateEnterpriseDialog";
 
 /* ── Types ── */
 type ApplicationStatus = "pending" | "created" | "closed";
 
 /* ── Mock Data ── */
+interface OpLog {
+  time: string;
+  operator: string;
+  action: string;
+  detail?: string;
+}
+
 const MOCK = {
   id: "APP0001",
   name: "上海自然博物馆有限公司",
@@ -39,10 +43,19 @@ const MOCK = {
   closeTime: undefined as string | undefined,
 };
 
+const INITIAL_LOGS: OpLog[] = [
+  { time: "2020-1-25 10:10", operator: "系统", action: "提交申请", detail: "企业通过官网提交入驻申请" },
+];
+
 const STATUS_MAP: Record<ApplicationStatus, { label: string; className: string }> = {
   pending: { label: "待处理", className: "badge-warning" },
   created: { label: "已创建企业", className: "badge-active" },
   closed: { label: "已关闭", className: "badge-inactive" },
+};
+
+const TYPE_KEY_MAP: Record<string, string> = {
+  "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
+  "卖场": "mall", "门店": "store", "工作室": "studio",
 };
 
 /* ── Detail Row ── */
@@ -77,7 +90,8 @@ export default function ApplicationDetail() {
   const [editing, setEditing] = useState(isEditMode);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [closeReasonInput, setCloseReasonInput] = useState("");
-  const [showProcessDialog, setShowProcessDialog] = useState(false);
+  const [showTypeDialog, setShowTypeDialog] = useState(false);
+  const [opLogs, setOpLogs] = useState<OpLog[]>(INITIAL_LOGS);
 
   // Editable fields state
   const [editForm, setEditForm] = useState({
@@ -92,29 +106,38 @@ export default function ApplicationDetail() {
   const handleSave = () => {
     setD((prev) => ({ ...prev, ...editForm }));
     setEditing(false);
+    setOpLogs((prev) => [...prev, {
+      time: new Date().toLocaleString("zh-CN"), operator: "当前用户", action: "编辑信息",
+      detail: "修改了联系人信息/备注",
+    }]);
     toast.success("保存成功");
   };
 
   const handleClose = () => {
+    const now = new Date().toLocaleString("zh-CN");
     setD((prev) => ({
       ...prev,
       status: "closed" as ApplicationStatus,
       closeReason: closeReasonInput.trim() || undefined,
-      closeTime: new Date().toLocaleString("zh-CN"),
+      closeTime: now,
     }));
+    setOpLogs((prev) => [...prev, {
+      time: now, operator: "当前用户", action: "关闭申请",
+      detail: closeReasonInput.trim() || undefined,
+    }]);
     setShowCloseConfirm(false);
     setCloseReasonInput("");
     toast.success("申请已关闭");
   };
 
-  const handleCreateEnterprise = () => {
-    setShowProcessDialog(false);
-    const typeKeyMap: Record<string, string> = {
-      "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
-      "卖场": "mall", "门店": "store", "工作室": "studio",
-    };
-    const typeKey = typeKeyMap[d.type] || "brand";
-    navigate(`/enterprise/create?type=${typeKey}&fromApplication=${d.id}`);
+  const handleTypeSelected = (type: string) => {
+    const now = new Date().toLocaleString("zh-CN");
+    setOpLogs((prev) => [...prev, {
+      time: now, operator: "当前用户", action: "创建企业",
+      detail: `选择企业类型进入创建流程`,
+    }]);
+    setShowTypeDialog(false);
+    navigate(`/enterprise/create?type=${type}&fromApplication=${d.id}`);
   };
 
   return (
@@ -139,15 +162,17 @@ export default function ApplicationDetail() {
             下一个 <ChevronRight className="h-3.5 w-3.5" />
           </Button>
           <div className="w-px h-4 bg-border mx-1" />
+          {d.status !== "created" && (
+            <Button
+              size="sm"
+              className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
+              onClick={() => setShowTypeDialog(true)}
+            >
+              创建企业
+            </Button>
+          )}
           {d.status === "pending" && (
             <>
-              <Button
-                size="sm"
-                className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
-                onClick={() => setShowProcessDialog(true)}
-              >
-                创建企业
-              </Button>
               <Button
                 variant="outline" size="sm"
                 className="h-8 text-[13px] px-4 gap-1.5 rounded-lg"
@@ -328,6 +353,34 @@ export default function ApplicationDetail() {
           </>
         )}
 
+        {/* ── 操作日志 ── */}
+        <SectionHeader title="操作日志" icon={Clock} />
+        <div className="px-6 py-5">
+          <div className="relative pl-4">
+            <div className="absolute left-[5px] top-1.5 bottom-1.5 w-px bg-border" />
+            <div className="space-y-4">
+              {[...opLogs].reverse().map((log, i) => (
+                <div key={i} className="relative flex gap-3 text-[13px]">
+                  <div className="absolute left-[-12px] top-1.5 w-2 h-2 rounded-full border-2 border-primary bg-card z-10" />
+                  <div className="flex-1 min-w-0 ml-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">{log.action}</span>
+                      <span className="text-muted-foreground/60">·</span>
+                      <span className="text-muted-foreground">{log.operator}</span>
+                    </div>
+                    <div className="mt-0.5">
+                      <span className="text-muted-foreground/70 text-[12px]">{log.time}</span>
+                    </div>
+                    {log.detail && (
+                      <p className="mt-1 text-muted-foreground text-[12px] leading-5">{log.detail}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Edit Actions */}
         {editing && (
           <div className="flex justify-end gap-3 px-6 py-4 border-t">
@@ -382,39 +435,15 @@ export default function ApplicationDetail() {
         </div>
       )}
 
-      {/* Process Dialog - Create Enterprise Confirm */}
-      {showProcessDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowProcessDialog(false)} />
-          <div
-            className="relative w-full max-w-[480px] rounded-xl border bg-card p-0 animate-in fade-in-0 zoom-in-95 duration-200 overflow-hidden"
-            style={{ boxShadow: "var(--shadow-md)" }}
-          >
-            <div className="border-b bg-muted/40 px-5 py-4">
-              <h3 className="text-[15px] font-semibold text-foreground">创建企业</h3>
-              <p className="mt-1 text-[13px] text-muted-foreground">
-                将基于该申请信息创建企业账号，申请记录将与创建的企业建立关联。
-              </p>
-            </div>
-            <div className="px-5 py-4 space-y-2 text-[13px]">
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground w-[70px] text-right shrink-0">企业名称：</span>
-                <span className="text-foreground font-medium">{d.name}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground w-[70px] text-right shrink-0">企业类型：</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground">{d.type}</span>
-              </div>
-            </div>
-            <div className="flex gap-3 px-5 py-4 border-t">
-              <button className="btn-secondary flex-1" onClick={() => setShowProcessDialog(false)}>取消</button>
-              <button className="btn-primary flex-1" onClick={handleCreateEnterprise}>
-                确认创建
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Create Enterprise Type Dialog */}
+      <CreateEnterpriseDialog
+        open={showTypeDialog}
+        onClose={() => setShowTypeDialog(false)}
+        onSelect={handleTypeSelected}
+        defaultType={TYPE_KEY_MAP[d.type] || "brand"}
+        title="创建企业"
+        subtitle={`基于「${d.name}」的申请创建企业，请确认或修改企业类型`}
+      />
     </div>
   );
 }

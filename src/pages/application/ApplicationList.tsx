@@ -321,6 +321,11 @@ export default function ApplicationList() {
       visible: (r) => r.status === "pending",
     },
     {
+      label: "创建企业",
+      onClick: (r) => setCreateTarget(r),
+      visible: (r) => r.status === "closed",
+    },
+    {
       label: "查看",
       onClick: (r) => navigate(`/enterprise/apply/detail/${r.id}`),
     },
