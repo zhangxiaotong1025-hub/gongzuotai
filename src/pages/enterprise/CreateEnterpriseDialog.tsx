@@ -23,6 +23,10 @@ interface CreateEnterpriseDialogProps {
 export function CreateEnterpriseDialog({ open, onClose, onSelect, title, subtitle, allowedTypes, defaultType }: CreateEnterpriseDialogProps) {
   const [selected, setSelected] = useState<string | null>(defaultType || null);
 
+  useEffect(() => {
+    if (open) setSelected(defaultType || null);
+  }, [open, defaultType]);
+
   if (!open) return null;
 
   const types = allowedTypes
