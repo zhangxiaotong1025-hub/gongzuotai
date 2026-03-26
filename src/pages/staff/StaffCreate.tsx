@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, Plus, ChevronDown, ChevronUp, CalendarIcon, Info } from "lucide-react";
+import { X, Plus, ChevronDown, ChevronUp, ChevronRight, CalendarIcon, Info, Users, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -30,8 +30,6 @@ interface BenefitPkg {
   desc: string;
   tone: BenefitTone;
   dateRange: string;
-  applyMode: "指定人员" | "全部人员";
-  applyCount: number;
 }
 
 const BENEFIT_CATALOG: Record<string, { name: string; desc: string; tone: BenefitTone }[]> = {
@@ -54,7 +52,64 @@ const BENEFIT_CATALOG: Record<string, { name: string; desc: string; tone: Benefi
   ],
 };
 
-/* ── Date Range Picker (reused from enterprise) ── */
+/* ── Org Tree Data (same as StaffList) ── */
+interface OrgNode {
+  id: string;
+  name: string;
+  children?: OrgNode[];
+}
+
+const orgTreeData: OrgNode[] = [
+  {
+    id: "all", name: "全部", children: [
+      { id: "unset", name: "未设置组织架构" },
+      {
+        id: "hq", name: "总部", children: [
+          { id: "model", name: "模型部" },
+          { id: "design", name: "设计部" },
+        ]
+      },
+      {
+        id: "supply", name: "供应链", children: [
+          {
+            id: "south", name: "华南供应链", children: [
+              { id: "sd-supply", name: "山东供应链" },
+              { id: "hb-supply", name: "河北供应链" },
+              { id: "tj-supply", name: "天津供应链" },
+            ]
+          },
+          { id: "north", name: "华北供应链" },
+        ]
+      },
+    ]
+  },
+];
+
+/* Enterprise hierarchy for cascading display */
+const ENTERPRISE_PATH = ["广州珊珊光纤有限公司", "佛山分公司", "南海店"];
+
+/* ── Helpers ── */
+function findOrgName(nodes: OrgNode[], id: string): string | null {
+  for (const n of nodes) {
+    if (n.id === id) return n.name;
+    if (n.children) {
+      const found = findOrgName(n.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function flattenOrg(nodes: OrgNode[], depth = 0): { id: string; name: string; depth: number }[] {
+  const result: { id: string; name: string; depth: number }[] = [];
+  for (const n of nodes) {
+    if (n.id !== "all") result.push({ id: n.id, name: n.name, depth });
+    if (n.children) result.push(...flattenOrg(n.children, n.id === "all" ? depth : depth + 1));
+  }
+  return result;
+}
+
+/* ── Date Range Picker ── */
 function DateRangePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const parts = (value || "").split(" ~ ");
   const startDate = parts[0] ? new Date(parts[0]) : undefined;
@@ -111,7 +166,129 @@ function FormRow({ label, required, children }: { label: string; required?: bool
   );
 }
 
-/* ── Benefit Row Card (same pattern as enterprise config) ── */
+/* ── Org Tree Selector (dropdown with tree) ── */
+function OrgTreeSelector({ selectedIds, onChange }: {
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const toggle = (id: string) => {
+    onChange(selectedIds.includes(id) ? selectedIds.filter(x => x !== id) : [...selectedIds, id]);
+  };
+
+  const selectedNames = selectedIds.map(id => findOrgName(orgTreeData, id)).filter(Boolean);
+
+  return (
+    <div className="relative" ref={ref}>
+      <div
+        className={cn(
+          "filter-input w-full min-h-[36px] flex items-center flex-wrap gap-1 cursor-pointer pr-8",
+          open && "ring-2 ring-primary/20 border-primary/40"
+        )}
+        onClick={() => setOpen(!open)}
+      >
+        {selectedNames.length === 0 && <span className="text-muted-foreground text-[13px]">选择组织架构（支持多选）</span>}
+        {selectedNames.map((name, i) => (
+          <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[12px] font-medium bg-primary/8 text-primary">
+            {name}
+            <X className="h-3 w-3 cursor-pointer hover:opacity-70" onClick={(e) => { e.stopPropagation(); toggle(selectedIds[i]); }} />
+          </span>
+        ))}
+        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2" />
+      </div>
+
+      {open && (
+        <div
+          className="absolute left-0 top-full mt-1 z-50 w-full rounded-xl border bg-popover py-2 max-h-[280px] overflow-y-auto"
+          style={{ boxShadow: "var(--shadow-lg)" }}
+        >
+          <OrgTreeDropdown nodes={orgTreeData} selectedIds={selectedIds} onToggle={toggle} depth={0} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
+  nodes: OrgNode[];
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+  depth: number;
+}) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(["all", "hq", "supply", "south"]));
+
+  return (
+    <>
+      {nodes.map(node => {
+        const hasChildren = node.children && node.children.length > 0;
+        const isExpanded = expanded.has(node.id);
+        const isSelected = selectedIds.includes(node.id);
+        const isRoot = node.id === "all";
+
+        return (
+          <div key={node.id}>
+            <div
+              className={cn(
+                "flex items-center gap-1.5 py-1.5 px-3 cursor-pointer text-[13px] hover:bg-muted/60 transition-colors",
+              )}
+              style={{ paddingLeft: `${12 + depth * 16}px` }}
+            >
+              {hasChildren ? (
+                <button
+                  className="p-0.5 rounded hover:bg-muted transition-colors shrink-0"
+                  onClick={() => setExpanded(prev => {
+                    const next = new Set(prev);
+                    next.has(node.id) ? next.delete(node.id) : next.add(node.id);
+                    return next;
+                  })}
+                >
+                  {isExpanded
+                    ? <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                </button>
+              ) : (
+                <span className="w-[18px] shrink-0" />
+              )}
+              {!isRoot && (
+                <div
+                  className={cn(
+                    "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all cursor-pointer",
+                    isSelected ? "bg-primary border-primary" : "border-border bg-card"
+                  )}
+                  onClick={() => onToggle(node.id)}
+                >
+                  {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                </div>
+              )}
+              <span
+                className={cn("flex-1 truncate", isRoot && "font-medium text-muted-foreground")}
+                onClick={() => !isRoot && onToggle(node.id)}
+              >
+                {node.name}
+              </span>
+            </div>
+            {hasChildren && isExpanded && (
+              <OrgTreeDropdown nodes={node.children!} selectedIds={selectedIds} onToggle={onToggle} depth={isRoot ? depth : depth + 1} />
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+/* ── Benefit Row Card (person-level: only date range, no mode/quota) ── */
 function BenefitRowCard({ pkg, onUpdate, onRemove }: {
   pkg: BenefitPkg;
   onUpdate: (field: string, value: unknown) => void;
@@ -123,18 +300,17 @@ function BenefitRowCard({ pkg, onUpdate, onRemove }: {
   return (
     <div
       className="rounded-xl border overflow-hidden transition-all"
-      style={{ borderColor: `hsl(${cssVar.replace('--', 'var(--')}) / 0.15)` }}
+      style={{ borderColor: `hsl(var(${cssVar}) / 0.15)` }}
     >
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-3 cursor-pointer"
-        style={{ background: `hsl(${cssVar.replace('--', 'var(--')}) / 0.03)` }}
+        style={{ background: `hsl(var(${cssVar}) / 0.03)` }}
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-2">
           <div className="w-1 h-4 rounded-full" style={{ background: `hsl(var(${cssVar}))` }} />
           <span className="text-[13px] font-semibold" style={{ color: `hsl(var(${cssVar}))` }}>{pkg.name}</span>
-          <Info className="h-3.5 w-3.5 opacity-30" style={{ color: `hsl(var(${cssVar}))` }} />
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -147,39 +323,15 @@ function BenefitRowCard({ pkg, onUpdate, onRemove }: {
         </div>
       </div>
 
-      {/* Body */}
+      {/* Body — only usage period for person-level */}
       {expanded && (
-        <div className="px-4 py-4 space-y-4 border-t" style={{ borderColor: `hsl(${cssVar.replace('--', 'var(--')}) / 0.1)` }}>
-          <div className="text-[12px] text-muted-foreground mb-2">{pkg.desc}</div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[12px] text-muted-foreground font-medium">使用周期</label>
-              <DateRangePicker
-                value={pkg.dateRange}
-                onChange={(v) => onUpdate("dateRange", v)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[12px] text-muted-foreground font-medium">适用模式</label>
-              <select
-                className="filter-select w-full"
-                value={pkg.applyMode}
-                onChange={(e) => onUpdate("applyMode", e.target.value)}
-              >
-                <option value="指定人员">指定人员</option>
-                <option value="全部人员">全部人员</option>
-              </select>
-            </div>
-          </div>
-
+        <div className="px-4 py-4 space-y-3 border-t" style={{ borderColor: `hsl(var(${cssVar}) / 0.1)` }}>
+          <div className="text-[12px] text-muted-foreground">{pkg.desc}</div>
           <div className="space-y-1.5">
-            <label className="text-[12px] text-muted-foreground font-medium">配额数量</label>
-            <input
-              type="number"
-              className="filter-input w-[160px]"
-              value={pkg.applyCount}
-              onChange={(e) => onUpdate("applyCount", Number(e.target.value))}
+            <label className="text-[12px] text-muted-foreground font-medium">使用周期</label>
+            <DateRangePicker
+              value={pkg.dateRange}
+              onChange={(v) => onUpdate("dateRange", v)}
             />
           </div>
         </div>
@@ -188,6 +340,9 @@ function BenefitRowCard({ pkg, onUpdate, onRemove }: {
   );
 }
 
+/* ══════════════════════════
+   Main Component
+   ══════════════════════════ */
 export default function StaffCreate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -196,15 +351,13 @@ export default function StaffCreate() {
   const [form, setForm] = useState({
     name: isEdit ? "王小二" : "",
     staffId: "202020",
-    phone: "",
-    enterprise: "当前企业架构树",
-    orgStructure: "当前企业组织结构树",
+    phone: isEdit ? "18512345678" : "",
+    orgIds: isEdit ? ["model", "design"] : [] as string[],
     enabledProducts: ["domestic3d", "smartGuide"] as string[],
     roles: isEdit ? ["设计师", "企业管理员"] : [] as string[],
     benefits: isEdit ? [
-      { id: "b1", name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23", applyMode: "指定人员" as const, applyCount: 30 },
-      { id: "b2", name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "teal" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23", applyMode: "全部人员" as const, applyCount: 20 },
-      { id: "b3", name: "精准客资权益包", desc: "含线索分配、客户管理", tone: "rose" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23", applyMode: "指定人员" as const, applyCount: 10 },
+      { id: "b1", name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
+      { id: "b2", name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "teal" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
     ] : [] as BenefitPkg[],
     status: "active" as "active" | "inactive",
     remark: "",
@@ -222,7 +375,6 @@ export default function StaffCreate() {
     update("roles", arr.includes(role) ? arr.filter((r) => r !== role) : [...arr, role]);
   };
 
-  // Get available benefits based on enabled products
   const availableBenefits = useMemo(() => {
     const all: { name: string; desc: string; tone: BenefitTone; productKey: string }[] = [];
     form.enabledProducts.forEach((pk) => {
@@ -241,14 +393,10 @@ export default function StaffCreate() {
       desc: item.desc,
       tone: item.tone,
       dateRange: "2026-01-01 ~ 2028-12-31",
-      applyMode: "指定人员" as const,
-      applyCount: 10,
     }]);
   };
 
-  const removeBenefit = (id: string) => {
-    update("benefits", form.benefits.filter((b) => b.id !== id));
-  };
+  const removeBenefit = (id: string) => update("benefits", form.benefits.filter((b) => b.id !== id));
 
   const updateBenefit = (id: string, field: string, value: unknown) => {
     update("benefits", form.benefits.map((b) => b.id === id ? { ...b, [field]: value } : b));
@@ -256,6 +404,7 @@ export default function StaffCreate() {
 
   const handleSubmit = () => {
     if (!form.name.trim()) { toast.error("请填写姓名"); return; }
+    if (!form.phone.trim()) { toast.error("请填写手机号"); return; }
     toast.success(isEdit ? "人员信息已更新" : "人员创建成功");
     navigate("/enterprise/staff");
   };
@@ -267,7 +416,7 @@ export default function StaffCreate() {
       {/* Breadcrumb */}
       <div className="flex items-baseline gap-2">
         <span className="text-[13px] text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/enterprise/staff")}>
-          企业管理
+          人员管理
         </span>
         <span className="text-muted-foreground/30 text-xs">/</span>
         <h1 className="text-[14px] text-foreground font-semibold tracking-tight">
@@ -279,29 +428,41 @@ export default function StaffCreate() {
       <div className="bg-card rounded-2xl border border-border/70 overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
         <div className="p-6">
           <div className="max-w-[760px] mx-auto space-y-5">
+
+            {/* Basic Info */}
             <FormRow label="姓名" required>
-              <input className="filter-input w-full" placeholder="请输入" value={form.name} onChange={(e) => update("name", e.target.value)} />
+              <input className="filter-input w-full" placeholder="请输入姓名" value={form.name} onChange={(e) => update("name", e.target.value)} />
             </FormRow>
             <FormRow label="人员ID">
               <input className="filter-input w-full bg-muted/30" value={form.staffId} disabled />
             </FormRow>
             <FormRow label="手机号" required>
-              <input className="filter-input w-full" placeholder="请输入" value={form.phone} onChange={(e) => update("phone", e.target.value)} />
+              <input className="filter-input w-full" placeholder="请输入手机号" value={form.phone} onChange={(e) => update("phone", e.target.value)} />
             </FormRow>
+
+            {/* Enterprise — cascading display */}
             <FormRow label="归属企业">
-              <select className="filter-select w-full">
-                <option>{form.enterprise}</option>
-              </select>
+              <div className="flex items-center gap-1 text-[13px] text-foreground py-[7px]">
+                {ENTERPRISE_PATH.map((name, i) => (
+                  <span key={i} className="flex items-center gap-1">
+                    {i > 0 && <span className="text-muted-foreground/40">/</span>}
+                    <span className={i === ENTERPRISE_PATH.length - 1 ? "font-medium text-primary" : "text-muted-foreground"}>{name}</span>
+                  </span>
+                ))}
+              </div>
             </FormRow>
-            <FormRow label="组织结构">
-              <select className="filter-select w-full">
-                <option>{form.orgStructure}</option>
-              </select>
+
+            {/* Org Structure — tree multi-select dropdown */}
+            <FormRow label="组织架构">
+              <OrgTreeSelector
+                selectedIds={form.orgIds}
+                onChange={(ids) => update("orgIds", ids)}
+              />
             </FormRow>
 
             {/* Products */}
             <FormRow label="开启产品">
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 py-[7px]">
                 {PRODUCTS.map((p) => (
                   <label key={p.key} className="flex items-center gap-2 cursor-pointer text-[13px]">
                     <div
@@ -351,7 +512,7 @@ export default function StaffCreate() {
               </div>
             </FormRow>
 
-            {/* Benefits — expanded list with per-item config */}
+            {/* Benefits — person level: only usage period */}
             <FormRow label="权益配置">
               <div className="space-y-3">
                 {form.benefits.map((pkg) => (
@@ -363,13 +524,12 @@ export default function StaffCreate() {
                   />
                 ))}
 
-                {/* Add benefit selector */}
                 <div className="relative">
                   <button
                     className="flex items-center gap-1.5 text-[12px] text-primary/70 hover:text-primary transition-colors"
                     onClick={() => setShowBenefitPicker(!showBenefitPicker)}
                   >
-                    <Plus className="h-3.5 w-3.5" /> 添加品类
+                    <Plus className="h-3.5 w-3.5" /> 添加权益包
                   </button>
                   {showBenefitPicker && (
                     <div
@@ -409,7 +569,7 @@ export default function StaffCreate() {
 
             {/* Status */}
             <FormRow label="状态">
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-6 py-[7px]">
                 <label className="flex items-center gap-2 cursor-pointer text-[13px]">
                   <div className={cn(
                     "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all",
@@ -435,7 +595,7 @@ export default function StaffCreate() {
             <FormRow label="备注">
               <textarea
                 className="filter-input w-full min-h-[80px] py-2 resize-none"
-                placeholder="请输入"
+                placeholder="请输入备注信息"
                 value={form.remark}
                 onChange={(e) => update("remark", e.target.value)}
               />
@@ -447,7 +607,7 @@ export default function StaffCreate() {
         <div className="flex justify-center gap-3 px-6 py-5 border-t border-border/70 bg-muted/20">
           <button className="btn-secondary" onClick={() => navigate("/enterprise/staff")}>取消</button>
           <button className="btn-primary" onClick={handleSubmit}>
-            {isEdit ? "保存" : "下一步"}
+            {isEdit ? "保存" : "创建"}
           </button>
         </div>
       </div>
