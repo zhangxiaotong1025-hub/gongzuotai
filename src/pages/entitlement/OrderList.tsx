@@ -67,7 +67,7 @@ export default function OrderList() {
       </span>
     )},
     { key: "customerName", title: "客户名称", minWidth: 120 },
-    { key: "items", title: "所属应用", minWidth: 160, render: (_v, row) => {
+    { key: "_apps", title: "所属应用", minWidth: 160, render: (_v, row) => {
       const apps = getOrderApps(row as EntitlementOrder);
       return (
         <div className="flex flex-wrap gap-1">
