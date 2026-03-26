@@ -398,9 +398,7 @@ export default function EnterpriseCreate() {
                 form={form}
                 update={update}
                 parentName={parentName}
-                allowedSubTypes={allowedSubTypes}
-                selectedSubType={selectedSubType}
-                onSubTypeChange={setSelectedSubType}
+                type={type}
               />
             : <StepBasic form={form} update={update} />
         )}
