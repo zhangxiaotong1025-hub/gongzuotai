@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { bundleData, skuData, entitlementProductData, capabilityData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES } from "@/data/entitlement";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { bundleData, skuData, ruleData, capabilityData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, getRule, getCapability } from "@/data/entitlement";
+import { ArrowLeft } from "lucide-react";
 
 export default function PackageDetail() {
   const { id } = useParams();
@@ -10,11 +10,10 @@ export default function PackageDetail() {
 
   const cycle = BILLING_CYCLES.find((b) => b.value === bundle.billingCycle)?.label || bundle.billingCycle;
 
-  // Enrich items with full chain
   const enrichedItems = bundle.items.map((item) => {
     const sku = skuData.find((s) => s.id === item.skuId);
-    const rule = sku ? entitlementProductData.find((p) => p.id === sku.productId) : null;
-    const cap = rule ? capabilityData.find((c) => c.id === rule.capabilityId) : null;
+    const rule = sku ? getRule(sku.ruleId) : null;
+    const cap = rule ? getCapability(rule.capabilityId) : null;
     return { ...item, sku, rule, cap };
   });
 
@@ -33,14 +32,13 @@ export default function PackageDetail() {
         </div>
         <div className="grid grid-cols-5 gap-4 text-[13px]">
           <div><span className="text-muted-foreground">编码</span><div className="font-mono text-foreground mt-0.5">{bundle.code}</div></div>
-          <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5"><Link to={`/entitlement/app/detail/${bundle.appId}`} className="text-primary hover:underline inline-flex items-center gap-1">{bundle.appName} <ExternalLink className="h-3 w-3" /></Link></div></div>
+          <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5"><Link to={`/entitlement/app/detail/${bundle.appId}`} className="text-primary hover:underline">{bundle.appName}</Link></div></div>
           <div><span className="text-muted-foreground">价格</span><div className="font-medium text-foreground mt-0.5">{bundle.price > 0 ? `¥${bundle.price}/${cycle}` : "免费"}{bundle.originalPrice ? ` (原¥${bundle.originalPrice})` : ""}</div></div>
           <div><span className="text-muted-foreground">包含商品</span><div className="text-primary font-medium mt-0.5">{bundle.items.length}个</div></div>
           <div><span className="text-muted-foreground">创建时间</span><div className="text-foreground mt-0.5">{bundle.createdAt}</div></div>
         </div>
       </div>
 
-      {/* Items with full relationship chain */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <h3 className="text-[14px] font-semibold text-foreground mb-3">套餐明细 ({enrichedItems.length})</h3>
         <div className="overflow-x-auto">
@@ -51,7 +49,7 @@ export default function PackageDetail() {
               <th className="text-left py-2 font-medium">权益规则</th>
               <th className="text-left py-2 font-medium">能力</th>
               <th className="text-right py-2 font-medium">额度</th>
-              <th className="text-left py-2 font-medium">周期</th>
+              <th className="text-left py-2 font-medium">发放方式</th>
               <th className="text-right py-2 font-medium">单价</th>
               <th className="text-left py-2 font-medium">操作</th>
             </tr></thead>
@@ -62,8 +60,8 @@ export default function PackageDetail() {
                   <td className="py-2 text-center">{quantity > 1 ? <span className="text-primary font-medium">×{quantity}</span> : "1"}</td>
                   <td className="py-2">{rule ? <Link to={`/entitlement/rule/detail/${rule.id}`} className="text-primary hover:underline text-[12px]">{rule.name}</Link> : "—"}</td>
                   <td className="py-2">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-muted-foreground hover:text-primary text-[12px]">{cap.name}</Link> : "—"}</td>
-                  <td className="py-2 text-right font-medium">{rule ? `${rule.quota.toLocaleString()}` : "—"}</td>
-                  <td className="py-2 text-muted-foreground">{rule ? PERIOD_TYPES.find((p) => p.value === rule.period)?.label : "—"}</td>
+                  <td className="py-2 text-right font-medium">{rule ? `${rule.quota.toLocaleString()} ${cap?.unit || ""}` : "—"}</td>
+                  <td className="py-2 text-muted-foreground">{rule ? GRANT_TYPES.find((g) => g.value === rule.grantType)?.label : "—"}</td>
                   <td className="py-2 text-right">{sku && sku.price > 0 ? `¥${sku.price}` : "—"}</td>
                   <td className="py-2"><Link to={`/entitlement/sku/detail/${skuId}`} className="text-primary hover:underline text-[12px]">查看</Link></td>
                 </tr>

@@ -43,7 +43,7 @@ const navItems: NavItem[] = [
     children: [
       { label: "应用管理", path: "/entitlement/app" },
       { label: "能力管理", path: "/entitlement/capability" },
-      { label: "权益产品", path: "/entitlement/rule" },
+      { label: "权益规则", path: "/entitlement/rule" },
       {
         label: "商品管理",
         path: "/entitlement/sku",

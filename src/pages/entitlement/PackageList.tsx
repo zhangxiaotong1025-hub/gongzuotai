@@ -6,7 +6,7 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download, X, ChevronDown, ChevronUp, Check } from "lucide-react";
-import { bundleData as initialData, appData, skuData, getSkusByApp, BILLING_CYCLES, STATUS_MAP, type Bundle, type BillingCycle } from "@/data/entitlement";
+import { bundleData as initialData, appData, skuData, getSkusByApp, BILLING_CYCLES, STATUS_MAP, type Bundle, type BillingCycle, getRule } from "@/data/entitlement";
 
 const filterFields: FilterField[] = [
   { key: "name", label: "套餐名称", type: "input", placeholder: "请输入", width: 180 },
@@ -86,25 +86,27 @@ function BundleDialog({ open, onClose, onSave, initial }: { open: boolean; onClo
             </div>
           </div>
 
-          {/* SKU multi-select with quantity */}
           <div className="space-y-1.5">
-            <label className="text-[13px] text-muted-foreground">包含商品 <span className="text-destructive">*</span> <span className="text-[11px]">（已选{form.selectedSkuIds.length}个，所有SKU必须属于同一应用）</span></label>
+            <label className="text-[13px] text-muted-foreground">包含商品 <span className="text-destructive">*</span> <span className="text-[11px]">（已选{form.selectedSkuIds.length}个）</span></label>
             <div className="border rounded-lg p-2 max-h-[220px] overflow-y-auto space-y-0.5">
-              {availableSkus.map((s) => (
-                <div key={s.id} className={`flex items-center gap-3 px-3 py-2 rounded-md text-[13px] transition-all ${form.selectedSkuIds.includes(s.id) ? "bg-primary/10" : "hover:bg-muted/60"}`}>
-                  <button onClick={() => toggleSku(s.id)} className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${form.selectedSkuIds.includes(s.id) ? "bg-primary border-primary" : "border-border"}`}>
-                    {form.selectedSkuIds.includes(s.id) && <Check className="h-3 w-3 text-primary-foreground" />}
-                  </button>
-                  <span className={`flex-1 ${form.selectedSkuIds.includes(s.id) ? "text-primary font-medium" : "text-foreground"}`}>{s.name}</span>
-                  <span className="text-[11px] text-muted-foreground">{s.productName}</span>
-                  {form.selectedSkuIds.includes(s.id) && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-[11px] text-muted-foreground">×</span>
-                      <input type="number" min={1} className="filter-input w-12 text-center text-[12px] py-0.5" value={form.quantities[s.id] || 1} onChange={(e) => setForm({ ...form, quantities: { ...form.quantities, [s.id]: Math.max(1, Number(e.target.value)) } })} />
-                    </div>
-                  )}
-                </div>
-              ))}
+              {availableSkus.map((s) => {
+                const rule = getRule(s.ruleId);
+                return (
+                  <div key={s.id} className={`flex items-center gap-3 px-3 py-2 rounded-md text-[13px] transition-all ${form.selectedSkuIds.includes(s.id) ? "bg-primary/10" : "hover:bg-muted/60"}`}>
+                    <button onClick={() => toggleSku(s.id)} className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${form.selectedSkuIds.includes(s.id) ? "bg-primary border-primary" : "border-border"}`}>
+                      {form.selectedSkuIds.includes(s.id) && <Check className="h-3 w-3 text-primary-foreground" />}
+                    </button>
+                    <span className={`flex-1 ${form.selectedSkuIds.includes(s.id) ? "text-primary font-medium" : "text-foreground"}`}>{s.name}</span>
+                    <span className="text-[11px] text-muted-foreground">{rule?.name || ""}</span>
+                    {form.selectedSkuIds.includes(s.id) && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px] text-muted-foreground">×</span>
+                        <input type="number" min={1} className="filter-input w-12 text-center text-[12px] py-0.5" value={form.quantities[s.id] || 1} onChange={(e) => setForm({ ...form, quantities: { ...form.quantities, [s.id]: Math.max(1, Number(e.target.value)) } })} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               {availableSkus.length === 0 && <p className="text-[13px] text-muted-foreground text-center py-4">该应用下暂无上架商品</p>}
             </div>
           </div>
@@ -202,7 +204,7 @@ export default function PackageList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="商品套餐" subtitle="将多个商品SKU组合成会员套餐，套餐中所有SKU必须属于同一应用" actions={
+      <PageHeader title="商品套餐" subtitle="将多个商品SKU组合成会员套餐" actions={
         <div className="flex gap-2">
           <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 新建</button>
           <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>

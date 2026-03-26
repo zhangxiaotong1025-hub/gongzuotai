@@ -5,30 +5,33 @@ import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
-import { Plus, Download, X, Check } from "lucide-react";
-import { capabilityData as initialData, appData, entitlementProductData, CAPABILITY_TYPES, STATUS_MAP, type Capability, type CapabilityType, getAppNames } from "@/data/entitlement";
+import { Plus, Download, X } from "lucide-react";
+import { capabilityData as initialData, appData, ruleData, DATA_TYPES, STATUS_MAP, type Capability, type DataType, getApp } from "@/data/entitlement";
 
 const filterFields: FilterField[] = [
   { key: "name", label: "能力名称/编码", type: "input", placeholder: "请输入", width: 220 },
-  { key: "type", label: "能力类型", type: "select", options: CAPABILITY_TYPES.map((t) => ({ label: t, value: t })), width: 120 },
-  { key: "status", label: "状态", type: "select", options: [{ label: "启用", value: "active" }, { label: "停用", value: "inactive" }], width: 120 },
+  { key: "appId", label: "所属应用", type: "select", options: appData.map((a) => ({ label: a.name, value: a.id })), width: 160 },
+  { key: "dataType", label: "数据类型", type: "select", options: DATA_TYPES.map((t) => ({ label: t.label.split("（")[0], value: t.value })), width: 120 },
+  { key: "status", label: "状态", type: "select", options: [{ label: "启用", value: "active" }, { label: "停用", value: "inactive" }], width: 100 },
 ];
 
 function CapDialog({ open, onClose, onSave, initial }: { open: boolean; onClose: () => void; onSave: (d: any) => void; initial?: Capability | null }) {
   const [form, setForm] = useState({
     name: initial?.name || "", code: initial?.code || "",
-    type: (initial?.type || "AI") as CapabilityType,
-    appIds: initial?.appIds || [appData[0]?.id],
+    appId: initial?.appId || appData[0]?.id,
+    dataType: (initial?.dataType || "COUNTER") as DataType,
+    unit: initial?.unit || "次",
+    apiPath: initial?.apiPath || "",
+    consumePerUse: initial?.consumePerUse ?? 1,
     description: initial?.description || "",
   });
   const isEdit = Boolean(initial);
   if (!open) return null;
 
-  const toggleApp = (appId: string) => {
-    setForm((prev) => ({
-      ...prev,
-      appIds: prev.appIds.includes(appId) ? prev.appIds.filter((id) => id !== appId) : [...prev.appIds, appId],
-    }));
+  // 数据类型变更时自动设置默认单位
+  const handleDataTypeChange = (dt: DataType) => {
+    const unitMap: Record<DataType, string> = { COUNTER: "次", BOOLEAN: "布尔", STORAGE: "MB", DURATION: "秒" };
+    setForm({ ...form, dataType: dt, unit: unitMap[dt] });
   };
 
   return (
@@ -38,11 +41,11 @@ function CapDialog({ open, onClose, onSave, initial }: { open: boolean; onClose:
         <div className="border-b bg-muted/40 px-5 py-4 flex items-center justify-between">
           <div>
             <h3 className="text-[15px] font-semibold text-foreground">{isEdit ? "编辑能力" : "新建能力"}</h3>
-            <p className="mt-0.5 text-[13px] text-muted-foreground">定义平台可售卖的技术能力，能力可跨应用共享</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">定义最底层技术能力，只定义"做什么"</p>
           </div>
           <button onClick={onClose} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><X className="h-4 w-4" /></button>
         </div>
-        <div className="px-5 py-5 space-y-4">
+        <div className="px-5 py-5 space-y-4 max-h-[60vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-[13px] text-muted-foreground">能力名称 <span className="text-destructive">*</span></label>
@@ -54,25 +57,31 @@ function CapDialog({ open, onClose, onSave, initial }: { open: boolean; onClose:
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[13px] text-muted-foreground">能力类型 <span className="text-destructive">*</span></label>
-            <select className="filter-input w-full" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as CapabilityType })}>
-              {CAPABILITY_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            <label className="text-[13px] text-muted-foreground">所属应用 <span className="text-destructive">*</span></label>
+            <select className="filter-input w-full" value={form.appId} onChange={(e) => setForm({ ...form, appId: e.target.value })}>
+              {appData.filter((a) => a.status === "active").map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
           </div>
-          {/* Multi-select apps */}
-          <div className="space-y-1.5">
-            <label className="text-[13px] text-muted-foreground">适用应用 <span className="text-destructive">*</span> <span className="text-[11px]">（多选，已选{form.appIds.length}个）</span></label>
-            <div className="border rounded-lg p-2 space-y-0.5">
-              {appData.filter((a) => a.status === "active").map((app) => (
-                <button key={app.id} onClick={() => toggleApp(app.id)} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] transition-all text-left ${form.appIds.includes(app.id) ? "bg-primary/10 text-primary" : "hover:bg-muted/60 text-foreground"}`}>
-                  <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${form.appIds.includes(app.id) ? "bg-primary border-primary" : "border-border"}`}>
-                    {form.appIds.includes(app.id) && <Check className="h-3 w-3 text-primary-foreground" />}
-                  </div>
-                  <span className="flex-1">{app.name}</span>
-                  <code className="text-[11px] text-muted-foreground">{app.code}</code>
-                </button>
-              ))}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[13px] text-muted-foreground">数据类型 <span className="text-destructive">*</span></label>
+              <select className="filter-input w-full" value={form.dataType} onChange={(e) => handleDataTypeChange(e.target.value as DataType)}>
+                {DATA_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
             </div>
+            <div className="space-y-1.5">
+              <label className="text-[13px] text-muted-foreground">计量单位 <span className="text-destructive">*</span></label>
+              <input className="filter-input w-full" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[13px] text-muted-foreground">默认消耗</label>
+              <input type="number" min={1} className="filter-input w-full" value={form.consumePerUse} onChange={(e) => setForm({ ...form, consumePerUse: Math.max(1, Number(e.target.value)) })} />
+              <p className="text-[11px] text-muted-foreground/70">每次调用消耗量</p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[13px] text-muted-foreground">调用接口</label>
+            <input className="filter-input w-full font-mono text-[12px]" placeholder="/api/ai/design" value={form.apiPath} onChange={(e) => setForm({ ...form, apiPath: e.target.value })} />
           </div>
           <div className="space-y-1.5">
             <label className="text-[13px] text-muted-foreground">能力描述</label>
@@ -81,7 +90,7 @@ function CapDialog({ open, onClose, onSave, initial }: { open: boolean; onClose:
         </div>
         <div className="flex gap-3 px-5 py-4 border-t">
           <button className="btn-secondary flex-1" onClick={onClose}>取消</button>
-          <button className="btn-primary flex-1" disabled={!form.name.trim() || !form.code.trim() || form.appIds.length === 0} onClick={() => onSave(form)}>{isEdit ? "保存" : "创建"}</button>
+          <button className="btn-primary flex-1" disabled={!form.name.trim() || !form.code.trim()} onClick={() => onSave(form)}>{isEdit ? "保存" : "创建"}</button>
         </div>
       </div>
     </div>
@@ -115,24 +124,19 @@ export default function CapabilityList() {
 
   const columns: TableColumn<Capability>[] = [
     { key: "name", title: "能力名称", minWidth: 120, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/capability/detail/${(row as Capability).id}`)}>{v}</button> },
-    { key: "code", title: "编码", minWidth: 130, render: (v) => <code className="text-[12px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">{v}</code> },
-    { key: "type", title: "类型", minWidth: 70, render: (v) => <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground">{v}</span> },
+    { key: "code", title: "编码", minWidth: 160, render: (v) => <code className="text-[12px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">{v}</code> },
+    { key: "appId", title: "所属应用", minWidth: 120, render: (v: string) => { const app = getApp(v); return app ? <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-primary/10 text-primary hover:bg-primary/20" onClick={() => navigate(`/entitlement/app/detail/${v}`)}>{app.name}</button> : <span>—</span>; } },
+    { key: "dataType", title: "数据类型", minWidth: 100, render: (v: string) => <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground">{DATA_TYPES.find((t) => t.value === v)?.label.split("（")[0] || v}</span> },
+    { key: "unit", title: "单位", minWidth: 60, render: (v) => <span className="text-muted-foreground">{v}</span> },
+    { key: "apiPath", title: "接口", minWidth: 160, render: (v) => v ? <code className="text-[11px] text-muted-foreground font-mono">{v}</code> : <span className="text-muted-foreground">—</span> },
     {
-      key: "appIds", title: "适用应用", minWidth: 200,
+      key: "id", title: "规则数", minWidth: 60, align: "center" as const,
       render: (_v, row) => {
-        const names = getAppNames((row as Capability).appIds);
-        return <div className="flex flex-wrap gap-1">{names.map((n) => <span key={n} className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{n}</span>)}</div>;
-      },
-    },
-    {
-      key: "id", title: "权益产品", minWidth: 80, align: "center" as const,
-      render: (_v, row) => {
-        const count = entitlementProductData.filter((p) => p.capabilityId === (row as Capability).id).length;
-        return <span className="text-primary font-medium">{count}</span>;
+        const count = ruleData.filter((r) => r.capabilityId === (row as Capability).id).length;
+        return <span className={count > 0 ? "text-primary font-medium" : "text-muted-foreground"}>{count}</span>;
       },
     },
     { key: "status", title: "状态", minWidth: 80, render: (v: string) => { const cfg = STATUS_MAP[v]; return <span className={cfg.className}>{cfg.label}</span>; } },
-    { key: "createdAt", title: "创建时间", minWidth: 110, render: (v) => <span className="text-muted-foreground">{v}</span> },
   ];
 
   const actions: ActionItem<Capability>[] = [
@@ -144,13 +148,13 @@ export default function CapabilityList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="权益能力管理" subtitle="定义平台可售卖的技术能力，能力可跨应用共享复用" actions={
+      <PageHeader title="能力管理" subtitle={'定义最底层技术能力，只定义"做什么"，不定义计费规则'} actions={
         <div className="flex gap-2">
           <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 新建</button>
           <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>
         </div>
       } />
-      <FilterBar fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onSearch={() => {}} onReset={() => setFilters({})} maxVisible={3} />
+      <FilterBar fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onSearch={() => {}} onReset={() => setFilters({})} maxVisible={4} />
       <AdminTable columns={columns} data={data} rowKey={(r) => r.id} actions={actions} maxVisibleActions={2} />
       <div className="bg-card rounded-xl border" style={{ boxShadow: "var(--shadow-xs)" }}><Pagination current={currentPage} total={data.length} pageSize={pageSize} onPageChange={setCurrentPage} onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }} /></div>
       <CapDialog open={dialogOpen} onClose={() => { setDialogOpen(false); setEditTarget(null); }} onSave={handleSave} initial={editTarget} />
