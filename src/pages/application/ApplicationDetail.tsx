@@ -353,6 +353,34 @@ export default function ApplicationDetail() {
           </>
         )}
 
+        {/* ── 操作日志 ── */}
+        <SectionHeader title="操作日志" icon={Clock} />
+        <div className="px-6 py-5">
+          <div className="relative pl-4">
+            <div className="absolute left-[5px] top-1.5 bottom-1.5 w-px bg-border" />
+            <div className="space-y-4">
+              {[...opLogs].reverse().map((log, i) => (
+                <div key={i} className="relative flex gap-3 text-[13px]">
+                  <div className="absolute left-[-12px] top-1.5 w-2 h-2 rounded-full border-2 border-primary bg-card z-10" />
+                  <div className="flex-1 min-w-0 ml-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-foreground">{log.action}</span>
+                      <span className="text-muted-foreground/60">·</span>
+                      <span className="text-muted-foreground">{log.operator}</span>
+                    </div>
+                    <div className="mt-0.5">
+                      <span className="text-muted-foreground/70 text-[12px]">{log.time}</span>
+                    </div>
+                    {log.detail && (
+                      <p className="mt-1 text-muted-foreground text-[12px] leading-5">{log.detail}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Edit Actions */}
         {editing && (
           <div className="flex justify-end gap-3 px-6 py-4 border-t">
