@@ -188,16 +188,29 @@ const CATEGORIES = ["瓷砖", "卫浴", "地板", "涂料", "灯具", "家具", 
 export default function EnterpriseCreate() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const type = searchParams.get("type") || "brand";
+  const parentType = searchParams.get("parentType") || "";
+  const parentId = searchParams.get("parentId") || "";
+  const parentName = searchParams.get("parentName") ? decodeURIComponent(searchParams.get("parentName")!) : "";
+  const level = parseInt(searchParams.get("level") || "0", 10);
+  const isSub = Boolean(parentId);
+
+  // For sub-enterprise, need to select sub-type first if not provided
+  const [selectedSubType, setSelectedSubType] = useState(searchParams.get("type") || "brand");
+  const type = isSub ? selectedSubType : (searchParams.get("type") || "brand");
+
   const brandRelation = TYPE_BRAND_RELATION[type] || "none";
   const steps = useMemo(() => getStepsForType(type), [type]);
   const [currentStep, setCurrentStep] = useState(0);
+
+  const allowedSubTypes = isSub ? (SUB_TYPE_ALLOWED[parentType] || []) : [];
 
   const [form, setForm] = useState({
     name: "", license: "2020220", authType: "营业执照认证", industry: "家居建材",
     province: "广东", licenseFile: null as File | null,
     contactName: "", contactPhone: "", legalPerson: "", legalPhone: "",
     regCapital: "", brand: "",
+    // Sub-enterprise specific fields
+    orgStructure: "上级/本级", region: "", address: "",
     enabledProducts: ["domestic3d", "smartGuide"] as string[],
     joinSupplyChain: true,
     enableGenericConfig: false,
