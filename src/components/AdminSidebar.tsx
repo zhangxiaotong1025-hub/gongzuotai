@@ -3,14 +3,21 @@ import { useLocation, Link } from "react-router-dom";
 import {
   Building2, Users, Shield, Gift, Tag, UserCircle, Sliders,
   FolderTree, Package, ShoppingBag, Key, Layout, Monitor,
-  FileText, Megaphone, BarChart3, ChevronDown,
+  FileText, Megaphone, BarChart3, ChevronDown, Zap, Ruler,
+  Box, Layers, ClipboardList, Wallet, Activity,
 } from "lucide-react";
+
+interface NavChild {
+  label: string;
+  path: string;
+  icon?: React.ElementType;
+}
 
 interface NavItem {
   label: string;
   icon: React.ElementType;
   path?: string;
-  children?: { label: string; path: string }[];
+  children?: NavChild[];
 }
 
 const navItems: NavItem[] = [
@@ -24,9 +31,35 @@ const navItems: NavItem[] = [
     ],
   },
   { label: "权限管理", icon: Shield, path: "/permission" },
-  { label: "权益管理", icon: Gift, path: "/entitlement" },
+  {
+    label: "权益管理",
+    icon: Gift,
+    children: [
+      { label: "应用管理", path: "/entitlement/app", icon: Monitor },
+      { label: "能力管理", path: "/entitlement/capability", icon: Zap },
+      { label: "权益规则", path: "/entitlement/rule", icon: Ruler },
+      { label: "权益商品", path: "/entitlement/sku", icon: Box },
+    ],
+  },
+  {
+    label: "权益商品管理",
+    icon: ShoppingBag,
+    children: [
+      { label: "商品SKU", path: "/entitlement/sku-list", icon: Tag },
+      { label: "权益包", path: "/entitlement/package", icon: Layers },
+    ],
+  },
+  { label: "订单管理", icon: ClipboardList, path: "/entitlement/order" },
+  {
+    label: "客户权益",
+    icon: UserCircle,
+    children: [
+      { label: "权益账户", path: "/entitlement/account", icon: Wallet },
+      { label: "权益消耗", path: "/entitlement/usage", icon: Activity },
+    ],
+  },
   { label: "品牌管理", icon: Tag, path: "/brand" },
-  { label: "客户管理", icon: UserCircle, path: "/customer" },
+  { label: "客户管理", icon: Users, path: "/customer" },
   { label: "属性管理", icon: Sliders, path: "/attribute" },
   { label: "类目管理", icon: FolderTree, path: "/category" },
   { label: "素材管理", icon: Package, path: "/material" },
