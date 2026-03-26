@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Download } from "lucide-react";
 import { CreateEnterpriseDialog } from "./CreateEnterpriseDialog";
+import { SetAdminDialog } from "./SetAdminDialog";
 import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
@@ -175,7 +176,7 @@ const actions: ActionItem<Enterprise>[] = [
       confirmLabel: "确认启用",
     },
   },
-  { label: "设置管理员", onClick: (r) => console.log("admin", r.id) },
+  { label: "设置管理员", onClick: () => {} }, // handled via state below
   { label: "新建子企业", onClick: (r) => console.log("sub", r.id), visible: (r) => !r._level },
   { label: "权益配置", onClick: (r) => console.log("entitlement", r.id) },
 ];
