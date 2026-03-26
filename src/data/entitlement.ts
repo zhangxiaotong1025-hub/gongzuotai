@@ -29,7 +29,11 @@ export interface AppItem {
 }
 
 export const appData: AppItem[] = [
-  { id: "app1", name: "居然设计家", code: "JURAN_DESIGN", description: "居然设计家3D设计工具", status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-12" },
+  { id: "app1", name: "国内3D工具",  code: "CN_3D_TOOL",      description: "国内版3D家装设计工具",       status: "active",   createdAt: "2026-01-10", updatedAt: "2026-03-12" },
+  { id: "app2", name: "国际3D工具",  code: "INTL_3D_TOOL",    description: "国际版3D设计工具（海外市场）", status: "active",   createdAt: "2026-01-15", updatedAt: "2026-03-10" },
+  { id: "app3", name: "智能导购",    code: "SMART_GUIDE",     description: "门店智能导购推荐系统",       status: "active",   createdAt: "2026-02-01", updatedAt: "2026-03-08" },
+  { id: "app4", name: "AI设计家",    code: "AI_DESIGNER",     description: "AI驱动的智能设计助手",       status: "active",   createdAt: "2026-02-20", updatedAt: "2026-03-15" },
+  { id: "app5", name: "精准客资",    code: "PRECISE_LEADS",   description: "精准客户资源获取与管理",     status: "inactive", createdAt: "2026-03-01", updatedAt: "2026-03-12" },
 ];
 
 /* ── Capability (能力) ── */
@@ -39,11 +43,11 @@ export interface Capability {
   id: string;
   name: string;
   code: string;
-  appId: string;           // N:1 → Application
+  appId: string;
   dataType: DataType;
-  unit: string;            // 次/布尔/MB/秒
-  apiPath: string;         // 调用接口
-  consumePerUse: number;   // 每次调用默认消耗量
+  unit: string;
+  apiPath: string;
+  consumePerUse: number;
   description: string;
   status: "active" | "inactive";
   createdAt: string;
@@ -57,6 +61,7 @@ export const DATA_TYPES: { value: DataType; label: string }[] = [
 ];
 
 export const capabilityData: Capability[] = [
+  // 国内3D工具
   { id: "cap1",  name: "AI设计",         code: "AI_DESIGN",             appId: "app1", dataType: "COUNTER",  unit: "次",  apiPath: "/api/ai/design",              consumePerUse: 1, description: "AI智能设计能力",       status: "active", createdAt: "2026-03-12" },
   { id: "cap2",  name: "4K渲染",         code: "RENDER_4K",             appId: "app1", dataType: "COUNTER",  unit: "次",  apiPath: "/api/render/4k",              consumePerUse: 1, description: "4K分辨率渲染",         status: "active", createdAt: "2026-03-12" },
   { id: "cap3",  name: "8K渲染",         code: "RENDER_8K",             appId: "app1", dataType: "COUNTER",  unit: "次",  apiPath: "/api/render/8k",              consumePerUse: 1, description: "8K分辨率渲染",         status: "active", createdAt: "2026-03-12" },
@@ -78,6 +83,14 @@ export const capabilityData: Capability[] = [
   { id: "cap19", name: "实时渲染",       code: "FEATURE_REALTIME_RENDER", appId: "app1", dataType: "BOOLEAN", unit: "布尔", apiPath: "/api/feature/realtime-render", consumePerUse: 1, description: "实时渲染功能",        status: "active", createdAt: "2026-03-12" },
   { id: "cap20", name: "大文件上传",     code: "FEATURE_LARGE_FILE",    appId: "app1", dataType: "BOOLEAN",  unit: "布尔", apiPath: "/api/feature/large-file",     consumePerUse: 1, description: "大文件上传功能",       status: "active", createdAt: "2026-03-12" },
   { id: "cap21", name: "云存储",         code: "FEATURE_CLOUD_STORAGE", appId: "app1", dataType: "STORAGE",  unit: "MB",  apiPath: "/api/feature/storage",        consumePerUse: 1, description: "云端文件存储",         status: "active", createdAt: "2026-03-12" },
+  // AI设计家
+  { id: "cap30", name: "AI方案生成",     code: "AI_PLAN_GEN",           appId: "app4", dataType: "COUNTER",  unit: "次",  apiPath: "/api/ai/plan",               consumePerUse: 1, description: "AI方案自动生成",       status: "active", createdAt: "2026-03-12" },
+  { id: "cap31", name: "AI风格迁移",     code: "AI_STYLE_TRANSFER",     appId: "app4", dataType: "COUNTER",  unit: "次",  apiPath: "/api/ai/style-transfer",     consumePerUse: 1, description: "AI风格迁移能力",       status: "active", createdAt: "2026-03-12" },
+  // 智能导购
+  { id: "cap40", name: "导购推荐",       code: "GUIDE_RECOMMEND",       appId: "app3", dataType: "COUNTER",  unit: "次",  apiPath: "/api/guide/recommend",       consumePerUse: 1, description: "智能导购推荐",         status: "active", createdAt: "2026-03-12" },
+  { id: "cap41", name: "客户画像",       code: "GUIDE_PROFILE",         appId: "app3", dataType: "BOOLEAN",  unit: "布尔", apiPath: "/api/guide/profile",          consumePerUse: 1, description: "客户画像分析",         status: "active", createdAt: "2026-03-12" },
+  // 精准客资
+  { id: "cap50", name: "线索获取",       code: "LEADS_ACQUIRE",         appId: "app5", dataType: "COUNTER",  unit: "条",  apiPath: "/api/leads/acquire",         consumePerUse: 1, description: "客资线索获取",         status: "active", createdAt: "2026-03-12" },
 ];
 
 /* ── EntitlementRule (权益规则) ── */
@@ -89,10 +102,10 @@ export interface EntitlementRule {
   id: string;
   name: string;
   code: string;
-  capabilityId: string;     // N:1 → Capability
+  capabilityId: string;
   quota: number;
   periodType: PeriodType;
-  periodValue: number;      // 永久为0
+  periodValue: number;
   grantType: GrantType;
   isCumulative: boolean;
   expirePolicy: ExpirePolicy;
@@ -120,7 +133,7 @@ export const EXPIRE_POLICIES: { value: ExpirePolicy; label: string }[] = [
 ];
 
 export const ruleData: EntitlementRule[] = [
-  // 5.1 日额度规则（每日刷新）
+  // 日额度规则（每日刷新）
   { id: "rule1",  name: "AI设计100次/日",     code: "RULE_AI_100_DAY",       capabilityId: "cap1", quota: 100, periodType: "DAY", periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每日刷新100次AI设计额度", status: "active", createdAt: "2026-03-12" },
   { id: "rule2",  name: "AI设计300次/日",     code: "RULE_AI_300_DAY",       capabilityId: "cap1", quota: 300, periodType: "DAY", periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每日刷新300次AI设计额度", status: "active", createdAt: "2026-03-12" },
   { id: "rule3",  name: "AI设计500次/日",     code: "RULE_AI_500_DAY",       capabilityId: "cap1", quota: 500, periodType: "DAY", periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每日刷新500次AI设计额度", status: "active", createdAt: "2026-03-12" },
@@ -130,7 +143,7 @@ export const ruleData: EntitlementRule[] = [
   { id: "rule7",  name: "全景图导出1次/日",   code: "RULE_PANORAMA_1_DAY",   capabilityId: "cap4", quota: 1,   periodType: "DAY", periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每日刷新1次全景图导出", status: "active", createdAt: "2026-03-12" },
   { id: "rule8",  name: "全景图导出10次/日",  code: "RULE_PANORAMA_10_DAY",  capabilityId: "cap4", quota: 10,  periodType: "DAY", periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每日刷新10次全景图导出", status: "active", createdAt: "2026-03-12" },
   { id: "rule9",  name: "2D效果图导出1次/日", code: "RULE_2D_1_DAY",         capabilityId: "cap5", quota: 1,   periodType: "DAY", periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每日刷新1次2D效果图导出", status: "active", createdAt: "2026-03-12" },
-  // 5.2 永久权限规则（一次性发放）
+  // 永久权限规则
   { id: "rule10", name: "2D效果图无限导出",   code: "RULE_2D_UNLIMITED",         capabilityId: "cap5",  quota: 1, periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "2D效果图无限导出权限", status: "active", createdAt: "2026-03-12" },
   { id: "rule11", name: "全屋模型库访问",     code: "RULE_WHOLE_HOUSE_ACCESS",   capabilityId: "cap6",  quota: 1, periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "全屋模型库访问权限", status: "active", createdAt: "2026-03-12" },
   { id: "rule12", name: "贴图素材访问",       code: "RULE_TEXTURE_ACCESS",       capabilityId: "cap8",  quota: 1, periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "贴图素材访问权限", status: "active", createdAt: "2026-03-12" },
@@ -146,17 +159,25 @@ export const ruleData: EntitlementRule[] = [
   { id: "rule22", name: "水印",               code: "RULE_WATERMARK",            capabilityId: "cap18", quota: 1, periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "水印权限", status: "active", createdAt: "2026-03-12" },
   { id: "rule23", name: "实时渲染",           code: "RULE_REALTIME_RENDER",      capabilityId: "cap19", quota: 1, periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "实时渲染权限", status: "active", createdAt: "2026-03-12" },
   { id: "rule24", name: "大文件上传",         code: "RULE_LARGE_FILE",           capabilityId: "cap20", quota: 1, periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "大文件上传权限", status: "active", createdAt: "2026-03-12" },
-  // 5.3 存储规则
+  // 存储规则
   { id: "rule25", name: "云存储200MB",     code: "RULE_STORAGE_200MB",  capabilityId: "cap21", quota: 200,   periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "200MB云存储", status: "active", createdAt: "2026-03-12" },
   { id: "rule26", name: "云存储4GB",       code: "RULE_STORAGE_4GB",    capabilityId: "cap21", quota: 4096,  periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "4GB云存储", status: "active", createdAt: "2026-03-12" },
   { id: "rule27", name: "云存储10GB",      code: "RULE_STORAGE_10GB",   capabilityId: "cap21", quota: 10240, periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "10GB云存储", status: "active", createdAt: "2026-03-12" },
-  // 5.4 充值规则（可累积）
+  // 充值规则（可累积）
   { id: "rule28", name: "4K渲染1次",       code: "RULE_4K_1_ONCE",      capabilityId: "cap2",  quota: 1,    periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: true,  expirePolicy: "NEVER_EXPIRE", description: "单次4K渲染充值", status: "active", createdAt: "2026-03-12" },
   { id: "rule29", name: "8K渲染1次",       code: "RULE_8K_1_ONCE",      capabilityId: "cap3",  quota: 1,    periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: true,  expirePolicy: "NEVER_EXPIRE", description: "单次8K渲染充值", status: "active", createdAt: "2026-03-12" },
   { id: "rule30", name: "8K渲染赠送1次",   code: "RULE_8K_GIFT_ONCE",   capabilityId: "cap3",  quota: 1,    periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: true,  expirePolicy: "NEVER_EXPIRE", description: "8K渲染赠送", status: "active", createdAt: "2026-03-12" },
   { id: "rule31", name: "AI积分100次",     code: "RULE_AI_100_ONCE",    capabilityId: "cap1",  quota: 100,  periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: true,  expirePolicy: "NEVER_EXPIRE", description: "AI积分100次充值", status: "active", createdAt: "2026-03-12" },
   { id: "rule32", name: "AI积分200次",     code: "RULE_AI_200_ONCE",    capabilityId: "cap1",  quota: 200,  periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: true,  expirePolicy: "NEVER_EXPIRE", description: "AI积分200次充值", status: "active", createdAt: "2026-03-12" },
   { id: "rule33", name: "AI积分2000次",    code: "RULE_AI_2000_ONCE",   capabilityId: "cap1",  quota: 2000, periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: true,  expirePolicy: "NEVER_EXPIRE", description: "AI积分2000次充值", status: "active", createdAt: "2026-03-12" },
+  // AI设计家规则
+  { id: "rule40", name: "AI方案100次/月",  code: "RULE_AI_PLAN_100_M",  capabilityId: "cap30", quota: 100,  periodType: "MONTH", periodValue: 1, grantType: "MONTHLY_GRANT", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每月100次AI方案生成", status: "active", createdAt: "2026-03-12" },
+  { id: "rule41", name: "AI风格50次/月",   code: "RULE_AI_STYLE_50_M",  capabilityId: "cap31", quota: 50,   periodType: "MONTH", periodValue: 1, grantType: "MONTHLY_GRANT", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每月50次AI风格迁移", status: "active", createdAt: "2026-03-12" },
+  // 智能导购规则
+  { id: "rule50", name: "导购推荐500次/月",code: "RULE_GUIDE_500_M",    capabilityId: "cap40", quota: 500,  periodType: "MONTH", periodValue: 1, grantType: "MONTHLY_GRANT", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每月500次导购推荐", status: "active", createdAt: "2026-03-12" },
+  { id: "rule51", name: "客户画像开通",    code: "RULE_GUIDE_PROFILE",  capabilityId: "cap41", quota: 1,    periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "客户画像功能开通", status: "active", createdAt: "2026-03-12" },
+  // 精准客资规则
+  { id: "rule60", name: "线索100条/月",    code: "RULE_LEADS_100_M",    capabilityId: "cap50", quota: 100,  periodType: "MONTH", periodValue: 1, grantType: "MONTHLY_GRANT", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每月100条客资线索", status: "active", createdAt: "2026-03-12" },
 ];
 
 /* ── SKU (商品) ── */
@@ -166,8 +187,8 @@ export interface Sku {
   id: string;
   name: string;
   code: string;
-  appId: string;              // N:1 → Application
-  ruleIds: string[];          // N:M → EntitlementRule
+  appId: string;
+  ruleIds: string[];
   price: number;
   billingCycle: BillingCycle;
   salesStatus: "on_sale" | "off_sale";
@@ -183,16 +204,24 @@ export const BILLING_CYCLES: { value: BillingCycle; label: string }[] = [
 ];
 
 export const skuData: Sku[] = [
-  // 单次充值商品（单规则）
+  // 国内3D - 单次充值
   { id: "sku1",  name: "4K普通图",         code: "SKU_4K_SINGLE",    appId: "app1", ruleIds: ["rule28"],          price: 3,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 1,  description: "单次4K渲染",    createdAt: "2026-03-12" },
   { id: "sku2",  name: "8K普通图",         code: "SKU_8K_SINGLE",    appId: "app1", ruleIds: ["rule29"],          price: 8,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 2,  description: "单次8K渲染",    createdAt: "2026-03-12" },
   { id: "sku3",  name: "AI积分100·基础包", code: "SKU_AI_100",       appId: "app1", ruleIds: ["rule31"],          price: 9.9,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 3,  description: "100次AI积分",   createdAt: "2026-03-12" },
   { id: "sku4",  name: "AI积分200·专业包", code: "SKU_AI_200",       appId: "app1", ruleIds: ["rule32"],          price: 19.9,  billingCycle: "once",    salesStatus: "on_sale", sortOrder: 4,  description: "200次AI积分",   createdAt: "2026-03-12" },
   { id: "sku5",  name: "AI积分2000·高级包",code: "SKU_AI_2000",      appId: "app1", ruleIds: ["rule33"],          price: 169,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 5,  description: "2000次AI积分",  createdAt: "2026-03-12" },
-  // 会员商品（多规则组合）
-  { id: "sku6",  name: "免费版权益",       code: "SKU_FREE",         appId: "app1", ruleIds: ["rule1", "rule25", "rule7"], price: 0, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 10, description: "免费版：AI设计100次/日 + 云存储200MB + 全景图1次/日", createdAt: "2026-03-12" },
-  { id: "sku7",  name: "基础会员权益",     code: "SKU_BASIC",        appId: "app1", ruleIds: ["rule2", "rule4", "rule9", "rule11", "rule12", "rule13", "rule14", "rule25"], price: 9.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 11, description: "基础会员：AI设计300次/日 + 4K渲染2次/日 + 素材库", createdAt: "2026-03-12" },
-  { id: "sku8",  name: "旗舰会员权益",     code: "SKU_PRO",          appId: "app1", ruleIds: ["rule3", "rule5", "rule6", "rule8", "rule10", "rule11", "rule12", "rule13", "rule14", "rule15", "rule16", "rule17", "rule18", "rule19", "rule20", "rule21", "rule22", "rule23", "rule24", "rule26"], price: 150, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 12, description: "旗舰会员：全能力开放", createdAt: "2026-03-12" },
+  // 国内3D - 会员
+  { id: "sku6",  name: "免费版权益",       code: "SKU_FREE",         appId: "app1", ruleIds: ["rule1", "rule25", "rule7"], price: 0, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 10, description: "免费版基础权益", createdAt: "2026-03-12" },
+  { id: "sku7",  name: "基础会员权益",     code: "SKU_BASIC",        appId: "app1", ruleIds: ["rule2", "rule4", "rule9", "rule11", "rule12", "rule13", "rule14", "rule25"], price: 9.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 11, description: "基础会员权益包", createdAt: "2026-03-12" },
+  { id: "sku8",  name: "旗舰会员权益",     code: "SKU_PRO",          appId: "app1", ruleIds: ["rule3", "rule5", "rule6", "rule8", "rule10", "rule11", "rule12", "rule13", "rule14", "rule15", "rule16", "rule17", "rule18", "rule19", "rule20", "rule21", "rule22", "rule23", "rule24", "rule26"], price: 150, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 12, description: "旗舰会员全能力", createdAt: "2026-03-12" },
+  // AI设计家
+  { id: "sku20", name: "AI设计家基础版",   code: "SKU_AI_BASIC",     appId: "app4", ruleIds: ["rule40"],          price: 29.9,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "AI方案100次/月", createdAt: "2026-03-12" },
+  { id: "sku21", name: "AI设计家专业版",   code: "SKU_AI_PRO",       appId: "app4", ruleIds: ["rule40", "rule41"], price: 59.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "AI方案+风格迁移", createdAt: "2026-03-12" },
+  // 智能导购
+  { id: "sku30", name: "导购标准版",       code: "SKU_GUIDE_STD",    appId: "app3", ruleIds: ["rule50"],          price: 99,    billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "导购推荐500次/月", createdAt: "2026-03-12" },
+  { id: "sku31", name: "导购高级版",       code: "SKU_GUIDE_PRO",    appId: "app3", ruleIds: ["rule50", "rule51"], price: 199,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "导购+客户画像", createdAt: "2026-03-12" },
+  // 精准客资
+  { id: "sku40", name: "客资基础包",       code: "SKU_LEADS_100",    appId: "app5", ruleIds: ["rule60"],          price: 199,   billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "每月100条线索", createdAt: "2026-03-12" },
 ];
 
 /* ── Bundle (套餐) ── */
@@ -220,42 +249,45 @@ export interface Bundle {
 
 export const bundleData: Bundle[] = [
   {
-    id: "bun1", name: "免费版", code: "BUN_FREE", appId: "app1", appName: "居然设计家", price: 0, billingCycle: "monthly", status: "on_sale", sortOrder: 1, description: "基础免费权益", createdAt: "2026-03-12",
-    items: [
-      { skuId: "sku6",  skuName: "AI设计100次/日",  quantity: 1 },
-      { skuId: "sku12", skuName: "云存储200MB",      quantity: 1 },
-    ],
+    id: "bun1", name: "免费版", code: "BUN_FREE", appId: "app1", appName: "国内3D工具", price: 0, billingCycle: "monthly", status: "on_sale", sortOrder: 1, description: "基础免费权益", createdAt: "2026-03-12",
+    items: [{ skuId: "sku6", skuName: "免费版权益", quantity: 1 }],
   },
   {
-    id: "bun2", name: "基础会员", code: "BUN_BASIC", appId: "app1", appName: "居然设计家", price: 9.9, billingCycle: "monthly", status: "on_sale", sortOrder: 2, description: "基础会员套餐", createdAt: "2026-03-12",
-    items: [
-      { skuId: "sku7",  skuName: "AI设计300次/日",  quantity: 1 },
-      { skuId: "sku9",  skuName: "4K渲染2次/日",    quantity: 1 },
-    ],
+    id: "bun2", name: "基础会员", code: "BUN_BASIC", appId: "app1", appName: "国内3D工具", price: 9.9, billingCycle: "monthly", status: "on_sale", sortOrder: 2, description: "基础会员套餐", createdAt: "2026-03-12",
+    items: [{ skuId: "sku7", skuName: "基础会员权益", quantity: 1 }],
   },
   {
-    id: "bun3", name: "旗舰会员", code: "BUN_PRO", appId: "app1", appName: "居然设计家", price: 150, originalPrice: 199, billingCycle: "monthly", status: "on_sale", sortOrder: 3, description: "旗舰会员套餐", createdAt: "2026-03-12",
-    items: [
-      { skuId: "sku8",  skuName: "AI设计500次/日",  quantity: 1 },
-      { skuId: "sku10", skuName: "4K渲染4次/日",    quantity: 1 },
-      { skuId: "sku11", skuName: "8K渲染1次/日",    quantity: 1 },
-      { skuId: "sku13", skuName: "云存储4GB",        quantity: 1 },
-    ],
+    id: "bun3", name: "旗舰会员", code: "BUN_PRO", appId: "app1", appName: "国内3D工具", price: 299, originalPrice: 399, billingCycle: "monthly", status: "on_sale", sortOrder: 3, description: "旗舰会员套餐", createdAt: "2026-03-12",
+    items: [{ skuId: "sku8", skuName: "旗舰会员权益", quantity: 1 }],
   },
   {
-    id: "bun4", name: "旗舰会员年卡", code: "BUN_PRO_YEARLY", appId: "app1", appName: "居然设计家", price: 1200, originalPrice: 1800, billingCycle: "yearly", status: "on_sale", sortOrder: 4, description: "旗舰会员年度套餐", createdAt: "2026-03-12",
-    items: [
-      { skuId: "sku8",  skuName: "AI设计500次/日",  quantity: 1 },
-      { skuId: "sku10", skuName: "4K渲染4次/日",    quantity: 1 },
-      { skuId: "sku11", skuName: "8K渲染1次/日",    quantity: 1 },
-      { skuId: "sku13", skuName: "云存储4GB",        quantity: 1 },
-    ],
+    id: "bun4", name: "旗舰会员年卡", code: "BUN_PRO_YEARLY", appId: "app1", appName: "国内3D工具", price: 2388, originalPrice: 3588, billingCycle: "yearly", status: "on_sale", sortOrder: 4, description: "旗舰会员年度套餐", createdAt: "2026-03-12",
+    items: [{ skuId: "sku8", skuName: "旗舰会员权益", quantity: 1 }],
+  },
+  {
+    id: "bun5", name: "AI设计家套装", code: "BUN_AI_SUITE", appId: "app4", appName: "AI设计家", price: 79.9, originalPrice: 89.8, billingCycle: "monthly", status: "on_sale", sortOrder: 1, description: "AI方案+风格迁移套装", createdAt: "2026-03-12",
+    items: [{ skuId: "sku21", skuName: "AI设计家专业版", quantity: 1 }],
+  },
+  {
+    id: "bun6", name: "导购+客资套装", code: "BUN_GUIDE_LEADS", appId: "app3", appName: "智能导购", price: 349, originalPrice: 398, billingCycle: "monthly", status: "on_sale", sortOrder: 1, description: "智能导购+精准客资联合套装", createdAt: "2026-03-12",
+    items: [{ skuId: "sku31", skuName: "导购高级版", quantity: 1 }, { skuId: "sku40", skuName: "客资基础包", quantity: 1 }],
   },
 ];
 
-/* ── EntitlementOrder (权益订单) ── */
-export type OrderStatus = "pending" | "paid" | "cancelled" | "expired";
-export type OrderSource = "purchase" | "gift" | "promotion" | "system";
+/* ══════════════════════════════════════════════════
+   权益订单 — 完整状态模型
+   ══════════════════════════════════════════════════ */
+
+export type OrderType = "user_purchase" | "internal_grant" | "system_grant";
+export type PaymentStatus = "paid" | "pending" | "no_payment";
+export type OrderStatus = "pending" | "completed" | "cancelled" | "refunded" | "closed";
+
+export interface StatusHistoryEntry {
+  status: string;
+  label: string;
+  time: string;
+  remark?: string;
+}
 
 export interface OrderItem {
   type: "sku" | "bundle";
@@ -271,23 +303,40 @@ export interface EntitlementOrder {
   customerId: string;
   customerName: string;
   appId: string;
+  orderType: OrderType;
   items: OrderItem[];
   totalAmount: number;
-  status: OrderStatus;
-  source: OrderSource;
+  paymentStatus: PaymentStatus;
+  orderStatus: OrderStatus;
   paidAt?: string;
   expireAt?: string;
   remark: string;
   createdAt: string;
+  statusHistory: StatusHistoryEntry[];
 }
 
-export const ORDER_STATUS: { value: OrderStatus; label: string; className: string }[] = [
-  { value: "pending", label: "待支付", className: "badge-warning" },
-  { value: "paid", label: "已支付", className: "badge-active" },
-  { value: "cancelled", label: "已取消", className: "badge-inactive" },
-  { value: "expired", label: "已过期", className: "badge-inactive" },
+export const ORDER_TYPES: { value: OrderType; label: string; className: string }[] = [
+  { value: "user_purchase",  label: "用户购买", className: "text-primary" },
+  { value: "internal_grant", label: "内部发放", className: "text-amber-600" },
+  { value: "system_grant",   label: "系统发放", className: "text-muted-foreground" },
 ];
 
+export const PAYMENT_STATUS: { value: PaymentStatus; label: string; className: string }[] = [
+  { value: "paid",       label: "已支付",   className: "badge-active" },
+  { value: "pending",    label: "待支付",   className: "badge-warning" },
+  { value: "no_payment", label: "无需支付", className: "text-muted-foreground text-[12px]" },
+];
+
+export const ORDER_STATUS: { value: OrderStatus; label: string; className: string }[] = [
+  { value: "pending",   label: "待支付",  className: "badge-warning" },
+  { value: "completed", label: "已完成",  className: "badge-active" },
+  { value: "cancelled", label: "已取消",  className: "badge-inactive" },
+  { value: "refunded",  label: "已退款",  className: "badge-inactive" },
+  { value: "closed",    label: "已关闭",  className: "badge-inactive" },
+];
+
+// Keep ORDER_SOURCES for backward compatibility
+export type OrderSource = "purchase" | "gift" | "promotion" | "system";
 export const ORDER_SOURCES: { value: OrderSource; label: string }[] = [
   { value: "purchase", label: "购买" },
   { value: "gift", label: "赠送" },
@@ -297,37 +346,121 @@ export const ORDER_SOURCES: { value: OrderSource; label: string }[] = [
 
 export const orderData: EntitlementOrder[] = [
   {
-    id: "ord1", orderNo: "ENT202603120001", customerId: "cust1", customerName: "北京居然之家家居连锁集团",
-    appId: "app1", totalAmount: 150, status: "paid", source: "purchase", paidAt: "2026-03-12 14:30:00", expireAt: "2027-03-12", remark: "旗舰会员月付", createdAt: "2026-03-12",
-    items: [{ type: "bundle", itemId: "bun3", itemName: "旗舰会员", quantity: 1, unitPrice: 150 }],
+    id: "ord1", orderNo: "ORD202603120001", customerId: "cust1", customerName: "企业A",
+    appId: "app1", orderType: "user_purchase", totalAmount: 299, paymentStatus: "paid", orderStatus: "completed",
+    paidAt: "2026-03-12 10:05:00", expireAt: "2027-03-12", remark: "旗舰会员月付", createdAt: "2026-03-12 10:00:00",
+    items: [{ type: "bundle", itemId: "bun3", itemName: "旗舰会员", quantity: 1, unitPrice: 299 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-12 10:00:00", remark: "用户下单" },
+      { status: "paid",      label: "支付完成", time: "2026-03-12 10:05:00", remark: "微信支付" },
+      { status: "granted",   label: "权益发放", time: "2026-03-12 10:05:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-12 10:05:10" },
+    ],
   },
   {
-    id: "ord2", orderNo: "ENT202603120002", customerId: "cust2", customerName: "上海设计工作室",
-    appId: "app1", totalAmount: 9.9, status: "paid", source: "purchase", paidAt: "2026-03-13 09:15:00", expireAt: "2027-03-13", remark: "基础会员", createdAt: "2026-03-13",
-    items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 9.9 }],
+    id: "ord2", orderNo: "ORD202603120002", customerId: "cust2", customerName: "企业B",
+    appId: "app1", orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    remark: "内部发放基础会员", createdAt: "2026-03-12 11:00:00",
+    items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-12 11:00:00", remark: "运营创建内部订单" },
+      { status: "granted",   label: "权益发放", time: "2026-03-12 11:00:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-12 11:00:10" },
+    ],
   },
   {
-    id: "ord3", orderNo: "ENT202603120003", customerId: "cust1", customerName: "北京居然之家家居连锁集团",
-    appId: "app1", totalAmount: 11, status: "paid", source: "purchase", paidAt: "2026-03-14 16:00:00", remark: "充值渲染次数", createdAt: "2026-03-14",
+    id: "ord3", orderNo: "ORD202603120003", customerId: "cust3", customerName: "企业C",
+    appId: "app4", orderType: "user_purchase", totalAmount: 10, paymentStatus: "pending", orderStatus: "pending",
+    remark: "AI积分充值", createdAt: "2026-03-12 12:00:00",
+    items: [{ type: "sku", itemId: "sku3", itemName: "AI积分100·基础包", quantity: 1, unitPrice: 9.9 }],
+    statusHistory: [
+      { status: "created", label: "订单创建", time: "2026-03-12 12:00:00", remark: "用户下单" },
+    ],
+  },
+  {
+    id: "ord4", orderNo: "ORD202603140001", customerId: "cust1", customerName: "企业A",
+    appId: "app1", orderType: "user_purchase", totalAmount: 11, paymentStatus: "paid", orderStatus: "completed",
+    paidAt: "2026-03-14 16:05:00", remark: "充值渲染次数", createdAt: "2026-03-14 16:00:00",
     items: [
       { type: "sku", itemId: "sku1", itemName: "4K普通图", quantity: 1, unitPrice: 3 },
       { type: "sku", itemId: "sku2", itemName: "8K普通图", quantity: 1, unitPrice: 8 },
     ],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-14 16:00:00", remark: "用户下单" },
+      { status: "paid",      label: "支付完成", time: "2026-03-14 16:05:00", remark: "支付宝" },
+      { status: "granted",   label: "权益发放", time: "2026-03-14 16:05:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-14 16:05:10" },
+    ],
   },
   {
-    id: "ord4", orderNo: "ENT202603120004", customerId: "cust3", customerName: "深圳家装设计有限公司",
-    appId: "app1", totalAmount: 0, status: "paid", source: "system", paidAt: "2026-03-15 10:00:00", remark: "系统发放免费版", createdAt: "2026-03-15",
+    id: "ord5", orderNo: "ORD202603150001", customerId: "cust2", customerName: "企业B",
+    appId: "app3", orderType: "user_purchase", totalAmount: 199, paymentStatus: "paid", orderStatus: "completed",
+    paidAt: "2026-03-15 09:30:00", remark: "智能导购开通", createdAt: "2026-03-15 09:25:00",
+    items: [{ type: "sku", itemId: "sku31", itemName: "导购高级版", quantity: 1, unitPrice: 199 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-15 09:25:00", remark: "用户下单" },
+      { status: "paid",      label: "支付完成", time: "2026-03-15 09:30:00", remark: "微信支付" },
+      { status: "granted",   label: "权益发放", time: "2026-03-15 09:30:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-15 09:30:10" },
+    ],
+  },
+  {
+    id: "ord6", orderNo: "ORD202603160001", customerId: "cust1", customerName: "企业A",
+    appId: "app1", orderType: "user_purchase", totalAmount: 2388, paymentStatus: "paid", orderStatus: "completed",
+    paidAt: "2026-03-16 11:30:00", expireAt: "2027-03-16", remark: "年卡升级", createdAt: "2026-03-16 11:25:00",
+    items: [{ type: "bundle", itemId: "bun4", itemName: "旗舰会员年卡", quantity: 1, unitPrice: 2388 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-16 11:25:00", remark: "用户下单" },
+      { status: "paid",      label: "支付完成", time: "2026-03-16 11:30:00", remark: "支付宝" },
+      { status: "granted",   label: "权益发放", time: "2026-03-16 11:30:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-16 11:30:10" },
+    ],
+  },
+  {
+    id: "ord7", orderNo: "ORD202603170001", customerId: "cust3", customerName: "企业C",
+    appId: "app4", orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    remark: "内部赠送AI设计家", createdAt: "2026-03-17 14:00:00",
+    items: [{ type: "sku", itemId: "sku21", itemName: "AI设计家专业版", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-17 14:00:00", remark: "运营创建内部订单" },
+      { status: "granted",   label: "权益发放", time: "2026-03-17 14:00:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-17 14:00:10" },
+    ],
+  },
+  {
+    id: "ord8", orderNo: "ORD202603180001", customerId: "cust4", customerName: "企业D",
+    appId: "app1", orderType: "system_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    remark: "新企业注册赠送免费版", createdAt: "2026-03-18 08:00:00",
     items: [{ type: "bundle", itemId: "bun1", itemName: "免费版", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-18 08:00:00", remark: "系统自动创建" },
+      { status: "granted",   label: "权益发放", time: "2026-03-18 08:00:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-18 08:00:10" },
+    ],
   },
   {
-    id: "ord5", orderNo: "ENT202603120005", customerId: "cust2", customerName: "上海设计工作室",
-    appId: "app1", totalAmount: 169, status: "pending", source: "purchase", remark: "AI积分充值", createdAt: "2026-03-16",
+    id: "ord9", orderNo: "ORD202603190001", customerId: "cust1", customerName: "企业A",
+    appId: "app1", orderType: "user_purchase", totalAmount: 169, paymentStatus: "paid", orderStatus: "refunded",
+    paidAt: "2026-03-19 15:00:00", remark: "已申请退款", createdAt: "2026-03-19 14:55:00",
     items: [{ type: "sku", itemId: "sku5", itemName: "AI积分2000·高级包", quantity: 1, unitPrice: 169 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-19 14:55:00", remark: "用户下单" },
+      { status: "paid",      label: "支付完成", time: "2026-03-19 15:00:00", remark: "微信支付" },
+      { status: "granted",   label: "权益发放", time: "2026-03-19 15:00:05", remark: "自动发放" },
+      { status: "refunded",  label: "退款完成", time: "2026-03-20 10:00:00", remark: "客户申请退款，权益已回收" },
+    ],
   },
   {
-    id: "ord6", orderNo: "ENT202603120006", customerId: "cust1", customerName: "北京居然之家家居连锁集团",
-    appId: "app1", totalAmount: 1200, status: "paid", source: "promotion", paidAt: "2026-03-17 11:30:00", expireAt: "2027-03-17", remark: "年卡促销活动", createdAt: "2026-03-17",
-    items: [{ type: "bundle", itemId: "bun4", itemName: "旗舰会员年卡", quantity: 1, unitPrice: 1200 }],
+    id: "ord10", orderNo: "ORD202603200001", customerId: "cust2", customerName: "企业B",
+    appId: "app4", orderType: "user_purchase", totalAmount: 79.9, paymentStatus: "paid", orderStatus: "completed",
+    paidAt: "2026-03-20 10:15:00", remark: "AI设计家套装", createdAt: "2026-03-20 10:10:00",
+    items: [{ type: "bundle", itemId: "bun5", itemName: "AI设计家套装", quantity: 1, unitPrice: 79.9 }],
+    statusHistory: [
+      { status: "created",   label: "订单创建", time: "2026-03-20 10:10:00", remark: "用户下单" },
+      { status: "paid",      label: "支付完成", time: "2026-03-20 10:15:00", remark: "支付宝" },
+      { status: "granted",   label: "权益发放", time: "2026-03-20 10:15:05", remark: "自动发放" },
+      { status: "completed", label: "订单完成", time: "2026-03-20 10:15:10" },
+    ],
   },
 ];
 
@@ -361,22 +494,22 @@ export interface EntitlementAccount {
 
 export const accountData: EntitlementAccount[] = [
   {
-    id: "acc1", customerId: "cust1", customerName: "北京居然之家家居连锁集团", appId: "app1", appName: "居然设计家",
-    orderIds: ["ord1", "ord3", "ord6"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-17",
+    id: "acc1", customerId: "cust1", customerName: "企业A", appId: "app1", appName: "国内3D工具",
+    orderIds: ["ord1", "ord4", "ord6"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-16",
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule3",  ruleName: "AI设计500次/日",     totalQuota: 500,   usedQuota: 128,  unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
       { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule5",  ruleName: "4K渲染4次/日",       totalQuota: 4,     usedQuota: 2,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
-      { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule28", ruleName: "4K渲染1次",          totalQuota: 1,     usedQuota: 0,    unit: "次",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord3"] },
+      { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule28", ruleName: "4K渲染1次",          totalQuota: 1,     usedQuota: 0,    unit: "次",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord4"] },
       { capabilityId: "cap3", capabilityName: "8K渲染",     ruleId: "rule6",  ruleName: "8K渲染1次/日",       totalQuota: 1,     usedQuota: 1,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord1", "ord6"] },
-      { capabilityId: "cap3", capabilityName: "8K渲染",     ruleId: "rule29", ruleName: "8K渲染1次",          totalQuota: 1,     usedQuota: 0,    unit: "次",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord3"] },
+      { capabilityId: "cap3", capabilityName: "8K渲染",     ruleId: "rule29", ruleName: "8K渲染1次",          totalQuota: 1,     usedQuota: 0,    unit: "次",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord4"] },
       { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule26", ruleName: "云存储4GB",          totalQuota: 4096,  usedQuota: 1280, unit: "MB",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord1", "ord6"] },
       { capabilityId: "cap5", capabilityName: "2D效果图导出", ruleId: "rule10", ruleName: "2D效果图无限导出", totalQuota: 1,     usedQuota: 0,    unit: "布尔", periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord1"] },
       { capabilityId: "cap6", capabilityName: "全屋模型库",  ruleId: "rule11", ruleName: "全屋模型库访问",   totalQuota: 1,     usedQuota: 0,    unit: "布尔", periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord1"] },
     ],
   },
   {
-    id: "acc2", customerId: "cust2", customerName: "上海设计工作室", appId: "app1", appName: "居然设计家",
-    orderIds: ["ord2"], status: "active", createdAt: "2026-03-13", updatedAt: "2026-03-13",
+    id: "acc2", customerId: "cust2", customerName: "企业B", appId: "app1", appName: "国内3D工具",
+    orderIds: ["ord2"], status: "active", createdAt: "2026-03-12", updatedAt: "2026-03-12",
     capabilities: [
       { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule2",  ruleName: "AI设计300次/日",     totalQuota: 300,   usedQuota: 45,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord2"] },
       { capabilityId: "cap2", capabilityName: "4K渲染",     ruleId: "rule4",  ruleName: "4K渲染2次/日",       totalQuota: 2,     usedQuota: 0,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord2"] },
@@ -384,24 +517,40 @@ export const accountData: EntitlementAccount[] = [
     ],
   },
   {
-    id: "acc3", customerId: "cust3", customerName: "深圳家装设计有限公司", appId: "app1", appName: "居然设计家",
-    orderIds: ["ord4"], status: "active", createdAt: "2026-03-15", updatedAt: "2026-03-15",
+    id: "acc3", customerId: "cust2", customerName: "企业B", appId: "app3", appName: "智能导购",
+    orderIds: ["ord5"], status: "active", createdAt: "2026-03-15", updatedAt: "2026-03-15",
     capabilities: [
-      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule1",  ruleName: "AI设计100次/日",     totalQuota: 100,   usedQuota: 12,   unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord4"] },
-      { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule25", ruleName: "云存储200MB",        totalQuota: 200,   usedQuota: 0,    unit: "MB",  periodType: "PERMANENT", grantType: "ONE_TIME",      sourceOrderIds: ["ord4"] },
-      { capabilityId: "cap4", capabilityName: "全景图导出", ruleId: "rule7",  ruleName: "全景图导出1次/日",   totalQuota: 1,     usedQuota: 0,    unit: "次",  periodType: "DAY",       grantType: "DAILY_REFRESH", sourceOrderIds: ["ord4"] },
+      { capabilityId: "cap40", capabilityName: "导购推荐",   ruleId: "rule50", ruleName: "导购推荐500次/月", totalQuota: 500, usedQuota: 120, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord5"] },
+      { capabilityId: "cap41", capabilityName: "客户画像",   ruleId: "rule51", ruleName: "客户画像开通",     totalQuota: 1,   usedQuota: 0,   unit: "布尔", periodType: "PERMANENT", grantType: "ONE_TIME", sourceOrderIds: ["ord5"] },
+    ],
+  },
+  {
+    id: "acc4", customerId: "cust2", customerName: "企业B", appId: "app4", appName: "AI设计家",
+    orderIds: ["ord10"], status: "active", createdAt: "2026-03-20", updatedAt: "2026-03-20",
+    capabilities: [
+      { capabilityId: "cap30", capabilityName: "AI方案生成", ruleId: "rule40", ruleName: "AI方案100次/月",   totalQuota: 100, usedQuota: 23, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord10"] },
+      { capabilityId: "cap31", capabilityName: "AI风格迁移", ruleId: "rule41", ruleName: "AI风格50次/月",    totalQuota: 50,  usedQuota: 8,  unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord10"] },
+    ],
+  },
+  {
+    id: "acc5", customerId: "cust3", customerName: "企业C", appId: "app4", appName: "AI设计家",
+    orderIds: ["ord7"], status: "active", createdAt: "2026-03-17", updatedAt: "2026-03-17",
+    capabilities: [
+      { capabilityId: "cap30", capabilityName: "AI方案生成", ruleId: "rule40", ruleName: "AI方案100次/月",   totalQuota: 100, usedQuota: 5, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
+      { capabilityId: "cap31", capabilityName: "AI风格迁移", ruleId: "rule41", ruleName: "AI风格50次/月",    totalQuota: 50,  usedQuota: 0, unit: "次", periodType: "MONTH", grantType: "MONTHLY_GRANT", sourceOrderIds: ["ord7"] },
+    ],
+  },
+  {
+    id: "acc6", customerId: "cust4", customerName: "企业D", appId: "app1", appName: "国内3D工具",
+    orderIds: ["ord8"], status: "active", createdAt: "2026-03-18", updatedAt: "2026-03-18",
+    capabilities: [
+      { capabilityId: "cap1", capabilityName: "AI设计",     ruleId: "rule1",  ruleName: "AI设计100次/日",     totalQuota: 100, usedQuota: 12, unit: "次", periodType: "DAY", grantType: "DAILY_REFRESH", sourceOrderIds: ["ord8"] },
+      { capabilityId: "cap21", capabilityName: "云存储",    ruleId: "rule25", ruleName: "云存储200MB",        totalQuota: 200, usedQuota: 0,  unit: "MB", periodType: "PERMANENT", grantType: "ONE_TIME", sourceOrderIds: ["ord8"] },
     ],
   },
 ];
 
-/* ── Helpers (Order & Account) ── */
-export const getOrdersByCustomer = (custId: string) => orderData.filter((o) => o.customerId === custId);
-export const getOrdersByApp = (appId: string) => orderData.filter((o) => o.appId === appId);
-export const getAccountsByCustomer = (custId: string) => accountData.filter((a) => a.customerId === custId);
-export const getOrder = (id: string) => orderData.find((o) => o.id === id);
-export const getAccount = (id: string) => accountData.find((a) => a.id === id);
-
-/* ── Shared constants ── */
+/* ── Helpers ── */
 export const STATUS_MAP: Record<string, { label: string; className: string }> = {
   active: { label: "启用", className: "badge-active" },
   inactive: { label: "停用", className: "badge-inactive" },
@@ -409,7 +558,6 @@ export const STATUS_MAP: Record<string, { label: string; className: string }> = 
   off_sale: { label: "下架", className: "badge-inactive" },
 };
 
-/* ── Helpers ── */
 export const getCapabilitiesByApp = (appId: string) => capabilityData.filter((c) => c.appId === appId);
 export const getRulesByCapability = (capId: string) => ruleData.filter((r) => r.capabilityId === capId);
 export const getSkusByRule = (ruleId: string) => skuData.filter((s) => s.ruleIds.includes(ruleId));
@@ -426,3 +574,8 @@ export const getRulesBySkuId = (skuId: string) => {
   const sku = skuData.find((s) => s.id === skuId);
   return sku ? sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean) as EntitlementRule[] : [];
 };
+export const getOrdersByCustomer = (custId: string) => orderData.filter((o) => o.customerId === custId);
+export const getOrdersByApp = (appId: string) => orderData.filter((o) => o.appId === appId);
+export const getAccountsByCustomer = (custId: string) => accountData.filter((a) => a.customerId === custId);
+export const getOrder = (id: string) => orderData.find((o) => o.id === id);
+export const getAccount = (id: string) => accountData.find((a) => a.id === id);
