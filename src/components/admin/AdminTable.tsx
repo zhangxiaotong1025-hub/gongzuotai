@@ -129,16 +129,19 @@ function ActionCell<T>({
   return (
     <>
       <div className="flex items-center gap-1">
-        {shown.map((action) => (
-          <button
-            key={action.label}
-            type="button"
-            onClick={() => handleActionClick(action)}
-            className={`btn-text ${action.danger ? "text-danger-action" : "text-primary-action"}`}
-          >
-            {action.label}
-          </button>
-        ))}
+        {shown.map((action, i) => {
+          const lbl = resolveLabel(action.label, record);
+          return (
+            <button
+              key={lbl + i}
+              type="button"
+              onClick={() => handleActionClick(action)}
+              className={`btn-text ${action.danger ? "text-danger-action" : "text-primary-action"}`}
+            >
+              {lbl}
+            </button>
+          );
+        })}
         {overflow.length > 0 && (
           <>
             <button
@@ -169,16 +172,19 @@ function ActionCell<T>({
                     transform: "translateX(calc(-100% + 2px))",
                   }}
                 >
-                  {overflow.map((action) => (
-                    <button
-                      key={action.label}
-                      type="button"
-                      onClick={() => handleActionClick(action)}
-                      className={`admin-action-menu-item ${action.danger ? "admin-action-menu-item-danger" : ""}`}
-                    >
-                      {action.label}
-                    </button>
-                  ))}
+                  {overflow.map((action, i) => {
+                    const lbl = resolveLabel(action.label, record);
+                    return (
+                      <button
+                        key={lbl + i}
+                        type="button"
+                        onClick={() => handleActionClick(action)}
+                        className={`admin-action-menu-item ${action.danger ? "admin-action-menu-item-danger" : ""}`}
+                      >
+                        {lbl}
+                      </button>
+                    );
+                  })}
                 </div>,
                 document.body,
               )}
@@ -198,7 +204,7 @@ function ActionCell<T>({
         >
           <div className="border-b bg-muted/40 px-5 py-4">
             <AlertDialogTitle className="text-[15px] font-semibold text-foreground">
-              {pendingAction?.confirm?.title || `确认${pendingAction?.label}该企业？`}
+              {pendingAction?.confirm?.title || `确认${resolveLabel(pendingAction?.label || "", record)}该企业？`}
             </AlertDialogTitle>
             <AlertDialogDescription className="mt-1 text-[13px] leading-6 text-muted-foreground">
               {pendingAction?.confirm?.description || "该操作执行后将立即生效，请确认是否继续。"}
@@ -212,7 +218,7 @@ function ActionCell<T>({
               onClick={handleConfirm}
               className={`h-9 rounded-lg px-4 text-[13px] ${pendingAction?.danger ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
             >
-              {pendingAction?.confirm?.confirmLabel || `确认${pendingAction?.label}`}
+              {pendingAction?.confirm?.confirmLabel || `确认${resolveLabel(pendingAction?.label || "", record)}`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
