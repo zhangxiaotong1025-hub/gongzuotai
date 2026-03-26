@@ -251,7 +251,7 @@ export default function EnterpriseList() {
 
       <AdminTable
         columns={columns}
-        data={mockData}
+        data={data}
         rowKey={(r) => r.id}
         actions={listActions}
         maxVisibleActions={2}
