@@ -528,7 +528,10 @@ export default function StaffList() {
 
   const actions: ActionItem<StaffMember>[] = [
     { label: "查看", onClick: (r) => navigate(`/enterprise/staff/detail/${r.id}`) },
+    { label: "编辑", onClick: (r) => navigate(`/enterprise/staff/create?id=${r.id}`) },
     { label: "权益设置", onClick: (r) => setBenefitDialogStaff(r) },
+    { label: r => r.status === "active" ? "停用" : "启用", onClick: (r) => toast.success(`已${r.status === "active" ? "停用" : "启用"}「${r.name}」`), confirm: { title: "确认操作", description: "该操作执行后将立即生效，请确认是否继续。" } },
+    { label: "删除", danger: true, onClick: (r) => toast.success(`已删除「${r.name}」`), confirm: { title: "确认删除人员", description: "删除后该人员数据将无法恢复，请确认是否继续。", confirmLabel: "确认删除" } },
   ];
 
   return (
@@ -571,7 +574,7 @@ export default function StaffList() {
 
       <FilterBar fields={filterFields} values={filters} onChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))} onSearch={() => {}} onReset={() => setFilters({})} maxVisible={4} />
 
-      <div className="grid grid-cols-[260px_minmax(0,1fr)] gap-4 items-start">
+      <div className="grid grid-cols-[220px_minmax(0,1fr)] gap-4 items-start">
         <section className="sticky top-4 flex flex-col overflow-hidden rounded-xl border border-border/80 bg-card h-[calc(100vh-100px)]" style={{ boxShadow: "var(--shadow-xs)" }}>
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
             <div className="flex items-center gap-2">
