@@ -148,7 +148,7 @@ export default function CapabilityList() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="能力管理" subtitle="定义最底层技术能力，只定义"做什么"，不定义计费规则" actions={
+      <PageHeader title="能力管理" subtitle={'定义最底层技术能力，只定义"做什么"，不定义计费规则'} actions={
         <div className="flex gap-2">
           <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 新建</button>
           <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>
