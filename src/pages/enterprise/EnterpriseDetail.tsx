@@ -1,8 +1,19 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Building2, Package, Tag, CheckCircle2, XCircle, Clock, Edit3, Info, History } from "lucide-react";
+import { ChevronLeft, ChevronRight, Building2, Package, Tag, CheckCircle2, XCircle, Clock, Edit3, Info, History, UserCog, Power, PowerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuditDialog, AuditTimeline, type AuditRecord } from "./AuditDialog";
+import { SetAdminDialog } from "./SetAdminDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /* ── Types ── */
 type AuditStatus = "pending" | "approved" | "rejected";
@@ -23,9 +34,9 @@ const MOCK_DETAIL = {
   legalPhone: "18686886788",
   address: "上海市浦东新区陆家嘴金融中心8号楼XXX室",
   activationCode: "ACT-2025-0088",
-  status: "active" as const,
+  status: "active" as "active" | "inactive",
   auditStatus: "pending" as AuditStatus,
-  admin: "张伟",
+  admin: "",
   enabledProducts: ["国内3D工具", "国际3D工具", "精准客资"],
   supplyChain: "加入",
   renderRight: "未开启",
@@ -63,11 +74,14 @@ const AUDIT_CFG: Record<AuditStatus, { label: string; icon: typeof Clock; status
 };
 
 /* ── Section Header ── */
-function SectionHeader({ title, icon: Icon }: { title: string; icon: typeof Building2 }) {
+function SectionHeader({ title, icon: Icon, action }: { title: string; icon: typeof Building2; action?: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2.5 px-6 py-3 border-b" style={{ background: "hsl(var(--muted) / 0.5)" }}>
-      <Icon className="h-4 w-4 text-primary" />
-      <span className="text-sm font-semibold text-foreground">{title}</span>
+    <div className="flex items-center justify-between px-6 py-3 border-b" style={{ background: "hsl(var(--muted) / 0.5)" }}>
+      <div className="flex items-center gap-2.5">
+        <Icon className="h-4 w-4 text-primary" />
+        <span className="text-sm font-semibold text-foreground">{title}</span>
+      </div>
+      {action}
     </div>
   );
 }
@@ -158,10 +172,13 @@ export default function EnterpriseDetail() {
   const { id } = useParams();
   const [d, setD] = useState(MOCK_DETAIL);
   const [showAuditDialog, setShowAuditDialog] = useState(false);
+  const [showAdminDialog, setShowAdminDialog] = useState(false);
+  const [showStatusConfirm, setShowStatusConfirm] = useState<"enable" | "disable" | null>(null);
 
   const auditCfg = AUDIT_CFG[d.auditStatus];
   const AuditIcon = auditCfg.icon;
   const hasBrands = d.type === "brand" || d.type === "mall";
+  const canToggleStatus = d.auditStatus === "approved";
 
   const handleAuditConfirm = (result: { action: "approve" | "reject"; remark: string }) => {
     const now = new Date();
@@ -175,10 +192,27 @@ export default function EnterpriseDetail() {
     };
     setD((prev) => ({
       ...prev,
-      auditStatus: result.action === "approve" ? "approved" : "rejected",
+      auditStatus: (result.action === "approve" ? "approved" : "rejected") as AuditStatus,
       auditRecords: [...prev.auditRecords, newRecord],
     }));
     setShowAuditDialog(false);
+  };
+
+  const handleEnableClick = () => {
+    if (!d.admin) {
+      setShowAdminDialog(true);
+      return;
+    }
+    setShowStatusConfirm("enable");
+  };
+
+  const handleStatusConfirm = () => {
+    if (showStatusConfirm === "enable") {
+      setD((prev) => ({ ...prev, status: "active" }));
+    } else {
+      setD((prev) => ({ ...prev, status: "inactive" }));
+    }
+    setShowStatusConfirm(null);
   };
 
   return (
@@ -202,9 +236,7 @@ export default function EnterpriseDetail() {
           <Button variant="outline" size="sm" className="gap-1 h-9 text-[13px] px-3">
             下一个 <ChevronRight className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="outline" size="sm" className="h-9 text-[13px] px-4" onClick={() => navigate("/enterprise")}>
-            返回列表
-          </Button>
+          <div className="w-px h-5 bg-border mx-1" />
           {d.auditStatus === "pending" && (
             <Button
               size="sm"
@@ -214,12 +246,45 @@ export default function EnterpriseDetail() {
               审核
             </Button>
           )}
+          {canToggleStatus && d.status === "active" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-[13px] px-4 gap-1.5"
+              style={{ borderColor: "hsl(var(--destructive) / 0.3)", color: "hsl(var(--destructive))" }}
+              onClick={() => setShowStatusConfirm("disable")}
+            >
+              <PowerOff className="h-3.5 w-3.5" /> 停用
+            </Button>
+          )}
+          {canToggleStatus && d.status === "inactive" && (
+            <Button
+              size="sm"
+              className="h-9 text-[13px] px-4 gap-1.5"
+              style={{ background: "hsl(var(--success))" }}
+              onClick={handleEnableClick}
+            >
+              <Power className="h-3.5 w-3.5" /> 启用
+            </Button>
+          )}
           <Button
+            variant="outline"
+            size="sm"
+            className="h-9 text-[13px] px-4 gap-1.5"
+            onClick={() => setShowAdminDialog(true)}
+          >
+            <UserCog className="h-3.5 w-3.5" /> 设置管理员
+          </Button>
+          <Button
+            variant="outline"
             size="sm"
             className="h-9 text-[13px] px-4 gap-1.5"
             onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}`)}
           >
             <Edit3 className="h-3.5 w-3.5" /> 编辑
+          </Button>
+          <Button variant="outline" size="sm" className="h-9 text-[13px] px-4" onClick={() => navigate("/enterprise")}>
+            返回列表
           </Button>
         </div>
       </div>
@@ -260,7 +325,12 @@ export default function EnterpriseDetail() {
         </div>
 
         {/* ── 基础信息 ── */}
-        <SectionHeader title="基础信息" icon={Building2} />
+        <SectionHeader title="基础信息" icon={Building2} action={
+          <button className="text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
+            onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}`)}>
+            编辑信息
+          </button>
+        } />
         <div className="px-6 py-5">
           <div className="grid grid-cols-3 gap-x-6 gap-y-4">
             <DetailItem label="企业名称" value={d.name} />
@@ -283,11 +353,29 @@ export default function EnterpriseDetail() {
             <DetailItem label="法人手机号" value={d.legalPhone} />
             <DetailItem label="详细地址" value={d.address} className="col-span-2" />
             <DetailItem label="激活券码" value={d.activationCode} />
+            <DetailItem label="管理员" value={
+              d.admin ? (
+                <span className="text-foreground font-medium">{d.admin}</span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <span className="text-muted-foreground">未设置</span>
+                  <button className="text-[12px] text-primary hover:text-primary/80 transition-colors"
+                    onClick={() => setShowAdminDialog(true)}>
+                    立即设置
+                  </button>
+                </span>
+              )
+            } />
           </div>
         </div>
 
         {/* ── 权益配置 ── */}
-        <SectionHeader title="权益配置" icon={Package} />
+        <SectionHeader title="权益配置" icon={Package} action={
+          <button className="text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
+            onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}&step=product`)}>
+            编辑权益
+          </button>
+        } />
         <div className="px-6 py-5 space-y-7">
           <div>
             <SubTitle title="基础权益" />
@@ -340,7 +428,12 @@ export default function EnterpriseDetail() {
         {/* ── 品牌设置 ── */}
         {hasBrands && (
           <>
-            <SectionHeader title="品牌设置" icon={Tag} />
+            <SectionHeader title="品牌设置" icon={Tag} action={
+              <button className="text-[12px] text-primary hover:text-primary/80 transition-colors font-medium"
+                onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}&step=config`)}>
+                编辑品牌
+              </button>
+            } />
             <div className="px-6 py-5 space-y-5">
               <div className="flex items-start gap-3">
                 <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-5">拥有品牌：</span>
@@ -369,13 +462,58 @@ export default function EnterpriseDetail() {
         </div>
       </div>
 
-      {/* Audit Dialog */}
+      {/* ── Dialogs ── */}
       <AuditDialog
         open={showAuditDialog}
         onClose={() => setShowAuditDialog(false)}
         enterpriseName={d.name}
         onConfirm={handleAuditConfirm}
       />
+
+      <SetAdminDialog
+        open={showAdminDialog}
+        onClose={() => setShowAdminDialog(false)}
+        enterpriseName={d.name}
+        onConfirm={(result) => {
+          setD((prev) => ({
+            ...prev,
+            admin: result.adminName,
+            status: result.status,
+          }));
+          setShowAdminDialog(false);
+        }}
+      />
+
+      {/* Status Toggle Confirm */}
+      <AlertDialog open={!!showStatusConfirm} onOpenChange={() => setShowStatusConfirm(null)}>
+        <AlertDialogContent
+          className="max-w-[420px] overflow-hidden rounded-xl border bg-card p-0"
+          style={{ boxShadow: "var(--shadow-md)" }}
+        >
+          <div className="border-b px-5 py-4" style={{ background: "hsl(var(--muted) / 0.4)" }}>
+            <AlertDialogHeader className="space-y-1">
+              <AlertDialogTitle className="text-[15px] font-semibold text-foreground">
+                {showStatusConfirm === "disable" ? "确认停用该企业？" : "确认启用该企业？"}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-[13px] leading-6 text-muted-foreground">
+                {showStatusConfirm === "disable"
+                  ? "停用后该企业及其所有子企业将被冻结，暂时无法使用，后续可重新启用。"
+                  : "启用后该企业将恢复正常使用，已配置的产品和权益将立即生效。"}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </div>
+          <AlertDialogFooter className="gap-2 px-5 py-4">
+            <AlertDialogCancel className="mt-0 h-9 rounded-lg px-4 text-[13px]">取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleStatusConfirm}
+              className={`h-9 rounded-lg px-4 text-[13px] ${showStatusConfirm === "disable" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}`}
+              style={showStatusConfirm === "enable" ? { background: "hsl(var(--success))", color: "hsl(var(--success-foreground))" } : undefined}
+            >
+              {showStatusConfirm === "disable" ? "确认停用" : "确认启用"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
