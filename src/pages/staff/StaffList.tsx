@@ -402,13 +402,13 @@ function OrgTreeNode({
         <div ref={menuRef} className="admin-action-menu" data-state="open" style={{ top: menuPos.top, left: menuPos.left, transform: "translateX(calc(-100% + 2px))" }}>
           {!isUnset && (
             <>
-              <button type="button" className="admin-action-menu-item" onClick={() => { onAction("add-sibling", node); setMenuOpen(false); }}><FolderTree className="h-3.5 w-3.5" />新建同级组织</button>
-              <button type="button" className="admin-action-menu-item" onClick={() => { onAction("add-child", node); setMenuOpen(false); }}><FolderPlus className="h-3.5 w-3.5" />新建子组织</button>
+              <button type="button" className="admin-action-menu-item" onClick={() => { onAction("add-sibling", node); setMenuOpen(false); }}>新建同级组织</button>
+              <button type="button" className="admin-action-menu-item" onClick={() => { onAction("add-child", node); setMenuOpen(false); }}>新建子组织</button>
             </>
           )}
-          <button type="button" className="admin-action-menu-item" onClick={() => { onAction("rename", node); setMenuOpen(false); }}><Edit2 className="h-3.5 w-3.5" />重命名</button>
+          <button type="button" className="admin-action-menu-item" onClick={() => { onAction("rename", node); setMenuOpen(false); }}>重命名</button>
           {!isUnset && (
-            <button type="button" className="admin-action-menu-item admin-action-menu-item-danger" onClick={() => { onAction("delete", node); setMenuOpen(false); }}><Trash2 className="h-3.5 w-3.5" />删除</button>
+            <button type="button" className="admin-action-menu-item admin-action-menu-item-danger" onClick={() => { onAction("delete", node); setMenuOpen(false); }}>删除</button>
           )}
         </div>, document.body)}
 
