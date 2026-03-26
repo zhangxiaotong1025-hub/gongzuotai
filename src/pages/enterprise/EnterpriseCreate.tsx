@@ -348,8 +348,14 @@ export default function EnterpriseCreate() {
           企业管理
         </button>
         <span className="text-muted-foreground text-xs">/</span>
+        {isSub && parentName && (
+          <>
+            <span className="text-[13px] text-muted-foreground">{parentName}</span>
+            <span className="text-muted-foreground text-xs">/</span>
+          </>
+        )}
         <span className="text-[13px] text-foreground font-semibold">
-          新建{TYPE_LABELS[type] || "企业"}
+          {isSub ? `新建子企业` : `新建${TYPE_LABELS[type] || "企业"}`}
         </span>
       </div>
 
@@ -386,7 +392,18 @@ export default function EnterpriseCreate() {
 
       {/* Step Content */}
       <div className="bg-card rounded-xl border" style={{ boxShadow: 'var(--shadow-xs)' }}>
-        {currentStepKey === "basic" && <StepBasic form={form} update={update} />}
+        {currentStepKey === "basic" && (
+          isSub
+            ? <StepSubBasic
+                form={form}
+                update={update}
+                parentName={parentName}
+                allowedSubTypes={allowedSubTypes}
+                selectedSubType={selectedSubType}
+                onSubTypeChange={setSelectedSubType}
+              />
+            : <StepBasic form={form} update={update} />
+        )}
         {currentStepKey === "product" && (
           <StepBenefits
             form={form}
