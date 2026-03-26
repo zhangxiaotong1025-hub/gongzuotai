@@ -20,6 +20,11 @@ export default function AccountDetail() {
   const [allocPageSize, setAllocPageSize] = useState(10);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const handleAllocate = useCallback((_form: any) => {
+    toast.success("权益已分配，订单已自动生成");
+    setDialogOpen(false);
+  }, []);
+
   if (!acc) return <div className="p-10 text-center text-muted-foreground">账户不存在</div>;
 
   const prevAcc = accIndex > 0 ? accountData[accIndex - 1] : null;
