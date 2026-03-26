@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Building2, Store, Landmark, Briefcase, ShoppingBag, HardHat, X } from "lucide-react";
 
-const ENTERPRISE_TYPES = [
+const ALL_ENTERPRISE_TYPES = [
   { key: "mall", label: "卖场", icon: ShoppingBag, desc: "大型零售卖场，可拥有或代理品牌" },
   { key: "brand", label: "品牌商", icon: Building2, desc: "品牌拥有者，可创建或代理品牌" },
   { key: "dealer", label: "经销商", icon: Store, desc: "品牌代理商，代理品牌销售" },
@@ -14,12 +14,19 @@ interface CreateEnterpriseDialogProps {
   open: boolean;
   onClose: () => void;
   onSelect: (type: string) => void;
+  title?: string;
+  subtitle?: string;
+  allowedTypes?: string[]; // filter to these type keys only
 }
 
-export function CreateEnterpriseDialog({ open, onClose, onSelect }: CreateEnterpriseDialogProps) {
+export function CreateEnterpriseDialog({ open, onClose, onSelect, title, subtitle, allowedTypes }: CreateEnterpriseDialogProps) {
   const [selected, setSelected] = useState<string | null>(null);
 
   if (!open) return null;
+
+  const types = allowedTypes
+    ? ALL_ENTERPRISE_TYPES.filter((t) => allowedTypes.includes(t.key))
+    : ALL_ENTERPRISE_TYPES;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -40,12 +47,12 @@ export function CreateEnterpriseDialog({ open, onClose, onSelect }: CreateEnterp
         </button>
 
         {/* Header */}
-        <h2 className="text-lg font-semibold text-foreground">新建企业</h2>
-        <p className="text-[13px] text-muted-foreground mt-1 mb-6">请选择所创建企业类型</p>
+        <h2 className="text-lg font-semibold text-foreground">{title || "新建企业"}</h2>
+        <p className="text-[13px] text-muted-foreground mt-1 mb-6">{subtitle || "请选择所创建企业类型"}</p>
 
         {/* Type cards */}
-        <div className="grid grid-cols-3 gap-3">
-          {ENTERPRISE_TYPES.map((type) => {
+        <div className={`grid gap-3 ${types.length <= 3 ? "grid-cols-3" : types.length <= 4 ? "grid-cols-4" : "grid-cols-3"}`}>
+          {types.map((type) => {
             const isSelected = selected === type.key;
             return (
               <button
