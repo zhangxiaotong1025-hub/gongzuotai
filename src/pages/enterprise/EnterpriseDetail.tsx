@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Building2, Package, Tag, CheckCircle2, XCircle, Clock, Info, History, UserCog } from "lucide-react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { Building2, Package, Tag, CheckCircle2, XCircle, Clock, Info, History, UserCog, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { AuditDialog, AuditTimeline, type AuditRecord } from "./AuditDialog";
 import { SetAdminDialog } from "./SetAdminDialog";
+import { OrderDialog } from "@/pages/entitlement/dialogs/OrderDialog";
+import { orderData, type EntitlementOrder } from "@/data/entitlement";
+import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
