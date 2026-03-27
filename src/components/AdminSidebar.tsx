@@ -42,7 +42,7 @@ const navItems: NavItem[] = [
     children: [
       { label: "菜单管理", path: "/permission/menu" },
       { label: "角色管理", path: "/permission/role" },
-      { label: "策略管理", path: "/permission/policy" },
+      { label: "资源管理", path: "/permission/resource" },
     ],
   },
   {

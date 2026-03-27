@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { menuData, getMenuChildren, getMenuPath, MENU_TYPE_MAP, ROLE_TYPE_MAP, PRODUCTS, roleData, policyData, type MenuItem } from "@/data/permission";
+import { menuData, getMenuChildren, getMenuPath, MENU_TYPE_MAP, ROLE_TYPE_MAP, PRODUCTS, roleData, resourceData, type MenuItem } from "@/data/permission";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { ChevronRight } from "lucide-react";
 
@@ -28,8 +28,8 @@ export default function MenuDetail() {
     ? menu.products.map(code => PRODUCTS.find(p => p.code === code)?.name || code)
     : ["通用（全产品）"];
 
-  const referencingRoles = roleData.filter(r => r.menuIds.includes(menu.id));
-  const referencingPolicies = policyData.filter(p => p.targetMenuIds?.includes(menu.id));
+  const referencingRoles = roleData.filter(r => r.menuMode === "all" || r.menuIds.includes(menu.id));
+  const referencingResources = resourceData.filter(r => r.menuId === menu.id);
 
   const allMenus = menuData;
   const prevMenu = menuIdx > 0 ? allMenus[menuIdx - 1] : null;
@@ -156,21 +156,21 @@ export default function MenuDetail() {
         </div>
       )}
 
-      {/* 影响策略 */}
-      {referencingPolicies.length > 0 && (
+      {/* 关联资源 */}
+      {referencingResources.length > 0 && (
         <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground mb-3">相关权限策略 ({referencingPolicies.length})</h3>
+          <h3 className="text-[14px] font-semibold text-foreground mb-3">关联资源 ({referencingResources.length})</h3>
           <div className="space-y-2">
-            {referencingPolicies.map(policy => (
-              <Link key={policy.id} to={`/permission/policy/detail/${policy.id}`} className="flex items-center justify-between border rounded-lg p-3 hover:border-primary/40 hover:bg-primary/5 transition-all">
+            {referencingResources.map(res => (
+              <div key={res.id} className="flex items-center justify-between border rounded-lg p-3">
                 <div className="flex items-center gap-3">
-                  <span className="text-[13px] font-medium text-foreground">{policy.name}</span>
-                  <span className={policy.effect === "allow" ? "badge-active" : "badge-danger"}>
-                    {policy.effect === "allow" ? "允许" : "拒绝"}
+                  <span className="text-[13px] font-medium text-foreground">{res.name}</span>
+                  <span className={res.type === "button" ? "badge-info" : res.type === "api" ? "badge-active" : "badge-warning"}>
+                    {res.type === "button" ? "按钮" : res.type === "api" ? "接口" : "数据"}
                   </span>
                 </div>
-                <span className="text-[12px] text-muted-foreground">优先级 {policy.priority}</span>
-              </Link>
+                <span className="font-mono text-[11px] text-muted-foreground">{res.code}</span>
+              </div>
             ))}
           </div>
         </div>
