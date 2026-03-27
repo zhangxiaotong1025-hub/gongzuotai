@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { orderData, accountData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, AUDIT_STATUS, skuData, bundleData, getOrderApps, getRule, getCapability, type EntitlementOrder } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import { OrderLifecycleFlow } from "@/components/admin/OrderLifecycleFlow";
 import { toast } from "sonner";
 import { ShieldCheck, ShieldAlert, ShieldQuestion, Building2, Clock } from "lucide-react";
 
@@ -90,6 +91,9 @@ export default function OrderDetail() {
           </>
         }
       />
+
+      {/* 订单生命周期流转图 */}
+      <OrderLifecycleFlow order={order} />
 
       {/* 审核状态卡片 */}
       <div className={`rounded-xl border p-5 ${
