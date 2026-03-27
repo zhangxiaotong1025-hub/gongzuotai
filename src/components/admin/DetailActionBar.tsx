@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronLeft, ChevronRight, Pencil, Copy, ToggleLeft, ToggleRight } from "lucide-react";
 import { toast } from "sonner";
 
-interface DetailActionBarProps {
+export interface DetailActionBarProps {
   /** 面包屑返回文字 */
   backLabel: string;
   /** 返回路由 */
@@ -10,9 +10,9 @@ interface DetailActionBarProps {
   /** 当前条目名称 */
   currentName: string;
   /** 上一条路径，null 表示已是第一条 */
-  prevPath: string | null;
+  prevPath?: string | null;
   /** 下一条路径，null 表示已是最后一条 */
-  nextPath: string | null;
+  nextPath?: string | null;
   /** 编辑回调 */
   onEdit?: () => void;
   /** 复制回调 */
