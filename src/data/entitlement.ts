@@ -280,7 +280,7 @@ export const bundleData: Bundle[] = [
 
 export type OrderType = "user_purchase" | "internal_grant" | "system_grant" | "enterprise_grant";
 export type PaymentStatus = "paid" | "pending" | "no_payment" | "refunded";
-export type OrderStatus = "draft" | "pending_payment" | "processing" | "completed" | "cancelled" | "refunded" | "closed";
+export type OrderStatus = "draft" | "pending_effect" | "active" | "expired" | "suspended" | "cancelled" | "closed";
 export type AuditStatus = "auto_approved" | "pending_audit" | "approved" | "rejected" | "follow_enterprise";
 
 export interface StatusHistoryEntry {
