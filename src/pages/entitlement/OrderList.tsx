@@ -185,7 +185,7 @@ export default function OrderList() {
         statusHistory: [...o.statusHistory, { status: "closed", label: "订单关闭", time: now, remark: "运营关闭订单" }],
       } : o));
       toast.success("订单已关闭");
-    }, danger: true, visible: (r) => r.orderStatus === "pending_effect" || r.orderStatus === "draft" },
+    }, danger: true, visible: (r) => r.orderStatus === "pending_effect" },
   ];
 
   return (
