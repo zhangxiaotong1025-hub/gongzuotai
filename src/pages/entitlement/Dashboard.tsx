@@ -14,7 +14,7 @@ import {
   TrendingUp, TrendingDown, Users, DollarSign, Heart, ShoppingCart,
   AlertTriangle, Clock, UserX, Zap, RefreshCw, Eye,
   Package, Activity, ArrowUpRight, Calendar, Filter,
-  Target, Sparkles, Shield, Crown,
+  Target, Sparkles, Shield, Crown, BarChart3,
 } from "lucide-react";
 
 /* ═══ Animated Counter Hook ═══ */
