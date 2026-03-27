@@ -119,16 +119,14 @@ export default function OrderList() {
     { label: "审核通过", onClick: (r) => {
       const now = new Date().toLocaleString("zh-CN");
       setData((prev) => prev.map((o) => o.id === r.id ? {
-        ...o, auditStatus: "approved" as const,
+        ...o, auditStatus: "approved" as const, orderStatus: "active" as const,
         auditBy: "当前运营", auditAt: now,
         statusHistory: [...o.statusHistory,
           { status: "approved", label: "审核通过", time: now, remark: "运营审核通过" },
-          { status: "granted", label: "权益发放", time: now, remark: "自动发放" },
-          { status: "completed", label: "订单完成", time: now },
+          { status: "granted", label: "权益生效", time: now, remark: "权益已发放，订单生效中" },
         ],
-        orderStatus: "completed" as const,
       } : o));
-      toast.success("审核通过，权益已发放");
+      toast.success("审核通过，权益已生效");
     }, visible: (r) => r.auditStatus === "pending_audit" },
     { label: "审核驳回", onClick: (r) => {
       const now = new Date().toLocaleString("zh-CN");
@@ -145,31 +143,49 @@ export default function OrderList() {
     { label: "标记已支付", onClick: (r) => {
       const now = new Date().toLocaleString("zh-CN");
       setData((prev) => prev.map((o) => o.id === r.id ? {
-        ...o, paymentStatus: "paid" as const, orderStatus: "completed" as const, paidAt: now,
+        ...o, paymentStatus: "paid" as const, orderStatus: "active" as const, paidAt: now,
         statusHistory: [...o.statusHistory,
           { status: "paid", label: "支付完成", time: now, remark: "人工标记" },
-          { status: "granted", label: "权益发放", time: now, remark: "自动发放" },
-          { status: "completed", label: "订单完成", time: now },
+          { status: "granted", label: "权益生效", time: now, remark: "权益已发放，订单生效中" },
         ],
       } : o));
-      toast.success("已标记为已支付");
-    }, visible: (r) => r.orderStatus === "pending_payment" && r.paymentStatus === "pending" },
+      toast.success("已标记为已支付，权益已生效");
+    }, visible: (r) => r.orderStatus === "pending_effect" && r.paymentStatus === "pending" },
     { label: "退款", onClick: (r) => {
       const now = new Date().toLocaleString("zh-CN");
       setData((prev) => prev.map((o) => o.id === r.id ? {
-        ...o, paymentStatus: "refunded" as const, orderStatus: "refunded" as const,
-        statusHistory: [...o.statusHistory, { status: "refunded", label: "退款完成", time: now, remark: "运营操作退款" }],
+        ...o, paymentStatus: "refunded" as const, orderStatus: "closed" as const,
+        statusHistory: [...o.statusHistory,
+          { status: "refunded", label: "退款完成", time: now, remark: "运营操作退款，权益已回收" },
+          { status: "closed", label: "订单关闭", time: now, remark: "退款后权益失效" },
+        ],
       } : o));
-      toast.success("已退款");
-    }, danger: true, visible: (r) => r.orderStatus === "completed" && r.paymentStatus === "paid" },
-    { label: "关闭", onClick: (r) => {
+      toast.success("已退款，权益已关闭");
+    }, danger: true, visible: (r) => r.orderStatus === "active" && r.paymentStatus === "paid" },
+    { label: "暂停权益", onClick: (r) => {
+      const now = new Date().toLocaleString("zh-CN");
+      setData((prev) => prev.map((o) => o.id === r.id ? {
+        ...o, orderStatus: "suspended" as const,
+        statusHistory: [...o.statusHistory, { status: "suspended", label: "权益暂停", time: now, remark: "运营暂停权益" }],
+      } : o));
+      toast.success("权益已暂停");
+    }, danger: true, visible: (r) => r.orderStatus === "active" },
+    { label: "恢复权益", onClick: (r) => {
+      const now = new Date().toLocaleString("zh-CN");
+      setData((prev) => prev.map((o) => o.id === r.id ? {
+        ...o, orderStatus: "active" as const,
+        statusHistory: [...o.statusHistory, { status: "active", label: "权益恢复", time: now, remark: "运营恢复权益" }],
+      } : o));
+      toast.success("权益已恢复");
+    }, visible: (r) => r.orderStatus === "suspended" },
+    { label: "关闭订单", onClick: (r) => {
       const now = new Date().toLocaleString("zh-CN");
       setData((prev) => prev.map((o) => o.id === r.id ? {
         ...o, orderStatus: "closed" as const,
         statusHistory: [...o.statusHistory, { status: "closed", label: "订单关闭", time: now, remark: "运营关闭订单" }],
       } : o));
       toast.success("订单已关闭");
-    }, danger: true, visible: (r) => r.orderStatus === "pending_payment" || r.orderStatus === "draft" },
+    }, danger: true, visible: (r) => r.orderStatus === "pending_effect" || r.orderStatus === "draft" },
   ];
 
   return (
