@@ -85,10 +85,9 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
   const handleSubmit = () => {
     if (!customerId) return;
     const paymentStatus = orderType === "internal_grant" || orderType === "system_grant" ? "no_payment" as const : "pending" as const;
-    const orderStatus = paymentStatus === "no_payment" ? "completed" as const : "pending" as const;
     onSave({
       customerType, customerId, customerName, orderType: orderType as any, remark, items,
-      totalAmount, paymentStatus, orderStatus,
+      totalAmount, paymentStatus,
     });
   };
 

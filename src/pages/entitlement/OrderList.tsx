@@ -6,7 +6,7 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download } from "lucide-react";
-import { orderData as initialData, appData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, CUSTOMER_TYPES, getOrderApps, getOrderAppIds, type EntitlementOrder } from "@/data/entitlement";
+import { orderData as initialData, appData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, AUDIT_STATUS, CUSTOMER_TYPES, getOrderApps, getOrderAppIds, getInitialAuditStatus, getInitialOrderStatus, type EntitlementOrder } from "@/data/entitlement";
 import { OrderDialog } from "./dialogs/OrderDialog";
 
 const filterFields: FilterField[] = [
@@ -14,6 +14,7 @@ const filterFields: FilterField[] = [
   { key: "customerType", label: "账户类型", type: "select", options: CUSTOMER_TYPES.map((t) => ({ label: t.label, value: t.value })), width: 120 },
   { key: "appId", label: "所属应用", type: "select", options: appData.map((a) => ({ label: a.name, value: a.id })), width: 160 },
   { key: "orderType", label: "订单类型", type: "select", options: ORDER_TYPES.map((s) => ({ label: s.label, value: s.value })), width: 120 },
+  { key: "auditStatus", label: "审核状态", type: "select", options: AUDIT_STATUS.map((s) => ({ label: s.label, value: s.value })), width: 120 },
   { key: "paymentStatus", label: "支付状态", type: "select", options: PAYMENT_STATUS.map((s) => ({ label: s.label, value: s.value })), width: 120 },
   { key: "orderStatus", label: "订单状态", type: "select", options: ORDER_STATUS.map((s) => ({ label: s.label, value: s.value })), width: 120 },
 ];
@@ -34,11 +35,16 @@ export default function OrderList() {
     } else {
       const orderNo = `ORD${new Date().toISOString().slice(0, 10).replace(/-/g, "")}${String(data.length + 1).padStart(4, "0")}`;
       const now = new Date().toLocaleString("zh-CN");
+      const auditStatus = getInitialAuditStatus(form.orderType);
+      const orderStatus = getInitialOrderStatus(form.orderType, auditStatus);
       setData((prev) => [{
-        id: String(Date.now()), orderNo, ...form, createdAt: now,
-        statusHistory: [{ status: "created", label: "订单创建", time: now, remark: "运营创建内部订单" }],
+        id: String(Date.now()), orderNo, ...form, auditStatus, orderStatus, createdAt: now,
+        statusHistory: [
+          { status: "created", label: "订单创建", time: now, remark: "运营创建内部订单" },
+          { status: "pending_audit", label: "提交审核", time: now, remark: "内部发放订单需人工审核" },
+        ],
       }, ...prev]);
-      toast.success("订单已创建");
+      toast.success("订单已创建，等待审核");
     }
     setDialogOpen(false); setEditTarget(null);
   }, [editTarget, data.length]);
@@ -48,6 +54,7 @@ export default function OrderList() {
     if (filters.customerType && d.customerType !== filters.customerType) return false;
     if (filters.appId && !getOrderAppIds(d).includes(filters.appId)) return false;
     if (filters.orderType && d.orderType !== filters.orderType) return false;
+    if (filters.auditStatus && d.auditStatus !== filters.auditStatus) return false;
     if (filters.paymentStatus && d.paymentStatus !== filters.paymentStatus) return false;
     if (filters.orderStatus && d.orderStatus !== filters.orderStatus) return false;
     return true;
@@ -92,6 +99,10 @@ export default function OrderList() {
         ¥{v > 0 ? v.toFixed(2) : "0.00"}
       </span>
     )},
+    { key: "auditStatus", title: "审核状态", minWidth: 100, render: (v: string) => {
+      const cfg = AUDIT_STATUS.find((s) => s.value === v);
+      return <span className={cfg?.className || ""}>{cfg?.label}</span>;
+    }},
     { key: "paymentStatus", title: "支付状态", minWidth: 90, render: (v: string) => {
       const cfg = PAYMENT_STATUS.find((s) => s.value === v);
       return <span className={cfg?.className || ""}>{cfg?.label}</span>;
@@ -105,18 +116,48 @@ export default function OrderList() {
 
   const actions: ActionItem<EntitlementOrder>[] = [
     { label: "查看详情", onClick: (r) => navigate(`/entitlement/order/detail/${r.id}`) },
+    { label: "审核通过", onClick: (r) => {
+      const now = new Date().toLocaleString("zh-CN");
+      setData((prev) => prev.map((o) => o.id === r.id ? {
+        ...o, auditStatus: "approved" as const, orderStatus: "processing" as const,
+        auditBy: "当前运营", auditAt: now,
+        statusHistory: [...o.statusHistory,
+          { status: "approved", label: "审核通过", time: now, remark: "运营审核通过" },
+          { status: "granted", label: "权益发放", time: now, remark: "自动发放" },
+          { status: "completed", label: "订单完成", time: now },
+        ],
+        orderStatus: "completed" as const,
+      } : o));
+      toast.success("审核通过，权益已发放");
+    }, visible: (r) => r.auditStatus === "pending_audit" },
+    { label: "审核驳回", onClick: (r) => {
+      const now = new Date().toLocaleString("zh-CN");
+      setData((prev) => prev.map((o) => o.id === r.id ? {
+        ...o, auditStatus: "rejected" as const, orderStatus: "closed" as const,
+        auditBy: "当前运营", auditAt: now, auditRemark: "审核未通过",
+        statusHistory: [...o.statusHistory,
+          { status: "rejected", label: "审核驳回", time: now, remark: "运营驳回订单" },
+          { status: "closed", label: "订单关闭", time: now, remark: "审核驳回，订单自动关闭" },
+        ],
+      } : o));
+      toast.success("已驳回");
+    }, danger: true, visible: (r) => r.auditStatus === "pending_audit" },
     { label: "标记已支付", onClick: (r) => {
       const now = new Date().toLocaleString("zh-CN");
       setData((prev) => prev.map((o) => o.id === r.id ? {
         ...o, paymentStatus: "paid" as const, orderStatus: "completed" as const, paidAt: now,
-        statusHistory: [...o.statusHistory, { status: "paid", label: "支付完成", time: now, remark: "人工标记" }, { status: "granted", label: "权益发放", time: now, remark: "自动发放" }, { status: "completed", label: "订单完成", time: now }],
+        statusHistory: [...o.statusHistory,
+          { status: "paid", label: "支付完成", time: now, remark: "人工标记" },
+          { status: "granted", label: "权益发放", time: now, remark: "自动发放" },
+          { status: "completed", label: "订单完成", time: now },
+        ],
       } : o));
       toast.success("已标记为已支付");
-    }, visible: (r) => r.paymentStatus === "pending" },
+    }, visible: (r) => r.orderStatus === "pending_payment" && r.paymentStatus === "pending" },
     { label: "退款", onClick: (r) => {
       const now = new Date().toLocaleString("zh-CN");
       setData((prev) => prev.map((o) => o.id === r.id ? {
-        ...o, orderStatus: "refunded" as const,
+        ...o, paymentStatus: "refunded" as const, orderStatus: "refunded" as const,
         statusHistory: [...o.statusHistory, { status: "refunded", label: "退款完成", time: now, remark: "运营操作退款" }],
       } : o));
       toast.success("已退款");
@@ -128,12 +169,12 @@ export default function OrderList() {
         statusHistory: [...o.statusHistory, { status: "closed", label: "订单关闭", time: now, remark: "运营关闭订单" }],
       } : o));
       toast.success("订单已关闭");
-    }, danger: true, visible: (r) => r.orderStatus === "pending" },
+    }, danger: true, visible: (r) => r.orderStatus === "pending_payment" || r.orderStatus === "draft" },
   ];
 
   return (
     <div className="space-y-4">
-      <PageHeader title="订单管理" subtitle="统一管理所有权益订单（用户购买+内部发放+系统发放），订单可包含多个应用的商品" actions={
+      <PageHeader title="订单管理" subtitle="统一管理所有权益订单，支持用户购买、内部发放、系统发放、企业入驻四种订单类型，内部发放需人工审核，企业入驻跟随企业审核状态" actions={
         <div className="flex gap-2">
           <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 创建内部订单</button>
           <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>
