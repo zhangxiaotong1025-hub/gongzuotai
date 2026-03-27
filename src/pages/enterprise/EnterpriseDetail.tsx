@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Building2, Package, Tag, CheckCircle2, XCircle, Clock, Info, History, UserCog } from "lucide-react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { Building2, Package, Tag, CheckCircle2, XCircle, Clock, Info, History, UserCog, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { AuditDialog, AuditTimeline, type AuditRecord } from "./AuditDialog";
 import { SetAdminDialog } from "./SetAdminDialog";
+import { OrderDialog } from "@/pages/entitlement/dialogs/OrderDialog";
+import { orderData, type EntitlementOrder } from "@/data/entitlement";
+import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -181,6 +184,11 @@ export default function EnterpriseDetail() {
   const [showAuditDialog, setShowAuditDialog] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
   const [showStatusConfirm, setShowStatusConfirm] = useState<"enable" | "disable" | null>(null);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<EntitlementOrder | null>(null);
+
+  // Find linked enterprise_grant orders
+  const linkedOrders = orderData.filter((o) => o.orderType === "enterprise_grant" && o.linkedEnterpriseId === id);
 
   const auditCfg = AUDIT_CFG[d.auditStatus];
   const AuditIcon = auditCfg.icon;
@@ -412,6 +420,53 @@ export default function EnterpriseDetail() {
           </>
         )}
 
+        {/* ── 关联订单 ── */}
+        <SectionHeader title="关联权益订单" icon={FileText} action={
+          <button className="text-[12px] text-primary/80 hover:text-primary transition-colors font-medium"
+            onClick={() => { setEditingOrder(linkedOrders[0] || null); setShowOrderDialog(true); }}>
+            {linkedOrders.length > 0 ? "编辑关联订单" : "创建关联订单"}
+          </button>
+        } />
+        <div className="px-6 py-5">
+          {linkedOrders.length > 0 ? (
+            <div className="space-y-3">
+              {linkedOrders.map((ord) => {
+                const statusLabel = ord.orderStatus === "draft" ? "草稿" : ord.orderStatus === "completed" ? "已完成" : ord.orderStatus === "closed" ? "已关闭" : ord.orderStatus;
+                const auditLabel = ord.auditStatus === "follow_enterprise" ? "跟随企业审核" : ord.auditStatus === "auto_approved" ? "自动通过" : ord.auditStatus;
+                const payLabel = ord.paymentStatus === "no_payment" ? "无需支付" : ord.paymentStatus === "paid" ? "已支付" : ord.paymentStatus === "pending" ? "待支付" : ord.paymentStatus;
+                return (
+                  <Link key={ord.id} to={`/entitlement/order/detail/${ord.id}`}
+                    className="block border rounded-lg p-4 hover:border-primary/40 hover:bg-primary/5 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <span className="font-mono text-[12px] font-medium text-foreground">{ord.orderNo}</span>
+                        <span className="text-emerald-600 text-[11px] font-medium">{auditLabel}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[12px] ${ord.totalAmount > 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                          ¥{ord.totalAmount.toFixed(2)}
+                        </span>
+                        <span className={ord.orderStatus === "completed" ? "badge-active" : ord.orderStatus === "draft" ? "badge-warning" : "badge-inactive"}>
+                          {statusLabel}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">{payLabel}</span>
+                      </div>
+                    </div>
+                    <div className="text-[12px] text-muted-foreground mt-1.5">
+                      {ord.items.map((i) => i.itemName).join("、")} · {ord.createdAt}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-[13px] text-muted-foreground py-4 text-center border border-dashed rounded-lg">
+              暂无关联订单，企业审核通过后将自动生成入驻订单
+            </div>
+          )}
+        </div>
+
         {/* ── 审核记录 ── */}
         <SectionHeader title="审核记录" icon={History} />
         <div className="px-6 py-5">
@@ -431,6 +486,17 @@ export default function EnterpriseDetail() {
           setD((prev) => ({ ...prev, admin: result.adminName, status: result.status }));
           setShowAdminDialog(false);
         }}
+      />
+
+      <OrderDialog
+        open={showOrderDialog}
+        onClose={() => { setShowOrderDialog(false); setEditingOrder(null); }}
+        onSave={(form) => {
+          toast.success(editingOrder ? "关联订单已更新" : "关联订单已创建");
+          setShowOrderDialog(false);
+          setEditingOrder(null);
+        }}
+        initial={editingOrder}
       />
 
       {/* Status Toggle Confirm */}

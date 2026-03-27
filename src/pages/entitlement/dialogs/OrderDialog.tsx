@@ -22,6 +22,8 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   const [orderType, setOrderType] = useState<string>("internal_grant");
+  const [paymentStatusVal, setPaymentStatusVal] = useState<string>("no_payment");
+  const [paidAmount, setPaidAmount] = useState<string>("");
   const [remark, setRemark] = useState("");
   const [items, setItems] = useState<OrderItem[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -33,6 +35,8 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
       setCustomerName(initial?.customerName || "");
       setCustomerSearch("");
       setOrderType(initial?.orderType || "internal_grant");
+      setPaymentStatusVal(initial?.paymentStatus || "no_payment");
+      setPaidAmount(initial?.totalAmount ? String(initial.totalAmount) : "");
       setRemark(initial?.remark || "");
       setItems(initial?.items || []);
       setCustomerDropdownOpen(false);
@@ -84,10 +88,12 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
 
   const handleSubmit = () => {
     if (!customerId) return;
-    const paymentStatus = orderType === "internal_grant" || orderType === "system_grant" ? "no_payment" as const : "pending" as const;
+    const finalPaymentStatus = paymentStatusVal as any;
+    const finalAmount = paymentStatusVal === "paid" && paidAmount ? parseFloat(paidAmount) : totalAmount;
     onSave({
       customerType, customerId, customerName, orderType: orderType as any, remark, items,
-      totalAmount, paymentStatus,
+      totalAmount: finalAmount, paymentStatus: finalPaymentStatus,
+      ...(paymentStatusVal === "paid" ? { paidAt: new Date().toLocaleString("zh-CN") } : {}),
     });
   };
 
@@ -211,6 +217,35 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* 支付状态 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">支付状态 *</Label>
+                <Select value={paymentStatusVal} onValueChange={setPaymentStatusVal}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no_payment">无需支付（赠送/内部发放）</SelectItem>
+                    <SelectItem value="pending">待支付（线下收款待确认）</SelectItem>
+                    <SelectItem value="paid">已支付（已收款录入）</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {paymentStatusVal === "paid" && (
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">实收金额</Label>
+                  <Input type="number" value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)} placeholder={`默认 ¥${totalAmount.toFixed(2)}`} />
+                </div>
+              )}
+              {paymentStatusVal === "pending" && (
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">应收金额</Label>
+                  <div className="flex items-center h-9 px-3 border rounded-md bg-muted/30 text-[13px] text-foreground">
+                    ¥{totalAmount.toFixed(2)}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
