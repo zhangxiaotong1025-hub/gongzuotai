@@ -278,9 +278,10 @@ export const bundleData: Bundle[] = [
    权益订单 — 支持跨应用多商品
    ══════════════════════════════════════════════════ */
 
-export type OrderType = "user_purchase" | "internal_grant" | "system_grant";
-export type PaymentStatus = "paid" | "pending" | "no_payment";
-export type OrderStatus = "pending" | "completed" | "cancelled" | "refunded" | "closed";
+export type OrderType = "user_purchase" | "internal_grant" | "system_grant" | "enterprise_grant";
+export type PaymentStatus = "paid" | "pending" | "no_payment" | "refunded";
+export type OrderStatus = "draft" | "pending_payment" | "processing" | "completed" | "cancelled" | "refunded" | "closed";
+export type AuditStatus = "auto_approved" | "pending_audit" | "approved" | "rejected" | "follow_enterprise";
 
 export interface StatusHistoryEntry {
   status: string;
