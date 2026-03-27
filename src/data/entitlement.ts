@@ -422,25 +422,24 @@ export function getOrderApps(order: EntitlementOrder): AppItem[] {
 }
 
 export const ORDER_TYPES: { value: OrderType; label: string; className: string }[] = [
-  { value: "user_purchase",    label: "用户购买",   className: "text-primary" },
-  { value: "internal_grant",   label: "内部发放",   className: "text-amber-600" },
-  { value: "system_grant",     label: "系统发放",   className: "text-muted-foreground" },
-  { value: "enterprise_grant", label: "企业入驻",   className: "text-emerald-600" },
+  { value: "user_purchase",    label: "用户购买",   className: "badge-info" },
+  { value: "internal_grant",   label: "内部发放",   className: "badge-warning" },
+  { value: "system_grant",     label: "系统发放",   className: "badge-muted" },
+  { value: "enterprise_grant", label: "企业入驻",   className: "badge-active" },
 ];
 
 export const PAYMENT_STATUS: { value: PaymentStatus; label: string; className: string }[] = [
   { value: "paid",       label: "已支付",   className: "badge-active" },
   { value: "pending",    label: "待支付",   className: "badge-warning" },
-  { value: "no_payment", label: "无需支付", className: "text-muted-foreground text-[12px]" },
-  { value: "refunded",   label: "已退款",   className: "badge-inactive" },
+  { value: "no_payment", label: "无需支付", className: "badge-muted" },
+  { value: "refunded",   label: "已退款",   className: "badge-danger" },
 ];
 
 export const ORDER_STATUS: { value: OrderStatus; label: string; className: string }[] = [
-  
-  { value: "pending_effect", label: "待生效",  className: "text-amber-600 text-[12px] font-medium" },
+  { value: "pending_effect", label: "待生效",  className: "badge-warning" },
   { value: "active",         label: "生效中",  className: "badge-active" },
-  { value: "expired",        label: "已到期",  className: "text-muted-foreground text-[12px] font-medium" },
-  { value: "suspended",      label: "已暂停",  className: "badge-warning" },
+  { value: "expired",        label: "已到期",  className: "badge-muted" },
+  { value: "suspended",      label: "已暂停",  className: "badge-danger" },
   { value: "cancelled",      label: "已取消",  className: "badge-inactive" },
   { value: "closed",         label: "已关闭",  className: "badge-inactive" },
 ];
@@ -450,7 +449,7 @@ export const AUDIT_STATUS: { value: AuditStatus; label: string; className: strin
   { value: "pending_audit",     label: "待审核",     className: "badge-warning" },
   { value: "approved",          label: "审核通过",   className: "badge-active" },
   { value: "rejected",          label: "审核驳回",   className: "badge-danger" },
-  { value: "follow_enterprise", label: "跟随企业",   className: "text-emerald-600 text-[12px] font-medium" },
+  { value: "follow_enterprise", label: "跟随企业",   className: "badge-info" },
 ];
 
 /** 根据订单类型自动确定审核状态 */

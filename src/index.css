@@ -182,6 +182,26 @@
     @apply w-1.5 h-1.5 rounded-full;
     background: hsl(var(--destructive));
   }
+  .badge-info {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-wide;
+    background: hsl(var(--primary) / 0.08);
+    color: hsl(var(--primary));
+  }
+  .badge-info::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full;
+    background: hsl(var(--primary));
+  }
+  .badge-muted {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-wide;
+    background: hsl(var(--muted-foreground) / 0.06);
+    color: hsl(var(--muted-foreground) / 0.7);
+  }
+  .badge-muted::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full;
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
   .badge-product {
     @apply inline-flex items-center px-2 py-0.5 rounded text-[11px] font-normal tracking-wide;
     background: hsl(var(--primary) / 0.06);
