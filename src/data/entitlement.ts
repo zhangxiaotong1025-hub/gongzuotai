@@ -436,12 +436,12 @@ export const PAYMENT_STATUS: { value: PaymentStatus; label: string; className: s
 ];
 
 export const ORDER_STATUS: { value: OrderStatus; label: string; className: string }[] = [
-  { value: "draft",           label: "草稿",    className: "badge-warning" },
-  { value: "pending_payment", label: "待支付",  className: "badge-warning" },
-  { value: "processing",     label: "处理中",  className: "text-primary text-[12px] font-medium" },
-  { value: "completed",      label: "已完成",  className: "badge-active" },
+  { value: "draft",          label: "草稿",    className: "badge-warning" },
+  { value: "pending_effect", label: "待生效",  className: "text-amber-600 text-[12px] font-medium" },
+  { value: "active",         label: "生效中",  className: "badge-active" },
+  { value: "expired",        label: "已到期",  className: "text-muted-foreground text-[12px] font-medium" },
+  { value: "suspended",      label: "已暂停",  className: "badge-warning" },
   { value: "cancelled",      label: "已取消",  className: "badge-inactive" },
-  { value: "refunded",       label: "已退款",  className: "badge-inactive" },
   { value: "closed",         label: "已关闭",  className: "badge-inactive" },
 ];
 
@@ -466,8 +466,7 @@ export function getInitialAuditStatus(orderType: OrderType): AuditStatus {
 /** 根据订单类型和审核状态确定初始订单状态 */
 export function getInitialOrderStatus(orderType: OrderType, auditStatus: AuditStatus): OrderStatus {
   if (auditStatus === "pending_audit" || auditStatus === "follow_enterprise") return "draft";
-  if (orderType === "user_purchase") return "pending_payment";
-  return "processing"; // auto_approved + no payment needed
+  return "pending_effect"; // approved, awaiting payment or activation
 }
 
 export type OrderSource = "purchase" | "gift" | "promotion" | "system";
