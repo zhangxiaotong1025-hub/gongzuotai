@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { menuData, buildMenuTree, resourceData, roleData, type RoleType, type MenuItem, type ResourceType } from "@/data/permission";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronRight, ChevronDown, X } from "lucide-react";
+import { ChevronRight, ChevronDown, X, ChevronDownIcon } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -42,7 +42,7 @@ function MenuCheckTree({ tree, selected, onToggle, expanded, onToggleExpand }: {
           <div key={node.id}>
             <div className="flex items-center gap-1.5 py-1 px-2 rounded hover:bg-muted/50" style={{ paddingLeft: 8 + (node.level - 1) * 20 }}>
               {hasChildren ? (
-                <button onClick={() => onToggleExpand(node.id)} className="w-5 h-5 flex items-center justify-center rounded hover:bg-muted">
+                <button type="button" onClick={() => onToggleExpand(node.id)} className="w-5 h-5 flex items-center justify-center rounded hover:bg-muted">
                   {isOpen ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
                 </button>
               ) : <span className="w-5" />}
@@ -50,7 +50,7 @@ function MenuCheckTree({ tree, selected, onToggle, expanded, onToggleExpand }: {
                 checked={allChecked ? true : someChecked ? "indeterminate" : false}
                 onCheckedChange={() => onToggle(node.id, allChildIds)}
               />
-              <span className="text-[13px] text-foreground">{node.name}</span>
+              <span className="text-[13px] text-foreground cursor-pointer" onClick={() => onToggle(node.id, allChildIds)}>{node.name}</span>
             </div>
             {isOpen && hasChildren && (
               <MenuCheckTree tree={node.children!} selected={selected} onToggle={onToggle} expanded={expanded} onToggleExpand={onToggleExpand} />
@@ -62,7 +62,7 @@ function MenuCheckTree({ tree, selected, onToggle, expanded, onToggleExpand }: {
   );
 }
 
-// ============ Tag Input ============
+// ============ Tag Selector with Dropdown ============
 
 function TagSelector({ label, items, selectedIds, onChange }: {
   label: string;
@@ -71,41 +71,93 @@ function TagSelector({ label, items, selectedIds, onChange }: {
   onChange: (ids: string[]) => void;
 }) {
   const [showDropdown, setShowDropdown] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const available = items.filter(i => !selectedIds.includes(i.id));
 
+  // Close on outside click
+  useEffect(() => {
+    if (!showDropdown) return;
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showDropdown]);
+
   return (
-    <div>
+    <div ref={containerRef} className="relative">
       <label className="text-[13px] text-muted-foreground mb-2 block">{label}：</label>
-      <div className="border rounded-lg p-2 min-h-[42px] flex flex-wrap gap-1.5 items-center cursor-pointer" onClick={() => setShowDropdown(!showDropdown)}>
+      <div
+        className="border rounded-lg p-2 min-h-[42px] flex flex-wrap gap-1.5 items-center cursor-pointer hover:border-primary/40 transition-colors"
+        onClick={() => setShowDropdown(!showDropdown)}
+      >
         {selectedIds.map(id => {
           const item = items.find(i => i.id === id);
           if (!item) return null;
           return (
             <span key={id} className="inline-flex items-center gap-1 bg-muted rounded-md px-2 py-1 text-[12px] text-foreground">
               {item.name}
-              <button onClick={(e) => { e.stopPropagation(); onChange(selectedIds.filter(s => s !== id)); }} className="hover:text-destructive">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onChange(selectedIds.filter(s => s !== id)); }}
+                className="hover:text-destructive transition-colors"
+              >
                 <X className="w-3 h-3" />
               </button>
             </span>
           );
         })}
-        {selectedIds.length === 0 && <span className="text-[12px] text-muted-foreground">请选择</span>}
+        {selectedIds.length === 0 && <span className="text-[12px] text-muted-foreground">点击选择{label}</span>}
+        <ChevronDownIcon className={cn("w-4 h-4 text-muted-foreground ml-auto shrink-0 transition-transform", showDropdown && "rotate-180")} />
       </div>
-      {showDropdown && available.length > 0 && (
-        <div className="border rounded-lg mt-1 max-h-[200px] overflow-y-auto bg-card shadow-lg z-10 relative">
-          {available.map(item => (
-            <button
-              key={item.id}
-              className="w-full text-left px-3 py-2 text-[12px] hover:bg-muted/50 transition-colors flex items-center justify-between"
-              onClick={(e) => { e.stopPropagation(); onChange([...selectedIds, item.id]); }}
-            >
-              <span className="text-foreground">{item.name}</span>
-              <span className="text-muted-foreground font-mono text-[11px]">{item.code}</span>
-            </button>
-          ))}
+      {showDropdown && (
+        <div className="absolute left-0 right-0 top-full mt-1 border rounded-lg max-h-[220px] overflow-y-auto bg-card shadow-lg z-20">
+          {available.length > 0 ? (
+            <>
+              {/* Select all */}
+              <button
+                type="button"
+                className="w-full text-left px-3 py-2 text-[12px] hover:bg-muted/50 transition-colors border-b border-border/50 font-medium text-primary"
+                onClick={(e) => { e.stopPropagation(); onChange([...selectedIds, ...available.map(a => a.id)]); setShowDropdown(false); }}
+              >
+                全选剩余 {available.length} 项
+              </button>
+              {available.map(item => (
+                <button
+                  type="button"
+                  key={item.id}
+                  className="w-full text-left px-3 py-2 text-[12px] hover:bg-muted/50 transition-colors flex items-center justify-between"
+                  onClick={(e) => { e.stopPropagation(); onChange([...selectedIds, item.id]); }}
+                >
+                  <span className="text-foreground">{item.name}</span>
+                  <span className="text-muted-foreground font-mono text-[11px]">{item.code}</span>
+                </button>
+              ))}
+            </>
+          ) : (
+            <div className="px-3 py-4 text-center text-[12px] text-muted-foreground">已全部选择</div>
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+// ============ Radio Group ============
+
+function RadioOption({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
+  return (
+    <button type="button" onClick={onChange} className="flex items-center gap-2 cursor-pointer group">
+      <div className={cn(
+        "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all",
+        checked ? "border-primary" : "border-muted-foreground/30 group-hover:border-muted-foreground/60"
+      )}>
+        {checked && <div className="w-2 h-2 rounded-full bg-primary" />}
+      </div>
+      <span className="text-[13px]">{label}</span>
+    </button>
   );
 }
 
@@ -179,6 +231,25 @@ export default function RoleCreate() {
     });
   };
 
+  // When menuMode changes to "all", auto-select all menus
+  const setMenuMode = (mode: "all" | "specified") => {
+    update("menuMode", mode);
+    if (mode === "all") {
+      setSelectedMenus(new Set(menuData.map(m => m.id)));
+    }
+  };
+
+  // When resourceMode changes to "all", auto-select all resources
+  const setResourceMode = (mode: "all" | "specified") => {
+    update("resourceMode", mode);
+    if (mode === "all") {
+      const menuIds = form.menuMode === "all" ? menuData.map(m => m.id) : [...selectedMenus];
+      setSelectedButtons(resourceData.filter(r => r.type === "button" && menuIds.includes(r.menuId)).map(r => r.id));
+      setSelectedApis(resourceData.filter(r => r.type === "api" && menuIds.includes(r.menuId)).map(r => r.id));
+      setSelectedData(resourceData.filter(r => r.type === "data" && menuIds.includes(r.menuId)).map(r => r.id));
+    }
+  };
+
   // Filter resources based on selected menus
   const availableResources = useMemo(() => {
     const menuIds = form.menuMode === "all" ? menuData.map(m => m.id) : [...selectedMenus];
@@ -188,6 +259,25 @@ export default function RoleCreate() {
       data: resourceData.filter(r => r.type === "data" && menuIds.includes(r.menuId)),
     };
   }, [form.menuMode, selectedMenus]);
+
+  // Clean up resource selections when menus change
+  useEffect(() => {
+    if (form.menuMode === "specified") {
+      const menuIds = [...selectedMenus];
+      setSelectedButtons(prev => prev.filter(id => {
+        const r = resourceData.find(res => res.id === id);
+        return r && menuIds.includes(r.menuId);
+      }));
+      setSelectedApis(prev => prev.filter(id => {
+        const r = resourceData.find(res => res.id === id);
+        return r && menuIds.includes(r.menuId);
+      }));
+      setSelectedData(prev => prev.filter(id => {
+        const r = resourceData.find(res => res.id === id);
+        return r && menuIds.includes(r.menuId);
+      }));
+    }
+  }, [selectedMenus, form.menuMode]);
 
   const handleSubmit = () => {
     if (!form.name.trim()) { toast.error("请输入角色名称"); return; }
@@ -202,7 +292,7 @@ export default function RoleCreate() {
     <div className="space-y-5 pb-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2">
-        <button onClick={() => navigate("/permission/role")} className="text-[13px] text-muted-foreground hover:text-primary transition-colors">
+        <button type="button" onClick={() => navigate("/permission/role")} className="text-[13px] text-muted-foreground hover:text-primary transition-colors">
           角色管理
         </button>
         <span className="text-muted-foreground/30 text-xs">/</span>
@@ -240,7 +330,7 @@ export default function RoleCreate() {
                   )}
                 >
                   {opt.label}
-                  {form.roleType.includes(opt.key) && (
+                  {form.roleType.includes(opt.key) && form.roleType.length > 1 && (
                     <X className="w-3 h-3 opacity-60 hover:opacity-100" onClick={(e) => { e.stopPropagation(); toggleRoleType(opt.key); }} />
                   )}
                 </button>
@@ -265,25 +355,22 @@ export default function RoleCreate() {
 
         <FormRow label="模块权限" required>
           <div className="flex items-center gap-5 mb-4">
-            {[
-              { key: "specified" as const, label: "指定模块" },
-              { key: "all" as const, label: "全部模块" },
-            ].map(opt => (
-              <label key={opt.key} className="flex items-center gap-2 cursor-pointer group">
-                <div className={cn(
-                  "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all",
-                  form.menuMode === opt.key ? "border-primary" : "border-muted-foreground/30 group-hover:border-muted-foreground/60"
-                )}>
-                  {form.menuMode === opt.key && <div className="w-2 h-2 rounded-full bg-primary" />}
-                </div>
-                <span className="text-[13px]">{opt.label}</span>
-              </label>
-            ))}
+            <RadioOption label="指定模块" checked={form.menuMode === "specified"} onChange={() => setMenuMode("specified")} />
+            <RadioOption label="全部模块" checked={form.menuMode === "all"} onChange={() => setMenuMode("all")} />
           </div>
         </FormRow>
 
         {form.menuMode === "specified" && (
           <div className="ml-[136px] max-w-2xl">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[12px] text-muted-foreground">已选 {selectedMenus.size} 个模块</span>
+              <div className="flex gap-2">
+                <button type="button" className="text-[11px] text-primary hover:underline" onClick={() => setTreeExpanded(new Set(menuData.map(m => m.id)))}>全部展开</button>
+                <button type="button" className="text-[11px] text-primary hover:underline" onClick={() => setTreeExpanded(new Set())}>全部收起</button>
+                <button type="button" className="text-[11px] text-primary hover:underline" onClick={() => setSelectedMenus(new Set(menuData.map(m => m.id)))}>全选</button>
+                <button type="button" className="text-[11px] text-primary hover:underline" onClick={() => setSelectedMenus(new Set())}>清空</button>
+              </div>
+            </div>
             <div className="border rounded-lg p-3 max-h-[360px] overflow-y-auto">
               <MenuCheckTree
                 tree={menuTree}
@@ -300,7 +387,7 @@ export default function RoleCreate() {
               />
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">
-              已选 {selectedMenus.size} 个模块 · 仅支持选择支持模块下的资源，模块取消，支持资源同步删除
+              仅支持选择支持模块下的资源，模块取消，支持资源同步删除
             </p>
           </div>
         )}
@@ -313,20 +400,8 @@ export default function RoleCreate() {
 
         <FormRow label="资源权限" required>
           <div className="flex items-center gap-5 mb-4">
-            {[
-              { key: "specified" as const, label: "指定资源" },
-              { key: "all" as const, label: "全部资源" },
-            ].map(opt => (
-              <label key={opt.key} className="flex items-center gap-2 cursor-pointer group">
-                <div className={cn(
-                  "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all",
-                  form.resourceMode === opt.key ? "border-primary" : "border-muted-foreground/30 group-hover:border-muted-foreground/60"
-                )}>
-                  {form.resourceMode === opt.key && <div className="w-2 h-2 rounded-full bg-primary" />}
-                </div>
-                <span className="text-[13px]">{opt.label}</span>
-              </label>
-            ))}
+            <RadioOption label="指定资源" checked={form.resourceMode === "specified"} onChange={() => setResourceMode("specified")} />
+            <RadioOption label="全部资源" checked={form.resourceMode === "all"} onChange={() => setResourceMode("all")} />
           </div>
         </FormRow>
 
@@ -350,14 +425,19 @@ export default function RoleCreate() {
               selectedIds={selectedData}
               onChange={setSelectedData}
             />
+            {availableResources.buttons.length === 0 && availableResources.apis.length === 0 && availableResources.data.length === 0 && (
+              <div className="text-center py-6 text-[12px] text-muted-foreground border rounded-lg bg-muted/20">
+                请先在上方选择模块权限，资源列表将根据所选模块自动筛选
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* 操作按钮 */}
       <div className="flex justify-center gap-4 pt-2">
-        <button className="btn-secondary px-8 py-2.5" onClick={() => navigate("/permission/role")}>取消</button>
-        <button className="btn-primary px-8 py-2.5" onClick={handleSubmit}>{isEdit ? "更新" : "创建"}</button>
+        <button type="button" className="btn-secondary px-8 py-2.5" onClick={() => navigate("/permission/role")}>取消</button>
+        <button type="button" className="btn-primary px-8 py-2.5" onClick={handleSubmit}>{isEdit ? "更新" : "创建"}</button>
       </div>
     </div>
   );
