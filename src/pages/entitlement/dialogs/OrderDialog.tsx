@@ -219,6 +219,35 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
               </div>
             </div>
 
+            {/* 支付状态 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[13px]">支付状态 *</Label>
+                <Select value={paymentStatusVal} onValueChange={setPaymentStatusVal}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="no_payment">无需支付（赠送/内部发放）</SelectItem>
+                    <SelectItem value="pending">待支付（线下收款待确认）</SelectItem>
+                    <SelectItem value="paid">已支付（已收款录入）</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {paymentStatusVal === "paid" && (
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">实收金额</Label>
+                  <Input type="number" value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)} placeholder={`默认 ¥${totalAmount.toFixed(2)}`} />
+                </div>
+              )}
+              {paymentStatusVal === "pending" && (
+                <div className="space-y-1.5">
+                  <Label className="text-[13px]">应收金额</Label>
+                  <div className="flex items-center h-9 px-3 border rounded-md bg-muted/30 text-[13px] text-foreground">
+                    ¥{totalAmount.toFixed(2)}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-1.5">
               <Label className="text-[13px]">备注</Label>
               <Input value={remark} onChange={(e) => setRemark(e.target.value)} placeholder="可选" />
