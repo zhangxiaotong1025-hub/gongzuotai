@@ -1,446 +1,474 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { PageHeader } from "@/components/admin/PageHeader";
 import {
   accountData, orderData, appData, skuData, bundleData,
   getAccountStats, getAccountHealth,
   ORDER_STATUS, ORDER_TYPES,
-  type EntitlementAccount,
 } from "@/data/entitlement";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar, Legend,
+  PieChart, Pie, Cell, BarChart, Bar, Legend, LineChart, Line,
 } from "recharts";
 import {
   TrendingUp, TrendingDown, Users, DollarSign, Heart, ShoppingCart,
-  AlertTriangle, Clock, UserX, Zap, Building2, RefreshCw, Eye,
-  Package, Activity, ArrowUpRight,
+  AlertTriangle, Clock, UserX, Zap, RefreshCw, Eye,
+  Package, Activity, ArrowUpRight, Calendar, Filter, ChevronDown,
+  Target, BarChart3, Layers,
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-/* ═══ Mock aggregated data ═══ */
-const MONTHLY_REVENUE = [
-  { month: "2025-04", revenue: 52000, orders: 8 },
-  { month: "2025-05", revenue: 68000, orders: 12 },
-  { month: "2025-06", revenue: 74000, orders: 10 },
-  { month: "2025-07", revenue: 91000, orders: 15 },
-  { month: "2025-08", revenue: 86000, orders: 13 },
-  { month: "2025-09", revenue: 105000, orders: 18 },
-  { month: "2025-10", revenue: 112000, orders: 16 },
-  { month: "2025-11", revenue: 98000, orders: 14 },
-  { month: "2025-12", revenue: 128000, orders: 22 },
-  { month: "2026-01", revenue: 135000, orders: 19 },
-  { month: "2026-02", revenue: 142000, orders: 21 },
-  { month: "2026-03", revenue: 156000, orders: 24 },
+/* ═══════════════════════════════════════════
+   MOCK DATA — richer & more realistic
+   ═══════════════════════════════════════════ */
+
+const MONTHLY_DATA = [
+  { month: "2025-04", revenue: 523800, orders: 38, newCustomers: 4, churn: 1, avgUsage: 42 },
+  { month: "2025-05", revenue: 618200, orders: 45, newCustomers: 6, churn: 1, avgUsage: 45 },
+  { month: "2025-06", revenue: 742500, orders: 52, newCustomers: 5, churn: 2, avgUsage: 48 },
+  { month: "2025-07", revenue: 891300, orders: 61, newCustomers: 8, churn: 1, avgUsage: 51 },
+  { month: "2025-08", revenue: 856000, orders: 58, newCustomers: 5, churn: 3, avgUsage: 49 },
+  { month: "2025-09", revenue: 1052000, orders: 72, newCustomers: 9, churn: 2, avgUsage: 53 },
+  { month: "2025-10", revenue: 1124000, orders: 78, newCustomers: 7, churn: 2, avgUsage: 55 },
+  { month: "2025-11", revenue: 986500, orders: 68, newCustomers: 6, churn: 3, avgUsage: 52 },
+  { month: "2025-12", revenue: 1283000, orders: 89, newCustomers: 11, churn: 2, avgUsage: 58 },
+  { month: "2026-01", revenue: 1356000, orders: 94, newCustomers: 8, churn: 1, avgUsage: 61 },
+  { month: "2026-02", revenue: 1428000, orders: 98, newCustomers: 7, churn: 2, avgUsage: 63 },
+  { month: "2026-03", revenue: 1562000, orders: 108, newCustomers: 9, churn: 1, avgUsage: 66 },
 ];
 
-const CUSTOMER_GROWTH = [
-  { month: "2025-10", total: 28, newAdd: 5, churn: 1 },
-  { month: "2025-11", total: 32, newAdd: 6, churn: 2 },
-  { month: "2025-12", total: 35, newAdd: 4, churn: 1 },
-  { month: "2026-01", total: 39, newAdd: 5, churn: 1 },
-  { month: "2026-02", total: 42, newAdd: 4, churn: 1 },
-  { month: "2026-03", total: 45, newAdd: 5, churn: 2 },
+const DAILY_USAGE = [
+  { day: "03-21", ai: 892, render4k: 156, render8k: 42, guide: 234, leads: 67 },
+  { day: "03-22", ai: 1024, render4k: 178, render8k: 38, guide: 256, leads: 72 },
+  { day: "03-23", ai: 756, render4k: 132, render8k: 28, guide: 198, leads: 54 },
+  { day: "03-24", ai: 1156, render4k: 201, render8k: 52, guide: 278, leads: 81 },
+  { day: "03-25", ai: 1289, render4k: 223, render8k: 61, guide: 312, leads: 93 },
+  { day: "03-26", ai: 1102, render4k: 189, render8k: 48, guide: 267, leads: 78 },
+  { day: "03-27", ai: 1345, render4k: 245, render8k: 58, guide: 298, leads: 86 },
 ];
 
-/* ═══ Helpers ═══ */
-function computeKPIs() {
-  const totalCustomers = accountData.length;
-  const activeCustomers = accountData.filter((a) => a.status === "active").length;
-  const totalRevenue = orderData.reduce((s, o) => s + o.totalAmount, 0);
-  const thisMonthOrders = orderData.filter((o) => o.createdAt.startsWith("2026-03"));
-  const thisMonthRevenue = thisMonthOrders.reduce((s, o) => s + o.totalAmount, 0);
-  const lastMonthRevenue = 142000;
-  const revenueGrowth = lastMonthRevenue > 0 ? Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100) : 0;
+/* ═══ Computed data ═══ */
+function useComputedData(timeRange: string, appFilter: string) {
+  return useMemo(() => {
+    const sliceCount = timeRange === "quarter" ? 3 : timeRange === "half" ? 6 : 12;
+    const monthlySlice = MONTHLY_DATA.slice(-sliceCount);
 
-  const healths = accountData.map((a) => getAccountHealth(a.id));
-  const avgHealth = Math.round(healths.reduce((s, h) => s + h.healthScore, 0) / healths.length);
-  const avgRenewal = Math.round(healths.reduce((s, h) => s + h.renewalRate, 0) / healths.length * 10) / 10;
-
-  const allStats = accountData.map((a) => getAccountStats(a));
-  const avgUsage = Math.round(allStats.reduce((s, st) => s + st.usageRate, 0) / allStats.length * 10) / 10;
-
-  return {
-    totalCustomers, activeCustomers, totalRevenue, thisMonthRevenue,
-    revenueGrowth, avgHealth, avgRenewal, avgUsage,
-    totalOrders: orderData.length,
-    thisMonthOrderCount: thisMonthOrders.length,
-  };
-}
-
-function getHealthDistribution() {
-  const dist = { excellent: 0, good: 0, warning: 0, critical: 0 };
-  accountData.forEach((a) => { dist[getAccountHealth(a.id).healthLevel]++; });
-  return [
-    { name: "优秀", value: dist.excellent, color: "hsl(var(--success))" },
-    { name: "良好", value: dist.good, color: "hsl(var(--primary))" },
-    { name: "预警", value: dist.warning, color: "hsl(var(--warning))" },
-    { name: "危险", value: dist.critical, color: "hsl(var(--destructive))" },
-  ].filter((d) => d.value > 0);
-}
-
-function getProductAnalysis() {
-  return appData.filter((a) => a.status === "active").map((app) => {
-    const customers = accountData.filter((a) => a.appIds.includes(app.id));
-    const revenue = orderData
-      .filter((o) => o.items.some((i) => {
-        const sku = skuData.find((s) => s.id === i.itemId);
-        const bun = bundleData.find((b) => b.id === i.itemId);
-        return sku?.appId === app.id || bun?.appId === app.id;
-      }))
-      .reduce((s, o) => s + o.totalAmount, 0);
-
-    const stats = customers.map((c) => getAccountStats(c));
-    const avgUsage = stats.length > 0
-      ? Math.round(stats.reduce((s, st) => s + st.usageRate, 0) / stats.length)
+    const currentMonth = monthlySlice[monthlySlice.length - 1];
+    const prevMonth = monthlySlice.length >= 2 ? monthlySlice[monthlySlice.length - 2] : currentMonth;
+    const revenueGrowth = prevMonth.revenue > 0
+      ? Math.round(((currentMonth.revenue - prevMonth.revenue) / prevMonth.revenue) * 100)
       : 0;
 
-    return { name: app.name.replace("工具", "").slice(0, 4), fullName: app.name, customers: customers.length, revenue, avgUsage };
-  });
+    const filteredAccounts = appFilter === "all"
+      ? accountData
+      : accountData.filter((a) => a.appIds.includes(appFilter));
+
+    const totalCustomers = filteredAccounts.length;
+    const activeCustomers = filteredAccounts.filter((a) => a.status === "active").length;
+    const healths = filteredAccounts.map((a) => getAccountHealth(a.id));
+    const avgHealth = healths.length > 0 ? Math.round(healths.reduce((s, h) => s + h.healthScore, 0) / healths.length) : 0;
+    const avgRenewal = healths.length > 0 ? Math.round(healths.reduce((s, h) => s + h.renewalRate, 0) / healths.length * 10) / 10 : 0;
+    const allStats = filteredAccounts.map((a) => getAccountStats(a));
+    const avgUsage = allStats.length > 0 ? Math.round(allStats.reduce((s, st) => s + st.usageRate, 0) / allStats.length * 10) / 10 : 0;
+    const totalActiveUsers = healths.reduce((s, h) => s + h.activeUsers, 0);
+    const totalUsers = healths.reduce((s, h) => s + h.totalUsers, 0);
+
+    // Health distribution
+    const dist = { excellent: 0, good: 0, warning: 0, critical: 0 };
+    filteredAccounts.forEach((a) => { dist[getAccountHealth(a.id).healthLevel]++; });
+    const healthDist = [
+      { name: "优秀", value: dist.excellent, color: "hsl(158, 40%, 44%)" },
+      { name: "良好", value: dist.good, color: "hsl(222, 60%, 50%)" },
+      { name: "预警", value: dist.warning, color: "hsl(36, 60%, 50%)" },
+      { name: "危险", value: dist.critical, color: "hsl(0, 55%, 52%)" },
+    ].filter((d) => d.value > 0);
+
+    // Product analysis
+    const productData = appData.filter((a) => a.status === "active").map((app) => {
+      const customers = filteredAccounts.filter((a) => a.appIds.includes(app.id));
+      const revenue = orderData
+        .filter((o) => o.items.some((i) => {
+          const sku = skuData.find((s) => s.id === i.itemId);
+          const bun = bundleData.find((b) => b.id === i.itemId);
+          return sku?.appId === app.id || bun?.appId === app.id;
+        }))
+        .reduce((s, o) => s + o.totalAmount, 0);
+      const stats = customers.map((c) => getAccountStats(c));
+      const au = stats.length > 0 ? Math.round(stats.reduce((s, st) => s + st.usageRate, 0) / stats.length) : 0;
+      return { id: app.id, name: app.name, shortName: app.name.slice(0, 4), customers: customers.length, revenue, avgUsage: au };
+    });
+
+    // Alerts
+    const alerts: { type: "danger" | "warning"; icon: typeof AlertTriangle; label: string; customer: string; accId: string; detail: string; urgency: number }[] = [];
+    filteredAccounts.forEach((acc) => {
+      const health = getAccountHealth(acc.id);
+      const stats = getAccountStats(acc);
+      if (stats.usageRate >= 80) alerts.push({ type: "danger", icon: Zap, label: "额度告急", customer: acc.customerName, accId: acc.id, detail: `使用率${stats.usageRate}%，需扩容`, urgency: 3 });
+      if (health.lastLoginDays >= 15) alerts.push({ type: "warning", icon: UserX, label: "沉默客户", customer: acc.customerName, accId: acc.id, detail: `${health.lastLoginDays}天未登录`, urgency: 2 });
+      if (health.intentSignals.some((s) => s.label === "合同到期" && (s.value.includes("已过期") || parseInt(s.value) <= 90)))
+        alerts.push({ type: "danger", icon: Clock, label: "合同到期", customer: acc.customerName, accId: acc.id, detail: health.intentSignals.find((s) => s.label === "合同到期")?.value || "", urgency: 3 });
+      if (health.renewalRate < 70) alerts.push({ type: "warning", icon: RefreshCw, label: "续约风险", customer: acc.customerName, accId: acc.id, detail: `续订率${health.renewalRate}%`, urgency: 1 });
+    });
+    alerts.sort((a, b) => b.urgency - a.urgency);
+
+    // Top SKUs
+    const skuFreq: Record<string, { name: string; count: number; revenue: number }> = {};
+    orderData.forEach((o) => o.items.forEach((item) => {
+      if (!skuFreq[item.itemId]) skuFreq[item.itemId] = { name: item.itemName, count: 0, revenue: 0 };
+      skuFreq[item.itemId].count += item.quantity;
+      skuFreq[item.itemId].revenue += item.unitPrice * item.quantity;
+    }));
+    const topSkus = Object.values(skuFreq).sort((a, b) => b.revenue - a.revenue).slice(0, 8);
+    const maxSkuRevenue = topSkus.length > 0 ? topSkus[0].revenue : 1;
+
+    return {
+      monthlySlice, currentMonth, revenueGrowth,
+      totalCustomers, activeCustomers, avgHealth, avgRenewal, avgUsage,
+      totalActiveUsers, totalUsers,
+      healthDist, productData, alerts, topSkus, maxSkuRevenue,
+      totalOrders: orderData.length,
+    };
+  }, [timeRange, appFilter]);
 }
 
-function getAlerts() {
-  const alerts: { type: "danger" | "warning" | "info"; icon: typeof AlertTriangle; label: string; customer: string; accId: string; detail: string }[] = [];
-
-  accountData.forEach((acc) => {
-    const health = getAccountHealth(acc.id);
-    const stats = getAccountStats(acc);
-
-    if (stats.usageRate >= 80) {
-      alerts.push({ type: "danger", icon: Zap, label: "使用率过高", customer: acc.customerName, accId: acc.id, detail: `总使用率 ${stats.usageRate}%，需扩容` });
-    }
-    if (health.lastLoginDays >= 15) {
-      alerts.push({ type: "warning", icon: UserX, label: "长期未登录", customer: acc.customerName, accId: acc.id, detail: `${health.lastLoginDays}天未登录，流失风险` });
-    }
-    if (health.intentSignals.some((s) => s.label === "合同到期" && (s.value.includes("已过期") || parseInt(s.value) <= 90))) {
-      alerts.push({ type: "danger", icon: Clock, label: "合同即将到期", customer: acc.customerName, accId: acc.id, detail: health.intentSignals.find((s) => s.label === "合同到期")?.value || "" });
-    }
-    if (health.renewalRate < 70) {
-      alerts.push({ type: "warning", icon: RefreshCw, label: "续约风险", customer: acc.customerName, accId: acc.id, detail: `续订率仅 ${health.renewalRate}%` });
-    }
-  });
-
-  return alerts.sort((a, b) => (a.type === "danger" ? -1 : 1) - (b.type === "danger" ? -1 : 1));
-}
-
-/* ═══ Sub Components ═══ */
-function KPICard({ icon: Icon, label, value, sub, trend, trendLabel }: {
-  icon: typeof Users; label: string; value: string; sub?: string; trend?: number; trendLabel?: string;
-}) {
-  return (
-    <div className="bg-card rounded-xl border p-4 flex items-start gap-3.5" style={{ boxShadow: "var(--shadow-xs)" }}>
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "hsl(var(--primary) / 0.06)" }}>
-        <Icon className="h-5 w-5 text-primary" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-[12px] text-muted-foreground mb-0.5">{label}</div>
-        <div className="text-[20px] font-bold text-foreground leading-tight">{value}</div>
-        <div className="flex items-center gap-2 mt-1">
-          {trend !== undefined && (
-            <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${trend >= 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
-              {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {trend >= 0 ? "+" : ""}{trend}%
-            </span>
-          )}
-          {sub && <span className="text-[11px] text-muted-foreground">{sub}</span>}
-          {trendLabel && <span className="text-[11px] text-muted-foreground">{trendLabel}</span>}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const ALERT_STYLES = {
-  danger: { bg: "hsl(var(--destructive) / 0.04)", border: "hsl(var(--destructive) / 0.15)", dot: "hsl(var(--destructive))" },
-  warning: { bg: "hsl(var(--warning) / 0.04)", border: "hsl(var(--warning) / 0.15)", dot: "hsl(var(--warning))" },
-  info: { bg: "hsl(var(--primary) / 0.04)", border: "hsl(var(--primary) / 0.15)", dot: "hsl(var(--primary))" },
-};
+/* ═══ Tooltip style ═══ */
+const TT_STYLE = { background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 10, fontSize: 12, boxShadow: "var(--shadow-md)" };
 
 /* ═══ Main Dashboard ═══ */
 export default function EntitlementDashboard() {
-  const kpis = computeKPIs();
-  const healthDist = getHealthDistribution();
-  const productData = getProductAnalysis();
-  const alerts = getAlerts();
+  const [timeRange, setTimeRange] = useState("year");
+  const [appFilter, setAppFilter] = useState("all");
 
-  // Top SKUs by order frequency
-  const skuFrequency: Record<string, { name: string; count: number }> = {};
-  orderData.forEach((o) => {
-    o.items.forEach((item) => {
-      if (!skuFrequency[item.itemId]) skuFrequency[item.itemId] = { name: item.itemName, count: 0 };
-      skuFrequency[item.itemId].count += item.quantity;
-    });
-  });
-  const topSkus = Object.values(skuFrequency).sort((a, b) => b.count - a.count).slice(0, 6);
+  const d = useComputedData(timeRange, appFilter);
+
+  const ALERT_STYLES = {
+    danger: { bg: "hsl(var(--destructive) / 0.03)", border: "hsl(var(--destructive) / 0.12)", color: "hsl(var(--destructive))" },
+    warning: { bg: "hsl(var(--warning) / 0.03)", border: "hsl(var(--warning) / 0.12)", color: "hsl(var(--warning))" },
+  };
 
   return (
-    <div className="space-y-5 pb-6">
-      <PageHeader
-        title="数据看板"
-        subtitle="权益管理全局经营分析与运营预警"
-        actions={
-          <button className="btn-secondary"><RefreshCw className="h-4 w-4" /> 刷新数据</button>
-        }
-      />
+    <div className="space-y-5 pb-8">
+      {/* ═══ Hero Header with gradient ═══ */}
+      <div className="rounded-2xl p-6 relative overflow-hidden" style={{
+        background: "linear-gradient(135deg, hsl(222 60% 48%) 0%, hsl(250 50% 52%) 40%, hsl(280 45% 48%) 100%)",
+      }}>
+        {/* Decorative circles */}
+        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-[0.06]" style={{ background: "white" }} />
+        <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full opacity-[0.04]" style={{ background: "white" }} />
 
-      {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-5 gap-4">
-        <KPICard icon={Users} label="总客户数" value={`${kpis.totalCustomers}`} sub={`活跃 ${kpis.activeCustomers}`} />
-        <KPICard icon={DollarSign} label="本月收入" value={`¥${(kpis.thisMonthRevenue / 10000).toFixed(1)}万`} trend={kpis.revenueGrowth} trendLabel="环比" />
-        <KPICard icon={Heart} label="平均健康度" value={`${kpis.avgHealth}分`} sub={kpis.avgHealth >= 65 ? "良好" : "需关注"} />
-        <KPICard icon={RefreshCw} label="平均续订率" value={`${kpis.avgRenewal}%`} sub={kpis.avgRenewal >= 80 ? "健康" : "偏低"} />
-        <KPICard icon={Activity} label="平均使用率" value={`${kpis.avgUsage}%`} sub={`${kpis.totalOrders}个订单`} />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-[22px] font-bold text-white tracking-tight">权益经营看板</h1>
+              <p className="text-white/60 text-[13px] mt-0.5">实时监控权益运营核心指标与客户健康状况</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] text-white/80" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
+                <Calendar className="h-3.5 w-3.5" />
+                <select
+                  value={timeRange}
+                  onChange={(e) => setTimeRange(e.target.value)}
+                  className="bg-transparent text-white/90 text-[12px] font-medium outline-none cursor-pointer"
+                >
+                  <option value="quarter" className="text-foreground bg-card">近3个月</option>
+                  <option value="half" className="text-foreground bg-card">近6个月</option>
+                  <option value="year" className="text-foreground bg-card">近12个月</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] text-white/80" style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)" }}>
+                <Filter className="h-3.5 w-3.5" />
+                <select
+                  value={appFilter}
+                  onChange={(e) => setAppFilter(e.target.value)}
+                  className="bg-transparent text-white/90 text-[12px] font-medium outline-none cursor-pointer"
+                >
+                  <option value="all" className="text-foreground bg-card">全部应用</option>
+                  {appData.filter((a) => a.status === "active").map((a) => (
+                    <option key={a.id} value={a.id} className="text-foreground bg-card">{a.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* KPI Row — glass cards */}
+          <div className="grid grid-cols-6 gap-3">
+            {[
+              { label: "总客户数", value: d.totalCustomers.toString(), unit: "家", sub: `活跃 ${d.activeCustomers}`, icon: Users },
+              { label: "本月收入", value: `¥${(d.currentMonth.revenue / 10000).toFixed(1)}`, unit: "万", sub: `${d.revenueGrowth >= 0 ? "+" : ""}${d.revenueGrowth}% 环比`, icon: DollarSign, trend: d.revenueGrowth },
+              { label: "平均健康度", value: d.avgHealth.toString(), unit: "分", sub: d.avgHealth >= 65 ? "良好" : "需关注", icon: Heart },
+              { label: "平均续订率", value: d.avgRenewal.toString(), unit: "%", sub: d.avgRenewal >= 80 ? "健康" : "偏低", icon: RefreshCw },
+              { label: "平均使用率", value: d.avgUsage.toString(), unit: "%", sub: `${d.totalOrders}个订单`, icon: Activity },
+              { label: "活跃用户", value: d.totalActiveUsers.toString(), unit: `/${d.totalUsers}人`, sub: `${d.totalUsers > 0 ? Math.round((d.totalActiveUsers / d.totalUsers) * 100) : 0}% 活跃`, icon: Target },
+            ].map((kpi) => (
+              <div key={kpi.label} className="rounded-xl p-3.5" style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <kpi.icon className="h-3.5 w-3.5 text-white/50" />
+                  <span className="text-[11px] text-white/50 font-medium">{kpi.label}</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[22px] font-bold text-white leading-none">{kpi.value}</span>
+                  <span className="text-[12px] text-white/40">{kpi.unit}</span>
+                </div>
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  {kpi.trend !== undefined && (
+                    <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${kpi.trend >= 0 ? "text-emerald-300" : "text-red-300"}`}>
+                      {kpi.trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-white/40">{kpi.sub}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* ── Row 2: Revenue Trend + Health Distribution ── */}
+      {/* ═══ Row 2: Revenue + Health + Usage Heatmap ═══ */}
       <div className="grid grid-cols-12 gap-4">
-        {/* 收入趋势 */}
-        <div className="col-span-8 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-[14px] font-semibold text-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" /> 月度收入趋势
-            </h3>
-            <span className="text-[12px] text-muted-foreground">近12个月</span>
+        {/* Revenue trend — dual axis */}
+        <div className="col-span-5 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-sm)" }}>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-[13px] font-semibold text-foreground">收入与订单趋势</h3>
+            <span className="text-[11px] text-muted-foreground">{timeRange === "quarter" ? "近3月" : timeRange === "half" ? "近6月" : "近12月"}</span>
           </div>
-          <div className="h-[220px]">
+          <div className="text-[11px] text-muted-foreground mb-3">累计收入 ¥{(d.monthlySlice.reduce((s, m) => s + m.revenue, 0) / 10000).toFixed(1)}万</div>
+          <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={MONTHLY_REVENUE} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+              <AreaChart data={d.monthlySlice} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  <linearGradient id="revGrad2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(222, 60%, 50%)" stopOpacity={0.15} />
+                    <stop offset="100%" stopColor="hsl(222, 60%, 50%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v.slice(5)} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v / 10000}万`} />
-                <Tooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  formatter={(v: number) => [`¥${v.toLocaleString()}`, "收入"]}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#revGrad)" dot={{ r: 3, fill: "hsl(var(--primary))" }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v.slice(5)} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => `${v / 10000}万`} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TT_STYLE} formatter={(v: number, name: string) => [name === "revenue" ? `¥${v.toLocaleString()}` : `${v}单`, name === "revenue" ? "收入" : "订单数"]} />
+                <Area type="monotone" dataKey="revenue" stroke="hsl(222, 60%, 50%)" strokeWidth={2} fill="url(#revGrad2)" dot={false} activeDot={{ r: 4, strokeWidth: 2, fill: "white" }} />
+                <Line type="monotone" dataKey="orders" stroke="hsl(var(--benefit-violet))" strokeWidth={1.5} strokeDasharray="4 4" dot={false} yAxisId={0} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* 健康分布 */}
-        <div className="col-span-4 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground flex items-center gap-2 mb-2">
-            <Heart className="h-4 w-4 text-primary" /> 客户健康分布
-          </h3>
-          <div className="h-[160px] flex items-center justify-center">
+        {/* Health distribution — donut + stats */}
+        <div className="col-span-3 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-sm)" }}>
+          <h3 className="text-[13px] font-semibold text-foreground mb-3">客户健康分布</h3>
+          <div className="h-[140px] relative">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={healthDist}
-                  cx="50%" cy="50%"
-                  innerRadius={45} outerRadius={65}
-                  paddingAngle={3}
-                  dataKey="value"
-                  strokeWidth={0}
-                >
-                  {healthDist.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
+                <Pie data={d.healthDist} cx="50%" cy="50%" innerRadius={40} outerRadius={58} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                  {d.healthDist.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
-                <Tooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  formatter={(v: number, name: string) => [`${v}个客户`, name]}
-                />
+                <Tooltip contentStyle={TT_STYLE} formatter={(v: number, name: string) => [`${v}家`, name]} />
               </PieChart>
             </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-[20px] font-bold text-foreground">{d.totalCustomers}</span>
+              <span className="text-[10px] text-muted-foreground">客户总数</span>
+            </div>
           </div>
-          <div className="flex justify-center gap-4 mt-1">
-            {healthDist.map((d) => (
-              <div key={d.name} className="flex items-center gap-1.5 text-[11px]">
-                <span className="w-2 h-2 rounded-full" style={{ background: d.color }} />
-                <span className="text-muted-foreground">{d.name}</span>
-                <span className="font-semibold text-foreground">{d.value}</span>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            {d.healthDist.map((h) => (
+              <div key={h.name} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: h.color }} />
+                <span className="text-[11px] text-muted-foreground">{h.name}</span>
+                <span className="text-[11px] font-semibold text-foreground ml-auto">{h.value}</span>
               </div>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* ── Row 3: Product Analysis + Customer Growth ── */}
-      <div className="grid grid-cols-12 gap-4">
-        {/* 产品分析 */}
-        <div className="col-span-5 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground flex items-center gap-2 mb-4">
-            <Package className="h-4 w-4 text-primary" /> 产品维度分析
-          </h3>
-          <div className="h-[180px]">
+        {/* Daily capability consumption */}
+        <div className="col-span-4 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-sm)" }}>
+          <h3 className="text-[13px] font-semibold text-foreground mb-1">能力消耗趋势</h3>
+          <div className="text-[11px] text-muted-foreground mb-3">近7天各能力调用量</div>
+          <div className="h-[190px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={productData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                <Tooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                  formatter={(v: number, name: string) => [name === "customers" ? `${v}个` : `${v}%`, name === "customers" ? "客户数" : "平均使用率"]}
-                />
-                <Bar dataKey="customers" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={20} name="客户数" />
-                <Bar dataKey="avgUsage" fill="hsl(var(--primary) / 0.3)" radius={[4, 4, 0, 0]} barSize={20} name="平均使用率%" />
-              </BarChart>
+              <AreaChart data={DAILY_USAGE} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(222, 60%, 50%)" stopOpacity={0.12} />
+                    <stop offset="100%" stopColor="hsl(222, 60%, 50%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TT_STYLE} />
+                <Area type="monotone" dataKey="ai" name="AI设计" stroke="hsl(222, 60%, 50%)" strokeWidth={2} fill="url(#aiGrad)" dot={false} />
+                <Line type="monotone" dataKey="render4k" name="4K渲染" stroke="hsl(var(--benefit-teal))" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey="guide" name="导购" stroke="hsl(var(--benefit-violet))" strokeWidth={1.5} dot={false} />
+                <Line type="monotone" dataKey="leads" name="客资" stroke="hsl(var(--benefit-amber))" strokeWidth={1.5} dot={false} />
+                <Legend wrapperStyle={{ fontSize: 10, paddingTop: 4 }} iconType="circle" iconSize={6} />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
-          {/* Product list */}
-          <div className="mt-4 pt-3 border-t space-y-2">
-            {productData.map((p) => (
-              <div key={p.fullName} className="flex items-center justify-between text-[12px]">
-                <span className="text-foreground font-medium">{p.fullName}</span>
+        </div>
+      </div>
+
+      {/* ═══ Row 3: Product + Top SKUs + Customer Growth ═══ */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Product cards */}
+        <div className="col-span-5 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-sm)" }}>
+          <h3 className="text-[13px] font-semibold text-foreground mb-4">产品经营概览</h3>
+          <div className="space-y-3">
+            {d.productData.map((p) => (
+              <div key={p.id} className="rounded-lg border p-3 hover:border-primary/20 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <Link to={`/entitlement/app/detail/${p.id}`} className="text-[13px] font-medium text-foreground hover:text-primary transition-colors">{p.name}</Link>
+                  <span className="text-[13px] font-semibold text-foreground">¥{p.revenue > 0 ? (p.revenue / 10000).toFixed(1) + "万" : "0"}</span>
+                </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-muted-foreground">{p.customers}个客户</span>
-                  <span className="text-muted-foreground">使用率 {p.avgUsage}%</span>
-                  <span className="text-foreground font-medium">¥{p.revenue.toLocaleString()}</span>
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <Users className="h-3 w-3" /> {p.customers}个客户
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-[5px] rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${p.avgUsage >= 80 ? "bg-destructive" : "bg-primary"}`}
+                          style={{ width: `${Math.min(p.avgUsage, 100)}%` }}
+                        />
+                      </div>
+                      <span className={`text-[11px] font-medium tabular-nums ${p.avgUsage >= 80 ? "text-destructive" : "text-muted-foreground"}`}>{p.avgUsage}%</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* 客户增长 */}
-        <div className="col-span-4 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground flex items-center gap-2 mb-4">
-            <Users className="h-4 w-4 text-primary" /> 客户增长趋势
-          </h3>
-          <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={CUSTOMER_GROWTH} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v.slice(5)} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                <Tooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
-                />
-                <Bar dataKey="newAdd" fill="hsl(var(--success))" radius={[4, 4, 0, 0]} barSize={14} name="新增" />
-                <Bar dataKey="churn" fill="hsl(var(--destructive) / 0.6)" radius={[4, 4, 0, 0]} barSize={14} name="流失" />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-              </BarChart>
-            </ResponsiveContainer>
+        {/* Top SKUs — horizontal bars */}
+        <div className="col-span-4 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-sm)" }}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[13px] font-semibold text-foreground">热销商品排行</h3>
+            <span className="text-[11px] text-muted-foreground">按收入排序</span>
           </div>
-        </div>
-
-        {/* 热销商品 */}
-        <div className="col-span-3 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground flex items-center gap-2 mb-4">
-            <ShoppingCart className="h-4 w-4 text-primary" /> 热销商品 TOP
-          </h3>
-          <div className="space-y-3">
-            {topSkus.map((sku, idx) => (
-              <div key={sku.name} className="flex items-center gap-3">
-                <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-bold ${
+          <div className="space-y-2.5">
+            {d.topSkus.map((sku, idx) => (
+              <div key={sku.name} className="flex items-center gap-2.5">
+                <span className={`w-[18px] h-[18px] rounded flex items-center justify-center text-[10px] font-bold shrink-0 ${
                   idx < 3 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                 }`}>
                   {idx + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[12px] font-medium text-foreground truncate">{sku.name}</div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[12px] text-foreground font-medium truncate">{sku.name}</span>
+                    <span className="text-[11px] text-muted-foreground ml-2 shrink-0">¥{sku.revenue.toLocaleString()}</span>
+                  </div>
+                  <div className="h-[4px] rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary/60 transition-all"
+                      style={{ width: `${(sku.revenue / d.maxSkuRevenue) * 100}%` }}
+                    />
+                  </div>
                 </div>
-                <span className="text-[12px] text-muted-foreground font-mono">{sku.count}次</span>
               </div>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* ── Row 4: Operational Alerts ── */}
-      <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[14px] font-semibold text-foreground flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" style={{ color: "hsl(var(--warning))" }} /> 运营预警
-            <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-destructive/10 text-destructive">
-              {alerts.length}
-            </span>
-          </h3>
-          <Link to="/entitlement/account" className="text-[12px] text-primary hover:underline flex items-center gap-1">
-            查看全部账户 <ArrowUpRight className="h-3 w-3" />
-          </Link>
-        </div>
-        <div className="space-y-2.5">
-          {alerts.map((alert, i) => {
-            const style = ALERT_STYLES[alert.type];
-            return (
-              <div
-                key={i}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg border"
-                style={{ background: style.bg, borderColor: style.border }}
-              >
-                <alert.icon className="h-4 w-4 shrink-0" style={{ color: style.dot }} />
-                <div className="flex-1 min-w-0 flex items-center gap-3">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium" style={{ background: `${style.dot}15`, color: style.dot }}>
-                    {alert.label}
-                  </span>
-                  <Link
-                    to={`/entitlement/account/detail/${alert.accId}`}
-                    className="text-[13px] font-medium text-foreground hover:text-primary transition-colors"
-                  >
-                    {alert.customer}
-                  </Link>
-                  <span className="text-[12px] text-muted-foreground">{alert.detail}</span>
-                </div>
-                <Link
-                  to={`/entitlement/account/detail/${alert.accId}`}
-                  className="text-[12px] text-primary hover:underline flex items-center gap-1 shrink-0"
-                >
-                  <Eye className="h-3.5 w-3.5" /> 查看
-                </Link>
-              </div>
-            );
-          })}
-          {alerts.length === 0 && (
-            <div className="py-8 text-center text-muted-foreground text-[13px]">暂无预警</div>
-          )}
+        {/* Customer growth */}
+        <div className="col-span-3 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-sm)" }}>
+          <h3 className="text-[13px] font-semibold text-foreground mb-1">客户增长</h3>
+          <div className="text-[11px] text-muted-foreground mb-3">新增 vs 流失</div>
+          <div className="h-[170px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={MONTHLY_DATA.slice(-6)} margin={{ top: 5, right: 0, left: -25, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickFormatter={(v) => v.slice(5)} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={TT_STYLE} />
+                <Bar dataKey="newCustomers" fill="hsl(158, 40%, 44%)" radius={[3, 3, 0, 0]} barSize={12} name="新增" />
+                <Bar dataKey="churn" fill="hsl(0, 55%, 52%, 0.5)" radius={[3, 3, 0, 0]} barSize={12} name="流失" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex items-center justify-center gap-4 mt-2">
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(158, 40%, 44%)" }} />
+              <span className="text-muted-foreground">新增</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px]">
+              <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(0, 55%, 52%, 0.5)" }} />
+              <span className="text-muted-foreground">流失</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── Row 5: Order Status Distribution ── */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* 订单类型分布 */}
-        <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground flex items-center gap-2 mb-4">
-            <ShoppingCart className="h-4 w-4 text-primary" /> 订单类型分布
-          </h3>
-          <div className="grid grid-cols-3 gap-3">
-            {ORDER_TYPES.map((t) => {
-              const count = orderData.filter((o) => o.orderType === t.value).length;
-              const amount = orderData.filter((o) => o.orderType === t.value).reduce((s, o) => s + o.totalAmount, 0);
+      {/* ═══ Row 4: Alerts + Order Status ═══ */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Alerts */}
+        <div className="col-span-8 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-sm)" }}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[13px] font-semibold text-foreground flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" style={{ color: "hsl(var(--warning))" }} /> 运营预警
+              {d.alerts.length > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-destructive text-destructive-foreground">
+                  {d.alerts.length}
+                </span>
+              )}
+            </h3>
+            <Link to="/entitlement/account" className="text-[12px] text-primary hover:underline flex items-center gap-1">
+              全部账户 <ArrowUpRight className="h-3 w-3" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {d.alerts.slice(0, 6).map((alert, i) => {
+              const s = ALERT_STYLES[alert.type];
               return (
-                <div key={t.value} className="rounded-lg border p-3" style={{ background: "hsl(var(--muted) / 0.3)" }}>
-                  <div className="text-[11px] text-muted-foreground mb-1">{t.label}</div>
-                  <div className="text-[18px] font-bold text-foreground">{count}</div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">¥{amount.toLocaleString()}</div>
+                <div key={i} className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg border transition-colors hover:border-primary/15" style={{ background: s.bg, borderColor: s.border }}>
+                  <alert.icon className="h-3.5 w-3.5 shrink-0" style={{ color: s.color }} />
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold shrink-0" style={{ background: `color-mix(in srgb, ${s.color} 10%, transparent)`, color: s.color }}>{alert.label}</span>
+                  <Link to={`/entitlement/account/detail/${alert.accId}`} className="text-[12px] font-medium text-foreground hover:text-primary transition-colors truncate">{alert.customer}</Link>
+                  <span className="text-[11px] text-muted-foreground ml-auto shrink-0">{alert.detail}</span>
+                  <Link to={`/entitlement/account/detail/${alert.accId}`} className="text-[11px] text-primary hover:underline shrink-0 flex items-center gap-0.5">
+                    <Eye className="h-3 w-3" /> 处理
+                  </Link>
+                </div>
+              );
+            })}
+            {d.alerts.length === 0 && <div className="py-6 text-center text-[13px] text-muted-foreground">暂无预警 🎉</div>}
+          </div>
+        </div>
+
+        {/* Order funnel */}
+        <div className="col-span-4 bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-sm)" }}>
+          <h3 className="text-[13px] font-semibold text-foreground mb-4">订单状态概览</h3>
+          <div className="space-y-2.5">
+            {ORDER_STATUS.map((s) => {
+              const count = orderData.filter((o) => o.orderStatus === s.value).length;
+              const pct = d.totalOrders > 0 ? Math.round((count / d.totalOrders) * 100) : 0;
+              return (
+                <div key={s.value} className="flex items-center gap-3">
+                  <span className="text-[12px] text-muted-foreground w-[56px] shrink-0 text-right">{s.label}</span>
+                  <div className="flex-1 h-[6px] rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-primary/50 transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="text-[12px] font-semibold text-foreground w-[28px] text-right">{count}</span>
+                  <span className="text-[10px] text-muted-foreground w-[32px]">{pct}%</span>
                 </div>
               );
             })}
           </div>
-        </div>
-
-        {/* 订单状态漏斗 */}
-        <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-          <h3 className="text-[14px] font-semibold text-foreground flex items-center gap-2 mb-4">
-            <Activity className="h-4 w-4 text-primary" /> 订单状态分布
-          </h3>
-          <div className="flex items-end gap-3 h-[80px]">
-            {ORDER_STATUS.map((s) => {
-              const count = orderData.filter((o) => o.orderStatus === s.value).length;
-              const maxCount = Math.max(...ORDER_STATUS.map((st) => orderData.filter((o) => o.orderStatus === st.value).length), 1);
-              const height = Math.max((count / maxCount) * 100, 8);
-              return (
-                <div key={s.value} className="flex-1 flex flex-col items-center gap-1.5">
-                  <span className="text-[12px] font-semibold text-foreground">{count}</span>
-                  <div
-                    className="w-full rounded-t-md transition-all"
-                    style={{
-                      height: `${height}%`,
-                      background: "hsl(var(--primary) / 0.15)",
-                      borderTop: "2px solid hsl(var(--primary))",
-                    }}
-                  />
-                  <span className="text-[10px] text-muted-foreground text-center leading-tight">{s.label}</span>
-                </div>
-              );
-            })}
+          <div className="border-t mt-4 pt-3">
+            <div className="text-[11px] text-muted-foreground mb-2">订单类型</div>
+            <div className="grid grid-cols-3 gap-2">
+              {ORDER_TYPES.map((t) => {
+                const count = orderData.filter((o) => o.orderType === t.value).length;
+                return (
+                  <div key={t.value} className="text-center rounded-lg p-2" style={{ background: "hsl(var(--muted) / 0.4)" }}>
+                    <div className="text-[16px] font-bold text-foreground">{count}</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">{t.label}</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
