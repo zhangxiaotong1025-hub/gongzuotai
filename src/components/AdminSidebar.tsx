@@ -36,7 +36,15 @@ const navItems: NavItem[] = [
       { label: "企业入驻申请", path: "/enterprise/apply" },
     ],
   },
-  { label: "权限管理", icon: Shield, path: "/permission" },
+  {
+    label: "权限管理",
+    icon: Shield,
+    children: [
+      { label: "菜单管理", path: "/permission/menu" },
+      { label: "角色管理", path: "/permission/role" },
+      { label: "策略管理", path: "/permission/policy" },
+    ],
+  },
   {
     label: "权益管理",
     icon: Gift,
