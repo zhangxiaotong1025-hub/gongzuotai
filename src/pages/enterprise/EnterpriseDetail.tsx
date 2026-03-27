@@ -184,6 +184,11 @@ export default function EnterpriseDetail() {
   const [showAuditDialog, setShowAuditDialog] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
   const [showStatusConfirm, setShowStatusConfirm] = useState<"enable" | "disable" | null>(null);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<EntitlementOrder | null>(null);
+
+  // Find linked enterprise_grant orders
+  const linkedOrders = orderData.filter((o) => o.orderType === "enterprise_grant" && o.linkedEnterpriseId === id);
 
   const auditCfg = AUDIT_CFG[d.auditStatus];
   const AuditIcon = auditCfg.icon;
