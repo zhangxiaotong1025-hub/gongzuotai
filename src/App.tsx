@@ -41,6 +41,9 @@ import PlaceholderPage from "./pages/PlaceholderPage";
 import BrandList from "./pages/brand/BrandList";
 import BrandDetail from "./pages/brand/BrandDetail";
 import BrandCreate from "./pages/brand/BrandCreate";
+import CustomerList from "./pages/customer/CustomerList";
+import CustomerDetail from "./pages/customer/CustomerDetail";
+import CustomerCreate from "./pages/customer/CustomerCreate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -92,7 +95,9 @@ function ProtectedRoutes() {
         <Route path="/brand" element={<BrandList />} />
         <Route path="/brand/detail/:id" element={<BrandDetail />} />
         <Route path="/brand/create" element={<BrandCreate />} />
-        <Route path="/customer" element={<PlaceholderPage title="客户管理" />} />
+        <Route path="/customer" element={<CustomerList />} />
+        <Route path="/customer/detail/:id" element={<CustomerDetail />} />
+        <Route path="/customer/create" element={<CustomerCreate />} />
         <Route path="/attribute" element={<PlaceholderPage title="属性管理" />} />
         <Route path="/category" element={<PlaceholderPage title="类目管理" />} />
         <Route path="/material" element={<PlaceholderPage title="素材管理" />} />
