@@ -30,10 +30,11 @@ export interface MenuItem {
     supplierStatus?: boolean | null;
     enterpriseType?: string[] | null;
   };
-  roleType: RoleType;     // enterprise / platform
+  roleTypes: RoleType[];  // 可见角色类型（多选）
   remark?: string;
   createdAt: string;
   updatedAt: string;
+  children?: MenuItem[];  // 用于树形展示
 }
 
 // 产品定义
@@ -56,86 +57,92 @@ export const ROLE_TYPE_MAP: Record<RoleType, { label: string; className: string 
   platform: { label: "平台角色", className: "badge-info" },
 };
 
+export const GROUP_TYPE_MAP: Record<string, string> = {
+  main: "主导航",
+  base: "基础",
+  personal: "个人中心",
+};
+
 // 菜单数据 — 基于 PRD 菜单授权关系梳理
 export const menuData: MenuItem[] = [
   // ===== 权限管理（平台菜单）=====
-  { id: "m1", name: "权限管理", code: "permission", groupType: "main", level: 1, parentId: null, sort: 1, status: "active", products: [], menuType: "platform", roleType: "platform", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m1-1", name: "菜单管理", code: "permission.menu", groupType: "main", level: 2, parentId: "m1", sort: 1, status: "active", products: [], menuType: "platform", roleType: "platform", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m1-2", name: "策略管理", code: "permission.policy", groupType: "main", level: 2, parentId: "m1", sort: 2, status: "active", products: [], menuType: "platform", roleType: "platform", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m1-3", name: "角色管理", code: "permission.role", groupType: "main", level: 2, parentId: "m1", sort: 3, status: "active", products: [], menuType: "platform", roleType: "platform", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m1", name: "权限管理", code: "permission", groupType: "main", level: 1, parentId: null, sort: 1, status: "active", products: [], menuType: "platform", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m1-1", name: "菜单管理", code: "permission.menu", groupType: "main", level: 2, parentId: "m1", sort: 1, status: "active", products: [], menuType: "platform", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m1-2", name: "策略管理", code: "permission.policy", groupType: "main", level: 2, parentId: "m1", sort: 2, status: "active", products: [], menuType: "platform", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m1-3", name: "角色管理", code: "permission.role", groupType: "main", level: 2, parentId: "m1", sort: 3, status: "active", products: [], menuType: "platform", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 企业管理（通用基础）=====
-  { id: "m2", name: "企业管理", code: "enterprise", groupType: "main", level: 1, parentId: null, sort: 2, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m2-1", name: "企业管理", code: "enterprise.list", groupType: "main", level: 2, parentId: "m2", sort: 1, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m2-2", name: "人员管理", code: "enterprise.staff", groupType: "main", level: 2, parentId: "m2", sort: 2, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m2", name: "企业管理", code: "enterprise", groupType: "main", level: 1, parentId: null, sort: 2, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise", "platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m2-1", name: "企业管理", code: "enterprise.list", groupType: "main", level: 2, parentId: "m2", sort: 1, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise", "platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m2-2", name: "人员管理", code: "enterprise.staff", groupType: "main", level: 2, parentId: "m2", sort: 2, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise", "platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 权益管理（平台菜单）=====
-  { id: "m3", name: "权益管理", code: "entitlement", groupType: "main", level: 1, parentId: null, sort: 3, status: "active", products: [], menuType: "platform", roleType: "platform", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m3-1", name: "权益包管理", code: "entitlement.package", groupType: "main", level: 2, parentId: "m3", sort: 1, status: "active", products: [], menuType: "platform", roleType: "platform", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m3-2", name: "权益管理", code: "entitlement.manage", groupType: "main", level: 2, parentId: "m3", sort: 2, status: "active", products: [], menuType: "platform", roleType: "platform", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m3", name: "权益管理", code: "entitlement", groupType: "main", level: 1, parentId: null, sort: 3, status: "active", products: [], menuType: "platform", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m3-1", name: "权益包管理", code: "entitlement.package", groupType: "main", level: 2, parentId: "m3", sort: 1, status: "active", products: [], menuType: "platform", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m3-2", name: "权益管理", code: "entitlement.manage", groupType: "main", level: 2, parentId: "m3", sort: 2, status: "active", products: [], menuType: "platform", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 品牌管理（通用基础，受品牌关系影响）=====
-  { id: "m4", name: "品牌管理", code: "brand", groupType: "main", level: 1, parentId: null, sort: 4, status: "active", products: [], menuType: "basic", roleType: "enterprise", enterpriseRequirements: { brandRelationship: "own" }, createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m4", name: "品牌管理", code: "brand", groupType: "main", level: 1, parentId: null, sort: 4, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], enterpriseRequirements: { brandRelationship: "own" }, createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 属性管理 / 类目管理（平台菜单）=====
-  { id: "m5", name: "属性管理", code: "attribute", groupType: "main", level: 1, parentId: null, sort: 5, status: "active", products: [], menuType: "platform", roleType: "platform", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m6", name: "类目管理", code: "category", groupType: "main", level: 1, parentId: null, sort: 6, status: "active", products: [], menuType: "platform", roleType: "platform", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m5", name: "属性管理", code: "attribute", groupType: "main", level: 1, parentId: null, sort: 5, status: "active", products: [], menuType: "platform", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m6", name: "类目管理", code: "category", groupType: "main", level: 1, parentId: null, sort: 6, status: "active", products: [], menuType: "platform", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 素材管理 =====
-  { id: "m7", name: "素材管理", code: "material", groupType: "main", level: 1, parentId: null, sort: 7, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m7-1", name: "平台素材管理", code: "material.platform", groupType: "main", level: 2, parentId: "m7", sort: 1, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m7-1-1", name: "模型管理", code: "material.platform.model", groupType: "main", level: 3, parentId: "m7-1", sort: 1, status: "active", products: [], menuType: "basic", roleType: "enterprise", enterpriseRequirements: { brandRelationship: "own" }, createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m7-1-2", name: "材质管理", code: "material.platform.texture", groupType: "main", level: 3, parentId: "m7-1", sort: 2, status: "active", products: [], menuType: "basic", roleType: "enterprise", enterpriseRequirements: { brandRelationship: "own" }, createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m7-2", name: "企业素材管理", code: "material.enterprise", groupType: "main", level: 2, parentId: "m7", sort: 2, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m7-2-1", name: "模型管理", code: "material.enterprise.model", groupType: "main", level: 3, parentId: "m7-2", sort: 1, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m7-2-2", name: "材质管理", code: "material.enterprise.texture", groupType: "main", level: 3, parentId: "m7-2", sort: 2, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m7", name: "素材管理", code: "material", groupType: "main", level: 1, parentId: null, sort: 7, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise", "platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m7-1", name: "平台素材管理", code: "material.platform", groupType: "main", level: 2, parentId: "m7", sort: 1, status: "active", products: [], menuType: "basic", roleTypes: ["platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m7-1-1", name: "模型管理", code: "material.platform.model", groupType: "main", level: 3, parentId: "m7-1", sort: 1, status: "active", products: [], menuType: "basic", roleTypes: ["platform"], enterpriseRequirements: { brandRelationship: "own" }, createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m7-1-2", name: "材质管理", code: "material.platform.texture", groupType: "main", level: 3, parentId: "m7-1", sort: 2, status: "active", products: [], menuType: "basic", roleTypes: ["platform"], enterpriseRequirements: { brandRelationship: "own" }, createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m7-2", name: "企业素材管理", code: "material.enterprise", groupType: "main", level: 2, parentId: "m7", sort: 2, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m7-2-1", name: "模型管理", code: "material.enterprise.model", groupType: "main", level: 3, parentId: "m7-2", sort: 1, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m7-2-2", name: "材质管理", code: "material.enterprise.texture", groupType: "main", level: 3, parentId: "m7-2", sort: 2, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 商品管理（受供应链影响）=====
-  { id: "m8", name: "商品管理", code: "product", groupType: "main", level: 1, parentId: null, sort: 8, status: "active", products: [], menuType: "basic", roleType: "enterprise", enterpriseRequirements: { supplierStatus: true }, createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m8", name: "商品管理", code: "product", groupType: "main", level: 1, parentId: null, sort: 8, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], enterpriseRequirements: { supplierStatus: true }, createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 授权管理 =====
-  { id: "m9", name: "授权管理", code: "authorization", groupType: "main", level: 1, parentId: null, sort: 9, status: "active", products: ["domestic_3d", "smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m9-1", name: "授权管理", code: "authorization.manage", groupType: "main", level: 2, parentId: "m9", sort: 1, status: "active", products: ["domestic_3d", "smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m9-2", name: "授权申请管理", code: "authorization.apply", groupType: "main", level: 2, parentId: "m9", sort: 2, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m9", name: "授权管理", code: "authorization", groupType: "main", level: 1, parentId: null, sort: 9, status: "active", products: ["domestic_3d", "smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m9-1", name: "授权管理", code: "authorization.manage", groupType: "main", level: 2, parentId: "m9", sort: 1, status: "active", products: ["domestic_3d", "smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m9-2", name: "授权申请管理", code: "authorization.apply", groupType: "main", level: 2, parentId: "m9", sort: 2, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 方案管理 =====
-  { id: "m10", name: "方案管理", code: "plan", groupType: "main", level: 1, parentId: null, sort: 10, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m10-1", name: "方案管理", code: "plan.manage", groupType: "main", level: 2, parentId: "m10", sort: 1, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m10-2", name: "智能案例管理", code: "plan.case", groupType: "main", level: 2, parentId: "m10", sort: 2, status: "active", products: [], menuType: "basic", roleType: "platform", remark: "仅平台可见", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m10", name: "方案管理", code: "plan", groupType: "main", level: 1, parentId: null, sort: 10, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise", "platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m10-1", name: "方案管理", code: "plan.manage", groupType: "main", level: 2, parentId: "m10", sort: 1, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m10-2", name: "智能案例管理", code: "plan.case", groupType: "main", level: 2, parentId: "m10", sort: 2, status: "active", products: [], menuType: "basic", roleTypes: ["platform"], remark: "仅平台可见", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 前台类目管理（按产品区分）=====
-  { id: "m11", name: "前台类目管理", code: "front_category", groupType: "main", level: 1, parentId: null, sort: 11, status: "active", products: ["domestic_3d", "international_3d", "smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m11-1", name: "国内展示目录", code: "front_category.domestic", groupType: "main", level: 2, parentId: "m11", sort: 1, status: "active", products: ["domestic_3d"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m11-2", name: "国际展示目录", code: "front_category.international", groupType: "main", level: 2, parentId: "m11", sort: 2, status: "active", products: ["international_3d"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m11-3", name: "智能导购展示目录", code: "front_category.smart_guide", groupType: "main", level: 2, parentId: "m11", sort: 3, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m11", name: "前台类目管理", code: "front_category", groupType: "main", level: 1, parentId: null, sort: 11, status: "active", products: ["domestic_3d", "international_3d", "smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m11-1", name: "国内展示目录", code: "front_category.domestic", groupType: "main", level: 2, parentId: "m11", sort: 1, status: "active", products: ["domestic_3d"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m11-2", name: "国际展示目录", code: "front_category.international", groupType: "main", level: 2, parentId: "m11", sort: 2, status: "active", products: ["international_3d"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m11-3", name: "智能导购展示目录", code: "front_category.smart_guide", groupType: "main", level: 2, parentId: "m11", sort: 3, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 内容管理 =====
-  { id: "m12", name: "内容管理", code: "content", groupType: "main", level: 1, parentId: null, sort: 12, status: "active", products: ["smart_guide", "domestic_3d", "international_3d"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m12-1", name: "内容模版管理", code: "content.template", groupType: "main", level: 2, parentId: "m12", sort: 1, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m12-2", name: "内容管理", code: "content.manage", groupType: "main", level: 2, parentId: "m12", sort: 2, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m12-3", name: "全景图管理", code: "content.panorama", groupType: "main", level: 2, parentId: "m12", sort: 3, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m12-4", name: "3D爆品棚拍", code: "content.3d_shooting", groupType: "main", level: 2, parentId: "m12", sort: 4, status: "active", products: ["domestic_3d", "international_3d"], menuType: "incremental", requiredEntitlement: "3d_product_shooting", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m12", name: "内容管理", code: "content", groupType: "main", level: 1, parentId: null, sort: 12, status: "active", products: ["smart_guide", "domestic_3d", "international_3d"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m12-1", name: "内容模版管理", code: "content.template", groupType: "main", level: 2, parentId: "m12", sort: 1, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m12-2", name: "内容管理", code: "content.manage", groupType: "main", level: 2, parentId: "m12", sort: 2, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m12-3", name: "全景图管理", code: "content.panorama", groupType: "main", level: 2, parentId: "m12", sort: 3, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m12-4", name: "3D爆品棚拍", code: "content.3d_shooting", groupType: "main", level: 2, parentId: "m12", sort: 4, status: "active", products: ["domestic_3d", "international_3d"], menuType: "incremental", requiredEntitlement: "3d_product_shooting", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 营销管理 =====
-  { id: "m13", name: "营销管理", code: "marketing", groupType: "main", level: 1, parentId: null, sort: 13, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m13-1", name: "资源位管理", code: "marketing.resource", groupType: "main", level: 2, parentId: "m13", sort: 1, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m13-1-1", name: "广告位管理", code: "marketing.resource.ads", groupType: "main", level: 3, parentId: "m13-1", sort: 1, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m13-1-2", name: "选品池管理", code: "marketing.resource.selection", groupType: "main", level: 3, parentId: "m13-1", sort: 2, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m13-1-3", name: "内容池管理", code: "marketing.resource.content_pool", groupType: "main", level: 3, parentId: "m13-1", sort: 3, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m13-2", name: "布局管理", code: "marketing.layout", groupType: "main", level: 2, parentId: "m13", sort: 2, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m13-3", name: "优惠管理", code: "marketing.coupon", groupType: "main", level: 2, parentId: "m13", sort: 3, status: "active", products: ["smart_guide"], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m13", name: "营销管理", code: "marketing", groupType: "main", level: 1, parentId: null, sort: 13, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m13-1", name: "资源位管理", code: "marketing.resource", groupType: "main", level: 2, parentId: "m13", sort: 1, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m13-1-1", name: "广告位管理", code: "marketing.resource.ads", groupType: "main", level: 3, parentId: "m13-1", sort: 1, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m13-1-2", name: "选品池管理", code: "marketing.resource.selection", groupType: "main", level: 3, parentId: "m13-1", sort: 2, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m13-1-3", name: "内容池管理", code: "marketing.resource.content_pool", groupType: "main", level: 3, parentId: "m13-1", sort: 3, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m13-2", name: "布局管理", code: "marketing.layout", groupType: "main", level: 2, parentId: "m13", sort: 2, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m13-3", name: "优惠管理", code: "marketing.coupon", groupType: "main", level: 2, parentId: "m13", sort: 3, status: "active", products: ["smart_guide"], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 客户管理 =====
-  { id: "m14", name: "客户管理", code: "customer", groupType: "main", level: 1, parentId: null, sort: 14, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m14", name: "客户管理", code: "customer", groupType: "main", level: 1, parentId: null, sort: 14, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 数据看板 =====
-  { id: "m15", name: "数据看版", code: "dashboard", groupType: "main", level: 1, parentId: null, sort: 15, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m15", name: "数据看版", code: "dashboard", groupType: "main", level: 1, parentId: null, sort: 15, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise", "platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 
   // ===== 个人中心 =====
-  { id: "m16", name: "个人中心", code: "personal", groupType: "personal", level: 1, parentId: null, sort: 16, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m16-1", name: "权益管理", code: "personal.entitlement", groupType: "personal", level: 2, parentId: "m16", sort: 1, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m16-2", name: "个人信息", code: "personal.info", groupType: "personal", level: 2, parentId: "m16", sort: 2, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
-  { id: "m16-3", name: "我的上传", code: "personal.upload", groupType: "personal", level: 2, parentId: "m16", sort: 3, status: "active", products: [], menuType: "basic", roleType: "enterprise", createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m16", name: "个人中心", code: "personal", groupType: "personal", level: 1, parentId: null, sort: 16, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise", "platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m16-1", name: "权益管理", code: "personal.entitlement", groupType: "personal", level: 2, parentId: "m16", sort: 1, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m16-2", name: "个人信息", code: "personal.info", groupType: "personal", level: 2, parentId: "m16", sort: 2, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise", "platform"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
+  { id: "m16-3", name: "我的上传", code: "personal.upload", groupType: "personal", level: 2, parentId: "m16", sort: 3, status: "active", products: [], menuType: "basic", roleTypes: ["enterprise"], createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00" },
 ];
 
 // ============ 角色体系 ============
@@ -176,7 +183,7 @@ export const roleData: Role[] = [
     id: "role1", name: "平台超级管理员", code: "platform_super_admin", roleType: "platform",
     description: "拥有平台所有功能的最高权限，包括权限管理、权益管理、菜单管理等平台治理能力",
     products: ["domestic_3d", "international_3d", "smart_guide", "precision_marketing", "ai_designer_app"],
-    menuIds: menuData.map(m => m.id), // 全部菜单
+    menuIds: menuData.map(m => m.id),
     permissions: ["view", "create", "edit", "delete", "export", "audit", "configure"],
     userCount: 2, status: "active", isSystem: true,
     createdAt: "2026-01-01 00:00:00", updatedAt: "2026-03-01 00:00:00",
@@ -392,4 +399,41 @@ export function getRoleMenus(roleId: string): MenuItem[] {
 export function getMenuProductNames(menu: MenuItem): string[] {
   if (!menu.products.length) return ["通用"];
   return menu.products.map(code => PRODUCTS.find(p => p.code === code)?.name || code);
+}
+
+/** Build tree from flat menuData */
+export function buildMenuTree(items: MenuItem[]): MenuItem[] {
+  const map = new Map<string, MenuItem>();
+  const roots: MenuItem[] = [];
+  items.forEach(item => map.set(item.id, { ...item, children: [] }));
+  items.forEach(item => {
+    const node = map.get(item.id)!;
+    if (item.parentId && map.has(item.parentId)) {
+      map.get(item.parentId)!.children!.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+  return roots.sort((a, b) => a.sort - b.sort);
+}
+
+/** Flatten tree to list with level info */
+export function flattenMenuTree(tree: MenuItem[]): MenuItem[] {
+  const result: MenuItem[] = [];
+  const walk = (items: MenuItem[]) => {
+    for (const item of items.sort((a, b) => a.sort - b.sort)) {
+      result.push(item);
+      if (item.children?.length) walk(item.children);
+    }
+  };
+  walk(tree);
+  return result;
+}
+
+/** Collect all menu IDs including descendants */
+export function collectMenuIds(menuId: string): string[] {
+  const ids = [menuId];
+  const children = getMenuChildren(menuId);
+  children.forEach(c => ids.push(...collectMenuIds(c.id)));
+  return ids;
 }

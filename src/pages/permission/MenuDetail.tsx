@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { menuData, getMenuChildren, getMenuPath, MENU_TYPE_MAP, PRODUCTS, roleData, policyData, type MenuItem } from "@/data/permission";
+import { menuData, getMenuChildren, getMenuPath, MENU_TYPE_MAP, ROLE_TYPE_MAP, PRODUCTS, roleData, policyData, type MenuItem } from "@/data/permission";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { ChevronRight } from "lucide-react";
 
@@ -28,12 +28,9 @@ export default function MenuDetail() {
     ? menu.products.map(code => PRODUCTS.find(p => p.code === code)?.name || code)
     : ["通用（全产品）"];
 
-  // 引用此菜单的角色
   const referencingRoles = roleData.filter(r => r.menuIds.includes(menu.id));
-  // 影响此菜单的策略
   const referencingPolicies = policyData.filter(p => p.targetMenuIds?.includes(menu.id));
 
-  // Prev/Next
   const allMenus = menuData;
   const prevMenu = menuIdx > 0 ? allMenus[menuIdx - 1] : null;
   const nextMenu = menuIdx < allMenus.length - 1 ? allMenus[menuIdx + 1] : null;
@@ -48,7 +45,6 @@ export default function MenuDetail() {
         nextPath={nextMenu ? `/permission/menu/detail/${nextMenu.id}` : null}
       />
 
-      {/* 面包屑路径 */}
       {path.length > 1 && (
         <div className="flex items-center gap-1 text-[12px] text-muted-foreground">
           {path.map((p, idx) => (
@@ -84,9 +80,12 @@ export default function MenuDetail() {
         <h3 className="text-[14px] font-semibold text-foreground mb-4">权限配置</h3>
         <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-[13px]">
           <DetailItem label="角色可见范围" value={
-            <span className={menu.roleType === "platform" ? "badge-info" : "badge-active"}>
-              {menu.roleType === "platform" ? "仅平台角色" : "企业角色"}
-            </span>
+            <div className="flex flex-wrap gap-1.5 mt-0.5">
+              {menu.roleTypes.map(rt => {
+                const cfg = ROLE_TYPE_MAP[rt];
+                return <span key={rt} className={cfg.className}>{cfg.label}</span>;
+              })}
+            </div>
           } />
           <DetailItem label="关联产品" value={
             <div className="flex flex-wrap gap-1.5 mt-0.5">

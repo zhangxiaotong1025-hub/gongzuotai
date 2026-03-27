@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
-import { menuData, getMenuChildren, MENU_TYPE_MAP, PRODUCTS, type MenuItem } from "@/data/permission";
-import { ChevronRight, ChevronDown, Plus, ExternalLink } from "lucide-react";
+import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
+import { menuData, getMenuChildren, buildMenuTree, flattenMenuTree, MENU_TYPE_MAP, ROLE_TYPE_MAP, PRODUCTS, type MenuItem } from "@/data/permission";
+import { Plus, Expand, Shrink } from "lucide-react";
+import { toast } from "sonner";
 
 const filterFields: FilterField[] = [
   { key: "keyword", label: "菜单名称/编码", type: "input", placeholder: "请输入", width: 200 },
@@ -23,133 +25,27 @@ const filterFields: FilterField[] = [
   ], width: 100 },
 ];
 
-function MenuTreeRow({ menu, level, expanded, onToggle, navigate, filters }: {
-  menu: MenuItem; level: number; expanded: Set<string>; onToggle: (id: string) => void;
-  navigate: (path: string) => void; filters: Record<string, string>;
-}) {
-  const children = getMenuChildren(menu.id);
-  const hasChildren = children.length > 0;
-  const isOpen = expanded.has(menu.id);
-  const typeCfg = MENU_TYPE_MAP[menu.menuType];
-  const productNames = menu.products.length > 0
-    ? menu.products.map(code => PRODUCTS.find(p => p.code === code)?.name || code)
-    : [];
-
-  // Filter matching
-  if (filters.keyword && !menu.name.includes(filters.keyword) && !menu.code.includes(filters.keyword)) {
-    // Check children
-    const childrenMatch = children.some(c => matchesFilter(c, filters));
-    if (!childrenMatch) return null;
-  }
-  if (filters.menuType && menu.menuType !== filters.menuType) return null;
-  if (filters.roleType && menu.roleType !== filters.roleType) return null;
-  if (filters.product && !menu.products.includes(filters.product)) return null;
-  if (filters.status && menu.status !== filters.status) return null;
-
-  return (
-    <>
-      <tr className="border-b border-border/40 hover:bg-muted/30 transition-colors">
-        {/* 菜单名称 */}
-        <td className="py-2.5 text-[13px]" style={{ paddingLeft: 16 + level * 24 }}>
-          <div className="flex items-center gap-1.5">
-            {hasChildren ? (
-              <button onClick={() => onToggle(menu.id)} className="w-5 h-5 flex items-center justify-center rounded hover:bg-muted transition-colors">
-                {isOpen ? <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
-              </button>
-            ) : (
-              <span className="w-5" />
-            )}
-            <button
-              className="text-foreground font-medium hover:text-primary transition-colors"
-              onClick={() => navigate(`/permission/menu/detail/${menu.id}`)}
-            >
-              {menu.name}
-            </button>
-          </div>
-        </td>
-        {/* 编码 */}
-        <td className="py-2.5 text-[12px] text-muted-foreground font-mono">{menu.code}</td>
-        {/* 菜单类型 */}
-        <td className="py-2.5"><span className={typeCfg.className}>{typeCfg.label}</span></td>
-        {/* 关联产品 */}
-        <td className="py-2.5">
-          {productNames.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
-              {productNames.map(name => (
-                <span key={name} className="badge-product">{name}</span>
-              ))}
-            </div>
-          ) : (
-            <span className="text-[12px] text-muted-foreground">通用</span>
-          )}
-        </td>
-        {/* 角色可见 */}
-        <td className="py-2.5">
-          <span className={menu.roleType === "platform" ? "badge-info" : "badge-active"}>
-            {menu.roleType === "platform" ? "平台" : "企业"}
-          </span>
-        </td>
-        {/* 权益要求 */}
-        <td className="py-2.5 text-[12px]">
-          {menu.requiredEntitlement ? (
-            <span className="badge-warning">{menu.requiredEntitlement}</span>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-        </td>
-        {/* 企业属性要求 */}
-        <td className="py-2.5 text-[12px]">
-          {menu.enterpriseRequirements ? (
-            <div className="flex flex-wrap gap-1">
-              {menu.enterpriseRequirements.brandRelationship && (
-                <span className="badge-product">品牌:{menu.enterpriseRequirements.brandRelationship === "own" ? "拥有" : "代理"}</span>
-              )}
-              {menu.enterpriseRequirements.supplierStatus && (
-                <span className="badge-product">供应链:已加入</span>
-              )}
-            </div>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-        </td>
-        {/* 状态 */}
-        <td className="py-2.5">
-          <span className={menu.status === "active" ? "badge-active" : "badge-inactive"}>
-            {menu.status === "active" ? "启用" : "停用"}
-          </span>
-        </td>
-        {/* 操作 */}
-        <td className="py-2.5 text-right pr-4">
-          <button
-            className="text-[12px] text-primary hover:underline"
-            onClick={() => navigate(`/permission/menu/detail/${menu.id}`)}
-          >
-            详情
-          </button>
-        </td>
-      </tr>
-      {isOpen && children.map(child => (
-        <MenuTreeRow
-          key={child.id}
-          menu={child}
-          level={level + 1}
-          expanded={expanded}
-          onToggle={onToggle}
-          navigate={navigate}
-          filters={filters}
-        />
-      ))}
-    </>
-  );
-}
-
 function matchesFilter(menu: MenuItem, filters: Record<string, string>): boolean {
   if (filters.keyword && !menu.name.includes(filters.keyword) && !menu.code.includes(filters.keyword)) return false;
   if (filters.menuType && menu.menuType !== filters.menuType) return false;
-  if (filters.roleType && menu.roleType !== filters.roleType) return false;
+  if (filters.roleType && !menu.roleTypes.includes(filters.roleType as any)) return false;
   if (filters.product && !menu.products.includes(filters.product)) return false;
   if (filters.status && menu.status !== filters.status) return false;
   return true;
+}
+
+function filterTree(items: MenuItem[], filters: Record<string, string>): MenuItem[] {
+  const hasActiveFilter = Object.values(filters).some(v => v);
+  if (!hasActiveFilter) return items;
+
+  return items.reduce<MenuItem[]>((acc, item) => {
+    const children = item.children?.length ? filterTree(item.children, filters) : [];
+    const selfMatch = matchesFilter(item, filters);
+    if (selfMatch || children.length > 0) {
+      acc.push({ ...item, children });
+    }
+    return acc;
+  }, []);
 }
 
 export default function MenuList() {
@@ -158,6 +54,10 @@ export default function MenuList() {
   const [expanded, setExpanded] = useState<Set<string>>(
     new Set(menuData.filter(m => m.level === 1).map(m => m.id))
   );
+
+  const tree = useMemo(() => buildMenuTree(menuData), []);
+  const filteredTree = useMemo(() => filterTree(tree, filters), [tree, filters]);
+  const flatData = useMemo(() => flattenMenuTree(filteredTree), [filteredTree]);
 
   const toggleExpand = (id: string) => {
     setExpanded(prev => {
@@ -170,7 +70,77 @@ export default function MenuList() {
   const expandAll = () => setExpanded(new Set(menuData.map(m => m.id)));
   const collapseAll = () => setExpanded(new Set());
 
-  const rootMenus = getMenuChildren(null);
+  const columns: TableColumn<MenuItem>[] = [
+    {
+      key: "name", title: "菜单名称", minWidth: 260,
+      render: (v, row) => (
+        <button
+          className="text-foreground font-medium hover:text-primary transition-colors text-[13px]"
+          onClick={() => navigate(`/permission/menu/detail/${row.id}`)}
+        >
+          {v}
+        </button>
+      ),
+    },
+    {
+      key: "code", title: "编码", minWidth: 180,
+      render: (v) => <span className="font-mono text-[12px] text-muted-foreground">{v}</span>,
+    },
+    {
+      key: "menuType", title: "类型", minWidth: 100,
+      render: (v: string) => {
+        const cfg = MENU_TYPE_MAP[v as keyof typeof MENU_TYPE_MAP];
+        return <span className={cfg?.className}>{cfg?.label}</span>;
+      },
+    },
+    {
+      key: "products", title: "关联产品", minWidth: 160,
+      render: (v: string[]) => {
+        if (!v?.length) return <span className="text-[12px] text-muted-foreground">通用</span>;
+        const names = v.map(code => PRODUCTS.find(p => p.code === code)?.name || code);
+        return (
+          <div className="flex flex-wrap gap-1">
+            {names.slice(0, 2).map(name => <span key={name} className="badge-product">{name}</span>)}
+            {names.length > 2 && <span className="text-[11px] text-muted-foreground">+{names.length - 2}</span>}
+          </div>
+        );
+      },
+    },
+    {
+      key: "roleTypes", title: "角色可见", minWidth: 120,
+      render: (v: string[]) => (
+        <div className="flex flex-wrap gap-1">
+          {v?.map(rt => {
+            const cfg = ROLE_TYPE_MAP[rt as keyof typeof ROLE_TYPE_MAP];
+            return <span key={rt} className={cfg?.className}>{cfg?.label === "企业角色" ? "企业" : "平台"}</span>;
+          })}
+        </div>
+      ),
+    },
+    {
+      key: "requiredEntitlement", title: "权益要求", minWidth: 120,
+      render: (v: string) => v ? <span className="badge-warning">{v}</span> : <span className="text-muted-foreground text-[12px]">—</span>,
+    },
+    {
+      key: "status", title: "状态", minWidth: 80,
+      render: (v: string) => (
+        <span className={v === "active" ? "badge-active" : "badge-inactive"}>
+          {v === "active" ? "启用" : "停用"}
+        </span>
+      ),
+    },
+  ];
+
+  const actions: ActionItem<MenuItem>[] = [
+    { label: "详情", onClick: (r) => navigate(`/permission/menu/detail/${r.id}`) },
+    { label: "编辑", onClick: () => toast.info("编辑菜单") },
+    {
+      label: (r) => r.status === "active" ? "停用" : "启用",
+      onClick: (r) => toast.success(`${r.name} 已${r.status === "active" ? "停用" : "启用"}`),
+      danger: (r) => r.status === "active",
+      confirm: { title: "确认操作", description: "该操作将立即生效，请确认是否继续。" },
+    },
+  ];
 
   // Stats
   const totalMenus = menuData.length;
@@ -184,11 +154,9 @@ export default function MenuList() {
         title="菜单管理"
         subtitle={`共 ${totalMenus} 个菜单项 · 基础 ${basicCount} · 增量 ${incrementalCount} · 平台 ${platformCount}`}
         actions={
-          <div className="flex gap-2">
-            <button className="btn-secondary text-[12px]" onClick={expandAll}>全部展开</button>
-            <button className="btn-secondary text-[12px]" onClick={collapseAll}>全部收起</button>
-            <button className="btn-primary"><Plus className="h-4 w-4" /> 新建菜单</button>
-          </div>
+          <button className="btn-primary" onClick={() => navigate("/permission/menu/create")}>
+            <Plus className="h-4 w-4" /> 新建菜单
+          </button>
         }
       />
 
@@ -201,37 +169,31 @@ export default function MenuList() {
         maxVisible={5}
       />
 
-      {/* 树形表格 */}
-      <div className="bg-card rounded-xl border overflow-hidden" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <table className="admin-table w-full">
-          <thead>
-            <tr>
-              <th className="text-left py-3 px-4" style={{ minWidth: 260 }}>菜单名称</th>
-              <th className="text-left py-3" style={{ minWidth: 180 }}>编码</th>
-              <th className="text-left py-3" style={{ minWidth: 100 }}>类型</th>
-              <th className="text-left py-3" style={{ minWidth: 160 }}>关联产品</th>
-              <th className="text-left py-3" style={{ minWidth: 80 }}>角色可见</th>
-              <th className="text-left py-3" style={{ minWidth: 120 }}>权益要求</th>
-              <th className="text-left py-3" style={{ minWidth: 120 }}>企业属性要求</th>
-              <th className="text-left py-3" style={{ minWidth: 80 }}>状态</th>
-              <th className="text-right py-3 pr-4" style={{ minWidth: 60 }}>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rootMenus.map(menu => (
-              <MenuTreeRow
-                key={menu.id}
-                menu={menu}
-                level={0}
-                expanded={expanded}
-                onToggle={toggleExpand}
-                navigate={navigate}
-                filters={filters}
-              />
-            ))}
-          </tbody>
-        </table>
+      {/* 表格工具栏 */}
+      <div className="flex items-center justify-end gap-2">
+        <button className="btn-secondary text-[12px] gap-1" onClick={expandAll}>
+          <Expand className="h-3.5 w-3.5" /> 全部展开
+        </button>
+        <button className="btn-secondary text-[12px] gap-1" onClick={collapseAll}>
+          <Shrink className="h-3.5 w-3.5" /> 全部收起
+        </button>
       </div>
+
+      <AdminTable
+        columns={columns}
+        data={flatData}
+        rowKey={(r) => r.id}
+        actions={actions}
+        maxVisibleActions={2}
+        actionColumnWidth={160}
+        expandable={{
+          childrenKey: "children",
+          expandedKeys: expanded,
+          onToggle: toggleExpand,
+          indent: 24,
+        }}
+        getLevel={(r) => r.level - 1}
+      />
 
       {/* PRD 规则说明 */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
