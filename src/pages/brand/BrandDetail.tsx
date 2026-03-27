@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Tag, Building2, Package, Layers, Globe, Edit, ArrowLeft } from "lucide-react";
+import { Building2, Layers, Globe, Edit } from "lucide-react";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { AdminTable, type TableColumn } from "@/components/admin/AdminTable";
 import { toast } from "sonner";
