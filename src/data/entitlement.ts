@@ -280,7 +280,7 @@ export const bundleData: Bundle[] = [
 
 export type OrderType = "user_purchase" | "internal_grant" | "system_grant" | "enterprise_grant";
 export type PaymentStatus = "paid" | "pending" | "no_payment" | "refunded";
-export type OrderStatus = "draft" | "pending_effect" | "active" | "expired" | "suspended" | "cancelled" | "closed";
+export type OrderStatus = "pending_effect" | "active" | "expired" | "suspended" | "cancelled" | "closed";
 export type AuditStatus = "auto_approved" | "pending_audit" | "approved" | "rejected" | "follow_enterprise";
 
 export interface StatusHistoryEntry {
@@ -436,7 +436,7 @@ export const PAYMENT_STATUS: { value: PaymentStatus; label: string; className: s
 ];
 
 export const ORDER_STATUS: { value: OrderStatus; label: string; className: string }[] = [
-  { value: "draft",          label: "草稿",    className: "badge-warning" },
+  
   { value: "pending_effect", label: "待生效",  className: "text-amber-600 text-[12px] font-medium" },
   { value: "active",         label: "生效中",  className: "badge-active" },
   { value: "expired",        label: "已到期",  className: "text-muted-foreground text-[12px] font-medium" },
@@ -465,7 +465,7 @@ export function getInitialAuditStatus(orderType: OrderType): AuditStatus {
 
 /** 根据订单类型和审核状态确定初始订单状态 */
 export function getInitialOrderStatus(orderType: OrderType, auditStatus: AuditStatus): OrderStatus {
-  if (auditStatus === "pending_audit" || auditStatus === "follow_enterprise") return "draft";
+  if (auditStatus === "pending_audit" || auditStatus === "follow_enterprise") return "pending_effect";
   return "pending_effect"; // approved, awaiting payment or activation
 }
 
@@ -646,7 +646,7 @@ export const orderData: EntitlementOrder[] = [
   {
     // 内部发放 — 待审核（未处理）
     id: "ord13", orderNo: "ORD202603230001", customerType: "B", customerId: "cust5", customerName: "志邦家居股份有限公司",
-    orderType: "internal_grant", auditStatus: "pending_audit", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "draft",
+    orderType: "internal_grant", auditStatus: "pending_audit", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "pending_effect",
     remark: "新客户体验权益发放", createdAt: "2026-03-23 09:00:00",
     items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 }],
     statusHistory: [
@@ -673,7 +673,7 @@ export const orderData: EntitlementOrder[] = [
     // 企业入驻订单 — 跟随企业审核（企业待审核，订单草稿中）
     id: "ord15", orderNo: "ORD202603240001", customerType: "B", customerId: "cust7", customerName: "好莱客创意家居股份有限公司",
     orderType: "enterprise_grant", auditStatus: "follow_enterprise", linkedEnterpriseId: "cust7",
-    totalAmount: 0, paymentStatus: "no_payment", orderStatus: "draft",
+    totalAmount: 0, paymentStatus: "no_payment", orderStatus: "pending_effect",
     remark: "企业入驻权益配置 — 国内3D工具", createdAt: "2026-03-24 10:00:00",
     items: [
       { type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 },

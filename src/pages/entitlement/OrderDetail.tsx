@@ -82,7 +82,7 @@ export default function OrderDetail() {
                 恢复权益
               </button>
             )}
-            {(order.orderStatus === "pending_effect" || order.orderStatus === "draft") && (
+            {order.orderStatus === "pending_effect" && (
               <button onClick={() => toast.info("关闭")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10">
                 关闭订单
               </button>

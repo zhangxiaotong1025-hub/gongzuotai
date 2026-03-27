@@ -431,7 +431,7 @@ export default function EnterpriseDetail() {
           {linkedOrders.length > 0 ? (
             <div className="space-y-3">
               {linkedOrders.map((ord) => {
-                const statusLabel = ord.orderStatus === "draft" ? "草稿" : ord.orderStatus === "active" ? "生效中" : ord.orderStatus === "expired" ? "已到期" : ord.orderStatus === "suspended" ? "已暂停" : ord.orderStatus === "closed" ? "已关闭" : ord.orderStatus;
+                const statusLabel = ord.orderStatus === "pending_effect" ? "待生效" : ord.orderStatus === "active" ? "生效中" : ord.orderStatus === "expired" ? "已到期" : ord.orderStatus === "suspended" ? "已暂停" : ord.orderStatus === "closed" ? "已关闭" : ord.orderStatus;
                 const auditLabel = ord.auditStatus === "follow_enterprise" ? "跟随企业审核" : ord.auditStatus === "auto_approved" ? "自动通过" : ord.auditStatus;
                 const payLabel = ord.paymentStatus === "no_payment" ? "无需支付" : ord.paymentStatus === "paid" ? "已支付" : ord.paymentStatus === "pending" ? "待支付" : ord.paymentStatus;
                 return (
@@ -447,7 +447,7 @@ export default function EnterpriseDetail() {
                         <span className={`text-[12px] ${ord.totalAmount > 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                           ¥{ord.totalAmount.toFixed(2)}
                         </span>
-                        <span className={ord.orderStatus === "active" ? "badge-active" : ord.orderStatus === "draft" || ord.orderStatus === "pending_effect" ? "badge-warning" : "badge-inactive"}>
+                        <span className={ord.orderStatus === "active" ? "badge-active" : ord.orderStatus === "pending_effect" ? "badge-warning" : "badge-inactive"}>
                           {statusLabel}
                         </span>
                         <span className="text-[11px] text-muted-foreground">{payLabel}</span>
