@@ -211,7 +211,7 @@ export default function CustomerList() {
         columns={tab === "designer" ? designerColumns : customerColumns}
         data={paged}
         actions={actions}
-        rowKey="id"
+        rowKey={(r) => r.id}
       />
 
       <Pagination current={page} total={filtered.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
