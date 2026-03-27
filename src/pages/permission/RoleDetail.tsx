@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { roleData, menuData, ROLE_TYPE_MAP, PRODUCTS, PERMISSION_ACTIONS, MENU_TYPE_MAP, getMenuChildren, type MenuItem } from "@/data/permission";
+import { roleData, menuData, ROLE_TYPE_MAP, PRODUCTS, resourceData, getMenuChildren, MENU_TYPE_MAP, getRoleResourceCount, type MenuItem } from "@/data/permission";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { Check, X } from "lucide-react";
 
@@ -22,9 +22,21 @@ export default function RoleDetail() {
   const prevRole = roleIdx > 0 ? roleData[roleIdx - 1] : null;
   const nextRole = roleIdx < roleData.length - 1 ? roleData[roleIdx + 1] : null;
   const typeCfg = ROLE_TYPE_MAP[role.roleType];
+  const resCounts = getRoleResourceCount(role);
 
-  // Build menu permission matrix — L1 menus as rows
   const rootMenus = getMenuChildren(null);
+  const roleMenuIds = role.menuMode === "all" ? new Set(menuData.map(m => m.id)) : new Set(role.menuIds);
+
+  // Resources grouped by type
+  const roleButtons = role.resourceMode === "all"
+    ? resourceData.filter(r => r.type === "button")
+    : resourceData.filter(r => r.type === "button" && role.buttonResourceIds.includes(r.id));
+  const roleApis = role.resourceMode === "all"
+    ? resourceData.filter(r => r.type === "api")
+    : resourceData.filter(r => r.type === "api" && role.apiResourceIds.includes(r.id));
+  const roleDataRes = role.resourceMode === "all"
+    ? resourceData.filter(r => r.type === "data")
+    : resourceData.filter(r => r.type === "data" && role.dataResourceIds.includes(r.id));
 
   return (
     <div className="space-y-5 pb-6">
@@ -59,43 +71,17 @@ export default function RoleDetail() {
         </div>
       </div>
 
-      {/* 产品权限 */}
+      {/* 模块权限 */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <h3 className="text-[14px] font-semibold text-foreground mb-3">产品权限</h3>
-        <div className="flex flex-wrap gap-3">
-          {PRODUCTS.map(p => {
-            const hasAccess = role.products.includes(p.code);
-            return (
-              <div key={p.code} className={`flex items-center gap-2 rounded-lg border px-4 py-3 transition-all ${hasAccess ? "border-primary/30 bg-primary/5" : "border-border bg-muted/30 opacity-50"}`}>
-                <span className="text-[16px]">{p.icon}</span>
-                <span className={`text-[13px] font-medium ${hasAccess ? "text-foreground" : "text-muted-foreground"}`}>{p.name}</span>
-                {hasAccess ? <Check className="w-4 h-4 text-primary" /> : <X className="w-4 h-4 text-muted-foreground/50" />}
-              </div>
-            );
-          })}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-[14px] font-semibold text-foreground mb-1">模块权限</h3>
+            <p className="text-[12px] text-muted-foreground">
+              {role.menuMode === "all" ? "全部模块" : `已授权 ${role.menuIds.length} / ${menuData.length} 个模块`}
+            </p>
+          </div>
+          {role.menuMode === "all" && <span className="badge-active">全部模块</span>}
         </div>
-      </div>
-
-      {/* 操作权限 */}
-      <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <h3 className="text-[14px] font-semibold text-foreground mb-3">操作权限</h3>
-        <div className="flex flex-wrap gap-2">
-          {PERMISSION_ACTIONS.map(action => {
-            const has = role.permissions.includes(action.value);
-            return (
-              <span key={action.value} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[12px] font-medium transition-all ${has ? "border-primary/30 bg-primary/5 text-primary" : "border-border bg-muted/30 text-muted-foreground opacity-50"}`}>
-                {has ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
-                {action.label}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 菜单权限矩阵 */}
-      <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <h3 className="text-[14px] font-semibold text-foreground mb-1">菜单权限矩阵</h3>
-        <p className="text-[12px] text-muted-foreground mb-4">共授权 {role.menuIds.length} / {menuData.length} 个菜单</p>
 
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
@@ -109,7 +95,7 @@ export default function RoleDetail() {
             <tbody>
               {rootMenus.map(rootMenu => {
                 const l2Children = getMenuChildren(rootMenu.id);
-                const rootHasAccess = role.menuIds.includes(rootMenu.id);
+                const rootHasAccess = roleMenuIds.has(rootMenu.id);
                 const rows: React.ReactNode[] = [];
 
                 rows.push(
@@ -125,7 +111,7 @@ export default function RoleDetail() {
                 );
 
                 l2Children.forEach(l2 => {
-                  const l2Has = role.menuIds.includes(l2.id);
+                  const l2Has = roleMenuIds.has(l2.id);
                   rows.push(
                     <tr key={l2.id} className="border-b border-border/20 hover:bg-muted/30">
                       <td className="py-1.5 pl-6 text-foreground">
@@ -140,7 +126,7 @@ export default function RoleDetail() {
 
                   const l3Children = getMenuChildren(l2.id);
                   l3Children.forEach(l3 => {
-                    const l3Has = role.menuIds.includes(l3.id);
+                    const l3Has = roleMenuIds.has(l3.id);
                     rows.push(
                       <tr key={l3.id} className="border-b border-border/10 hover:bg-muted/20">
                         <td className="py-1.5 pl-12 text-muted-foreground">
@@ -160,6 +146,64 @@ export default function RoleDetail() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* 资源权限 */}
+      <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-[14px] font-semibold text-foreground mb-1">资源权限</h3>
+            <p className="text-[12px] text-muted-foreground">
+              {role.resourceMode === "all" ? "全部资源" : `按钮 ${resCounts.buttons} · 接口 ${resCounts.apis} · 数据 ${resCounts.data}`}
+            </p>
+          </div>
+          {role.resourceMode === "all" && <span className="badge-active">全部资源</span>}
+        </div>
+
+        {role.resourceMode === "specified" && (
+          <div className="space-y-4">
+            {/* 按钮资源 */}
+            {roleButtons.length > 0 && (
+              <div>
+                <h4 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">按钮资源 ({roleButtons.length})</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {roleButtons.map(r => (
+                    <span key={r.id} className="inline-flex items-center px-2.5 py-1 rounded-md bg-muted text-[12px] text-foreground border border-border/50">
+                      {r.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* 接口资源 */}
+            {roleApis.length > 0 && (
+              <div>
+                <h4 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">接口资源 ({roleApis.length})</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {roleApis.map(r => (
+                    <span key={r.id} className="inline-flex items-center px-2.5 py-1 rounded-md bg-muted text-[12px] text-foreground border border-border/50">
+                      {r.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* 数据资源 */}
+            {roleDataRes.length > 0 && (
+              <div>
+                <h4 className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">数据资源 ({roleDataRes.length})</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {roleDataRes.map(r => (
+                    <span key={r.id} className="inline-flex items-center px-2.5 py-1 rounded-md bg-muted text-[12px] text-foreground border border-border/50">
+                      {r.name}
+                      {r.description && <span className="text-muted-foreground ml-1">· {r.description}</span>}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
