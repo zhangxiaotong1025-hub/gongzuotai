@@ -447,7 +447,7 @@ export default function EnterpriseDetail() {
                         <span className={`text-[12px] ${ord.totalAmount > 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                           ¥{ord.totalAmount.toFixed(2)}
                         </span>
-                        <span className={ord.orderStatus === "completed" ? "badge-active" : ord.orderStatus === "draft" ? "badge-warning" : "badge-inactive"}>
+                        <span className={ord.orderStatus === "active" ? "badge-active" : ord.orderStatus === "draft" || ord.orderStatus === "pending_effect" ? "badge-warning" : "badge-inactive"}>
                           {statusLabel}
                         </span>
                         <span className="text-[11px] text-muted-foreground">{payLabel}</span>
