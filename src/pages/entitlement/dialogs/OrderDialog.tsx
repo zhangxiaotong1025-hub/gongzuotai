@@ -22,6 +22,8 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   const [orderType, setOrderType] = useState<string>("internal_grant");
+  const [paymentStatusVal, setPaymentStatusVal] = useState<string>("no_payment");
+  const [paidAmount, setPaidAmount] = useState<string>("");
   const [remark, setRemark] = useState("");
   const [items, setItems] = useState<OrderItem[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -33,6 +35,8 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
       setCustomerName(initial?.customerName || "");
       setCustomerSearch("");
       setOrderType(initial?.orderType || "internal_grant");
+      setPaymentStatusVal(initial?.paymentStatus || "no_payment");
+      setPaidAmount(initial?.totalAmount ? String(initial.totalAmount) : "");
       setRemark(initial?.remark || "");
       setItems(initial?.items || []);
       setCustomerDropdownOpen(false);
