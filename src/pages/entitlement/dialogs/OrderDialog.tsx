@@ -88,10 +88,12 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
 
   const handleSubmit = () => {
     if (!customerId) return;
-    const paymentStatus = orderType === "internal_grant" || orderType === "system_grant" ? "no_payment" as const : "pending" as const;
+    const finalPaymentStatus = paymentStatusVal as any;
+    const finalAmount = paymentStatusVal === "paid" && paidAmount ? parseFloat(paidAmount) : totalAmount;
     onSave({
       customerType, customerId, customerName, orderType: orderType as any, remark, items,
-      totalAmount, paymentStatus,
+      totalAmount: finalAmount, paymentStatus: finalPaymentStatus,
+      ...(paymentStatusVal === "paid" ? { paidAt: new Date().toLocaleString("zh-CN") } : {}),
     });
   };
 
