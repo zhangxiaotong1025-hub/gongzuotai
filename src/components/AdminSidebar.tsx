@@ -70,8 +70,11 @@ const navItems: NavItem[] = [
     label: "客户管理",
     icon: Users,
     children: [
-      { label: "个人设计师", path: "/customer" },
-      { label: "企业客户", path: "/customer?tab=enterprise" },
+      { label: "个人设计师", path: "/customer/designer" },
+      { label: "企业下游客户", path: "/customer/end-customer" },
+      { label: "生命周期看板", path: "/customer/lifecycle" },
+      { label: "行为分析", path: "/customer/behavior" },
+      { label: "营销策略", path: "/customer/marketing" },
     ],
   },
   { label: "属性管理", icon: Sliders, path: "/attribute" },
