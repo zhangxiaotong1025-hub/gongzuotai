@@ -137,7 +137,7 @@ export default function MenuList() {
     {
       label: (r) => r.status === "active" ? "停用" : "启用",
       onClick: (r) => toast.success(`${r.name} 已${r.status === "active" ? "停用" : "启用"}`),
-      danger: (r) => r.status === "active",
+      danger: true,
       confirm: { title: "确认操作", description: "该操作将立即生效，请确认是否继续。" },
     },
   ];
