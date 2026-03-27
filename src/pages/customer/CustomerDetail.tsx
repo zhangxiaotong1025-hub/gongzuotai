@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { User, Phone, Building2, Tag, Calendar, Activity, FileText, ChevronLeft, Edit, ToggleLeft, ToggleRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { User, Phone, Building2, Tag, Calendar, Activity, FileText, Edit } from "lucide-react";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { toast } from "sonner";
 
@@ -11,7 +10,6 @@ const MOCK_DESIGNER = {
   type: "designer" as const,
   name: "张明",
   phone: "13800001111",
-  avatar: "",
   status: "active" as "active" | "inactive",
   tags: ["高意向", "VIP"],
   source: "平台注册",
@@ -83,23 +81,19 @@ export default function CustomerDetail() {
   return (
     <div>
       <DetailActionBar
-        onBack={() => navigate("/customer")}
-        title={`客户详情 - ${data.name}`}
-        actions={[
-          { label: "编辑", icon: Edit, variant: "outline" as const, onClick: () => navigate(`/customer/create?mode=edit&id=${id}&type=${data.type}`) },
-          {
-            label: status === "active" ? "停用" : "启用",
-            icon: status === "active" ? ToggleLeft : ToggleRight,
-            variant: "outline" as const,
-            onClick: toggleStatus,
-          },
-        ]}
+        backLabel="客户管理"
+        backPath="/customer"
+        currentName={data.name}
+        onEdit={() => navigate(`/customer/create?mode=edit&id=${id}&type=${data.type}`)}
+        statusToggle={{
+          currentActive: status === "active",
+          onToggle: toggleStatus,
+        }}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         {/* Left: Basic Info */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Profile Card */}
           <div className="rounded-xl border border-border/60 bg-card p-5">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
@@ -108,7 +102,7 @@ export default function CustomerDetail() {
               <div>
                 <h3 className="text-base font-semibold">{data.name}</h3>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${
-                  status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"
+                  status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"
                 }`}>
                   {status === "active" ? "启用" : "停用"}
                 </span>
@@ -122,31 +116,26 @@ export default function CustomerDetail() {
             </div>
           </div>
 
-          {/* Tags */}
           <div className="rounded-xl border border-border/60 bg-card p-5">
             <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-              <Tag className="h-4 w-4 text-muted-foreground" />
-              客户标签
+              <Tag className="h-4 w-4 text-muted-foreground" />客户标签
             </h4>
             <div className="flex flex-wrap gap-2">
               {data.tags.map((t, i) => (
-                <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-primary/8 text-primary">{t}</span>
+                <span key={i} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-primary/10 text-primary">{t}</span>
               ))}
             </div>
           </div>
 
-          {/* Remark */}
           {data.remark && (
             <div className="rounded-xl border border-border/60 bg-card p-5">
               <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                备注
+                <FileText className="h-4 w-4 text-muted-foreground" />备注
               </h4>
               <p className="text-sm text-muted-foreground">{data.remark}</p>
             </div>
           )}
 
-          {/* Extra info for enterprise customer */}
           {!isDesigner && (
             <div className="rounded-xl border border-border/60 bg-card p-5">
               <h4 className="text-sm font-medium mb-3">房屋信息</h4>
@@ -160,11 +149,10 @@ export default function CustomerDetail() {
           )}
         </div>
 
-        {/* Right: Activity / Service Records */}
+        {/* Right */}
         <div className="lg:col-span-2 space-y-6">
           {isDesigner ? (
             <>
-              {/* Stats */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-xl border border-border/60 bg-card p-5 text-center">
                   <div className="text-2xl font-bold text-primary">{(data as typeof MOCK_DESIGNER).designCount}</div>
@@ -175,8 +163,6 @@ export default function CustomerDetail() {
                   <div className="text-xs text-muted-foreground mt-1">渲染次数</div>
                 </div>
               </div>
-
-              {/* Recent Designs */}
               <div className="rounded-xl border border-border/60 bg-card p-5">
                 <h4 className="text-sm font-medium mb-4">近期设计方案</h4>
                 <div className="space-y-3">
@@ -194,7 +180,6 @@ export default function CustomerDetail() {
             </>
           ) : (
             <>
-              {/* Linked Enterprises */}
               <div className="rounded-xl border border-border/60 bg-card p-5">
                 <h4 className="text-sm font-medium mb-4 flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -222,7 +207,6 @@ export default function CustomerDetail() {
                 </div>
               </div>
 
-              {/* Service Records Timeline */}
               <div className="rounded-xl border border-border/60 bg-card p-5">
                 <h4 className="text-sm font-medium mb-4">服务记录</h4>
                 <div className="relative pl-6">

@@ -5,6 +5,7 @@ import { AdminTable, type TableColumn, type ActionItem } from "@/components/admi
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 /* ── Types ── */
@@ -15,7 +16,7 @@ interface Customer {
   name: string;
   phone: string;
   type: CustomerType;
-  source: string; // 来源企业 or "平台注册"
+  source: string;
   sourceEnterprise?: string;
   status: "active" | "inactive";
   tags: string[];
@@ -37,15 +38,11 @@ function mockPhone() {
 
 function generateMockData(): Customer[] {
   const list: Customer[] = [];
-  // Platform designers
   for (let i = 0; i < 15; i++) {
     const name = DESIGNER_NAMES[i % DESIGNER_NAMES.length];
     list.push({
-      id: `des-${i + 1}`,
-      name: `${name}${i >= DESIGNER_NAMES.length ? (i + 1) : ""}`,
-      phone: mockPhone(),
-      type: "designer",
-      source: "平台注册",
+      id: `des-${i + 1}`, name: `${name}${i >= DESIGNER_NAMES.length ? (i + 1) : ""}`,
+      phone: mockPhone(), type: "designer", source: "平台注册",
       status: Math.random() > 0.2 ? "active" : "inactive",
       tags: [TAGS_POOL[Math.floor(Math.random() * 3)]],
       serviceCount: Math.floor(Math.random() * 50),
@@ -53,17 +50,12 @@ function generateMockData(): Customer[] {
       createdAt: `2024-${String(Math.floor(Math.random() * 12) + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")}`,
     });
   }
-  // Enterprise customers
   for (let i = 0; i < 25; i++) {
     const name = CUSTOMER_NAMES[i % CUSTOMER_NAMES.length];
     const ent = ENTERPRISES[Math.floor(Math.random() * ENTERPRISES.length)];
     list.push({
-      id: `cust-${i + 1}`,
-      name: `${name}${i >= CUSTOMER_NAMES.length ? (i + 1) : ""}`,
-      phone: mockPhone(),
-      type: "enterprise_customer",
-      source: ent,
-      sourceEnterprise: ent,
+      id: `cust-${i + 1}`, name: `${name}${i >= CUSTOMER_NAMES.length ? (i + 1) : ""}`,
+      phone: mockPhone(), type: "enterprise_customer", source: ent, sourceEnterprise: ent,
       status: Math.random() > 0.15 ? "active" : "inactive",
       tags: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, () => TAGS_POOL[Math.floor(Math.random() * TAGS_POOL.length)]),
       serviceCount: Math.floor(Math.random() * 20),
@@ -79,30 +71,30 @@ const ALL_DATA = generateMockData();
 
 /* ── Filters ── */
 const designerFilters: FilterField[] = [
-  { key: "keyword", label: "搜索", type: "search", placeholder: "姓名 / 手机号" },
+  { key: "keyword", label: "搜索", type: "input", placeholder: "姓名 / 手机号" },
   { key: "status", label: "状态", type: "select", options: [{ label: "全部", value: "" }, { label: "启用", value: "active" }, { label: "停用", value: "inactive" }] },
   { key: "tag", label: "标签", type: "select", options: [{ label: "全部", value: "" }, ...TAGS_POOL.slice(0, 4).map(t => ({ label: t, value: t }))] },
 ];
 
 const customerFilters: FilterField[] = [
-  { key: "keyword", label: "搜索", type: "search", placeholder: "姓名 / 手机号" },
+  { key: "keyword", label: "搜索", type: "input", placeholder: "姓名 / 手机号" },
   { key: "enterprise", label: "所属企业", type: "select", options: [{ label: "全部", value: "" }, ...ENTERPRISES.map(e => ({ label: e, value: e }))] },
   { key: "status", label: "状态", type: "select", options: [{ label: "全部", value: "" }, { label: "启用", value: "active" }, { label: "停用", value: "inactive" }] },
   { key: "tag", label: "标签", type: "select", options: [{ label: "全部", value: "" }, ...TAGS_POOL.map(t => ({ label: t, value: t }))] },
 ];
 
 /* ── Columns ── */
-const designerColumns: TableColumn[] = [
+const designerColumns: TableColumn<Customer>[] = [
   { key: "name", title: "姓名", width: 120 },
   { key: "phone", title: "手机号", width: 140, render: (v: string) => <span className="font-mono text-xs">{v}</span> },
   { key: "status", title: "状态", width: 80, render: (v: string) => (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v === "active" ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v === "active" ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
       {v === "active" ? "启用" : "停用"}
     </span>
   )},
   { key: "tags", title: "标签", width: 160, render: (v: string[]) => (
     <div className="flex flex-wrap gap-1">
-      {v.map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-primary/8 text-primary">{t}</span>)}
+      {v.map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{t}</span>)}
     </div>
   )},
   { key: "serviceCount", title: "设计方案数", width: 100, render: (v: number) => <span className="text-muted-foreground">{v}</span> },
@@ -110,18 +102,18 @@ const designerColumns: TableColumn[] = [
   { key: "createdAt", title: "注册时间", width: 110 },
 ];
 
-const customerColumns: TableColumn[] = [
+const customerColumns: TableColumn<Customer>[] = [
   { key: "name", title: "客户姓名", width: 120 },
   { key: "phone", title: "手机号", width: 140, render: (v: string) => <span className="font-mono text-xs">{v}</span> },
   { key: "sourceEnterprise", title: "所属企业", width: 160 },
   { key: "status", title: "状态", width: 80, render: (v: string) => (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v === "active" ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v === "active" ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
       {v === "active" ? "启用" : "停用"}
     </span>
   )},
   { key: "tags", title: "标签", width: 200, render: (v: string[]) => (
     <div className="flex flex-wrap gap-1">
-      {v.map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-primary/8 text-primary">{t}</span>)}
+      {v.map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{t}</span>)}
     </div>
   )},
   { key: "serviceCount", title: "服务次数", width: 100, render: (v: number) => <span className="text-muted-foreground">{v}</span> },
@@ -140,7 +132,7 @@ export default function CustomerList() {
   const [tab, setTab] = useState<CustomerType>("designer");
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(20);
 
   const filtered = ALL_DATA.filter((c) => {
     if (c.type !== tab) return false;
@@ -159,20 +151,29 @@ export default function CustomerList() {
     setPage(1);
   }, []);
 
-  const actions: ActionItem[] = [
-    { label: "查看", onClick: (row: Customer) => navigate(`/customer/detail/${row.id}`) },
-    { label: "编辑", onClick: (row: Customer) => navigate(`/customer/create?mode=edit&id=${row.id}&type=${tab}`) },
-    { label: row => row.status === "active" ? "停用" : "启用", onClick: (row: Customer) => toast.success(`已${row.status === "active" ? "停用" : "启用"}客户：${row.name}`) },
+  const handleSearch = useCallback(() => setPage(1), []);
+  const handleReset = useCallback(() => { setFilters({}); setPage(1); }, []);
+
+  const actions: ActionItem<Customer>[] = [
+    { label: "查看", onClick: (row) => navigate(`/customer/detail/${row.id}`) },
+    { label: "编辑", onClick: (row) => navigate(`/customer/create?mode=edit&id=${row.id}&type=${tab}`) },
+    { label: (row) => row.status === "active" ? "停用" : "启用", onClick: (row) => toast.success(`已${row.status === "active" ? "停用" : "启用"}客户：${row.name}`) },
   ];
 
   return (
     <div>
       <PageHeader
         title="客户管理"
-        actions={[
-          { label: "导出", icon: Download, variant: "outline" as const, onClick: () => toast.success("导出成功") },
-          { label: "新建客户", icon: Plus, onClick: () => navigate(`/customer/create?type=${tab}`) },
-        ]}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => toast.success("导出成功")}>
+              <Download className="h-4 w-4 mr-1" />导出
+            </Button>
+            <Button size="sm" onClick={() => navigate(`/customer/create?type=${tab}`)}>
+              <Plus className="h-4 w-4 mr-1" />新建客户
+            </Button>
+          </div>
+        }
       />
 
       {/* Tabs */}
@@ -185,9 +186,7 @@ export default function CustomerList() {
               key={t.key}
               onClick={() => { setTab(t.key); setFilters({}); setPage(1); }}
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                active
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                active ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               <t.icon className="h-4 w-4" />
@@ -200,14 +199,14 @@ export default function CustomerList() {
         })}
       </div>
 
-      {/* Filters */}
       <FilterBar
         fields={tab === "designer" ? designerFilters : customerFilters}
         values={filters}
         onChange={handleFilter}
+        onSearch={handleSearch}
+        onReset={handleReset}
       />
 
-      {/* Table */}
       <AdminTable
         columns={tab === "designer" ? designerColumns : customerColumns}
         data={paged}
@@ -215,7 +214,7 @@ export default function CustomerList() {
         rowKey="id"
       />
 
-      <Pagination current={page} total={filtered.length} pageSize={pageSize} onChange={setPage} />
+      <Pagination current={page} total={filtered.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
     </div>
   );
 }
