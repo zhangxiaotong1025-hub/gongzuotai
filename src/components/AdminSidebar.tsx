@@ -41,6 +41,7 @@ const navItems: NavItem[] = [
     label: "权益管理",
     icon: Gift,
     children: [
+      { label: "数据看板", path: "/entitlement/dashboard" },
       { label: "应用管理", path: "/entitlement/app" },
       { label: "能力管理", path: "/entitlement/capability" },
       { label: "权益规则", path: "/entitlement/rule" },

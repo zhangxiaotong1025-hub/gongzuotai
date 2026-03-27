@@ -26,6 +26,7 @@ import OrderList from "./pages/entitlement/OrderList";
 import OrderDetail from "./pages/entitlement/OrderDetail";
 import AccountList from "./pages/entitlement/AccountList";
 import AccountDetail from "./pages/entitlement/AccountDetail";
+import EntitlementDashboard from "./pages/entitlement/Dashboard";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
