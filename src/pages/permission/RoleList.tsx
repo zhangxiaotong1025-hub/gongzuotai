@@ -91,7 +91,7 @@ export default function RoleList() {
         subtitle={`共 ${roleData.length} 个角色 · 平台 ${platformRoles} · 企业 ${enterpriseRoles} · 已分配 ${totalUsers} 人`}
         actions={
           <div className="flex gap-2">
-            <button className="btn-primary"><Plus className="h-4 w-4" /> 新建角色</button>
+            <button className="btn-primary" onClick={() => navigate("/permission/role/create")}><Plus className="h-4 w-4" /> 新建角色</button>
             <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>
           </div>
         }

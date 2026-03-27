@@ -13,8 +13,10 @@ import StaffCreate from "./pages/staff/StaffCreate";
 import ApplicationList from "./pages/application/ApplicationList";
 import ApplicationDetail from "./pages/application/ApplicationDetail";
 import MenuList from "./pages/permission/MenuList";
+import MenuCreate from "./pages/permission/MenuCreate";
 import MenuDetail from "./pages/permission/MenuDetail";
 import RoleList from "./pages/permission/RoleList";
+import RoleCreate from "./pages/permission/RoleCreate";
 import RoleDetail from "./pages/permission/RoleDetail";
 import PolicyList from "./pages/permission/PolicyList";
 import AppListPage from "./pages/entitlement/AppList";
@@ -56,8 +58,10 @@ const App = () => (
             <Route path="/enterprise/apply/detail/:id" element={<ApplicationDetail />} />
             <Route path="/permission" element={<Navigate to="/permission/menu" replace />} />
             <Route path="/permission/menu" element={<MenuList />} />
+            <Route path="/permission/menu/create" element={<MenuCreate />} />
             <Route path="/permission/menu/detail/:id" element={<MenuDetail />} />
             <Route path="/permission/role" element={<RoleList />} />
+            <Route path="/permission/role/create" element={<RoleCreate />} />
             <Route path="/permission/role/detail/:id" element={<RoleDetail />} />
             <Route path="/permission/policy" element={<PolicyList />} />
             {/* Entitlement */}
