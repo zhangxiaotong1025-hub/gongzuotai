@@ -377,6 +377,12 @@ export interface EntitlementOrder {
   customerName: string;
   /** 订单不绑定单一应用，涉及的应用从 items 中的商品/套餐推导 */
   orderType: OrderType;
+  auditStatus: AuditStatus;
+  auditRemark?: string;
+  auditBy?: string;
+  auditAt?: string;
+  /** 关联企业ID（enterprise_grant 类型时有值） */
+  linkedEnterpriseId?: string;
   items: OrderItem[];
   totalAmount: number;
   paymentStatus: PaymentStatus;
