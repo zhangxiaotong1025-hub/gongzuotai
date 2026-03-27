@@ -1,185 +1,188 @@
-import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { Plus, Download, UserCircle, Building2 } from "lucide-react";
+import { useState, useCallback, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Plus, Download, UserCircle, Building2, Send, Gift } from "lucide-react";
 import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import {
+  type Designer, type EndCustomer,
+  DESIGNER_LIFECYCLE_MAP, END_CUSTOMER_LIFECYCLE_MAP, FOLLOW_STATUS_MAP,
+  TAGS_POOL, SOURCE_CHANNELS, PACKAGES, ENTERPRISES,
+  generateDesigners, generateEndCustomers,
+} from "@/data/customer";
 
-/* ── Types ── */
-type CustomerType = "designer" | "enterprise_customer";
+type TabKey = "designer" | "end_customer";
 
-interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  type: CustomerType;
-  source: string;
-  sourceEnterprise?: string;
-  status: "active" | "inactive";
-  tags: string[];
-  serviceCount: number;
-  lastActiveAt: string;
-  createdAt: string;
-  remark?: string;
-}
-
-/* ── Mock Data ── */
-const DESIGNER_NAMES = ["张明", "李雪", "王浩然", "陈思", "刘畅", "赵婷", "周文", "吴建国", "郑丽华", "孙鹏飞"];
-const CUSTOMER_NAMES = ["张先生", "李女士", "王总", "赵太太", "刘先生", "陈女士", "杨先生", "马女士", "黄总", "林女士"];
-const ENTERPRISES = ["欧派家居集团", "索菲亚家居", "尚品宅配", "好莱客创意家居", "金牌厨柜", "志邦家居"];
-const TAGS_POOL = ["高意向", "已签约", "待跟进", "VIP", "新客户", "老客户", "装修中", "已交付"];
-
-function mockPhone() {
-  return `1${["38", "39", "50", "58", "86", "87"][Math.floor(Math.random() * 6)]}${String(Math.floor(Math.random() * 100000000)).padStart(8, "0")}`;
-}
-
-function generateMockData(): Customer[] {
-  const list: Customer[] = [];
-  for (let i = 0; i < 15; i++) {
-    const name = DESIGNER_NAMES[i % DESIGNER_NAMES.length];
-    list.push({
-      id: `des-${i + 1}`, name: `${name}${i >= DESIGNER_NAMES.length ? (i + 1) : ""}`,
-      phone: mockPhone(), type: "designer", source: "平台注册",
-      status: Math.random() > 0.2 ? "active" : "inactive",
-      tags: [TAGS_POOL[Math.floor(Math.random() * 3)]],
-      serviceCount: Math.floor(Math.random() * 50),
-      lastActiveAt: `2025-0${Math.floor(Math.random() * 9) + 1}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")}`,
-      createdAt: `2024-${String(Math.floor(Math.random() * 12) + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")}`,
-    });
-  }
-  for (let i = 0; i < 25; i++) {
-    const name = CUSTOMER_NAMES[i % CUSTOMER_NAMES.length];
-    const ent = ENTERPRISES[Math.floor(Math.random() * ENTERPRISES.length)];
-    list.push({
-      id: `cust-${i + 1}`, name: `${name}${i >= CUSTOMER_NAMES.length ? (i + 1) : ""}`,
-      phone: mockPhone(), type: "enterprise_customer", source: ent, sourceEnterprise: ent,
-      status: Math.random() > 0.15 ? "active" : "inactive",
-      tags: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, () => TAGS_POOL[Math.floor(Math.random() * TAGS_POOL.length)]),
-      serviceCount: Math.floor(Math.random() * 20),
-      lastActiveAt: `2025-0${Math.floor(Math.random() * 9) + 1}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")}`,
-      createdAt: `2024-${String(Math.floor(Math.random() * 12) + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")}`,
-      remark: Math.random() > 0.5 ? "客户有明确的装修需求" : undefined,
-    });
-  }
-  return list;
-}
-
-const ALL_DATA = generateMockData();
+const DESIGNERS = generateDesigners(40);
+const END_CUSTOMERS = generateEndCustomers(35);
 
 /* ── Filters ── */
 const designerFilters: FilterField[] = [
   { key: "keyword", label: "搜索", type: "input", placeholder: "姓名 / 手机号" },
-  { key: "status", label: "状态", type: "select", options: [{ label: "全部", value: "" }, { label: "启用", value: "active" }, { label: "停用", value: "inactive" }] },
-  { key: "tag", label: "标签", type: "select", options: [{ label: "全部", value: "" }, ...TAGS_POOL.slice(0, 4).map(t => ({ label: t, value: t }))] },
+  { key: "lifecycle", label: "生命周期", type: "select", options: [{ label: "全部", value: "" }, ...Object.entries(DESIGNER_LIFECYCLE_MAP).map(([k, v]) => ({ label: v.label, value: k }))] },
+  { key: "package", label: "当前套餐", type: "select", options: [{ label: "全部", value: "" }, ...PACKAGES.map(p => ({ label: p, value: p }))] },
+  { key: "source", label: "来源", type: "select", options: [{ label: "全部", value: "" }, ...SOURCE_CHANNELS.map(s => ({ label: s, value: s }))] },
 ];
 
-const customerFilters: FilterField[] = [
+const ecFilters: FilterField[] = [
   { key: "keyword", label: "搜索", type: "input", placeholder: "姓名 / 手机号" },
   { key: "enterprise", label: "所属企业", type: "select", options: [{ label: "全部", value: "" }, ...ENTERPRISES.map(e => ({ label: e, value: e }))] },
-  { key: "status", label: "状态", type: "select", options: [{ label: "全部", value: "" }, { label: "启用", value: "active" }, { label: "停用", value: "inactive" }] },
-  { key: "tag", label: "标签", type: "select", options: [{ label: "全部", value: "" }, ...TAGS_POOL.map(t => ({ label: t, value: t }))] },
+  { key: "lifecycle", label: "生命周期", type: "select", options: [{ label: "全部", value: "" }, ...Object.entries(END_CUSTOMER_LIFECYCLE_MAP).map(([k, v]) => ({ label: v.label, value: k }))] },
+  { key: "followStatus", label: "跟进状态", type: "select", options: [{ label: "全部", value: "" }, ...Object.entries(FOLLOW_STATUS_MAP).map(([k, v]) => ({ label: v.label, value: k }))] },
 ];
 
 /* ── Columns ── */
-const designerColumns: TableColumn<Customer>[] = [
-  { key: "name", title: "姓名", width: 120 },
-  { key: "phone", title: "手机号", width: 140, render: (v: string) => <span className="font-mono text-xs">{v}</span> },
-  { key: "status", title: "状态", width: 80, render: (v: string) => (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v === "active" ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
-      {v === "active" ? "启用" : "停用"}
-    </span>
-  )},
-  { key: "tags", title: "标签", width: 160, render: (v: string[]) => (
-    <div className="flex flex-wrap gap-1">
-      {v.map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{t}</span>)}
+function UsageBar({ rate }: { rate: number }) {
+  const color = rate >= 70 ? "bg-emerald-500" : rate >= 30 ? "bg-primary" : "bg-amber-500";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${rate}%` }} />
+      </div>
+      <span className="text-xs text-muted-foreground">{rate}%</span>
+    </div>
+  );
+}
+
+const designerCols: TableColumn<Designer>[] = [
+  { key: "name", title: "设计师", width: 150, render: (_v, r) => (
+    <div className="flex items-center gap-2">
+      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">{r.name[0]}</div>
+      <div>
+        <div className="text-sm font-medium">{r.name}</div>
+        <div className="text-[11px] text-muted-foreground font-mono">{r.phone.slice(0,3)}****{r.phone.slice(-4)}</div>
+      </div>
     </div>
   )},
-  { key: "serviceCount", title: "设计方案数", width: 100, render: (v: number) => <span className="text-muted-foreground">{v}</span> },
-  { key: "lastActiveAt", title: "最后活跃", width: 110 },
-  { key: "createdAt", title: "注册时间", width: 110 },
+  { key: "registeredAt", title: "注册时间", width: 100 },
+  { key: "lifecycle", title: "生命周期", width: 90, render: (v: string) => {
+    const m = DESIGNER_LIFECYCLE_MAP[v as keyof typeof DESIGNER_LIFECYCLE_MAP];
+    return m ? <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${m.color}`}>{m.label}</span> : v;
+  }},
+  { key: "currentPackage", title: "当前套餐", width: 100, render: (v: string, r: Designer) => (
+    <div><div className="text-sm">{v}</div><div className="text-[11px] text-muted-foreground">到期 {r.packageExpiry}</div></div>
+  )},
+  { key: "usageRate", title: "权益使用率", width: 120, render: (v: number) => <UsageBar rate={v} /> },
+  { key: "totalSpent", title: "累计消费", width: 90, render: (v: number) => <span className="text-sm">¥{v.toLocaleString()}</span> },
+  { key: "lastLoginAt", title: "最近登录", width: 100 },
+  { key: "tags", title: "标签", width: 140, render: (v: string[]) => (
+    <div className="flex flex-wrap gap-1">{v.slice(0, 2).map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{t}</span>)}{v.length > 2 && <span className="text-[11px] text-muted-foreground">+{v.length-2}</span>}</div>
+  )},
 ];
 
-const customerColumns: TableColumn<Customer>[] = [
-  { key: "name", title: "客户姓名", width: 120 },
-  { key: "phone", title: "手机号", width: 140, render: (v: string) => <span className="font-mono text-xs">{v}</span> },
-  { key: "sourceEnterprise", title: "所属企业", width: 160 },
-  { key: "status", title: "状态", width: 80, render: (v: string) => (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v === "active" ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
-      {v === "active" ? "启用" : "停用"}
-    </span>
-  )},
-  { key: "tags", title: "标签", width: 200, render: (v: string[]) => (
-    <div className="flex flex-wrap gap-1">
-      {v.map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{t}</span>)}
+const ecCols: TableColumn<EndCustomer>[] = [
+  { key: "name", title: "客户", width: 150, render: (_v, r) => (
+    <div className="flex items-center gap-2">
+      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">{r.name[0]}</div>
+      <div>
+        <div className="text-sm font-medium">{r.name}</div>
+        <div className="text-[11px] text-muted-foreground font-mono">{r.phone.slice(0,3)}****{r.phone.slice(-4)}</div>
+      </div>
     </div>
   )},
-  { key: "serviceCount", title: "服务次数", width: 100, render: (v: number) => <span className="text-muted-foreground">{v}</span> },
-  { key: "lastActiveAt", title: "最后服务", width: 110 },
-  { key: "createdAt", title: "录入时间", width: 110 },
+  { key: "sourceEnterprise", title: "所属企业", width: 140 },
+  { key: "lifecycle", title: "生命周期", width: 90, render: (v: string) => {
+    const m = END_CUSTOMER_LIFECYCLE_MAP[v as keyof typeof END_CUSTOMER_LIFECYCLE_MAP];
+    return m ? <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${m.color}`}>{m.label}</span> : v;
+  }},
+  { key: "followStatus", title: "跟进状态", width: 80, render: (v: string) => {
+    const m = FOLLOW_STATUS_MAP[v as keyof typeof FOLLOW_STATUS_MAP];
+    return m ? <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${m.color}`}>{m.label}</span> : v;
+  }},
+  { key: "assignedStaff", title: "负责人", width: 90 },
+  { key: "intentLevel", title: "意向", width: 70, render: (v: string) => {
+    const map = { high: { l: "高", c: "text-emerald-600" }, medium: { l: "中", c: "text-amber-600" }, low: { l: "低", c: "text-muted-foreground" } };
+    const m = map[v as keyof typeof map] || { l: v, c: "" };
+    return <span className={`text-sm font-medium ${m.c}`}>{m.l}</span>;
+  }},
+  { key: "lastFollowAt", title: "最近跟进", width: 100 },
+  { key: "createdAt", title: "录入时间", width: 100 },
+  { key: "tags", title: "标签", width: 140, render: (v: string[]) => (
+    <div className="flex flex-wrap gap-1">{v.slice(0, 2).map((t, i) => <span key={i} className="px-1.5 py-0.5 rounded text-[11px] bg-primary/10 text-primary">{t}</span>)}{v.length > 2 && <span className="text-[11px] text-muted-foreground">+{v.length-2}</span>}</div>
+  )},
 ];
 
-/* ── Tabs ── */
 const TABS = [
   { key: "designer" as const, label: "个人设计师", icon: UserCircle },
-  { key: "enterprise_customer" as const, label: "企业客户", icon: Building2 },
+  { key: "end_customer" as const, label: "企业下游客户", icon: Building2 },
 ];
 
 export default function CustomerList() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<CustomerType>("designer");
+  const [params] = useSearchParams();
+  const initTab = params.get("tab") === "enterprise" ? "end_customer" : "designer";
+  const [tab, setTab] = useState<TabKey>(initTab);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
-  const filtered = ALL_DATA.filter((c) => {
-    if (c.type !== tab) return false;
-    const kw = filters.keyword?.toLowerCase();
-    if (kw && !c.name.toLowerCase().includes(kw) && !c.phone.includes(kw)) return false;
-    if (filters.status && c.status !== filters.status) return false;
-    if (filters.tag && !c.tags.includes(filters.tag)) return false;
-    if (filters.enterprise && c.sourceEnterprise !== filters.enterprise) return false;
-    return true;
-  });
+  const filtered = useMemo(() => {
+    if (tab === "designer") {
+      return DESIGNERS.filter(d => {
+        const kw = filters.keyword?.toLowerCase();
+        if (kw && !d.name.toLowerCase().includes(kw) && !d.phone.includes(kw)) return false;
+        if (filters.lifecycle && d.lifecycle !== filters.lifecycle) return false;
+        if (filters.package && d.currentPackage !== filters.package) return false;
+        if (filters.source && d.source !== filters.source) return false;
+        return true;
+      });
+    }
+    return END_CUSTOMERS.filter(c => {
+      const kw = filters.keyword?.toLowerCase();
+      if (kw && !c.name.toLowerCase().includes(kw) && !c.phone.includes(kw)) return false;
+      if (filters.enterprise && c.sourceEnterprise !== filters.enterprise) return false;
+      if (filters.lifecycle && c.lifecycle !== filters.lifecycle) return false;
+      if (filters.followStatus && c.followStatus !== filters.followStatus) return false;
+      return true;
+    });
+  }, [tab, filters]);
 
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const handleFilter = useCallback((key: string, val: string) => {
-    setFilters((prev) => ({ ...prev, [key]: val }));
+    setFilters(prev => ({ ...prev, [key]: val }));
     setPage(1);
   }, []);
 
-  const handleSearch = useCallback(() => setPage(1), []);
-  const handleReset = useCallback(() => { setFilters({}); setPage(1); }, []);
+  const designerActions: ActionItem<Designer>[] = [
+    { label: "查看", onClick: (r) => navigate(`/customer/designer/detail/${r.id}`) },
+    { label: "赠送权益", onClick: (r) => toast.success(`已为 ${r.name} 创建权益赠送单`) },
+    { label: "发送消息", onClick: (r) => toast.success(`已向 ${r.name} 发送消息`) },
+    { label: "添加标签", onClick: (r) => toast.success(`标签已更新`) },
+  ];
 
-  const actions: ActionItem<Customer>[] = [
-    { label: "查看", onClick: (row) => navigate(`/customer/detail/${row.id}`) },
-    { label: "编辑", onClick: (row) => navigate(`/customer/create?mode=edit&id=${row.id}&type=${tab}`) },
-    { label: (row) => row.status === "active" ? "停用" : "启用", onClick: (row) => toast.success(`已${row.status === "active" ? "停用" : "启用"}客户：${row.name}`) },
+  const ecActions: ActionItem<EndCustomer>[] = [
+    { label: "查看", onClick: (r) => navigate(`/customer/end-customer/detail/${r.id}`) },
+    { label: "新增跟进", onClick: (r) => toast.success(`已为 ${r.name} 新增跟进记录`) },
+    { label: "编辑", onClick: (r) => navigate(`/customer/create?mode=edit&id=${r.id}&type=end_customer`) },
   ];
 
   return (
     <div>
       <PageHeader
-        title="客户管理"
+        title={tab === "designer" ? "个人设计师" : "企业下游客户"}
+        subtitle={`共 ${filtered.length} 条记录`}
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => toast.success("导出成功")}>
               <Download className="h-4 w-4 mr-1" />导出
             </Button>
-            <Button size="sm" onClick={() => navigate(`/customer/create?type=${tab}`)}>
-              <Plus className="h-4 w-4 mr-1" />新建客户
-            </Button>
+            {tab === "end_customer" && (
+              <Button size="sm" onClick={() => navigate("/customer/create?type=end_customer")}>
+                <Plus className="h-4 w-4 mr-1" />录入客户
+              </Button>
+            )}
           </div>
         }
       />
 
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-4 border-b border-border/60">
-        {TABS.map((t) => {
-          const count = ALL_DATA.filter((c) => c.type === t.key).length;
+        {TABS.map(t => {
+          const count = t.key === "designer" ? DESIGNERS.length : END_CUSTOMERS.length;
           const active = tab === t.key;
           return (
             <button
@@ -191,27 +194,25 @@ export default function CustomerList() {
             >
               <t.icon className="h-4 w-4" />
               {t.label}
-              <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                {count}
-              </span>
+              <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${active ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{count}</span>
             </button>
           );
         })}
       </div>
 
       <FilterBar
-        fields={tab === "designer" ? designerFilters : customerFilters}
+        fields={tab === "designer" ? designerFilters : ecFilters}
         values={filters}
         onChange={handleFilter}
-        onSearch={handleSearch}
-        onReset={handleReset}
+        onSearch={() => setPage(1)}
+        onReset={() => { setFilters({}); setPage(1); }}
       />
 
       <AdminTable
-        columns={tab === "designer" ? designerColumns : customerColumns}
+        columns={tab === "designer" ? designerCols as TableColumn<any>[] : ecCols as TableColumn<any>[]}
         data={paged}
-        actions={actions}
-        rowKey={(r) => r.id}
+        actions={tab === "designer" ? designerActions as ActionItem<any>[] : ecActions as ActionItem<any>[]}
+        rowKey={(r: any) => r.id}
       />
 
       <Pagination current={page} total={filtered.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
