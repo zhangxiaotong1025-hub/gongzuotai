@@ -38,6 +38,9 @@ import AccountList from "./pages/entitlement/AccountList";
 import AccountDetail from "./pages/entitlement/AccountDetail";
 import EntitlementDashboard from "./pages/entitlement/Dashboard";
 import PlaceholderPage from "./pages/PlaceholderPage";
+import BrandList from "./pages/brand/BrandList";
+import BrandDetail from "./pages/brand/BrandDetail";
+import BrandCreate from "./pages/brand/BrandCreate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -86,7 +89,9 @@ function ProtectedRoutes() {
         <Route path="/entitlement/account" element={<AccountList />} />
         <Route path="/entitlement/account/detail/:id" element={<AccountDetail />} />
         <Route path="/entitlement/usage" element={<PlaceholderPage title="权益消耗" />} />
-        <Route path="/brand" element={<PlaceholderPage title="品牌管理" />} />
+        <Route path="/brand" element={<BrandList />} />
+        <Route path="/brand/detail/:id" element={<BrandDetail />} />
+        <Route path="/brand/create" element={<BrandCreate />} />
         <Route path="/customer" element={<PlaceholderPage title="客户管理" />} />
         <Route path="/attribute" element={<PlaceholderPage title="属性管理" />} />
         <Route path="/category" element={<PlaceholderPage title="类目管理" />} />
