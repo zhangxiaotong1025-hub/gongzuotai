@@ -488,6 +488,17 @@ export default function EnterpriseDetail() {
         }}
       />
 
+      <OrderDialog
+        open={showOrderDialog}
+        onClose={() => { setShowOrderDialog(false); setEditingOrder(null); }}
+        onSave={(form) => {
+          toast.success(editingOrder ? "关联订单已更新" : "关联订单已创建");
+          setShowOrderDialog(false);
+          setEditingOrder(null);
+        }}
+        initial={editingOrder}
+      />
+
       {/* Status Toggle Confirm */}
       <AlertDialog open={!!showStatusConfirm} onOpenChange={() => setShowStatusConfirm(null)}>
         <AlertDialogContent className="max-w-[420px] overflow-hidden rounded-xl border bg-card p-0" style={{ boxShadow: "var(--shadow-md)" }}>
