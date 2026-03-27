@@ -1,7 +1,8 @@
 import { useParams, Link } from "react-router-dom";
-import { orderData, accountData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, skuData, bundleData, getOrderApps, getRule, getCapability, type EntitlementOrder } from "@/data/entitlement";
+import { orderData, accountData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, AUDIT_STATUS, skuData, bundleData, getOrderApps, getRule, getCapability, type EntitlementOrder } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { toast } from "sonner";
+import { ShieldCheck, ShieldAlert, ShieldQuestion, Building2, Clock } from "lucide-react";
 
 export default function OrderDetail() {
   const { id } = useParams();
@@ -16,11 +17,10 @@ export default function OrderDetail() {
   const statusCfg = ORDER_STATUS.find((s) => s.value === order.orderStatus);
   const typeCfg = ORDER_TYPES.find((t) => t.value === order.orderType);
   const payCfg = PAYMENT_STATUS.find((p) => p.value === order.paymentStatus);
+  const auditCfg = AUDIT_STATUS.find((a) => a.value === order.auditStatus);
 
-  // Find related accounts (could be multiple, one per app)
   const relatedAccounts = accountData.filter((a) => a.customerId === order.customerId && a.orderIds.includes(order.id));
 
-  // Resolve items to rules, grouped by app
   const resolvedItems = order.items.map((item) => {
     if (item.type === "sku") {
       const sku = skuData.find((s) => s.id === item.itemId);
@@ -36,6 +36,12 @@ export default function OrderDetail() {
     }
   });
 
+  // Audit status icon
+  const AuditIcon = order.auditStatus === "approved" || order.auditStatus === "auto_approved" ? ShieldCheck
+    : order.auditStatus === "rejected" ? ShieldAlert
+    : order.auditStatus === "follow_enterprise" ? Building2
+    : ShieldQuestion;
+
   return (
     <div className="space-y-5 pb-6">
       <DetailActionBar
@@ -46,7 +52,17 @@ export default function OrderDetail() {
         nextPath={nextOrder ? `/entitlement/order/detail/${nextOrder.id}` : null}
         extraActions={
           <>
-            {order.paymentStatus === "pending" && (
+            {order.auditStatus === "pending_audit" && (
+              <>
+                <button onClick={() => toast.info("审核通过")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-primary border-primary/30 hover:bg-primary/10">
+                  审核通过
+                </button>
+                <button onClick={() => toast.info("审核驳回")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10">
+                  审核驳回
+                </button>
+              </>
+            )}
+            {order.orderStatus === "pending_payment" && order.paymentStatus === "pending" && (
               <button onClick={() => toast.info("已标记支付")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-primary border-primary/30 hover:bg-primary/10">
                 标记已支付
               </button>
@@ -56,14 +72,72 @@ export default function OrderDetail() {
                 退款
               </button>
             )}
-            {order.orderStatus === "pending" && (
+            {(order.orderStatus === "pending_payment" || order.orderStatus === "draft") && (
               <button onClick={() => toast.info("关闭")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10">
-                关闭
+                关闭订单
               </button>
             )}
           </>
         }
       />
+
+      {/* 审核状态卡片 */}
+      <div className={`rounded-xl border p-5 ${
+        order.auditStatus === "rejected" ? "bg-destructive/5 border-destructive/20" :
+        order.auditStatus === "pending_audit" ? "bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800" :
+        order.auditStatus === "follow_enterprise" ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800" :
+        "bg-card border"
+      }`} style={{ boxShadow: "var(--shadow-xs)" }}>
+        <div className="flex items-center gap-3 mb-3">
+          <AuditIcon className={`h-5 w-5 ${
+            order.auditStatus === "approved" || order.auditStatus === "auto_approved" ? "text-primary" :
+            order.auditStatus === "rejected" ? "text-destructive" :
+            order.auditStatus === "pending_audit" ? "text-amber-500" :
+            "text-emerald-600"
+          }`} />
+          <h3 className="text-[14px] font-semibold text-foreground">审核信息</h3>
+          <span className={auditCfg?.className || ""}>{auditCfg?.label}</span>
+        </div>
+        <div className="grid grid-cols-4 gap-x-8 gap-y-3 text-[13px]">
+          <div>
+            <span className="text-muted-foreground">审核类型</span>
+            <div className="font-medium text-foreground mt-0.5">
+              {order.orderType === "user_purchase" || order.orderType === "system_grant" ? "系统自动审核" :
+               order.orderType === "internal_grant" ? "人工审核" :
+               "跟随企业审核"}
+            </div>
+          </div>
+          <div>
+            <span className="text-muted-foreground">审核规则</span>
+            <div className="text-foreground mt-0.5 text-[12px]">
+              {order.orderType === "user_purchase" ? "用户购买订单 → 自动通过" :
+               order.orderType === "system_grant" ? "系统发放订单 → 自动通过" :
+               order.orderType === "internal_grant" ? "内部发放订单 → 需运营主管审核" :
+               "企业入驻订单 → 跟随企业审核结果"}
+            </div>
+          </div>
+          {order.auditBy && (
+            <div><span className="text-muted-foreground">审核人</span><div className="font-medium text-foreground mt-0.5">{order.auditBy}</div></div>
+          )}
+          {order.auditAt && (
+            <div><span className="text-muted-foreground">审核时间</span><div className="text-foreground mt-0.5">{order.auditAt}</div></div>
+          )}
+          {order.auditRemark && (
+            <div className="col-span-4"><span className="text-muted-foreground">审核备注</span><div className="text-destructive mt-0.5 font-medium">{order.auditRemark}</div></div>
+          )}
+          {order.linkedEnterpriseId && (
+            <div className="col-span-2">
+              <span className="text-muted-foreground">关联企业</span>
+              <div className="mt-0.5">
+                <Link to={`/enterprise/detail/${order.linkedEnterpriseId}`} className="text-primary hover:underline font-medium">
+                  {order.customerName} →
+                </Link>
+                <span className="text-[12px] text-muted-foreground ml-2">订单状态跟随该企业审核结果自动更新</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* 基本信息 */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
@@ -88,7 +162,7 @@ export default function OrderDetail() {
         </div>
       </div>
 
-      {/* 商品信息 — 按应用分组 */}
+      {/* 商品信息 */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <h3 className="text-[14px] font-semibold text-foreground mb-3">商品信息</h3>
         <div className="overflow-x-auto">
@@ -144,16 +218,27 @@ export default function OrderDetail() {
             <div className="relative ml-2">
               <div className="absolute left-[5px] top-2 bottom-2 w-px bg-border" />
               <div className="space-y-4">
-                {order.statusHistory.map((entry, idx) => (
-                  <div key={idx} className="flex gap-3 relative">
-                    <div className="w-3 h-3 rounded-full bg-primary border-2 border-background mt-1 shrink-0 relative z-10" />
-                    <div className="min-w-0">
-                      <div className="text-[13px] font-semibold text-foreground">{entry.label}</div>
-                      <div className="text-[12px] text-muted-foreground mt-0.5">{entry.time}</div>
-                      {entry.remark && <div className="text-[12px] text-muted-foreground">{entry.remark}</div>}
+                {order.statusHistory.map((entry, idx) => {
+                  const isAudit = ["pending_audit", "approved", "rejected", "auto_approved", "follow_enterprise", "enterprise_approved"].includes(entry.status);
+                  const isError = ["rejected", "closed", "refunded", "cancelled"].includes(entry.status);
+                  return (
+                    <div key={idx} className="flex gap-3 relative">
+                      <div className={`w-3 h-3 rounded-full border-2 border-background mt-1 shrink-0 relative z-10 ${
+                        isError ? "bg-destructive" : isAudit ? "bg-amber-500" : "bg-primary"
+                      }`} />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13px] font-semibold text-foreground">{entry.label}</span>
+                          {isAudit && <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />}
+                        </div>
+                        <div className="text-[12px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                          <Clock className="h-3 w-3" />{entry.time}
+                        </div>
+                        {entry.remark && <div className="text-[12px] text-muted-foreground mt-0.5">{entry.remark}</div>}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -199,7 +284,7 @@ export default function OrderDetail() {
         </div>
       )}
 
-      {/* 关联账户 — 可能跨多个应用 */}
+      {/* 关联账户 */}
       {relatedAccounts.length > 0 && (
         <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
           <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益账户 ({relatedAccounts.length})</h3>

@@ -278,9 +278,10 @@ export const bundleData: Bundle[] = [
    权益订单 — 支持跨应用多商品
    ══════════════════════════════════════════════════ */
 
-export type OrderType = "user_purchase" | "internal_grant" | "system_grant";
-export type PaymentStatus = "paid" | "pending" | "no_payment";
-export type OrderStatus = "pending" | "completed" | "cancelled" | "refunded" | "closed";
+export type OrderType = "user_purchase" | "internal_grant" | "system_grant" | "enterprise_grant";
+export type PaymentStatus = "paid" | "pending" | "no_payment" | "refunded";
+export type OrderStatus = "draft" | "pending_payment" | "processing" | "completed" | "cancelled" | "refunded" | "closed";
+export type AuditStatus = "auto_approved" | "pending_audit" | "approved" | "rejected" | "follow_enterprise";
 
 export interface StatusHistoryEntry {
   status: string;
@@ -376,6 +377,12 @@ export interface EntitlementOrder {
   customerName: string;
   /** 订单不绑定单一应用，涉及的应用从 items 中的商品/套餐推导 */
   orderType: OrderType;
+  auditStatus: AuditStatus;
+  auditRemark?: string;
+  auditBy?: string;
+  auditAt?: string;
+  /** 关联企业ID（enterprise_grant 类型时有值） */
+  linkedEnterpriseId?: string;
   items: OrderItem[];
   totalAmount: number;
   paymentStatus: PaymentStatus;
@@ -415,24 +422,53 @@ export function getOrderApps(order: EntitlementOrder): AppItem[] {
 }
 
 export const ORDER_TYPES: { value: OrderType; label: string; className: string }[] = [
-  { value: "user_purchase",  label: "用户购买", className: "text-primary" },
-  { value: "internal_grant", label: "内部发放", className: "text-amber-600" },
-  { value: "system_grant",   label: "系统发放", className: "text-muted-foreground" },
+  { value: "user_purchase",    label: "用户购买",   className: "text-primary" },
+  { value: "internal_grant",   label: "内部发放",   className: "text-amber-600" },
+  { value: "system_grant",     label: "系统发放",   className: "text-muted-foreground" },
+  { value: "enterprise_grant", label: "企业入驻",   className: "text-emerald-600" },
 ];
 
 export const PAYMENT_STATUS: { value: PaymentStatus; label: string; className: string }[] = [
   { value: "paid",       label: "已支付",   className: "badge-active" },
   { value: "pending",    label: "待支付",   className: "badge-warning" },
   { value: "no_payment", label: "无需支付", className: "text-muted-foreground text-[12px]" },
+  { value: "refunded",   label: "已退款",   className: "badge-inactive" },
 ];
 
 export const ORDER_STATUS: { value: OrderStatus; label: string; className: string }[] = [
-  { value: "pending",   label: "待支付",  className: "badge-warning" },
-  { value: "completed", label: "已完成",  className: "badge-active" },
-  { value: "cancelled", label: "已取消",  className: "badge-inactive" },
-  { value: "refunded",  label: "已退款",  className: "badge-inactive" },
-  { value: "closed",    label: "已关闭",  className: "badge-inactive" },
+  { value: "draft",           label: "草稿",    className: "badge-warning" },
+  { value: "pending_payment", label: "待支付",  className: "badge-warning" },
+  { value: "processing",     label: "处理中",  className: "text-primary text-[12px] font-medium" },
+  { value: "completed",      label: "已完成",  className: "badge-active" },
+  { value: "cancelled",      label: "已取消",  className: "badge-inactive" },
+  { value: "refunded",       label: "已退款",  className: "badge-inactive" },
+  { value: "closed",         label: "已关闭",  className: "badge-inactive" },
 ];
+
+export const AUDIT_STATUS: { value: AuditStatus; label: string; className: string }[] = [
+  { value: "auto_approved",     label: "自动通过",   className: "badge-active" },
+  { value: "pending_audit",     label: "待审核",     className: "badge-warning" },
+  { value: "approved",          label: "审核通过",   className: "badge-active" },
+  { value: "rejected",          label: "审核驳回",   className: "badge-danger" },
+  { value: "follow_enterprise", label: "跟随企业",   className: "text-emerald-600 text-[12px] font-medium" },
+];
+
+/** 根据订单类型自动确定审核状态 */
+export function getInitialAuditStatus(orderType: OrderType): AuditStatus {
+  switch (orderType) {
+    case "user_purchase":    return "auto_approved";
+    case "system_grant":     return "auto_approved";
+    case "internal_grant":   return "pending_audit";
+    case "enterprise_grant": return "follow_enterprise";
+  }
+}
+
+/** 根据订单类型和审核状态确定初始订单状态 */
+export function getInitialOrderStatus(orderType: OrderType, auditStatus: AuditStatus): OrderStatus {
+  if (auditStatus === "pending_audit" || auditStatus === "follow_enterprise") return "draft";
+  if (orderType === "user_purchase") return "pending_payment";
+  return "processing"; // auto_approved + no payment needed
+}
 
 export type OrderSource = "purchase" | "gift" | "promotion" | "system";
 export const ORDER_SOURCES: { value: OrderSource; label: string }[] = [
@@ -445,120 +481,135 @@ export const ORDER_SOURCES: { value: OrderSource; label: string }[] = [
 export const orderData: EntitlementOrder[] = [
   {
     id: "ord1", orderNo: "ORD202603120001", customerType: "B", customerId: "cust1", customerName: "欧派家居集团股份有限公司",
-    orderType: "user_purchase", totalAmount: 299, paymentStatus: "paid", orderStatus: "completed",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 299, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-12 10:05:00", expireAt: "2027-03-12", remark: "旗舰会员月付", createdAt: "2026-03-12 10:00:00",
     items: [{ type: "bundle", itemId: "bun3", itemName: "旗舰会员", quantity: 1, unitPrice: 299 }],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-12 10:00:00", remark: "用户下单" },
-      { status: "paid",      label: "支付完成", time: "2026-03-12 10:05:00", remark: "微信支付" },
-      { status: "granted",   label: "权益发放", time: "2026-03-12 10:05:05", remark: "自动发放" },
-      { status: "completed", label: "订单完成", time: "2026-03-12 10:05:10" },
+      { status: "created",       label: "订单创建", time: "2026-03-12 10:00:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-12 10:00:01", remark: "用户购买订单自动通过" },
+      { status: "paid",          label: "支付完成", time: "2026-03-12 10:05:00", remark: "微信支付" },
+      { status: "granted",       label: "权益发放", time: "2026-03-12 10:05:05", remark: "自动发放" },
+      { status: "completed",     label: "订单完成", time: "2026-03-12 10:05:10" },
     ],
   },
   {
     id: "ord2", orderNo: "ORD202603120002", customerType: "B", customerId: "cust2", customerName: "索菲亚家居股份有限公司",
-    orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    orderType: "internal_grant", auditStatus: "approved", auditBy: "运营主管·张丽", auditAt: "2026-03-12 11:15:00",
+    totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "内部发放基础会员", createdAt: "2026-03-12 11:00:00",
     items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 }],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-12 11:00:00", remark: "运营创建内部订单" },
-      { status: "granted",   label: "权益发放", time: "2026-03-12 11:00:05", remark: "自动发放" },
-      { status: "completed", label: "订单完成", time: "2026-03-12 11:00:10" },
+      { status: "created",       label: "订单创建", time: "2026-03-12 11:00:00", remark: "运营创建内部订单" },
+      { status: "pending_audit", label: "提交审核", time: "2026-03-12 11:00:01", remark: "内部发放订单需人工审核" },
+      { status: "approved",      label: "审核通过", time: "2026-03-12 11:15:00", remark: "运营主管·张丽 审核通过" },
+      { status: "granted",       label: "权益发放", time: "2026-03-12 11:15:05", remark: "自动发放" },
+      { status: "completed",     label: "订单完成", time: "2026-03-12 11:15:10" },
     ],
   },
   {
     id: "ord3", orderNo: "ORD202603120003", customerType: "C", customerId: "user1", customerName: "张三",
-    orderType: "user_purchase", totalAmount: 9.9, paymentStatus: "pending", orderStatus: "pending",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 9.9, paymentStatus: "pending", orderStatus: "pending_payment",
     remark: "AI积分充值", createdAt: "2026-03-12 12:00:00",
     items: [{ type: "sku", itemId: "sku3", itemName: "AI积分100·基础包", quantity: 1, unitPrice: 9.9 }],
     statusHistory: [
-      { status: "created", label: "订单创建", time: "2026-03-12 12:00:00", remark: "用户下单" },
+      { status: "created",       label: "订单创建", time: "2026-03-12 12:00:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-12 12:00:01", remark: "用户购买订单自动通过" },
     ],
   },
   {
     id: "ord4", orderNo: "ORD202603140001", customerType: "B", customerId: "cust1", customerName: "欧派家居集团股份有限公司",
-    orderType: "user_purchase", totalAmount: 11, paymentStatus: "paid", orderStatus: "completed",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 11, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-14 16:05:00", remark: "充值渲染次数", createdAt: "2026-03-14 16:00:00",
     items: [
       { type: "sku", itemId: "sku1", itemName: "4K普通图", quantity: 1, unitPrice: 3 },
       { type: "sku", itemId: "sku2", itemName: "8K普通图", quantity: 1, unitPrice: 8 },
     ],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-14 16:00:00", remark: "用户下单" },
-      { status: "paid",      label: "支付完成", time: "2026-03-14 16:05:00", remark: "支付宝" },
-      { status: "granted",   label: "权益发放", time: "2026-03-14 16:05:05", remark: "自动发放" },
-      { status: "completed", label: "订单完成", time: "2026-03-14 16:05:10" },
+      { status: "created",       label: "订单创建", time: "2026-03-14 16:00:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-14 16:00:01" },
+      { status: "paid",          label: "支付完成", time: "2026-03-14 16:05:00", remark: "支付宝" },
+      { status: "granted",       label: "权益发放", time: "2026-03-14 16:05:05", remark: "自动发放" },
+      { status: "completed",     label: "订单完成", time: "2026-03-14 16:05:10" },
     ],
   },
   {
-    // 跨应用订单：国内3D + 智能导购
+    // 企业入驻订单 — 跟随企业审核（已通过）
     id: "ord5", orderNo: "ORD202603150001", customerType: "B", customerId: "cust2", customerName: "索菲亚家居股份有限公司",
-    orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    orderType: "enterprise_grant", auditStatus: "follow_enterprise", linkedEnterpriseId: "cust2",
+    totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "企业入驻权益配置 — 3D工具+导购", createdAt: "2026-03-15 09:25:00",
     items: [
       { type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 },
       { type: "sku", itemId: "sku31", itemName: "导购高级版", quantity: 1, unitPrice: 0 },
     ],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-15 09:25:00", remark: "企业入驻自动生成" },
-      { status: "granted",   label: "权益发放", time: "2026-03-15 09:25:05", remark: "自动发放至对应应用账户" },
-      { status: "completed", label: "订单完成", time: "2026-03-15 09:25:10" },
+      { status: "created",            label: "订单创建", time: "2026-03-15 09:25:00", remark: "企业入驻自动生成" },
+      { status: "follow_enterprise",  label: "跟随企业审核", time: "2026-03-15 09:25:01", remark: "订单状态跟随企业「索菲亚家居」审核结果" },
+      { status: "enterprise_approved", label: "企业审核通过", time: "2026-03-15 10:30:00", remark: "企业审核通过，订单自动放行" },
+      { status: "granted",            label: "权益发放", time: "2026-03-15 10:30:05", remark: "自动发放至对应应用账户" },
+      { status: "completed",          label: "订单完成", time: "2026-03-15 10:30:10" },
     ],
   },
   {
     id: "ord6", orderNo: "ORD202603160001", customerType: "B", customerId: "cust1", customerName: "欧派家居集团股份有限公司",
-    orderType: "user_purchase", totalAmount: 2388, paymentStatus: "paid", orderStatus: "completed",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 2388, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-16 11:30:00", expireAt: "2027-03-16", remark: "年卡升级", createdAt: "2026-03-16 11:25:00",
     items: [{ type: "bundle", itemId: "bun4", itemName: "旗舰会员年卡", quantity: 1, unitPrice: 2388 }],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-16 11:25:00", remark: "用户下单" },
-      { status: "paid",      label: "支付完成", time: "2026-03-16 11:30:00", remark: "支付宝" },
-      { status: "granted",   label: "权益发放", time: "2026-03-16 11:30:05", remark: "自动发放" },
-      { status: "completed", label: "订单完成", time: "2026-03-16 11:30:10" },
+      { status: "created",       label: "订单创建", time: "2026-03-16 11:25:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-16 11:25:01" },
+      { status: "paid",          label: "支付完成", time: "2026-03-16 11:30:00", remark: "支付宝" },
+      { status: "granted",       label: "权益发放", time: "2026-03-16 11:30:05", remark: "自动发放" },
+      { status: "completed",     label: "订单完成", time: "2026-03-16 11:30:10" },
     ],
   },
   {
-    // 跨应用订单：AI设计家 + 精准客资
+    // 企业入驻订单 — 跟随企业审核（已通过）
     id: "ord7", orderNo: "ORD202603170001", customerType: "B", customerId: "cust3", customerName: "尚品宅配家居股份有限公司",
-    orderType: "internal_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    orderType: "enterprise_grant", auditStatus: "follow_enterprise", linkedEnterpriseId: "cust3",
+    totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "企业入驻权益配置 — AI设计家+客资", createdAt: "2026-03-17 14:00:00",
     items: [
       { type: "sku", itemId: "sku21", itemName: "AI设计家专业版", quantity: 1, unitPrice: 0 },
       { type: "sku", itemId: "sku40", itemName: "客资基础包", quantity: 1, unitPrice: 0 },
     ],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-17 14:00:00", remark: "企业入驻自动生成" },
-      { status: "granted",   label: "权益发放", time: "2026-03-17 14:00:05", remark: "自动发放" },
-      { status: "completed", label: "订单完成", time: "2026-03-17 14:00:10" },
+      { status: "created",            label: "订单创建", time: "2026-03-17 14:00:00", remark: "企业入驻自动生成" },
+      { status: "follow_enterprise",  label: "跟随企业审核", time: "2026-03-17 14:00:01", remark: "订单状态跟随企业「尚品宅配」审核结果" },
+      { status: "enterprise_approved", label: "企业审核通过", time: "2026-03-17 15:20:00", remark: "企业审核通过，订单自动放行" },
+      { status: "granted",            label: "权益发放", time: "2026-03-17 15:20:05", remark: "自动发放" },
+      { status: "completed",          label: "订单完成", time: "2026-03-17 15:20:10" },
     ],
   },
   {
     id: "ord8", orderNo: "ORD202603180001", customerType: "B", customerId: "cust4", customerName: "金牌厨柜家居科技股份有限公司",
-    orderType: "system_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    orderType: "system_grant", auditStatus: "auto_approved", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "新企业注册赠送免费版", createdAt: "2026-03-18 08:00:00",
     items: [{ type: "bundle", itemId: "bun1", itemName: "免费版", quantity: 1, unitPrice: 0 }],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-18 08:00:00", remark: "系统自动创建" },
-      { status: "granted",   label: "权益发放", time: "2026-03-18 08:00:05", remark: "自动发放" },
-      { status: "completed", label: "订单完成", time: "2026-03-18 08:00:10" },
+      { status: "created",       label: "订单创建", time: "2026-03-18 08:00:00", remark: "系统自动创建" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-18 08:00:01", remark: "系统发放订单自动通过" },
+      { status: "granted",       label: "权益发放", time: "2026-03-18 08:00:05", remark: "自动发放" },
+      { status: "completed",     label: "订单完成", time: "2026-03-18 08:00:10" },
     ],
   },
   {
     id: "ord9", orderNo: "ORD202603190001", customerType: "C", customerId: "user2", customerName: "李四",
-    orderType: "user_purchase", totalAmount: 169, paymentStatus: "paid", orderStatus: "refunded",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 169, paymentStatus: "refunded", orderStatus: "refunded",
     paidAt: "2026-03-19 15:00:00", remark: "已申请退款", createdAt: "2026-03-19 14:55:00",
     items: [{ type: "sku", itemId: "sku5", itemName: "AI积分2000·高级包", quantity: 1, unitPrice: 169 }],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-19 14:55:00", remark: "用户下单" },
-      { status: "paid",      label: "支付完成", time: "2026-03-19 15:00:00", remark: "微信支付" },
-      { status: "granted",   label: "权益发放", time: "2026-03-19 15:00:05", remark: "自动发放" },
-      { status: "refunded",  label: "退款完成", time: "2026-03-20 10:00:00", remark: "客户申请退款，权益已回收" },
+      { status: "created",       label: "订单创建", time: "2026-03-19 14:55:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-19 14:55:01" },
+      { status: "paid",          label: "支付完成", time: "2026-03-19 15:00:00", remark: "微信支付" },
+      { status: "granted",       label: "权益发放", time: "2026-03-19 15:00:05", remark: "自动发放" },
+      { status: "refunded",      label: "退款完成", time: "2026-03-20 10:00:00", remark: "客户申请退款，权益已回收" },
     ],
   },
   {
     // 跨3个应用的大订单
     id: "ord10", orderNo: "ORD202603200001", customerType: "B", customerId: "cust2", customerName: "索菲亚家居股份有限公司",
-    orderType: "user_purchase", totalAmount: 528.8, paymentStatus: "paid", orderStatus: "completed",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 528.8, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-20 10:15:00", remark: "企业升级套装 — 3D+AI+导购", createdAt: "2026-03-20 10:10:00",
     items: [
       { type: "bundle", itemId: "bun3", itemName: "旗舰会员", quantity: 1, unitPrice: 299 },
@@ -566,35 +617,90 @@ export const orderData: EntitlementOrder[] = [
       { type: "sku", itemId: "sku31", itemName: "导购高级版", quantity: 1, unitPrice: 199 },
     ],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-20 10:10:00", remark: "用户下单" },
-      { status: "paid",      label: "支付完成", time: "2026-03-20 10:15:00", remark: "支付宝" },
-      { status: "granted",   label: "权益发放", time: "2026-03-20 10:15:05", remark: "自动发放至3个应用账户" },
-      { status: "completed", label: "订单完成", time: "2026-03-20 10:15:10" },
+      { status: "created",       label: "订单创建", time: "2026-03-20 10:10:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-20 10:10:01" },
+      { status: "paid",          label: "支付完成", time: "2026-03-20 10:15:00", remark: "支付宝" },
+      { status: "granted",       label: "权益发放", time: "2026-03-20 10:15:05", remark: "自动发放至3个应用账户" },
+      { status: "completed",     label: "订单完成", time: "2026-03-20 10:15:10" },
     ],
   },
   {
     // C端用户购买
     id: "ord11", orderNo: "ORD202603210001", customerType: "C", customerId: "user3", customerName: "王五",
-    orderType: "user_purchase", totalAmount: 99, paymentStatus: "paid", orderStatus: "completed",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 99, paymentStatus: "paid", orderStatus: "completed",
     paidAt: "2026-03-21 09:30:00", remark: "个人购买基础会员", createdAt: "2026-03-21 09:25:00",
     items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 99 }],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-21 09:25:00", remark: "用户下单" },
-      { status: "paid",      label: "支付完成", time: "2026-03-21 09:30:00", remark: "微信支付" },
-      { status: "granted",   label: "权益发放", time: "2026-03-21 09:30:05", remark: "自动发放" },
-      { status: "completed", label: "订单完成", time: "2026-03-21 09:30:10" },
+      { status: "created",       label: "订单创建", time: "2026-03-21 09:25:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-21 09:25:01" },
+      { status: "paid",          label: "支付完成", time: "2026-03-21 09:30:00", remark: "微信支付" },
+      { status: "granted",       label: "权益发放", time: "2026-03-21 09:30:05", remark: "自动发放" },
+      { status: "completed",     label: "订单完成", time: "2026-03-21 09:30:10" },
     ],
   },
   {
     // C端系统赠送
     id: "ord12", orderNo: "ORD202603220001", customerType: "C", customerId: "user4", customerName: "赵六",
-    orderType: "system_grant", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
+    orderType: "system_grant", auditStatus: "auto_approved", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "completed",
     remark: "新用户注册赠送体验包", createdAt: "2026-03-22 14:00:00",
     items: [{ type: "bundle", itemId: "bun1", itemName: "免费版", quantity: 1, unitPrice: 0 }],
     statusHistory: [
-      { status: "created",   label: "订单创建", time: "2026-03-22 14:00:00", remark: "系统自动创建" },
-      { status: "granted",   label: "权益发放", time: "2026-03-22 14:00:05", remark: "自动发放" },
-      { status: "completed", label: "订单完成", time: "2026-03-22 14:00:10" },
+      { status: "created",       label: "订单创建", time: "2026-03-22 14:00:00", remark: "系统自动创建" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-22 14:00:01", remark: "系统发放订单自动通过" },
+      { status: "granted",       label: "权益发放", time: "2026-03-22 14:00:05", remark: "自动发放" },
+      { status: "completed",     label: "订单完成", time: "2026-03-22 14:00:10" },
+    ],
+  },
+  {
+    // 内部发放 — 待审核（未处理）
+    id: "ord13", orderNo: "ORD202603230001", customerType: "B", customerId: "cust5", customerName: "志邦家居股份有限公司",
+    orderType: "internal_grant", auditStatus: "pending_audit", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "draft",
+    remark: "新客户体验权益发放", createdAt: "2026-03-23 09:00:00",
+    items: [{ type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建", time: "2026-03-23 09:00:00", remark: "运营·王磊 创建内部订单" },
+      { status: "pending_audit", label: "提交审核", time: "2026-03-23 09:00:01", remark: "内部发放订单需人工审核" },
+    ],
+  },
+  {
+    // 内部发放 — 审核驳回
+    id: "ord14", orderNo: "ORD202603230002", customerType: "B", customerId: "cust6", customerName: "我乐家居股份有限公司",
+    orderType: "internal_grant", auditStatus: "rejected", auditBy: "运营主管·张丽", auditAt: "2026-03-23 14:30:00",
+    auditRemark: "客户资质未确认，暂不发放",
+    totalAmount: 0, paymentStatus: "no_payment", orderStatus: "closed",
+    remark: "试用权益发放", createdAt: "2026-03-23 10:00:00",
+    items: [{ type: "sku", itemId: "sku21", itemName: "AI设计家专业版", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建", time: "2026-03-23 10:00:00", remark: "运营·李明 创建内部订单" },
+      { status: "pending_audit", label: "提交审核", time: "2026-03-23 10:00:01", remark: "内部发放订单需人工审核" },
+      { status: "rejected",      label: "审核驳回", time: "2026-03-23 14:30:00", remark: "运营主管·张丽 驳回：客户资质未确认，暂不发放" },
+      { status: "closed",        label: "订单关闭", time: "2026-03-23 14:30:05", remark: "审核驳回，订单自动关闭" },
+    ],
+  },
+  {
+    // 企业入驻订单 — 跟随企业审核（企业待审核，订单草稿中）
+    id: "ord15", orderNo: "ORD202603240001", customerType: "B", customerId: "cust7", customerName: "好莱客创意家居股份有限公司",
+    orderType: "enterprise_grant", auditStatus: "follow_enterprise", linkedEnterpriseId: "cust7",
+    totalAmount: 0, paymentStatus: "no_payment", orderStatus: "draft",
+    remark: "企业入驻权益配置 — 国内3D工具", createdAt: "2026-03-24 10:00:00",
+    items: [
+      { type: "bundle", itemId: "bun2", itemName: "基础会员", quantity: 1, unitPrice: 0 },
+    ],
+    statusHistory: [
+      { status: "created",           label: "订单创建", time: "2026-03-24 10:00:00", remark: "企业入驻自动生成" },
+      { status: "follow_enterprise", label: "跟随企业审核", time: "2026-03-24 10:00:01", remark: "订单状态跟随企业「好莱客创意家居」审核结果，企业当前待审核" },
+    ],
+  },
+  {
+    // 用户购买 — 已取消（超时未支付）
+    id: "ord16", orderNo: "ORD202603250001", customerType: "C", customerId: "user5", customerName: "刘七",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 299, paymentStatus: "pending", orderStatus: "cancelled",
+    remark: "旗舰会员月付（超时未支付）", createdAt: "2026-03-25 08:00:00",
+    items: [{ type: "bundle", itemId: "bun3", itemName: "旗舰会员", quantity: 1, unitPrice: 299 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建", time: "2026-03-25 08:00:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-25 08:00:01" },
+      { status: "cancelled",     label: "订单取消", time: "2026-03-25 08:30:00", remark: "超时未支付，系统自动取消" },
     ],
   },
 ];
