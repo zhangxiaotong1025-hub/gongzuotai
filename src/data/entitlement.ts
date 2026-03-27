@@ -422,24 +422,53 @@ export function getOrderApps(order: EntitlementOrder): AppItem[] {
 }
 
 export const ORDER_TYPES: { value: OrderType; label: string; className: string }[] = [
-  { value: "user_purchase",  label: "用户购买", className: "text-primary" },
-  { value: "internal_grant", label: "内部发放", className: "text-amber-600" },
-  { value: "system_grant",   label: "系统发放", className: "text-muted-foreground" },
+  { value: "user_purchase",    label: "用户购买",   className: "text-primary" },
+  { value: "internal_grant",   label: "内部发放",   className: "text-amber-600" },
+  { value: "system_grant",     label: "系统发放",   className: "text-muted-foreground" },
+  { value: "enterprise_grant", label: "企业入驻",   className: "text-emerald-600" },
 ];
 
 export const PAYMENT_STATUS: { value: PaymentStatus; label: string; className: string }[] = [
   { value: "paid",       label: "已支付",   className: "badge-active" },
   { value: "pending",    label: "待支付",   className: "badge-warning" },
   { value: "no_payment", label: "无需支付", className: "text-muted-foreground text-[12px]" },
+  { value: "refunded",   label: "已退款",   className: "badge-inactive" },
 ];
 
 export const ORDER_STATUS: { value: OrderStatus; label: string; className: string }[] = [
-  { value: "pending",   label: "待支付",  className: "badge-warning" },
-  { value: "completed", label: "已完成",  className: "badge-active" },
-  { value: "cancelled", label: "已取消",  className: "badge-inactive" },
-  { value: "refunded",  label: "已退款",  className: "badge-inactive" },
-  { value: "closed",    label: "已关闭",  className: "badge-inactive" },
+  { value: "draft",           label: "草稿",    className: "badge-warning" },
+  { value: "pending_payment", label: "待支付",  className: "badge-warning" },
+  { value: "processing",     label: "处理中",  className: "text-primary text-[12px] font-medium" },
+  { value: "completed",      label: "已完成",  className: "badge-active" },
+  { value: "cancelled",      label: "已取消",  className: "badge-inactive" },
+  { value: "refunded",       label: "已退款",  className: "badge-inactive" },
+  { value: "closed",         label: "已关闭",  className: "badge-inactive" },
 ];
+
+export const AUDIT_STATUS: { value: AuditStatus; label: string; className: string }[] = [
+  { value: "auto_approved",     label: "自动通过",   className: "badge-active" },
+  { value: "pending_audit",     label: "待审核",     className: "badge-warning" },
+  { value: "approved",          label: "审核通过",   className: "badge-active" },
+  { value: "rejected",          label: "审核驳回",   className: "badge-danger" },
+  { value: "follow_enterprise", label: "跟随企业",   className: "text-emerald-600 text-[12px] font-medium" },
+];
+
+/** 根据订单类型自动确定审核状态 */
+export function getInitialAuditStatus(orderType: OrderType): AuditStatus {
+  switch (orderType) {
+    case "user_purchase":    return "auto_approved";
+    case "system_grant":     return "auto_approved";
+    case "internal_grant":   return "pending_audit";
+    case "enterprise_grant": return "follow_enterprise";
+  }
+}
+
+/** 根据订单类型和审核状态确定初始订单状态 */
+export function getInitialOrderStatus(orderType: OrderType, auditStatus: AuditStatus): OrderStatus {
+  if (auditStatus === "pending_audit" || auditStatus === "follow_enterprise") return "draft";
+  if (orderType === "user_purchase") return "pending_payment";
+  return "processing"; // auto_approved + no payment needed
+}
 
 export type OrderSource = "purchase" | "gift" | "promotion" | "system";
 export const ORDER_SOURCES: { value: OrderSource; label: string }[] = [
