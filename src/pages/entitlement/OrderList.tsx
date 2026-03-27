@@ -88,7 +88,7 @@ export default function OrderList() {
     }},
     { key: "orderType", title: "订单类型", minWidth: 90, render: (v: string) => {
       const cfg = ORDER_TYPES.find((t) => t.value === v);
-      return <span className={`text-[12px] font-medium ${cfg?.className || ""}`}>{cfg?.label}</span>;
+      return <span className={cfg?.className || ""}>{cfg?.label}</span>;
     }},
     { key: "items", title: "商品/套餐", minWidth: 160, render: (_v, row) => {
       const items = (row as EntitlementOrder).items;
