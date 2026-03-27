@@ -66,7 +66,14 @@ const navItems: NavItem[] = [
     ],
   },
   { label: "品牌管理", icon: Tag, path: "/brand" },
-  { label: "客户管理", icon: Users, path: "/customer" },
+  {
+    label: "客户管理",
+    icon: Users,
+    children: [
+      { label: "个人设计师", path: "/customer" },
+      { label: "企业客户", path: "/customer?tab=enterprise" },
+    ],
+  },
   { label: "属性管理", icon: Sliders, path: "/attribute" },
   { label: "类目管理", icon: FolderTree, path: "/category" },
   { label: "素材管理", icon: Package, path: "/material" },
