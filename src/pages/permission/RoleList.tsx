@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { roleData, ROLE_TYPE_MAP, PRODUCTS, PERMISSION_ACTIONS, type Role } from "@/data/permission";
+import { roleData, ROLE_TYPE_MAP, PRODUCTS, getRoleResourceCount, type Role } from "@/data/permission";
 import { Plus, Download } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,7 +13,6 @@ const filterFields: FilterField[] = [
     { label: "企业角色", value: "enterprise" },
     { label: "平台角色", value: "platform" },
   ], width: 120 },
-  { key: "product", label: "产品权限", type: "select", options: PRODUCTS.map(p => ({ label: p.name, value: p.code })), width: 160 },
   { key: "status", label: "状态", type: "select", options: [
     { label: "启用", value: "active" },
     { label: "停用", value: "inactive" },
@@ -27,7 +26,6 @@ export default function RoleList() {
   const filtered = roleData.filter(r => {
     if (filters.keyword && !r.name.includes(filters.keyword) && !r.code.includes(filters.keyword)) return false;
     if (filters.roleType && r.roleType !== filters.roleType) return false;
-    if (filters.product && !r.products.includes(filters.product)) return false;
     if (filters.status && r.status !== filters.status) return false;
     return true;
   });
@@ -44,26 +42,24 @@ export default function RoleList() {
       const cfg = ROLE_TYPE_MAP[v as keyof typeof ROLE_TYPE_MAP];
       return <span className={cfg?.className}>{cfg?.label}</span>;
     }},
-    { key: "products", title: "产品权限", minWidth: 200, render: (v: string[]) => (
-      <div className="flex flex-wrap gap-1">
-        {v.slice(0, 3).map(code => {
-          const p = PRODUCTS.find(p => p.code === code);
-          return <span key={code} className="badge-product">{p?.name || code}</span>;
-        })}
-        {v.length > 3 && <span className="text-[11px] text-muted-foreground">+{v.length - 3}</span>}
-      </div>
-    )},
-    { key: "menuIds", title: "菜单权限", minWidth: 80, align: "center" as const, render: (v: string[]) => (
-      <span className="text-[13px] font-medium text-foreground">{v.length}</span>
-    )},
-    { key: "permissions", title: "操作权限", minWidth: 200, render: (v: string[]) => (
-      <div className="flex flex-wrap gap-1">
-        {v.map(perm => {
-          const cfg = PERMISSION_ACTIONS.find(a => a.value === perm);
-          return <span key={perm} className="inline-flex items-center px-1.5 py-0 rounded text-[10px] border border-border text-muted-foreground">{cfg?.label || perm}</span>;
-        })}
-      </div>
-    )},
+    { key: "menuMode", title: "模块权限", minWidth: 100, render: (v: string, row) => {
+      const r = row as Role;
+      return v === "all"
+        ? <span className="badge-active">全部模块</span>
+        : <span className="text-[13px] font-medium text-foreground">{r.menuIds.length} 个模块</span>;
+    }},
+    { key: "resourceMode", title: "资源权限", minWidth: 140, render: (v: string, row) => {
+      const r = row as Role;
+      if (v === "all") return <span className="badge-active">全部资源</span>;
+      const counts = getRoleResourceCount(r);
+      return (
+        <div className="flex gap-1.5">
+          <span className="inline-flex items-center px-1.5 py-0 rounded text-[10px] border border-border text-muted-foreground">按钮 {counts.buttons}</span>
+          <span className="inline-flex items-center px-1.5 py-0 rounded text-[10px] border border-border text-muted-foreground">接口 {counts.apis}</span>
+          <span className="inline-flex items-center px-1.5 py-0 rounded text-[10px] border border-border text-muted-foreground">数据 {counts.data}</span>
+        </div>
+      );
+    }},
     { key: "userCount", title: "用户数", minWidth: 80, align: "center" as const, render: (v: number) => (
       <span className={`text-[13px] font-medium ${v > 0 ? "text-foreground" : "text-muted-foreground"}`}>{v}</span>
     )},
@@ -74,12 +70,11 @@ export default function RoleList() {
 
   const actions: ActionItem<Role>[] = [
     { label: "查看详情", onClick: (r) => navigate(`/permission/role/detail/${r.id}`) },
-    { label: "编辑", onClick: () => toast.info("编辑角色"), visible: (r) => !r.isSystem },
+    { label: "编辑", onClick: (r) => navigate(`/permission/role/edit/${r.id}`), visible: (r) => !r.isSystem },
     { label: "复制角色", onClick: () => toast.info("角色已复制") },
     { label: "停用", onClick: () => toast.info("角色已停用"), danger: true, visible: (r) => r.status === "active" && !r.isSystem },
   ];
 
-  // Stats
   const platformRoles = roleData.filter(r => r.roleType === "platform").length;
   const enterpriseRoles = roleData.filter(r => r.roleType === "enterprise").length;
   const totalUsers = roleData.reduce((sum, r) => sum + r.userCount, 0);
@@ -103,7 +98,7 @@ export default function RoleList() {
         onChange={(k, v) => setFilters(p => ({ ...p, [k]: v }))}
         onSearch={() => {}}
         onReset={() => setFilters({})}
-        maxVisible={4}
+        maxVisible={3}
       />
 
       <AdminTable columns={columns} data={filtered} rowKey={(r) => r.id} actions={actions} maxVisibleActions={1} />
