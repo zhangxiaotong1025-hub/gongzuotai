@@ -51,6 +51,7 @@ const App = () => (
             <Route path="/enterprise/apply/detail/:id" element={<ApplicationDetail />} />
             <Route path="/permission" element={<PlaceholderPage title="权限管理" />} />
             {/* Entitlement */}
+            <Route path="/entitlement/dashboard" element={<EntitlementDashboard />} />
             <Route path="/entitlement/app" element={<AppListPage />} />
             <Route path="/entitlement/app/detail/:id" element={<AppDetail />} />
             <Route path="/entitlement/capability" element={<CapabilityList />} />
