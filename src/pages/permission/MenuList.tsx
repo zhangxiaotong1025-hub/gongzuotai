@@ -133,7 +133,7 @@ export default function MenuList() {
 
   const actions: ActionItem<MenuItem>[] = [
     { label: "详情", onClick: (r) => navigate(`/permission/menu/detail/${r.id}`) },
-    { label: "编辑", onClick: () => toast.info("编辑菜单") },
+    { label: "编辑", onClick: (r) => navigate(`/permission/menu/edit/${r.id}`) },
     {
       label: (r) => r.status === "active" ? "停用" : "启用",
       onClick: (r) => toast.success(`${r.name} 已${r.status === "active" ? "停用" : "启用"}`),
