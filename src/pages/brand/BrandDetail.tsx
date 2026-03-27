@@ -77,18 +77,14 @@ export default function BrandDetail() {
   return (
     <div className="space-y-5 pb-6">
       <DetailActionBar
-        breadcrumb={[
-          { label: "品牌管理", onClick: () => navigate("/brand") },
-          { label: brand.name },
-        ]}
-        actions={[
-          { label: "编辑", icon: <Edit className="h-3.5 w-3.5" />, onClick: () => navigate(`/brand/create?mode=edit&id=${id}`) },
-          {
-            label: brand.status === "active" ? "停用" : "启用",
-            onClick: () => toast.success(`品牌已${brand.status === "active" ? "停用" : "启用"}`),
-            variant: "ghost",
-          },
-        ]}
+        backLabel="品牌管理"
+        backPath="/brand"
+        currentName={brand.name}
+        onEdit={() => navigate(`/brand/create?mode=edit&id=${id}`)}
+        statusToggle={{
+          currentActive: brand.status === "active",
+          onToggle: () => toast.success(`品牌已${brand.status === "active" ? "停用" : "启用"}`),
+        }}
       />
 
       {/* Basic Info */}

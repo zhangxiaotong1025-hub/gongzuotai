@@ -169,7 +169,7 @@ export default function BrandList() {
 
       <AdminTable columns={columns} data={pageData} rowKey={(r) => r.id} actions={actions} />
 
-      <Pagination current={page} pageSize={pageSize} total={total} onChange={setPage} />
+      <Pagination current={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={() => {}} />
     </div>
   );
 }
