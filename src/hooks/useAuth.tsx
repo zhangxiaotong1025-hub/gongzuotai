@@ -32,9 +32,9 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 // Mock data
 const MOCK_ENTERPRISES: Enterprise[] = [
-  { id: "ent-1", name: "酷家乐总部", type: "品牌商" },
-  { id: "ent-2", name: "美克美家旗舰店", type: "卖场" },
-  { id: "ent-3", name: "红星美凯龙北京店", type: "门店" },
+  { id: "ent-1", name: "居然设计家总部", type: "品牌商" },
+  { id: "ent-2", name: "居然之家北四环店", type: "卖场" },
+  { id: "ent-3", name: "居然之家丽泽店", type: "门店" },
 ];
 
 const MOCK_USER: AuthUser = {
