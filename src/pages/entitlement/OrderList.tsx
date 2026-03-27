@@ -119,7 +119,7 @@ export default function OrderList() {
     { label: "审核通过", onClick: (r) => {
       const now = new Date().toLocaleString("zh-CN");
       setData((prev) => prev.map((o) => o.id === r.id ? {
-        ...o, auditStatus: "approved" as const, orderStatus: "processing" as const,
+        ...o, auditStatus: "approved" as const,
         auditBy: "当前运营", auditAt: now,
         statusHistory: [...o.statusHistory,
           { status: "approved", label: "审核通过", time: now, remark: "运营审核通过" },
