@@ -62,17 +62,27 @@ export default function OrderDetail() {
                 </button>
               </>
             )}
-            {order.orderStatus === "pending_payment" && order.paymentStatus === "pending" && (
+            {order.orderStatus === "pending_effect" && order.paymentStatus === "pending" && (
               <button onClick={() => toast.info("已标记支付")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-primary border-primary/30 hover:bg-primary/10">
                 标记已支付
               </button>
             )}
-            {order.orderStatus === "completed" && order.paymentStatus === "paid" && (
+            {order.orderStatus === "active" && order.paymentStatus === "paid" && (
               <button onClick={() => toast.info("退款")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10">
                 退款
               </button>
             )}
-            {(order.orderStatus === "pending_payment" || order.orderStatus === "draft") && (
+            {order.orderStatus === "active" && (
+              <button onClick={() => toast.info("暂停权益")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-amber-600 border-amber-300 hover:bg-amber-50">
+                暂停权益
+              </button>
+            )}
+            {order.orderStatus === "suspended" && (
+              <button onClick={() => toast.info("恢复权益")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-primary border-primary/30 hover:bg-primary/10">
+                恢复权益
+              </button>
+            )}
+            {(order.orderStatus === "pending_effect" || order.orderStatus === "draft") && (
               <button onClick={() => toast.info("关闭")} className="btn-secondary text-[12px] py-1.5 px-3 gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10">
                 关闭订单
               </button>
