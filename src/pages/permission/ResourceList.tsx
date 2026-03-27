@@ -16,7 +16,7 @@ const TAB_LIST: { key: ResourceType | "all"; label: string }[] = [
 ];
 
 const filterFields: FilterField[] = [
-  { key: "keyword", label: "资源名称/编码", type: "input", placeholder: "请输入", width: 200 },
+  { key: "keyword", label: "策略名称/编码", type: "input", placeholder: "请输入", width: 200 },
   { key: "menu", label: "所属模块", type: "select", options: menuData.filter(m => m.level <= 2).map(m => ({ label: (m.level === 2 ? "　" : "") + m.name, value: m.id })), width: 160 },
   { key: "status", label: "状态", type: "select", options: [
     { label: "启用", value: "active" },
@@ -37,7 +37,6 @@ export default function ResourceList() {
     return true;
   });
 
-  // Stats
   const stats = {
     all: resourceData.length,
     button: resourceData.filter(r => r.type === "button").length,
@@ -46,8 +45,12 @@ export default function ResourceList() {
   };
 
   const columns: TableColumn<Resource>[] = [
-    { key: "code", title: "资源ID", minWidth: 100, render: (v) => <span className="font-mono text-[12px] text-primary">{v}</span> },
-    { key: "name", title: "资源名称", minWidth: 120, render: (v) => <span className="text-[13px] font-medium text-foreground">{v}</span> },
+    { key: "code", title: "策略编码", minWidth: 100, render: (v) => <span className="font-mono text-[12px] text-primary">{v}</span> },
+    { key: "name", title: "策略名称", minWidth: 120, render: (v, row) => (
+      <button className="text-[13px] font-medium text-foreground hover:text-primary transition-colors" onClick={() => navigate(`/permission/resource/detail/${(row as Resource).id}`)}>
+        {v}
+      </button>
+    )},
     { key: "type", title: "类型", minWidth: 80, render: (v: string) => {
       const cfg = RESOURCE_TYPE_MAP[v as ResourceType];
       return <span className={cfg?.className}>{cfg?.label}</span>;
@@ -61,19 +64,19 @@ export default function ResourceList() {
   ];
 
   const actions: ActionItem<Resource>[] = [
-    { label: "编辑", onClick: () => toast.info("编辑资源") },
-    { label: "停用", onClick: () => toast.info("停用资源"), danger: true, visible: (r) => r.status === "active" },
-    { label: "启用", onClick: () => toast.info("启用资源"), visible: (r) => r.status === "inactive" },
+    { label: "编辑", onClick: (r) => navigate(`/permission/resource/edit/${r.id}`) },
+    { label: "停用", onClick: (r) => toast.success(`策略「${r.name}」已停用`), danger: true, visible: (r) => r.status === "active" },
+    { label: "启用", onClick: (r) => toast.success(`策略「${r.name}」已启用`), visible: (r) => r.status === "inactive" },
   ];
 
   return (
     <div className="space-y-4">
       <PageHeader
-        title="资源管理"
-        subtitle="管理系统中按钮、接口、数据三类资源，资源挂载在菜单模块下，通过角色分配给用户"
+        title="策略管理"
+        subtitle="管理系统中按钮、接口、数据三类策略，策略挂载在菜单模块下，通过角色分配给用户"
         actions={
-          <button className="btn-primary" onClick={() => toast.info("新建资源")}>
-            <Plus className="h-4 w-4" /> 新建资源
+          <button className="btn-primary" onClick={() => navigate("/permission/resource/create")}>
+            <Plus className="h-4 w-4" /> 新建策略
           </button>
         }
       />
@@ -83,6 +86,7 @@ export default function ResourceList() {
         {TAB_LIST.map(tab => (
           <button
             key={tab.key}
+            type="button"
             onClick={() => setActiveTab(tab.key)}
             className={cn(
               "px-4 py-2 rounded-lg text-[13px] font-medium transition-all",

@@ -19,6 +19,7 @@ import RoleList from "./pages/permission/RoleList";
 import RoleCreate from "./pages/permission/RoleCreate";
 import RoleDetail from "./pages/permission/RoleDetail";
 import ResourceList from "./pages/permission/ResourceList";
+import ResourceCreate from "./pages/permission/ResourceCreate";
 import AppListPage from "./pages/entitlement/AppList";
 import AppDetail from "./pages/entitlement/AppDetail";
 import CapabilityList from "./pages/entitlement/CapabilityList";
@@ -66,6 +67,8 @@ const App = () => (
             <Route path="/permission/role/edit/:id" element={<RoleCreate />} />
             <Route path="/permission/role/detail/:id" element={<RoleDetail />} />
             <Route path="/permission/resource" element={<ResourceList />} />
+            <Route path="/permission/resource/create" element={<ResourceCreate />} />
+            <Route path="/permission/resource/edit/:id" element={<ResourceCreate />} />
             {/* Entitlement */}
             <Route path="/entitlement/dashboard" element={<EntitlementDashboard />} />
             <Route path="/entitlement/app" element={<AppListPage />} />
