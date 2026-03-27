@@ -59,6 +59,7 @@ const App = () => (
             <Route path="/permission" element={<Navigate to="/permission/menu" replace />} />
             <Route path="/permission/menu" element={<MenuList />} />
             <Route path="/permission/menu/create" element={<MenuCreate />} />
+            <Route path="/permission/menu/edit/:id" element={<MenuCreate />} />
             <Route path="/permission/menu/detail/:id" element={<MenuDetail />} />
             <Route path="/permission/role" element={<RoleList />} />
             <Route path="/permission/role/create" element={<RoleCreate />} />
