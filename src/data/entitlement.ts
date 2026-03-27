@@ -738,6 +738,140 @@ export const accountData: EntitlementAccount[] = [
   },
 ];
 
+/* ── Account Health Metrics (Mock) ── */
+export interface AccountHealthMetrics {
+  healthScore: number;
+  healthLevel: "excellent" | "good" | "warning" | "critical";
+  usageTrend: { month: string; rate: number }[];
+  renewalRate: number;
+  renewalHistory: { year: string; renewed: boolean; amount: number }[];
+  intentScore: number;
+  intentSignals: { label: string; value: string; trend: "up" | "down" | "stable" }[];
+  riskFactors: string[];
+  opportunities: string[];
+  lastLoginDays: number;
+  activeUsers: number;
+  totalUsers: number;
+  avgSessionMinutes: number;
+}
+
+const HEALTH_DATA: Record<string, AccountHealthMetrics> = {
+  acc1: {
+    healthScore: 82, healthLevel: "good",
+    usageTrend: [
+      { month: "2025-10", rate: 45 }, { month: "2025-11", rate: 52 }, { month: "2025-12", rate: 58 },
+      { month: "2026-01", rate: 63 }, { month: "2026-02", rate: 71 }, { month: "2026-03", rate: 68 },
+    ],
+    renewalRate: 100,
+    renewalHistory: [
+      { year: "2024", renewed: true, amount: 128000 },
+      { year: "2025", renewed: true, amount: 156000 },
+      { year: "2026", renewed: true, amount: 189000 },
+    ],
+    intentScore: 75,
+    intentSignals: [
+      { label: "功能使用频率", value: "高频（日均85次）", trend: "up" },
+      { label: "新功能试用", value: "已体验3个Beta功能", trend: "up" },
+      { label: "客服咨询", value: "本月2次咨询升级", trend: "up" },
+      { label: "合同到期", value: "剩余286天", trend: "stable" },
+    ],
+    riskFactors: ["8K渲染使用率100%，可能影响体验"],
+    opportunities: ["推荐升级旗舰版", "AI设计使用率上升，可推荐AI设计家"],
+    lastLoginDays: 0, activeUsers: 45, totalUsers: 60, avgSessionMinutes: 38,
+  },
+  acc2: {
+    healthScore: 42, healthLevel: "warning",
+    usageTrend: [
+      { month: "2025-10", rate: 30 }, { month: "2025-11", rate: 55 }, { month: "2025-12", rate: 72 },
+      { month: "2026-01", rate: 81 }, { month: "2026-02", rate: 87 }, { month: "2026-03", rate: 89 },
+    ],
+    renewalRate: 66.7,
+    renewalHistory: [
+      { year: "2024", renewed: true, amount: 98000 },
+      { year: "2025", renewed: false, amount: 0 },
+      { year: "2026", renewed: true, amount: 210000 },
+    ],
+    intentScore: 58,
+    intentSignals: [
+      { label: "功能使用频率", value: "超高频（日均320次）", trend: "up" },
+      { label: "额度消耗速度", value: "提前12天用完月额度", trend: "up" },
+      { label: "客服咨询", value: "本月5次咨询扩容", trend: "up" },
+      { label: "合同到期", value: "剩余92天", trend: "down" },
+    ],
+    riskFactors: ["AI设计使用率89%，接近上限", "合同3个月内到期", "2025年曾中断续约"],
+    opportunities: ["紧急扩容AI设计额度", "提前续约锁定优惠价", "追加智能导购高级版"],
+    lastLoginDays: 1, activeUsers: 128, totalUsers: 150, avgSessionMinutes: 52,
+  },
+  acc3: {
+    healthScore: 91, healthLevel: "excellent",
+    usageTrend: [
+      { month: "2025-10", rate: 0 }, { month: "2025-11", rate: 0 }, { month: "2025-12", rate: 0 },
+      { month: "2026-01", rate: 8 }, { month: "2026-02", rate: 15 }, { month: "2026-03", rate: 18 },
+    ],
+    renewalRate: 100,
+    renewalHistory: [{ year: "2026", renewed: true, amount: 76000 }],
+    intentScore: 88,
+    intentSignals: [
+      { label: "功能使用频率", value: "中频（日均25次）", trend: "up" },
+      { label: "新功能试用", value: "已体验5个Beta功能", trend: "up" },
+      { label: "培训参与", value: "参加2次线上培训", trend: "up" },
+      { label: "合同到期", value: "剩余355天", trend: "stable" },
+    ],
+    riskFactors: [],
+    opportunities: ["新客户，关注首月体验", "推荐精准客资高级版"],
+    lastLoginDays: 2, activeUsers: 18, totalUsers: 30, avgSessionMinutes: 28,
+  },
+  acc4: {
+    healthScore: 35, healthLevel: "critical",
+    usageTrend: [
+      { month: "2025-10", rate: 22 }, { month: "2025-11", rate: 18 }, { month: "2025-12", rate: 12 },
+      { month: "2026-01", rate: 8 }, { month: "2026-02", rate: 6 }, { month: "2026-03", rate: 6 },
+    ],
+    renewalRate: 50,
+    renewalHistory: [
+      { year: "2025", renewed: true, amount: 15000 },
+      { year: "2026", renewed: false, amount: 0 },
+    ],
+    intentScore: 22,
+    intentSignals: [
+      { label: "功能使用频率", value: "极低频（日均3次）", trend: "down" },
+      { label: "最近登录", value: "15天前", trend: "down" },
+      { label: "客服咨询", value: "无近期咨询", trend: "stable" },
+      { label: "合同到期", value: "已过期", trend: "down" },
+    ],
+    riskFactors: ["使用率持续下降", "15天未登录", "免费版用户，付费转化低", "合同已过期未续约"],
+    opportunities: ["安排客户成功回访", "提供限时升级优惠"],
+    lastLoginDays: 15, activeUsers: 2, totalUsers: 8, avgSessionMinutes: 5,
+  },
+  acc5: {
+    healthScore: 65, healthLevel: "good",
+    usageTrend: [
+      { month: "2025-10", rate: 0 }, { month: "2025-11", rate: 0 }, { month: "2025-12", rate: 0 },
+      { month: "2026-01", rate: 0 }, { month: "2026-02", rate: 0 }, { month: "2026-03", rate: 8 },
+    ],
+    renewalRate: 100,
+    renewalHistory: [{ year: "2026", renewed: true, amount: 99 }],
+    intentScore: 45,
+    intentSignals: [
+      { label: "功能使用频率", value: "低频（日均8次）", trend: "stable" },
+      { label: "新功能试用", value: "未试用Beta功能", trend: "stable" },
+      { label: "合同到期", value: "剩余360天", trend: "stable" },
+    ],
+    riskFactors: ["C端个人用户，留存风险较高"],
+    opportunities: ["推荐基础会员升级", "发送功能引导邮件"],
+    lastLoginDays: 3, activeUsers: 1, totalUsers: 1, avgSessionMinutes: 12,
+  },
+};
+
+export function getAccountHealth(accId: string): AccountHealthMetrics {
+  return HEALTH_DATA[accId] || {
+    healthScore: 50, healthLevel: "good" as const,
+    usageTrend: [], renewalRate: 0, renewalHistory: [],
+    intentScore: 50, intentSignals: [], riskFactors: [], opportunities: [],
+    lastLoginDays: 0, activeUsers: 0, totalUsers: 0, avgSessionMinutes: 0,
+  };
+}
+
 /* ── Helpers ── */
 export const STATUS_MAP: Record<string, { label: string; className: string }> = {
   active: { label: "启用", className: "badge-active" },
