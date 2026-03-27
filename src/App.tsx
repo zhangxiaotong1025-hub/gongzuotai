@@ -44,8 +44,7 @@ import BrandCreate from "./pages/brand/BrandCreate";
 import CustomerList from "./pages/customer/CustomerList";
 import CustomerDetail from "./pages/customer/CustomerDetail";
 import CustomerCreate from "./pages/customer/CustomerCreate";
-import LifecycleDashboard from "./pages/customer/LifecycleDashboard";
-import BehaviorAnalysis from "./pages/customer/BehaviorAnalysis";
+import CustomerOverview from "./pages/customer/CustomerOverview";
 import MarketingStrategy from "./pages/customer/MarketingStrategy";
 import NotFound from "./pages/NotFound";
 
@@ -98,13 +97,13 @@ function ProtectedRoutes() {
         <Route path="/brand" element={<BrandList />} />
         <Route path="/brand/detail/:id" element={<BrandDetail />} />
         <Route path="/brand/create" element={<BrandCreate />} />
+        <Route path="/customer" element={<Navigate to="/customer/overview" replace />} />
+        <Route path="/customer/overview" element={<CustomerOverview />} />
         <Route path="/customer/designer" element={<CustomerList />} />
         <Route path="/customer/end-customer" element={<CustomerList />} />
         <Route path="/customer/designer/detail/:id" element={<CustomerDetail />} />
         <Route path="/customer/end-customer/detail/:id" element={<CustomerDetail />} />
         <Route path="/customer/create" element={<CustomerCreate />} />
-        <Route path="/customer/lifecycle" element={<LifecycleDashboard />} />
-        <Route path="/customer/behavior" element={<BehaviorAnalysis />} />
         <Route path="/customer/marketing" element={<MarketingStrategy />} />
         <Route path="/attribute" element={<PlaceholderPage title="属性管理" />} />
         <Route path="/category" element={<PlaceholderPage title="类目管理" />} />
