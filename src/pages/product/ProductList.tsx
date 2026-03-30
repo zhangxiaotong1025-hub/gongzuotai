@@ -517,7 +517,7 @@ export default function ProductList() {
                           onClick={() => setEnterpriseDialogSku(sku)}
                           className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
                         >
-                          <Building2 className="h-3 w-3" />{sku.appliedEnterprises.length}
+                          <Building2 className="h-3 w-3" />{(sku.appliedEnterprises || []).length}
                         </button>
                       </div>
 
