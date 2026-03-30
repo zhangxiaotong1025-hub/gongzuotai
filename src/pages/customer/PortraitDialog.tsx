@@ -522,7 +522,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                     <span className="text-[10px] font-medium text-muted-foreground">决策因素权重</span>
                     <div className="space-y-3.5 mt-3">
                       {data.decisionFactors.map((f, i) => (
-                        <TipWrap key={i} tip={f.evidence}>
+                        <TipWrap key={i} tip={f.evidence} showIcon={false}>
                           <div className="cursor-help">
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-[10px] font-medium">{f.factor}</span>
@@ -621,7 +621,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                         </div>
                         <div className="space-y-2">
                           {data.keyInsights.slice(0, 5).map((insight, i) => (
-                            <TipWrap key={i} tip={insight}>
+                            <TipWrap key={i} tip={insight} showIcon={false}>
                               <div className="flex items-start gap-2.5 cursor-help group">
                                 <span className="w-5 h-5 rounded-md bg-primary/8 text-primary text-[8px] font-bold flex items-center justify-center shrink-0 mt-0.5">{String(i + 1).padStart(2, "0")}</span>
                                 <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1 group-hover:text-foreground transition-colors">{insight}</p>
@@ -642,7 +642,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                         </div>
                         <div className="space-y-3">
                           {data.decisionFactors.map((factor, i) => (
-                            <TipWrap key={i} tip={factor.evidence}>
+                            <TipWrap key={i} tip={factor.evidence} showIcon={false}>
                               <div className="flex items-center gap-2.5 cursor-help group">
                                 <span className="text-[10px] font-medium w-24 shrink-0 truncate group-hover:text-primary transition-colors">{factor.factor}</span>
                                 <div className="flex-1 h-1.5 rounded-full bg-muted/20 overflow-hidden">
