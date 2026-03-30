@@ -352,10 +352,17 @@ const SECTIONS = [
 /* ═══════════════════════════════════════════
    HELPERS
    ═══════════════════════════════════════════ */
-function TipWrap({ tip, children }: { tip: string; children: React.ReactNode }) {
+function TipWrap({ tip, children, showIcon = true }: { tip: string; children: React.ReactNode; showIcon?: boolean }) {
   return (
     <Tooltip delayDuration={200}>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipTrigger asChild>
+        <div className="relative group/tip cursor-help">
+          {children}
+          {showIcon && (
+            <Info className="absolute top-1 right-1 h-3 w-3 text-muted-foreground/30 group-hover/tip:text-primary/50 transition-colors" />
+          )}
+        </div>
+      </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs text-[11px] leading-relaxed">{tip}</TooltipContent>
     </Tooltip>
   );
@@ -515,7 +522,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                     <span className="text-[10px] font-medium text-muted-foreground">决策因素权重</span>
                     <div className="space-y-3.5 mt-3">
                       {data.decisionFactors.map((f, i) => (
-                        <TipWrap key={i} tip={f.evidence}>
+                        <TipWrap key={i} tip={f.evidence} showIcon={false}>
                           <div className="cursor-help">
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-[10px] font-medium">{f.factor}</span>
@@ -614,7 +621,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                         </div>
                         <div className="space-y-2">
                           {data.keyInsights.slice(0, 5).map((insight, i) => (
-                            <TipWrap key={i} tip={insight}>
+                            <TipWrap key={i} tip={insight} showIcon={false}>
                               <div className="flex items-start gap-2.5 cursor-help group">
                                 <span className="w-5 h-5 rounded-md bg-primary/8 text-primary text-[8px] font-bold flex items-center justify-center shrink-0 mt-0.5">{String(i + 1).padStart(2, "0")}</span>
                                 <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1 group-hover:text-foreground transition-colors">{insight}</p>
@@ -635,7 +642,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                         </div>
                         <div className="space-y-3">
                           {data.decisionFactors.map((factor, i) => (
-                            <TipWrap key={i} tip={factor.evidence}>
+                            <TipWrap key={i} tip={factor.evidence} showIcon={false}>
                               <div className="flex items-center gap-2.5 cursor-help group">
                                 <span className="text-[10px] font-medium w-24 shrink-0 truncate group-hover:text-primary transition-colors">{factor.factor}</span>
                                 <div className="flex-1 h-1.5 rounded-full bg-muted/20 overflow-hidden">
@@ -671,7 +678,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                             <span className="text-[9px] font-medium text-emerald-600 mb-2 block">✓ 建议</span>
                             <div className="space-y-1.5">
                               {data.communicationStyle.dos.map((d, i) => (
-                                <TipWrap key={i} tip={d}>
+                                <TipWrap key={i} tip={d} showIcon={false}>
                                   <p className="text-[9px] text-muted-foreground line-clamp-1 cursor-help hover:text-foreground transition-colors">
                                     {d.length > 20 ? d.slice(0, 20) + "…" : d}
                                   </p>
@@ -683,7 +690,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                             <span className="text-[9px] font-medium text-red-500 mb-2 block">✗ 避免</span>
                             <div className="space-y-1.5">
                               {data.communicationStyle.donts.map((d, i) => (
-                                <TipWrap key={i} tip={d}>
+                                <TipWrap key={i} tip={d} showIcon={false}>
                                   <p className="text-[9px] text-muted-foreground line-clamp-1 cursor-help hover:text-foreground transition-colors">
                                     {d.length > 20 ? d.slice(0, 20) + "…" : d}
                                   </p>
@@ -811,18 +818,19 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                     {data.interestBubbles
                       .sort((a, b) => b.weight - a.weight)
                       .map((b, i) => {
-                        const size = 36 + (b.weight / 100) * 52;
+                        const size = 40 + (b.weight / 100) * 56;
                         return (
-                          <TipWrap key={i} tip={`${b.name}：关注度 ${b.weight}%`}>
-                            <div
-                              className={`${b.color} rounded-full flex items-center justify-center text-white shrink-0 transition-transform hover:scale-110 cursor-help`}
-                              style={{ width: `${size}px`, height: `${size}px`, opacity: 0.3 + (b.weight / 100) * 0.6 }}
-                            >
-                              <span className="text-center leading-tight px-1 font-medium" style={{ fontSize: `${Math.max(9, size / 7.5)}px` }}>
-                                {b.name}
-                              </span>
-                            </div>
-                          </TipWrap>
+                          <div key={i}
+                            className={`${b.color} rounded-full flex flex-col items-center justify-center text-white shrink-0 transition-transform hover:scale-110 cursor-default`}
+                            style={{ width: `${size}px`, height: `${size}px`, opacity: 0.3 + (b.weight / 100) * 0.6 }}
+                          >
+                            <span className="text-center leading-none font-semibold" style={{ fontSize: `${Math.max(9, size / 7)}px` }}>
+                              {b.name}
+                            </span>
+                            <span className="text-center leading-none mt-0.5 opacity-80" style={{ fontSize: `${Math.max(7, size / 9)}px` }}>
+                              {b.weight}%
+                            </span>
+                          </div>
                         );
                       })}
                   </div>
