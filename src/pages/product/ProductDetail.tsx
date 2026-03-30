@@ -539,10 +539,3 @@ function SkuRow({ sku, isExpanded, onToggle, formatPrice }: {
     </div>
   );
 }
-
-function getSpuSpecSummary(spu: ProductSpu): string {
-  if (spu.skus.length === 0) return "—";
-  const allKeys = new Set<string>();
-  spu.skus.forEach((s) => Object.keys(s.paramSnapshot).forEach((k) => allKeys.add(k)));
-  return Array.from(allKeys).slice(0, 3).join(" / ");
-}
