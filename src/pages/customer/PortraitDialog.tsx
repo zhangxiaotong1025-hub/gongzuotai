@@ -359,8 +359,7 @@ export const EC_PORTRAIT: PortraitData = {
 const SECTIONS = [
   { id: "p-hero", label: "总览" },
   { id: "p-narrative", label: "研判" },
-  { id: "p-behavior", label: "行为" },
-  { id: "p-personality", label: "性格" },
+  { id: "p-behavior", label: "行为·性格" },
   { id: "p-heatmap", label: "活跃" },
   { id: "p-interests", label: "兴趣" },
   { id: "p-needs", label: "需求" },
@@ -505,6 +504,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                 </div>
 
                 <div className="grid grid-cols-12 gap-3">
+                  {/* LEFT COL */}
                   <div className="col-span-7 space-y-3">
                     <div className="rounded-xl border border-border/40 bg-gradient-to-br from-muted/30 to-background p-4">
                       <div className="flex items-center gap-1.5 mb-3">
@@ -527,24 +527,26 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                     <div className="rounded-xl border border-border/40 p-4">
                       <div className="flex items-center gap-1.5 mb-3">
                         <DollarSign className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold">价值研判</span>
+                        <span className="text-[11px] font-semibold">价值信号</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-4 gap-2">
                         {[
-                          { label: "关系健康", value: data.healthScore, tip: "当前稳定度" },
-                          { label: data.radarDimensions[2]?.name ?? "商业价值", value: data.radarDimensions[2]?.value ?? 0, tip: "变现潜力" },
-                          { label: data.radarDimensions[3]?.name ?? "传播价值", value: data.radarDimensions[3]?.value ?? 0, tip: "扩散能力" },
-                          { label: data.radarDimensions[1]?.name ?? "合作深度", value: data.radarDimensions[1]?.value ?? 0, tip: "持续开发" },
-                        ].map((metric, i) => (
-                          <div key={i} className="rounded-lg bg-muted/30 px-3 py-2">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[9px] text-muted-foreground">{metric.label}</span>
-                              <span className="text-[10px] font-bold text-primary">{metric.value}</span>
+                          { label: "健康度", value: data.healthScore },
+                          { label: data.radarDimensions[0]?.name ?? "—", value: data.radarDimensions[0]?.value ?? 0 },
+                          { label: data.radarDimensions[2]?.name ?? "—", value: data.radarDimensions[2]?.value ?? 0 },
+                          { label: data.radarDimensions[3]?.name ?? "—", value: data.radarDimensions[3]?.value ?? 0 },
+                        ].map((m, i) => (
+                          <div key={i} className="text-center">
+                            <div className="relative w-10 h-10 mx-auto">
+                              <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
+                                <circle cx="20" cy="20" r="16" fill="none" strokeWidth="2.5" stroke="hsl(var(--muted) / 0.3)" />
+                                <circle cx="20" cy="20" r="16" fill="none" strokeWidth="2.5"
+                                  stroke={m.value >= 80 ? "#10b981" : m.value >= 50 ? "hsl(var(--primary))" : "#f59e0b"}
+                                  strokeLinecap="round" strokeDasharray={`${m.value * 1.005} 100.5`} />
+                              </svg>
+                              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold">{m.value}</span>
                             </div>
-                            <div className="h-1.5 rounded-full bg-background overflow-hidden">
-                              <div className="h-full rounded-full bg-primary/70" style={{ width: `${metric.value}%` }} />
-                            </div>
-                            <span className="text-[8px] text-muted-foreground mt-1 block">{metric.tip}</span>
+                            <span className="text-[8px] text-muted-foreground mt-0.5 block">{m.label}</span>
                           </div>
                         ))}
                       </div>
@@ -576,7 +578,26 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                     </div>
                   </div>
 
+                  {/* RIGHT COL */}
                   <div className="col-span-5 space-y-3">
+                    <div className="rounded-xl border border-border/40 p-4">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-[11px] font-semibold">决策抓手</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {data.decisionFactors.map((factor, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-[10px] font-medium w-24 shrink-0 truncate">{factor.factor}</span>
+                            <div className="flex-1 h-1.5 rounded-full bg-muted/30 overflow-hidden">
+                              <div className="h-full rounded-full bg-primary/60" style={{ width: `${factor.weight * 2.85}%` }} />
+                            </div>
+                            <span className="text-[9px] font-bold text-primary w-8 text-right tabular-nums">{factor.weight}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="rounded-xl border border-border/40 p-4">
                       <div className="flex items-center gap-1.5 mb-3">
                         <Target className="h-3.5 w-3.5 text-primary" />
@@ -588,23 +609,14 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                           return (
                             <div key={i} className="rounded-lg border border-border/40 bg-card px-3 py-2">
                               <div className="flex items-start gap-2">
-                                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                  <Icon className="h-3.5 w-3.5 text-primary" />
+                                <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                                  <Icon className="h-3 w-3 text-primary" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1 flex-wrap">
-                                    <span className="text-[10px] font-semibold">{item.title}</span>
-                                    <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[8px]">{item.channel}</span>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-1 mt-1">
-                                    <div className="rounded bg-muted/30 px-2 py-1">
-                                      <span className="text-[8px] text-muted-foreground block">时机</span>
-                                      <span className="text-[9px] font-medium leading-tight">{item.timing}</span>
-                                    </div>
-                                    <div className="rounded bg-muted/30 px-2 py-1">
-                                      <span className="text-[8px] text-muted-foreground block">目标</span>
-                                      <span className="text-[9px] font-medium leading-tight">{item.expectedOutcome}</span>
-                                    </div>
+                                  <span className="text-[10px] font-semibold">{item.title}</span>
+                                  <div className="flex gap-1 mt-0.5 flex-wrap">
+                                    <span className="px-1 py-0.5 rounded bg-muted text-muted-foreground text-[8px]">{item.timing}</span>
+                                    <span className="px-1 py-0.5 rounded bg-primary/10 text-primary text-[8px]">{item.channel}</span>
                                   </div>
                                 </div>
                               </div>
@@ -612,67 +624,39 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                           );
                         })}
                       </div>
-                      <div className="grid grid-cols-2 gap-2 mt-3">
-                        {data.serviceApproach.split("。").filter(Boolean).slice(0, 2).map((item, i) => (
-                          <div key={i} className="rounded-lg bg-primary/5 border border-primary/10 px-3 py-2">
-                            <p className="text-[10px] text-muted-foreground leading-relaxed">{item}。</p>
-                          </div>
-                        ))}
-                      </div>
                     </div>
 
                     <div className="rounded-xl border border-border/40 p-4">
                       <div className="flex items-center gap-1.5 mb-3">
                         <MessageCircle className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold">沟通方式指南</span>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary ml-1">{data.communicationStyle.style}</span>
+                        <span className="text-[11px] font-semibold">沟通指南</span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary ml-auto">{data.communicationStyle.style}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="rounded-lg border border-primary/15 bg-primary/5 p-3">
-                          <span className="text-[10px] font-medium text-primary flex items-center gap-1 mb-2">
-                            <CheckCircle className="h-3 w-3" /> 推荐做法
+                        <div className="rounded-lg border border-primary/15 bg-primary/5 p-2.5">
+                          <span className="text-[9px] font-medium text-primary flex items-center gap-1 mb-1.5">
+                            <CheckCircle className="h-3 w-3" /> 推荐
                           </span>
-                          <div className="space-y-1.5">
+                          <div className="space-y-1">
                             {data.communicationStyle.dos.slice(0, 3).map((d, i) => (
-                              <div key={i} className="rounded bg-background px-2 py-1.5">
+                              <div key={i} className="rounded bg-background px-2 py-1">
                                 <p className="text-[9px] text-muted-foreground leading-relaxed">{d}</p>
                               </div>
                             ))}
                           </div>
                         </div>
-                        <div className="rounded-lg border border-destructive/15 bg-destructive/5 p-3">
-                          <span className="text-[10px] font-medium text-destructive flex items-center gap-1 mb-2">
-                            <AlertTriangle className="h-3 w-3" /> 避免做法
+                        <div className="rounded-lg border border-destructive/15 bg-destructive/5 p-2.5">
+                          <span className="text-[9px] font-medium text-destructive flex items-center gap-1 mb-1.5">
+                            <AlertTriangle className="h-3 w-3" /> 避免
                           </span>
-                          <div className="space-y-1.5">
+                          <div className="space-y-1">
                             {data.communicationStyle.donts.slice(0, 3).map((d, i) => (
-                              <div key={i} className="rounded bg-background px-2 py-1.5">
+                              <div key={i} className="rounded bg-background px-2 py-1">
                                 <p className="text-[9px] text-muted-foreground leading-relaxed">{d}</p>
                               </div>
                             ))}
                           </div>
                         </div>
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-border/40 p-4">
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <TrendingUp className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold">决策抓手</span>
-                      </div>
-                      <div className="space-y-2">
-                        {data.decisionFactors.map((factor, i) => (
-                          <div key={i} className="rounded-lg bg-muted/30 px-3 py-2">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[10px] font-medium">{factor.factor}</span>
-                              <span className="text-[10px] font-bold text-primary">{factor.weight}%</span>
-                            </div>
-                            <div className="h-1.5 rounded-full bg-background overflow-hidden">
-                              <div className="h-full rounded-full bg-primary/70" style={{ width: `${factor.weight * 2.85}%` }} />
-                            </div>
-                            <p className="text-[8px] text-muted-foreground mt-1">{factor.evidence}</p>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </div>
@@ -680,58 +664,62 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
               </div>
             </section>
 
-            {/* ═══ BEHAVIOR TRAITS ═══ */}
+            {/* ═══ BEHAVIOR + PERSONALITY (combined compact) ═══ */}
             <section id="p-behavior">
-              <SectionLabel title="行为特征指纹" />
-              <div className="space-y-2 mt-3">
-                {data.behaviorTraits.map((t, i) => {
-                  const Icon = t.icon;
-                  const barColor = t.level === "high" ? "bg-emerald-500" : t.level === "medium" ? "bg-amber-400" : "bg-muted-foreground/40";
-                  return (
-                    <div key={i} className="rounded-lg border border-border/40 p-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded bg-muted/50 flex items-center justify-center shrink-0">
-                          <Icon className="h-3 w-3 text-muted-foreground" />
+              <SectionLabel title="行为特征 & 性格画像" />
+              <div className="grid grid-cols-12 gap-3 mt-3">
+                {/* Behavior - compact cards */}
+                <div className="col-span-7">
+                  <div className="grid grid-cols-3 gap-2">
+                    {data.behaviorTraits.map((t, i) => {
+                      const Icon = t.icon;
+                      const levelColor = t.level === "high" ? "text-emerald-500" : t.level === "medium" ? "text-amber-500" : "text-muted-foreground";
+                      const dotColor = t.level === "high" ? "bg-emerald-500" : t.level === "medium" ? "bg-amber-400" : "bg-muted-foreground/40";
+                      return (
+                        <div key={i} className="rounded-xl border border-border/40 p-3 group hover:border-primary/30 transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-1.5">
+                              <Icon className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+                              <span className="text-[10px] font-semibold">{t.label}</span>
+                            </div>
+                            <span className={`text-[12px] font-bold tabular-nums ${levelColor}`}>{t.score}</span>
+                          </div>
+                          <div className="h-1 rounded-full bg-muted/30 overflow-hidden mb-1.5">
+                            <div className={`h-full rounded-full ${dotColor}`} style={{ width: `${t.score}%`, opacity: 0.7 }} />
+                          </div>
+                          <p className="text-[9px] text-muted-foreground leading-tight">{t.evidence}</p>
                         </div>
-                        <span className="text-[11px] font-medium w-20 shrink-0">{t.label}</span>
-                        <div className="flex-1 h-5 bg-muted/30 rounded overflow-hidden relative">
-                          <div className={`h-full rounded ${barColor} transition-all`} style={{ width: `${t.score}%`, opacity: 0.65 }} />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground">{t.evidence}</span>
-                        </div>
-                        <span className="text-[11px] font-bold w-7 text-right tabular-nums">{t.score}</span>
-                      </div>
-                      <p className="text-[9px] text-muted-foreground leading-relaxed mt-1.5 ml-8">{t.detail}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* ═══ PERSONALITY SPECTRUM ═══ */}
-            <section id="p-personality">
-              <SectionLabel title="性格特征谱" />
-              <div className="space-y-2 mt-3">
-                {data.personalityTraits.map((t, i) => (
-                  <div key={i} className="rounded-lg border border-border/40 p-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-medium w-14 shrink-0">{t.dimension}</span>
-                      <span className="text-[9px] text-muted-foreground w-10 text-right shrink-0">{t.leftLabel}</span>
-                      <div className="flex-1 h-3 bg-muted/40 rounded-full relative mx-1">
-                        <div className="absolute inset-0 rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-violet-400/30 via-primary/15 to-blue-400/30" />
-                        </div>
-                        {[20, 40, 60, 80].map(m => (
-                          <div key={m} className="absolute top-0 h-full w-px bg-background/50" style={{ left: `${m}%` }} />
-                        ))}
-                        <div className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-primary shadow-md border-2 border-background"
-                          style={{ left: `calc(${t.score}% - 7px)` }} />
-                      </div>
-                      <span className="text-[9px] text-muted-foreground w-10 shrink-0">{t.rightLabel}</span>
-                      <span className="text-[10px] w-16 text-right text-muted-foreground shrink-0">{t.desc}</span>
-                    </div>
-                    <p className="text-[9px] text-muted-foreground leading-relaxed mt-1.5 ml-14">{t.detail}</p>
+                      );
+                    })}
                   </div>
-                ))}
+                </div>
+
+                {/* Personality - compact */}
+                <div className="col-span-5" id="p-personality">
+                  <div className="rounded-xl border border-border/40 p-4 h-full">
+                    <div className="space-y-3">
+                      {data.personalityTraits.map((t, i) => (
+                        <div key={i}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] font-medium">{t.dimension}</span>
+                            <span className="text-[9px] text-primary font-medium">{t.desc}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[8px] text-muted-foreground w-8 text-right shrink-0">{t.leftLabel}</span>
+                            <div className="flex-1 h-2 bg-muted/30 rounded-full relative">
+                              <div className="absolute inset-0 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10" />
+                              </div>
+                              <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary shadow-sm border-[1.5px] border-background"
+                                style={{ left: `calc(${t.score}% - 5px)` }} />
+                            </div>
+                            <span className="text-[8px] text-muted-foreground w-8 shrink-0">{t.rightLabel}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </section>
 
