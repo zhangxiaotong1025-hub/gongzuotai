@@ -923,6 +923,7 @@ function MiniMetric({ label, value, suffix, color = "primary" }: { label: string
   );
 }
 
+function Badge({ children, color, className: cn }: { children: React.ReactNode; color?: string; className?: string }) {
   const base = "px-1.5 py-0.5 rounded text-[10px] font-medium";
   const c = color === "primary" ? "bg-primary/10 text-primary" : color === "amber" ? "bg-amber-50 text-amber-700" : "";
   return <span className={`${base} ${cn || c}`}>{children}</span>;
