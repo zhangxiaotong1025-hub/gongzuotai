@@ -960,6 +960,8 @@ export default function CustomerDetail() {
           </div>
         </section>
       </div>
+
+      <PortraitDialog open={showPortrait} onOpenChange={setShowPortrait} isDesigner={isDesigner} name={isDesigner ? d.name : ec.name} />
     </div>
   );
 }
