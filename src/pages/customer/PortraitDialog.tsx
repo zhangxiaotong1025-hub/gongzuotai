@@ -86,6 +86,16 @@ export interface PortraitData {
 export const DESIGNER_PORTRAIT: PortraitData = {
   persona: "效率创作型",
   personaDesc: "以产出效率为核心竞争力的实战型设计师，善用AI工具批量出图，服务中小型家装客户为主，正处于从「接单执行」向「品牌化运营」转型的关键期",
+  profileCards: [
+    { icon: "user", label: "身份", value: "室内设计师 · 4年", color: "primary" },
+    { icon: "map", label: "市场", value: "杭州 · 中小型家装", color: "blue" },
+    { icon: "zap", label: "产出力", value: "42套/月 Top 8%", color: "emerald" },
+    { icon: "brain", label: "工作方式", value: "AI出图占比87%", color: "violet" },
+    { icon: "dollar", label: "累计消费", value: "¥28,600", color: "amber" },
+    { icon: "repeat", label: "续费习惯", value: "3次 · 提前8天", color: "cyan" },
+    { icon: "clock", label: "效率提升", value: "4.2h→1.8h/套", color: "emerald" },
+    { icon: "target", label: "核心驱动", value: "效率 · 接单 · ROI", color: "primary" },
+  ],
   healthScore: 78,
 
   profileNarrative: "张明是一位从业4年的室内设计师，目前服务于杭州地区的中小型家装市场。他的核心特征是「效率至上」——月均产出42套设计方案（平台Top 8%），AI辅助出图占比达87%，单套方案平均耗时从入驻初期的4.2小时压缩至1.8小时。他是典型的工具型用户，对能提升出图速度和客户成交的功能有极高的付费意愿（历史续费3次，每次均在到期前主动续费），但对社交传播类功能兴趣较低。从消费行为看，他属于「精准投入型」——只为直接产生收益的功能付费，累计消费¥28,600，ARPU高于同级用户均值35%。当前最大风险点是过度依赖单一风格（78%为现代简约），一旦市场风格偏好变化，产出竞争力可能下降。最大机会点是他的高产出量尚未转化为个人品牌影响力——他从未使用过作品展示和设计师主页功能，而同量级设计师中，开通主页者的客户溢价平均高出22%。",
@@ -210,6 +220,16 @@ export const DESIGNER_PORTRAIT: PortraitData = {
 export const EC_PORTRAIT: PortraitData = {
   persona: "品质决策型",
   personaDesc: "高净值家庭装修决策人，追求「省心+高品质」的一站式服务体验，决策周期长但一旦信任建立后忠诚度极高，有较强的朋友圈传播意愿",
+  profileCards: [
+    { icon: "user", label: "身份", value: "女主人 · 35-40岁", color: "primary" },
+    { icon: "home", label: "项目", value: "140㎡改善型住房", color: "blue" },
+    { icon: "dollar", label: "预算", value: "¥35万 · 高于均值40%", color: "amber" },
+    { icon: "clock", label: "决策周期", value: "87天 · 信任后极快", color: "violet" },
+    { icon: "eye", label: "决策方式", value: "视觉驱动 · 效果图优先", color: "cyan" },
+    { icon: "share", label: "传播力", value: "朋友圈3次 · 带来2咨询", color: "emerald" },
+    { icon: "star", label: "品质态度", value: "品质优先 · 愿意溢价", color: "amber" },
+    { icon: "target", label: "核心诉求", value: "省心 · 收纳 · 一站式", color: "primary" },
+  ],
   healthScore: 85,
 
   profileNarrative: "李女士是一位35-40岁的高净值家庭女主人，正在为新购的140㎡改善型住房进行全屋装修。她的决策特征是「视觉驱动+品质导向」——在87天的决策周期中，她浏览了380+张效果图，对比了3个平台的方案，最终选择我们是因为「效果图最真实，而且设计师能根据我的想法快速改方案」。她的预算定位在中高端（总预算约¥35万，客单价高于区域均值40%），愿意为品质溢价，但需要被「看到」而非「说服」——她更相信效果图和实景对比，而非销售话术。值得重点关注的是，她在签约后的朋友圈分享了3次装修进展，带来了2个朋友的咨询。她是典型的「体验驱动型传播者」——如果服务体验超预期，她会自发传播；但如果任何环节让她感到「不专业」，她也会迅速在社交圈表达不满。",
