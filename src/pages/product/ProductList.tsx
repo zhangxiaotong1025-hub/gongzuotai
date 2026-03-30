@@ -1,10 +1,10 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { createPortal } from "react-dom";
 import {
-  Plus, ChevronRight, ChevronDown, Link2, Package, Eye, Pencil, PlusCircle,
-  ClipboardCheck, Copy, Trash2, MoreHorizontal, Building2, X,
+  Plus, ChevronRight, ChevronDown, Link2, Package, Building2, X,
+  ChevronUp,
 } from "lucide-react";
+import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { FilterBar, FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
@@ -19,13 +19,21 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 
-/* ── Stat card type ── */
+/* ── Stat overview variant colors (reuse benefit-card pattern) ── */
+const VARIANT_VARS: Record<string, string> = {
+  primary: "--primary",
+  success: "--success",
+  warning: "--warning",
+  destructive: "--destructive",
+  muted: "--muted-foreground",
+};
+
 interface StatCard {
   label: string;
   value: number;
   filterKey?: string;
   filterValue?: string;
-  color: string;
+  variant: string;
 }
 
 /* ── Category tabs ── */
@@ -42,99 +50,37 @@ const filterFields: FilterField[] = [
   { key: "owner", label: "所属企业", type: "input", placeholder: "企业名称" },
 ];
 
-/* ── Action menu item definition ── */
-interface ActionDef {
-  icon: typeof Eye;
-  label: string;
-  danger?: boolean;
-  onClick: () => void;
+/* ── Mini stat card (same pattern as StaffList MiniBenefitCard) ── */
+function MiniStatCard({
+  stat, isActive, onClick,
+}: { stat: StatCard; isActive: boolean; onClick: () => void }) {
+  const cssVar = VARIANT_VARS[stat.variant] || "--primary";
+  return (
+    <button
+      onClick={onClick}
+      className="relative min-w-[140px] shrink-0 overflow-hidden rounded-xl px-4 py-3 text-left transition-all hover:shadow-sm"
+      style={{
+        border: `1px solid hsl(var(${cssVar}) / ${isActive ? 0.4 : 0.15})`,
+        background: `hsl(var(${cssVar}) / ${isActive ? 0.06 : 0.02})`,
+        boxShadow: isActive ? `0 0 0 1px hsl(var(${cssVar}) / 0.2)` : undefined,
+      }}
+    >
+      <div className="absolute left-0 right-0 top-0 h-[2px] opacity-50" style={{ background: `hsl(var(${cssVar}))` }} />
+      <div className="text-[11px] text-muted-foreground mb-1">{stat.label}</div>
+      <div className="text-[18px] font-semibold" style={{ color: `hsl(var(${cssVar}))` }}>{stat.value}</div>
+    </button>
+  );
 }
 
-/* ── Reusable action cell: show up to maxVisible inline, rest in overflow ── */
-function ActionButtons({ actions, maxVisible = 3 }: { actions: ActionDef[]; maxVisible?: number }) {
-  const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-
-  const closeMenu = useCallback(() => setOpen(false), []);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node) &&
-          triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
-        closeMenu();
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    window.addEventListener("scroll", closeMenu, true);
-    window.addEventListener("resize", closeMenu);
-    return () => {
-      document.removeEventListener("mousedown", handler);
-      window.removeEventListener("scroll", closeMenu, true);
-      window.removeEventListener("resize", closeMenu);
-    };
-  }, [open, closeMenu]);
-
-  const shown = actions.slice(0, maxVisible);
-  const overflow = actions.slice(maxVisible);
-
-  return (
-    <div className="flex items-center gap-1">
-      {shown.map((a, i) => (
-        <button
-          key={a.label + i}
-          type="button"
-          onClick={(e) => { e.stopPropagation(); a.onClick(); }}
-          className={`btn-text ${a.danger ? "text-danger-action" : "text-primary-action"}`}
-        >
-          {a.label}
-        </button>
-      ))}
-      {overflow.length > 0 && (
-        <>
-          <button
-            ref={triggerRef}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (open) { closeMenu(); return; }
-              if (triggerRef.current) {
-                const rect = triggerRef.current.getBoundingClientRect();
-                setMenuPos({ top: rect.bottom + 6, left: rect.right });
-              }
-              setOpen(true);
-            }}
-            className="admin-action-trigger"
-            data-state={open ? "open" : "closed"}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
-          {open && createPortal(
-            <div
-              ref={menuRef}
-              className="admin-action-menu"
-              data-state="open"
-              style={{ top: menuPos.top, left: menuPos.left, transform: "translateX(calc(-100% + 2px))" }}
-            >
-              {overflow.map((a, i) => (
-                <button
-                  key={a.label + i}
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); closeMenu(); a.onClick(); }}
-                  className={`admin-action-menu-item ${a.danger ? "admin-action-menu-item-danger" : ""}`}
-                >
-                  <a.icon className="h-3.5 w-3.5" />{a.label}
-                </button>
-              ))}
-            </div>,
-            document.body,
-          )}
-        </>
-      )}
-    </div>
-  );
+/* ── Flat row type for AdminTable (SPU + SKU mixed) ── */
+interface ProductRow {
+  _type: "spu" | "sku";
+  _key: string;
+  _spu: ProductSpu;
+  _sku?: ProductSku;
+  _expanded?: boolean;
+  _level: number;
+  _hasChildren: boolean;
 }
 
 export default function ProductList() {
@@ -145,6 +91,7 @@ export default function ProductList() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
+  const [statsCollapsed, setStatsCollapsed] = useState(false);
 
   /* ── Applied enterprises dialog (SKU级) ── */
   const [enterpriseDialogSku, setEnterpriseDialogSku] = useState<ProductSku | null>(null);
@@ -159,7 +106,7 @@ export default function ProductList() {
 
   const formatPrice = (n: number) => `¥${n.toLocaleString()}`;
 
-  /* ── Filtered data (use aggregated status from SKUs) ── */
+  /* ── Filtered data ── */
   const categoryFiltered = useMemo(() => {
     return productSpuData.filter((spu) => {
       if (activeCategory !== "ALL" && spu.category !== activeCategory) return false;
@@ -186,15 +133,35 @@ export default function ProductList() {
     });
   }, [categoryFiltered, filters, statFilter]);
 
-  /* ── Paginated data ── */
-  const paginatedData = useMemo(() => {
+  /* ── Paginated ── */
+  const paginatedSpus = useMemo(() => {
     const start = (page - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
   }, [filtered, page, pageSize]);
 
-  /* ── Stats (aggregate from SKUs) ── */
+  /* ── Flatten SPU+SKU into rows for AdminTable ── */
+  const tableData = useMemo(() => {
+    const rows: ProductRow[] = [];
+    for (const spu of paginatedSpus) {
+      const isExpanded = expandedKeys.has(spu.id);
+      rows.push({
+        _type: "spu", _key: spu.id, _spu: spu, _expanded: isExpanded,
+        _level: 0, _hasChildren: spu.skus.length > 0,
+      });
+      if (isExpanded) {
+        for (const sku of spu.skus) {
+          rows.push({
+            _type: "sku", _key: sku.id, _spu: spu, _sku: sku,
+            _level: 1, _hasChildren: false,
+          });
+        }
+      }
+    }
+    return rows;
+  }, [paginatedSpus, expandedKeys]);
+
+  /* ── Stats ── */
   const stats = useMemo((): StatCard[] => {
-    // Stats are computed from SPU-level aggregation
     const total = categoryFiltered.length;
     const approved = categoryFiltered.filter((s) => getSpuAggregatedAuditStatus(s) === "APPROVED").length;
     const pending = categoryFiltered.filter((s) => getSpuAggregatedAuditStatus(s) === "PENDING").length;
@@ -203,18 +170,15 @@ export default function ProductList() {
     const pendingShelf = categoryFiltered.filter((s) => getSpuAggregatedAuditStatus(s) === "APPROVED" && getSpuAggregatedShelfStatus(s) === "PENDING_SHELF").length;
     const offShelf = categoryFiltered.filter((s) => getSpuAggregatedShelfStatus(s) === "OFF_SHELF").length;
     return [
-      { label: "商品总数", value: total, color: "var(--primary)" },
-      { label: "审核通过", value: approved, filterKey: "audit", filterValue: "APPROVED", color: "var(--success)" },
-      { label: "待审核", value: pending, filterKey: "audit", filterValue: "PENDING", color: "var(--warning)" },
-      { label: "审核未通过", value: rejected, filterKey: "audit", filterValue: "REJECTED", color: "var(--destructive)" },
-      { label: "已上架", value: onShelf, filterKey: "shelf", filterValue: "ON_SHELF", color: "var(--success)" },
-      { label: "待上架", value: pendingShelf, filterKey: "shelf", filterValue: "PENDING_SHELF", color: "var(--warning)" },
-      { label: "已下架", value: offShelf, filterKey: "shelf", filterValue: "OFF_SHELF", color: "var(--muted-foreground)" },
+      { label: "商品总数", value: total, variant: "primary" },
+      { label: "审核通过", value: approved, filterKey: "audit", filterValue: "APPROVED", variant: "success" },
+      { label: "待审核", value: pending, filterKey: "audit", filterValue: "PENDING", variant: "warning" },
+      { label: "审核未通过", value: rejected, filterKey: "audit", filterValue: "REJECTED", variant: "destructive" },
+      { label: "已上架", value: onShelf, filterKey: "shelf", filterValue: "ON_SHELF", variant: "success" },
+      { label: "待上架", value: pendingShelf, filterKey: "shelf", filterValue: "PENDING_SHELF", variant: "warning" },
+      { label: "已下架", value: offShelf, filterKey: "shelf", filterValue: "OFF_SHELF", variant: "muted" },
     ];
   }, [categoryFiltered]);
-
-  const expandAll = () => setExpandedKeys(new Set(filtered.map((s) => s.id)));
-  const collapseAll = () => setExpandedKeys(new Set());
 
   const handleStatClick = (stat: StatCard) => {
     if (!stat.filterKey) { setStatFilter(null); }
@@ -223,9 +187,12 @@ export default function ProductList() {
     setPage(1);
   };
 
-  /* ── Unified status render ── */
+  const expandAll = () => setExpandedKeys(new Set(filtered.map((s) => s.id)));
+  const collapseAll = () => setExpandedKeys(new Set());
+
+  /* ── Status render ── */
   const renderStatus = (audit: ProductAuditStatus, shelf: ProductShelfStatus) => (
-    <div className="flex flex-wrap gap-1 justify-center">
+    <div className="flex flex-wrap gap-1">
       <span className={`${auditBadge[audit]} text-[10px]`}>{auditLabel[audit]}</span>
       {audit === "APPROVED" && (
         <span className={`${shelfBadge[shelf]} text-[10px]`}>{shelfLabel[shelf]}</span>
@@ -233,27 +200,207 @@ export default function ProductList() {
     </div>
   );
 
-  /* ── SPU actions ── */
-  const getSpuActions = (spu: ProductSpu): ActionDef[] => [
-    { icon: Eye, label: "查看", onClick: () => navigate(`/product/detail/${spu.id}`) },
-    { icon: Pencil, label: "编辑", onClick: () => navigate(`/product/create?edit=${spu.id}`) },
-    { icon: PlusCircle, label: "添加SKU", onClick: () => {} },
-    { icon: ClipboardCheck, label: "审核", onClick: () => {} },
-    { icon: Copy, label: "复制", onClick: () => {} },
-    { icon: Trash2, label: "删除", danger: true, onClick: () => {} },
+  /* ── AdminTable columns ── */
+  const columns: TableColumn<ProductRow>[] = [
+    {
+      key: "info",
+      title: "商品信息",
+      minWidth: 240,
+      render: (_, row) => {
+        if (row._type === "spu") {
+          const spu = row._spu;
+          return (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); toggleExpand(spu.id); }}
+                className="p-0.5 rounded hover:bg-muted text-muted-foreground transition-all shrink-0"
+              >
+                {row._expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+              </button>
+              <div className="w-9 h-9 rounded-lg overflow-hidden bg-muted/40 shrink-0 border" style={{ borderColor: "hsl(var(--border) / 0.3)" }}>
+                <img src={spu.thumbnailUrl} alt={spu.productSpuName} className="w-full h-full object-cover" loading="lazy" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[13px] font-medium text-foreground truncate hover:text-primary transition-colors cursor-pointer"
+                  onClick={() => navigate(`/product/detail/${spu.id}`)}>{spu.productSpuName}</div>
+                <div className="text-[11px] text-muted-foreground font-mono">{spu.productSpuCode}</div>
+              </div>
+            </div>
+          );
+        }
+        // SKU
+        const sku = row._sku!;
+        return (
+          <div className="flex items-center gap-2 pl-8">
+            <div className="w-[3px] h-6 rounded-full shrink-0" style={{ background: "hsl(var(--border) / 0.5)" }} />
+            <div className="w-7 h-7 rounded-md overflow-hidden bg-muted/30 shrink-0 border" style={{ borderColor: "hsl(var(--border) / 0.2)" }}>
+              <img src={sku.thumbnailUrl} alt={sku.productSkuName} className="w-full h-full object-cover" loading="lazy" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[12px] text-foreground truncate">{sku.productSkuName}</div>
+              <div className="text-[10px] text-muted-foreground font-mono">{sku.productSkuCode}</div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "brand",
+      title: "品牌",
+      width: 80,
+      render: (_, row) => row._type === "spu"
+        ? <span className="text-[12px] text-foreground">{row._spu.brandName}</span>
+        : null,
+    },
+    {
+      key: "series",
+      title: "系列",
+      width: 90,
+      render: (_, row) => row._type === "spu"
+        ? <span className="text-[11px] text-muted-foreground">{row._spu.seriesName}</span>
+        : <div className="flex flex-wrap gap-1">
+            {Object.values(row._sku!.paramSnapshot).slice(0, 2).map((v) => (
+              <span key={v} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--muted) / 0.6)", color: "hsl(var(--muted-foreground))" }}>{v}</span>
+            ))}
+          </div>,
+    },
+    {
+      key: "price",
+      title: "参考价",
+      width: 120,
+      render: (_, row) => {
+        if (row._type === "spu") {
+          const range = getSpuPriceRange(row._spu);
+          return (
+            <div className="text-[12px]">
+              <span className="font-medium text-foreground">{formatPrice(range.min)}</span>
+              {range.min !== range.max && <span className="text-muted-foreground text-[11px]"> ~ {formatPrice(range.max)}</span>}
+            </div>
+          );
+        }
+        const sku = row._sku!;
+        return (
+          <div className="text-[12px]">
+            <span className="font-medium text-foreground">{formatPrice(sku.price)}</span>
+            {sku.originalPrice && <span className="line-through ml-1 text-[10px]" style={{ color: "hsl(var(--muted-foreground) / 0.4)" }}>{formatPrice(sku.originalPrice)}</span>}
+          </div>
+        );
+      },
+    },
+    {
+      key: "skuCount",
+      title: "SKU",
+      width: 50,
+      align: "center" as const,
+      render: (_, row) => row._type === "spu"
+        ? <span className="text-[12px]">{row._spu.skus.length}</span>
+        : null,
+    },
+    {
+      key: "stock",
+      title: "库存",
+      width: 60,
+      align: "center" as const,
+      render: (_, row) => {
+        if (row._type === "spu") {
+          const total = getSpuTotalStock(row._spu);
+          return <span className={`text-[12px] ${total <= 20 ? "text-destructive font-medium" : ""}`}>{total}</span>;
+        }
+        const qty = row._sku!.stockQuantity;
+        return <span className={`text-[11px] ${qty <= 10 ? "text-destructive font-medium" : "text-muted-foreground"}`}>{qty}</span>;
+      },
+    },
+    {
+      key: "model",
+      title: "关联模型",
+      width: 80,
+      align: "center" as const,
+      render: (_, row) => {
+        if (row._type === "spu") {
+          return <span className="inline-flex items-center gap-1 text-[11px] text-primary"><Link2 className="h-3 w-3" />{getSpuRelatedModelCount(row._spu)}</span>;
+        }
+        return <button className="text-[10px] text-primary hover:underline truncate max-w-[70px]">{row._sku!.modelSpuName}</button>;
+      },
+    },
+    {
+      key: "owner",
+      title: "所属企业",
+      width: 90,
+      render: (_, row) => row._type === "spu"
+        ? <span className="text-[12px] text-foreground truncate">{row._spu.ownerEnterpriseName}</span>
+        : null,
+    },
+    {
+      key: "applied",
+      title: "应用企业",
+      width: 70,
+      align: "center" as const,
+      render: (_, row) => {
+        if (row._type === "spu") {
+          return <span className="text-[12px] text-muted-foreground">{getSpuAppliedEnterprises(row._spu).length}</span>;
+        }
+        const sku = row._sku!;
+        return (
+          <button
+            onClick={(e) => { e.stopPropagation(); setEnterpriseDialogSku(sku); }}
+            className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+          >
+            <Building2 className="h-3 w-3" />{(sku.appliedEnterprises || []).length}
+          </button>
+        );
+      },
+    },
+    {
+      key: "status",
+      title: "状态",
+      width: 100,
+      align: "center" as const,
+      render: (_, row) => {
+        if (row._type === "spu") {
+          return renderStatus(getSpuAggregatedAuditStatus(row._spu), getSpuAggregatedShelfStatus(row._spu));
+        }
+        return renderStatus(row._sku!.auditStatus, row._sku!.shelfStatus);
+      },
+    },
   ];
 
-  /* ── SKU actions ── */
-  const getSkuActions = (sku: ProductSku): ActionDef[] => [
-    { icon: Eye, label: "查看", onClick: () => {} },
-    { icon: Pencil, label: "编辑", onClick: () => {} },
-    { icon: ClipboardCheck, label: "审核", onClick: () => {} },
-    { icon: Copy, label: "复制", onClick: () => {} },
-    { icon: Trash2, label: "删除", danger: true, onClick: () => {} },
+  /* ── AdminTable actions: maxVisibleActions=2 → 2 inline + "more" = 3 total ── */
+  const actions: ActionItem<ProductRow>[] = [
+    {
+      label: "查看",
+      onClick: (row) => {
+        if (row._type === "spu") navigate(`/product/detail/${row._spu.id}`);
+      },
+    },
+    {
+      label: "编辑",
+      onClick: (row) => {
+        if (row._type === "spu") navigate(`/product/create?edit=${row._spu.id}`);
+      },
+    },
+    {
+      label: "添加SKU",
+      onClick: () => {},
+      visible: (row) => row._type === "spu",
+    },
+    {
+      label: "审核",
+      onClick: () => {},
+    },
+    {
+      label: "复制",
+      onClick: () => {},
+    },
+    {
+      label: "删除",
+      danger: true,
+      onClick: () => {},
+      confirm: {
+        title: "确认删除",
+        description: "删除后数据将无法恢复，请确认是否继续。",
+      },
+    },
   ];
-
-  const GRID = "44px minmax(200px,2fr) 80px 90px 120px 55px 65px 60px 80px 75px 80px 160px";
-  const SKU_GRID = "44px minmax(200px,2fr) 80px 90px 120px 55px 65px 60px 80px 75px 80px 140px";
 
   return (
     <div className="flex flex-col" style={{ minHeight: "calc(100vh - 56px)" }}>
@@ -303,27 +450,28 @@ export default function ProductList() {
           })}
         </div>
 
-        {/* ── Stat Cards ── */}
-        <div className="grid grid-cols-7 gap-2 mb-4">
-          {stats.map((stat) => {
-            const isActive = statFilter?.key === stat.filterKey && statFilter?.value === stat.filterValue;
-            return (
-              <button
-                key={stat.label}
-                onClick={() => handleStatClick(stat)}
-                className="bg-card rounded-lg border px-3 py-2.5 text-left transition-all hover:shadow-sm"
-                style={{
-                  borderColor: isActive ? `hsl(${stat.color})` : "hsl(var(--border))",
-                  boxShadow: isActive ? `0 0 0 1px hsl(${stat.color} / 0.2)` : "var(--shadow-xs)",
-                }}
-              >
-                <div className="text-[11px] text-muted-foreground mb-1">{stat.label}</div>
-                <div className="text-[18px] font-semibold" style={{ color: `hsl(${stat.color})` }}>
-                  {stat.value}
-                </div>
-              </button>
-            );
-          })}
+        {/* ── Stat overview (same pattern as StaffList benefit cards) ── */}
+        <div className="overflow-hidden rounded-xl border border-border/80 bg-card mb-4" style={{ boxShadow: "var(--shadow-xs)" }}>
+          <div className="flex items-center justify-between px-5 pt-3.5 pb-1">
+            <span className="text-[13px] font-medium text-foreground">数据概览</span>
+            <button
+              className="flex items-center gap-1 text-[12px] text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setStatsCollapsed(!statsCollapsed)}
+            >
+              {statsCollapsed ? "展开" : "收起"}
+              {statsCollapsed ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+            </button>
+          </div>
+          {!statsCollapsed && (
+            <div className="overflow-x-auto px-5 pb-4 pt-2">
+              <div className="flex gap-3">
+                {stats.map((stat) => {
+                  const isActive = statFilter?.key === stat.filterKey && statFilter?.value === stat.filterValue;
+                  return <MiniStatCard key={stat.label} stat={stat} isActive={isActive} onClick={() => handleStatClick(stat)} />;
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Active stat filter indicator */}
@@ -355,197 +503,19 @@ export default function ProductList() {
           <span className="text-[12px] text-muted-foreground">筛选结果：{filtered.length} 个SPU</span>
         </div>
 
-        {/* ── Table ── */}
-        <div className="bg-card rounded-xl border overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
-          <div className="overflow-x-auto admin-table-scroll">
-            {/* Header */}
-            <div
-              className="grid text-[11px] text-muted-foreground font-medium uppercase tracking-wider px-4 py-2.5 border-b"
-              style={{ background: "hsl(var(--table-header))", gridTemplateColumns: GRID }}
-            >
-              <div />
-              <div>商品信息</div>
-              <div>品牌</div>
-              <div>系列</div>
-              <div>参考价</div>
-              <div className="text-center">SKU</div>
-              <div className="text-center">库存</div>
-              <div className="text-center">模型</div>
-              <div>所属企业</div>
-              <div className="text-center">应用企业</div>
-              <div className="text-center">状态</div>
-              <div className="text-center">操作</div>
-            </div>
-
-            {/* SPU rows */}
-            {paginatedData.map((spu) => {
-              const isExpanded = expandedKeys.has(spu.id);
-              const priceRange = getSpuPriceRange(spu);
-              const totalStock = getSpuTotalStock(spu);
-              const modelCount = getSpuRelatedModelCount(spu);
-              const appliedEnts = getSpuAppliedEnterprises(spu);
-              const aggAudit = getSpuAggregatedAuditStatus(spu);
-              const aggShelf = getSpuAggregatedShelfStatus(spu);
-
-              return (
-                <div key={spu.id}>
-                  {/* SPU Row */}
-                  <div
-                    className="grid items-center px-4 py-3 border-b transition-colors cursor-pointer group"
-                    style={{
-                      gridTemplateColumns: GRID,
-                      borderColor: "hsl(var(--border) / 0.4)",
-                      background: isExpanded ? "hsl(var(--table-row-hover))" : undefined,
-                    }}
-                    onClick={() => navigate(`/product/detail/${spu.id}`)}
-                  >
-                    {/* Expand */}
-                    <div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleExpand(spu.id); }}
-                        className="p-1 rounded hover:bg-muted text-muted-foreground transition-all"
-                      >
-                        {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-                      </button>
-                    </div>
-
-                    {/* Product info */}
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted/40 shrink-0 border" style={{ borderColor: "hsl(var(--border) / 0.3)" }}>
-                        <img src={spu.thumbnailUrl} alt={spu.productSpuName} className="w-full h-full object-cover" loading="lazy" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-[13px] font-medium text-foreground truncate group-hover:text-primary transition-colors">{spu.productSpuName}</div>
-                        <div className="text-[11px] text-muted-foreground font-mono">{spu.productSpuCode}</div>
-                      </div>
-                    </div>
-
-                    <div className="text-[12px] text-foreground truncate">{spu.brandName}</div>
-                    <div className="text-[11px] text-muted-foreground truncate">{spu.seriesName}</div>
-
-                    {/* Price range */}
-                    <div className="text-[12px]">
-                      <span className="font-medium text-foreground">{formatPrice(priceRange.min)}</span>
-                      {priceRange.min !== priceRange.max && (
-                        <span className="text-muted-foreground text-[11px]"> ~ {formatPrice(priceRange.max)}</span>
-                      )}
-                    </div>
-
-                    <div className="text-center text-[12px] text-foreground">{spu.skus.length}</div>
-                    <div className={`text-center text-[12px] ${totalStock <= 20 ? "text-destructive font-medium" : "text-foreground"}`}>{totalStock}</div>
-
-                    {/* Related models (aggregated) */}
-                    <div className="text-center">
-                      <span className="inline-flex items-center gap-1 text-[11px] text-primary">
-                        <Link2 className="h-3 w-3" />{modelCount}
-                      </span>
-                    </div>
-
-                    <div className="text-[12px] text-foreground truncate">{spu.ownerEnterpriseName}</div>
-
-                    {/* Applied enterprises (aggregated from SKUs) */}
-                    <div className="text-center text-[12px] text-muted-foreground">{appliedEnts.length}</div>
-
-                    {/* Status (aggregated) */}
-                    <div className="text-center">{renderStatus(aggAudit, aggShelf)}</div>
-
-                    {/* Actions - 3 visible + overflow */}
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <ActionButtons actions={getSpuActions(spu)} maxVisible={3} />
-                    </div>
-                  </div>
-
-                  {/* SKU rows */}
-                  {isExpanded && spu.skus.map((sku) => (
-                    <div
-                      key={sku.id}
-                      className="grid items-center px-4 py-2.5 border-b transition-colors hover:bg-muted/30"
-                      style={{
-                        gridTemplateColumns: SKU_GRID,
-                        borderColor: "hsl(var(--border) / 0.2)",
-                        background: "hsl(var(--muted) / 0.12)",
-                      }}
-                    >
-                      <div />
-
-                      {/* SKU info */}
-                      <div className="flex items-center gap-3 pl-4 min-w-0">
-                        <div className="w-[3px] h-7 rounded-full shrink-0" style={{ background: "hsl(var(--border) / 0.6)" }} />
-                        <div className="w-8 h-8 rounded-lg overflow-hidden bg-muted/30 shrink-0 border" style={{ borderColor: "hsl(var(--border) / 0.2)" }}>
-                          <img src={sku.thumbnailUrl} alt={sku.productSkuName} className="w-full h-full object-cover" loading="lazy" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[12px] text-foreground truncate">{sku.productSkuName}</div>
-                          <div className="text-[10px] text-muted-foreground font-mono">{sku.productSkuCode}</div>
-                        </div>
-                      </div>
-
-                      <div />
-
-                      {/* Params */}
-                      <div className="flex flex-wrap gap-1">
-                        {Object.entries(sku.paramSnapshot).slice(0, 2).map(([, v]) => (
-                          <span key={v} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "hsl(var(--muted) / 0.6)", color: "hsl(var(--muted-foreground))" }}>{v}</span>
-                        ))}
-                      </div>
-
-                      {/* Price */}
-                      <div className="text-[12px]">
-                        <span className="font-medium text-foreground">{formatPrice(sku.price)}</span>
-                        {sku.originalPrice && (
-                          <span className="line-through ml-1 text-[10px]" style={{ color: "hsl(var(--muted-foreground) / 0.4)" }}>{formatPrice(sku.originalPrice)}</span>
-                        )}
-                      </div>
-
-                      <div />
-
-                      {/* Stock */}
-                      <div className={`text-center text-[11px] ${sku.stockQuantity <= 10 ? "text-destructive font-medium" : "text-muted-foreground"}`}>{sku.stockQuantity}</div>
-
-                      {/* Model link (SKU级, clickable) */}
-                      <div className="text-center">
-                        <button className="text-[10px] text-primary hover:underline truncate" onClick={(e) => { e.stopPropagation(); }}>
-                          {sku.modelSpuName}
-                        </button>
-                      </div>
-
-                      <div />
-
-                      {/* Applied enterprises (SKU级, clickable) */}
-                      <div className="text-center" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => setEnterpriseDialogSku(sku)}
-                          className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
-                        >
-                          <Building2 className="h-3 w-3" />{(sku.appliedEnterprises || []).length}
-                        </button>
-                      </div>
-
-                      {/* Status (SKU级) */}
-                      <div className="text-center">{renderStatus(sku.auditStatus, sku.shelfStatus)}</div>
-
-                      {/* SKU Actions - 3 visible + overflow */}
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <ActionButtons actions={getSkuActions(sku)} maxVisible={3} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-
-            {filtered.length === 0 && (
-              <div className="py-16 text-center text-muted-foreground">
-                <Package className="h-10 w-10 mx-auto mb-3" style={{ color: "hsl(var(--muted-foreground) / 0.3)" }} />
-                <p className="text-[13px]">暂无匹配的商品数据</p>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* ── AdminTable ── */}
+        <AdminTable
+          columns={columns}
+          data={tableData}
+          rowKey={(r) => r._key}
+          actions={actions}
+          maxVisibleActions={2}
+          actionColumnWidth={160}
+        />
       </div>
 
       {/* ── Pagination pinned to bottom ── */}
-      <div className="sticky bottom-0 bg-background border-t mt-4" style={{ borderColor: "hsl(var(--border))" }}>
+      <div className="sticky bottom-0 bg-card border rounded-xl mt-4" style={{ boxShadow: "var(--shadow-xs)" }}>
         <Pagination
           current={page}
           total={filtered.length}
@@ -561,11 +531,11 @@ export default function ProductList() {
           <DialogHeader>
             <DialogTitle className="text-[15px]">应用企业列表</DialogTitle>
             <DialogDescription className="text-[12px]">
-              {enterpriseDialogSku?.productSkuName} — 共 {enterpriseDialogSku?.appliedEnterprises.length} 家企业
+              {enterpriseDialogSku?.productSkuName} — 共 {(enterpriseDialogSku?.appliedEnterprises || []).length} 家企业
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2 max-h-[360px] overflow-y-auto">
-            {enterpriseDialogSku?.appliedEnterprises.map((ent) => (
+            {(enterpriseDialogSku?.appliedEnterprises || []).map((ent) => (
               <div key={ent.id} className="flex items-center justify-between px-3 py-2.5 rounded-lg border" style={{ borderColor: "hsl(var(--border))" }}>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "hsl(var(--primary) / 0.08)" }}>
