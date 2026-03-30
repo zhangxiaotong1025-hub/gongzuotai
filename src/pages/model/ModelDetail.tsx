@@ -51,17 +51,17 @@ export default function ModelDetail() {
   return (
     <div>
       <DetailActionBar
-        breadcrumbs={[
-          { label: "模型管理", href: "/model" },
-          { label: spu.spuName },
-        ]}
-        prevId={curIdx > 0 ? allIds[curIdx - 1] : undefined}
-        nextId={curIdx < allIds.length - 1 ? allIds[curIdx + 1] : undefined}
-        onPrev={(pid) => navigate(`/model/detail/${pid}`)}
-        onNext={(nid) => navigate(`/model/detail/${nid}`)}
-        statusLabel={spu.status === "ON_SHELF" ? "已上架" : spu.status === "OFF_SHELF" ? "已下架" : "待上架"}
-        statusActive={spu.status === "ON_SHELF"}
-        onStatusToggle={() => {}}
+        backLabel="模型管理"
+        backPath="/model"
+        currentName={spu.spuName}
+        prevPath={curIdx > 0 ? `/model/detail/${allIds[curIdx - 1]}` : null}
+        nextPath={curIdx < allIds.length - 1 ? `/model/detail/${allIds[curIdx + 1]}` : null}
+        statusToggle={{
+          currentActive: spu.status === "ON_SHELF",
+          activeLabel: "已上架",
+          inactiveLabel: spu.status === "OFF_SHELF" ? "已下架" : "待上架",
+          onToggle: () => {},
+        }}
         onEdit={() => navigate(`/model/create?edit=${id}`)}
       />
 

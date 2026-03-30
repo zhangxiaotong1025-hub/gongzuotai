@@ -42,17 +42,17 @@ export default function ProductDetail() {
   return (
     <div>
       <DetailActionBar
-        breadcrumbs={[
-          { label: "商品管理", href: "/product" },
-          { label: spu.productSpuName },
-        ]}
-        prevId={curIdx > 0 ? allIds[curIdx - 1] : undefined}
-        nextId={curIdx < allIds.length - 1 ? allIds[curIdx + 1] : undefined}
-        onPrev={(pid) => navigate(`/product/detail/${pid}`)}
-        onNext={(nid) => navigate(`/product/detail/${nid}`)}
-        statusLabel={spu.status === "ON_SHELF" ? "已上架" : "已下架"}
-        statusActive={spu.status === "ON_SHELF"}
-        onStatusToggle={() => {}}
+        backLabel="商品管理"
+        backPath="/product"
+        currentName={spu.productSpuName}
+        prevPath={curIdx > 0 ? `/product/detail/${allIds[curIdx - 1]}` : null}
+        nextPath={curIdx < allIds.length - 1 ? `/product/detail/${allIds[curIdx + 1]}` : null}
+        statusToggle={{
+          currentActive: spu.status === "ON_SHELF",
+          activeLabel: "已上架",
+          inactiveLabel: "已下架",
+          onToggle: () => {},
+        }}
         onEdit={() => navigate(`/product/create?edit=${id}`)}
       />
 

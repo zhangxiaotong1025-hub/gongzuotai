@@ -231,7 +231,7 @@ export default function ProductList() {
         maxVisibleActions={2}
         actionColumnWidth={200}
       />
-      <Pagination current={page} total={productSpuData.length} pageSize={10} onChange={setPage} />
+      <Pagination current={page} total={productSpuData.length} pageSize={10} onPageChange={setPage} onPageSizeChange={() => {}} />
     </div>
   );
 }

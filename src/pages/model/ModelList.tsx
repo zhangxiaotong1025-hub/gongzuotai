@@ -236,7 +236,7 @@ export default function ModelList() {
         maxVisibleActions={2}
         actionColumnWidth={200}
       />
-      <Pagination current={page} total={modelSpuData.length} pageSize={10} onChange={setPage} />
+      <Pagination current={page} total={modelSpuData.length} pageSize={10} onPageChange={setPage} onPageSizeChange={() => {}} />
     </div>
   );
 }
