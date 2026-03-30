@@ -400,89 +400,186 @@ export default function CustomerDetail() {
 
         {/* ── 画像 ── */}
         <section id="sec-portrait">
-          {isDesigner ? (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <div className="lg:col-span-4 rounded-xl border border-border/60 bg-card p-4">
-                <SectionTitle icon={Brain} title="行为画像" />
-                <div className="w-[140px] h-[140px] mx-auto mt-2"><RadarChart dimensions={d.portrait.dimensions} /></div>
-                <div className="flex flex-wrap gap-1 mt-3 justify-center">
-                  {d.portrait.interests.map(t => <span key={t} className="px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary">{t}</span>)}
-                </div>
-              </div>
-              <div className="lg:col-span-4 rounded-xl border border-border/60 bg-card p-4">
-                <SectionTitle icon={Award} title="价值评分 CVS" />
-                <div className="flex items-center gap-4 mt-2">
-                  <div className="relative w-16 h-16 shrink-0">
-                    <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
-                      <circle cx="32" cy="32" r="27" fill="none" strokeWidth="5" className="stroke-muted" />
-                      <circle cx="32" cy="32" r="27" fill="none" strokeWidth="5" className="stroke-primary" strokeLinecap="round" strokeDasharray={`${d.cvsScore * 1.7} 170`} />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center"><span className="text-sm font-bold text-primary">{d.cvsScore}</span></div>
+          {isDesigner ? (() => {
+            const portrait = DESIGNER_PORTRAIT;
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  {/* Radar + Behavior Summary */}
+                  <div className="lg:col-span-4 rounded-xl border border-border/60 bg-card p-4">
+                    <SectionTitle icon={Brain} title="行为画像"
+                      action={<button onClick={() => setShowPortrait(true)} className="text-[10px] text-primary hover:underline flex items-center gap-0.5"><ExternalLink className="h-3 w-3" />完整画像</button>}
+                    />
+                    <div className="w-[140px] h-[140px] mx-auto mt-2"><RadarChart dimensions={portrait.radarDimensions} /></div>
+                    <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed text-center">{portrait.behaviorSummary}</p>
                   </div>
-                  <div className="flex-1 space-y-1">
-                    {[
-                      { dim: "使用率", w: 30, s: Math.round(d.usageRate * 0.3) },
-                      { dim: "活跃度", w: 20, s: Math.round((d.loginDays30 / 30) * 100 * 0.2) },
-                      { dim: "消费", w: 25, s: Math.min(25, Math.round(d.totalSpent / 2000)) },
-                      { dim: "续费", w: 15, s: Math.min(15, d.renewalCount * 5) },
-                      { dim: "深度", w: 10, s: Math.round((d.featuresUsed / 8) * 10) },
-                    ].map(s => (
-                      <div key={s.dim} className="flex items-center gap-1.5 text-[11px]">
-                        <span className="w-10 text-muted-foreground">{s.dim}</span>
-                        <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary/60 rounded-full" style={{ width: `${(s.s / s.w) * 100}%` }} /></div>
-                        <span className="text-muted-foreground w-7 text-right">{s.s}/{s.w}</span>
+                  {/* CVS + Core Stats */}
+                  <div className="lg:col-span-4 rounded-xl border border-border/60 bg-card p-4">
+                    <SectionTitle icon={Award} title="价值评分 CVS" />
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="relative w-16 h-16 shrink-0">
+                        <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                          <circle cx="32" cy="32" r="27" fill="none" strokeWidth="5" className="stroke-muted" />
+                          <circle cx="32" cy="32" r="27" fill="none" strokeWidth="5" className="stroke-primary" strokeLinecap="round" strokeDasharray={`${d.cvsScore * 1.7} 170`} />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center"><span className="text-sm font-bold text-primary">{d.cvsScore}</span></div>
                       </div>
-                    ))}
+                      <div className="flex-1 space-y-1">
+                        {[
+                          { dim: "使用率", w: 30, s: Math.round(d.usageRate * 0.3) },
+                          { dim: "活跃度", w: 20, s: Math.round((d.loginDays30 / 30) * 100 * 0.2) },
+                          { dim: "消费", w: 25, s: Math.min(25, Math.round(d.totalSpent / 2000)) },
+                          { dim: "续费", w: 15, s: Math.min(15, d.renewalCount * 5) },
+                          { dim: "深度", w: 10, s: Math.round((d.featuresUsed / 8) * 10) },
+                        ].map(s => (
+                          <div key={s.dim} className="flex items-center gap-1.5 text-[11px]">
+                            <span className="w-10 text-muted-foreground">{s.dim}</span>
+                            <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary/60 rounded-full" style={{ width: `${(s.s / s.w) * 100}%` }} /></div>
+                            <span className="text-muted-foreground w-7 text-right">{s.s}/{s.w}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Core Stats */}
+                  <div className="lg:col-span-4 rounded-xl border border-border/60 bg-card p-4">
+                    <SectionTitle icon={BarChart3} title="核心指标" />
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      <Stat label="设计方案" value={d.designCount} />
+                      <Stat label="渲染次数" value={d.renderCount} />
+                      <Stat label="30天登录" value={`${d.loginDays30}天`} />
+                      <Stat label="总项目" value={d.totalProjects} />
+                      <Stat label="均单价值" value={`¥${(d.avgProjectValue/1000).toFixed(1)}K`} />
+                      <Stat label="累计消费" value={`¥${(d.totalSpent/1000).toFixed(1)}K`} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Behavior Traits + Deep Needs Summary */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  <div className="lg:col-span-6 rounded-xl border border-border/60 bg-card p-4">
+                    <SectionTitle icon={Activity} title="行为特征" />
+                    <div className="space-y-1.5 mt-2">
+                      {portrait.behaviorTraits.slice(0, 4).map((t, i) => {
+                        const levelMap = { high: { l: "显著", c: "bg-emerald-100 text-emerald-700" }, medium: { l: "中等", c: "bg-amber-100 text-amber-700" }, low: { l: "较弱", c: "bg-muted text-muted-foreground" } };
+                        const lv = levelMap[t.level];
+                        const Icon = t.icon;
+                        return (
+                          <div key={i} className="flex items-center gap-2 p-2 rounded-lg border border-border/40">
+                            <div className="w-6 h-6 rounded bg-blue-50 flex items-center justify-center shrink-0"><Icon className="h-3 w-3 text-blue-600" /></div>
+                            <span className="text-xs font-medium">{t.label}</span>
+                            <span className={`px-1 py-0.5 rounded text-[9px] font-medium ${lv.c}`}>{lv.l}</span>
+                            <span className="text-[10px] text-muted-foreground flex-1 truncate ml-1">{t.evidence.split("；")[0]}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="lg:col-span-6 rounded-xl border border-border/60 bg-card p-4">
+                    <SectionTitle icon={Target} title="深层需求" />
+                    <div className="space-y-1.5 mt-2">
+                      {portrait.deepNeeds.map((n, i) => {
+                        const uMap = { urgent: { l: "迫切", c: "bg-red-100 text-red-700" }, normal: { l: "常规", c: "bg-blue-100 text-blue-700" }, latent: { l: "潜在", c: "bg-muted text-muted-foreground" } };
+                        const u = uMap[n.urgency];
+                        const Icon = n.icon;
+                        return (
+                          <div key={i} className="flex items-center gap-2 p-2 rounded-lg border border-border/40">
+                            <div className="w-6 h-6 rounded bg-emerald-50 flex items-center justify-center shrink-0"><Icon className="h-3 w-3 text-emerald-600" /></div>
+                            <span className="px-1 py-0.5 rounded text-[9px] bg-muted text-muted-foreground">{n.category}</span>
+                            <span className="text-xs font-medium flex-1 truncate">{n.need}</span>
+                            <span className={`px-1 py-0.5 rounded text-[9px] font-medium shrink-0 ${u.c}`}>{u.l}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-2 italic">{portrait.needsSummary}</p>
                   </div>
                 </div>
               </div>
-              <div className="lg:col-span-4 rounded-xl border border-border/60 bg-card p-4">
-                <SectionTitle icon={BarChart3} title="核心指标" />
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  <Stat label="设计方案" value={d.designCount} />
-                  <Stat label="渲染次数" value={d.renderCount} />
-                  <Stat label="30天登录" value={`${d.loginDays30}天`} />
-                  <Stat label="总项目" value={d.totalProjects} />
-                  <Stat label="均单价值" value={`¥${(d.avgProjectValue/1000).toFixed(1)}K`} />
-                  <Stat label="累计消费" value={`¥${(d.totalSpent/1000).toFixed(1)}K`} />
+            );
+          })() : (() => {
+            const portrait = EC_PORTRAIT;
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  <div className="lg:col-span-5 rounded-xl border border-border/60 bg-card p-4">
+                    <SectionTitle icon={Brain} title="客户画像"
+                      action={<button onClick={() => setShowPortrait(true)} className="text-[10px] text-primary hover:underline flex items-center gap-0.5"><ExternalLink className="h-3 w-3" />完整画像</button>}
+                    />
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <ScoreGauge label="意向度" value={ec.portrait.intentScore} />
+                      <ScoreGauge label="满意度" value={ec.portrait.satisfactionScore} />
+                      <ScoreGauge label="合作深度" value={ec.portrait.cooperationDepth} />
+                      <ScoreGauge label="转介绍" value={ec.portrait.referralWillingness} />
+                    </div>
+                    <div className="mt-3">
+                      <span className="text-[10px] text-muted-foreground">决策因素</span>
+                      <div className="flex gap-1 mt-0.5">
+                        {ec.portrait.decisionFactors.map((f, i) => (
+                          <span key={f} className="px-1.5 py-0.5 rounded text-[10px] bg-muted text-muted-foreground"><strong className="text-primary mr-0.5">{i+1}</strong>{f}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-2 italic">{portrait.personalitySummary}</p>
+                  </div>
+                  <div className="lg:col-span-7 rounded-xl border border-border/60 bg-card p-4">
+                    <SectionTitle icon={FileText} title="基本信息" />
+                    <div className="grid grid-cols-3 gap-x-4 gap-y-2 mt-2">
+                      <InfoItem label="户型" value={ec.houseType} />
+                      <InfoItem label="面积" value={ec.area} />
+                      <InfoItem label="预算" value={ec.budget} />
+                      <InfoItem label="装修阶段" value={ec.decorateStage} />
+                      <InfoItem label="交付预期" value={ec.expectedDelivery} />
+                      <InfoItem label="家庭成员" value={ec.familyMembers} />
+                      <InfoItem label="风格偏好" value={ec.preferenceStyle} />
+                      <InfoItem label="录入时间" value={ec.createdAt} />
+                      <InfoItem label="最近跟进" value={ec.lastFollowAt} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <div className="lg:col-span-5 rounded-xl border border-border/60 bg-card p-4">
-                <SectionTitle icon={Brain} title="客户画像" />
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <ScoreGauge label="意向度" value={ec.portrait.intentScore} />
-                  <ScoreGauge label="满意度" value={ec.portrait.satisfactionScore} />
-                  <ScoreGauge label="合作深度" value={ec.portrait.cooperationDepth} />
-                  <ScoreGauge label="转介绍" value={ec.portrait.referralWillingness} />
-                </div>
-                <div className="mt-3">
-                  <span className="text-[10px] text-muted-foreground">决策因素</span>
-                  <div className="flex gap-1 mt-0.5">
-                    {ec.portrait.decisionFactors.map((f, i) => (
-                      <span key={f} className="px-1.5 py-0.5 rounded text-[10px] bg-muted text-muted-foreground"><strong className="text-primary mr-0.5">{i+1}</strong>{f}</span>
-                    ))}
+                {/* Behavior Traits + Deep Needs */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  <div className="lg:col-span-6 rounded-xl border border-border/60 bg-card p-4">
+                    <SectionTitle icon={Activity} title="行为特征" />
+                    <div className="space-y-1.5 mt-2">
+                      {portrait.behaviorTraits.slice(0, 4).map((t, i) => {
+                        const levelMap = { high: { l: "显著", c: "bg-emerald-100 text-emerald-700" }, medium: { l: "中等", c: "bg-amber-100 text-amber-700" }, low: { l: "较弱", c: "bg-muted text-muted-foreground" } };
+                        const lv = levelMap[t.level];
+                        const Icon = t.icon;
+                        return (
+                          <div key={i} className="flex items-center gap-2 p-2 rounded-lg border border-border/40">
+                            <div className="w-6 h-6 rounded bg-blue-50 flex items-center justify-center shrink-0"><Icon className="h-3 w-3 text-blue-600" /></div>
+                            <span className="text-xs font-medium">{t.label}</span>
+                            <span className={`px-1 py-0.5 rounded text-[9px] font-medium ${lv.c}`}>{lv.l}</span>
+                            <span className="text-[10px] text-muted-foreground flex-1 truncate ml-1">{t.evidence.split("，")[0]}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="lg:col-span-6 rounded-xl border border-border/60 bg-card p-4">
+                    <SectionTitle icon={Target} title="深层需求" />
+                    <div className="space-y-1.5 mt-2">
+                      {portrait.deepNeeds.map((n, i) => {
+                        const uMap = { urgent: { l: "迫切", c: "bg-red-100 text-red-700" }, normal: { l: "常规", c: "bg-blue-100 text-blue-700" }, latent: { l: "潜在", c: "bg-muted text-muted-foreground" } };
+                        const u = uMap[n.urgency];
+                        const Icon = n.icon;
+                        return (
+                          <div key={i} className="flex items-center gap-2 p-2 rounded-lg border border-border/40">
+                            <div className="w-6 h-6 rounded bg-emerald-50 flex items-center justify-center shrink-0"><Icon className="h-3 w-3 text-emerald-600" /></div>
+                            <span className="px-1 py-0.5 rounded text-[9px] bg-muted text-muted-foreground">{n.category}</span>
+                            <span className="text-xs font-medium flex-1 truncate">{n.need}</span>
+                            <span className={`px-1 py-0.5 rounded text-[9px] font-medium shrink-0 ${u.c}`}>{u.l}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-2 italic">{portrait.needsSummary}</p>
                   </div>
                 </div>
               </div>
-              <div className="lg:col-span-7 rounded-xl border border-border/60 bg-card p-4">
-                <SectionTitle icon={FileText} title="基本信息" />
-                <div className="grid grid-cols-3 gap-x-4 gap-y-2 mt-2">
-                  <InfoItem label="户型" value={ec.houseType} />
-                  <InfoItem label="面积" value={ec.area} />
-                  <InfoItem label="预算" value={ec.budget} />
-                  <InfoItem label="装修阶段" value={ec.decorateStage} />
-                  <InfoItem label="交付预期" value={ec.expectedDelivery} />
-                  <InfoItem label="家庭成员" value={ec.familyMembers} />
-                  <InfoItem label="风格偏好" value={ec.preferenceStyle} />
-                  <InfoItem label="录入时间" value={ec.createdAt} />
-                  <InfoItem label="最近跟进" value={ec.lastFollowAt} />
-                </div>
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </section>
 
         {/* ── 智能运营建议 ── */}
