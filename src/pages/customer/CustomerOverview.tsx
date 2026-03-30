@@ -46,8 +46,8 @@ export default function CustomerOverview() {
 
       {/* Top KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <KpiCard icon={Users} label="设计师总数" value={DESIGNERS.length} onClick={() => navigate("/customer/designer")} />
-        <KpiCard icon={Users} label="企业客户总数" value={END_CUSTOMERS.length} onClick={() => navigate("/customer/end-customer")} />
+        <KpiCard icon={Users} label="设计师总数" value={DESIGNERS.length} onClick={() => navigate("/customer/list")} />
+        <KpiCard icon={Users} label="企业客户总数" value={END_CUSTOMERS.length} onClick={() => navigate("/customer/list")} />
         <KpiCard icon={BarChart3} label="平均使用率" value={`${avgUsage}%`} color="text-primary" />
         <KpiCard icon={Target} label="平均CVS" value={avgCvs} color="text-primary" />
         <KpiCard icon={AlertTriangle} label="待处理预警" value={unhandledAlerts} color={unhandledAlerts > 0 ? "text-amber-600" : "text-emerald-600"} />
@@ -58,7 +58,7 @@ export default function CustomerOverview() {
         <div className="rounded-xl border border-border/60 bg-card p-5">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-medium">设计师生命周期分布</h4>
-            <button onClick={() => navigate("/customer/designer")} className="text-xs text-primary hover:underline">查看全部 →</button>
+            <button onClick={() => navigate("/customer/list")} className="text-xs text-primary hover:underline">查看全部 →</button>
           </div>
           <div className="space-y-2.5">
             {Object.entries(DESIGNER_LIFECYCLE_MAP).map(([k, v]) => {
@@ -82,7 +82,7 @@ export default function CustomerOverview() {
         <div className="rounded-xl border border-border/60 bg-card p-5">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-medium">企业客户生命周期分布</h4>
-            <button onClick={() => navigate("/customer/end-customer")} className="text-xs text-primary hover:underline">查看全部 →</button>
+            <button onClick={() => navigate("/customer/list")} className="text-xs text-primary hover:underline">查看全部 →</button>
           </div>
           <div className="space-y-2.5">
             {Object.entries(END_CUSTOMER_LIFECYCLE_MAP).map(([k, v]) => {
@@ -126,7 +126,7 @@ export default function CustomerOverview() {
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" className="h-7 text-xs"
-                    onClick={() => navigate(a.type === "designer" ? `/customer/designer/detail/${a.id}` : `/customer/end-customer/detail/${a.id}`)}>
+                    onClick={() => navigate(`/customer/detail/${a.id}`)}>
                     <Eye className="h-3 w-3 mr-1" />查看
                   </Button>
                   <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => markHandled(a.id)}>
