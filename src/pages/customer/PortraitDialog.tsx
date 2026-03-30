@@ -352,10 +352,17 @@ const SECTIONS = [
 /* ═══════════════════════════════════════════
    HELPERS
    ═══════════════════════════════════════════ */
-function TipWrap({ tip, children }: { tip: string; children: React.ReactNode }) {
+function TipWrap({ tip, children, showIcon = true }: { tip: string; children: React.ReactNode; showIcon?: boolean }) {
   return (
     <Tooltip delayDuration={200}>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipTrigger asChild>
+        <div className="relative group/tip cursor-help">
+          {children}
+          {showIcon && (
+            <Info className="absolute top-1 right-1 h-3 w-3 text-muted-foreground/30 group-hover/tip:text-primary/50 transition-colors" />
+          )}
+        </div>
+      </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs text-[11px] leading-relaxed">{tip}</TooltipContent>
     </Tooltip>
   );
@@ -811,18 +818,19 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                     {data.interestBubbles
                       .sort((a, b) => b.weight - a.weight)
                       .map((b, i) => {
-                        const size = 36 + (b.weight / 100) * 52;
+                        const size = 40 + (b.weight / 100) * 56;
                         return (
-                          <TipWrap key={i} tip={`${b.name}：关注度 ${b.weight}%`}>
-                            <div
-                              className={`${b.color} rounded-full flex items-center justify-center text-white shrink-0 transition-transform hover:scale-110 cursor-help`}
-                              style={{ width: `${size}px`, height: `${size}px`, opacity: 0.3 + (b.weight / 100) * 0.6 }}
-                            >
-                              <span className="text-center leading-tight px-1 font-medium" style={{ fontSize: `${Math.max(9, size / 7.5)}px` }}>
-                                {b.name}
-                              </span>
-                            </div>
-                          </TipWrap>
+                          <div key={i}
+                            className={`${b.color} rounded-full flex flex-col items-center justify-center text-white shrink-0 transition-transform hover:scale-110 cursor-default`}
+                            style={{ width: `${size}px`, height: `${size}px`, opacity: 0.3 + (b.weight / 100) * 0.6 }}
+                          >
+                            <span className="text-center leading-none font-semibold" style={{ fontSize: `${Math.max(9, size / 7)}px` }}>
+                              {b.name}
+                            </span>
+                            <span className="text-center leading-none mt-0.5 opacity-80" style={{ fontSize: `${Math.max(7, size / 9)}px` }}>
+                              {b.weight}%
+                            </span>
+                          </div>
                         );
                       })}
                   </div>
