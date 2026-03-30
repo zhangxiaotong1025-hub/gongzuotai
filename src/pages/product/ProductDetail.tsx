@@ -10,6 +10,7 @@ import {
   productSpuData, type ProductSpu, type ProductSku,
   type ProductAuditStatus, type ProductShelfStatus,
   getSpuPriceRange, getSpuTotalStock, getSpuRelatedModelCount,
+  getSpuAggregatedAuditStatus, getSpuAggregatedShelfStatus,
 } from "@/data/product";
 
 const auditLabel: Record<ProductAuditStatus, string> = { PENDING: "待审核", APPROVED: "审核通过", REJECTED: "审核未通过" };
