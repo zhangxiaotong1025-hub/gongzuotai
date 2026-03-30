@@ -5,7 +5,8 @@ import {
   ShoppingBag, MousePointerClick, MessageSquare, Plus, TrendingUp, TrendingDown,
   Send, Clock, Target, Zap, BarChart3, Heart, MapPin, Home, DollarSign,
   Briefcase, Star, Award, Eye, Palette, Box, Layers, Mail, Smartphone,
-  Globe, Shield, AlertTriangle, CheckCircle2, ArrowUpRight,
+  Globe, Shield, AlertTriangle, CheckCircle2, ArrowUpRight, Repeat, UserPlus,
+  Brain, Lightbulb, Percent, ArrowRight, ThumbsUp, Sparkles,
 } from "lucide-react";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { Button } from "@/components/ui/button";
@@ -85,8 +86,60 @@ const MOCK_DESIGNER = {
     { id: "r2", type: "in_app", campaign: "新功能上线通知", content: "AI设计2.0全新升级，快来体验", status: "converted", sentAt: "2026-02-15", openedAt: "2026-02-15" },
     { id: "r3", type: "email", campaign: "", content: "客户成功经理主动联系，了解使用情况", status: "replied", sentAt: "2026-01-10", openedAt: "2026-01-10" },
   ],
-  // 活跃时段
   activeHours: [0,0,0,0,0,1,2,5,12,18,22,15,8,14,20,18,12,8,4,3,2,1,0,0],
+  // ── 新增：用户画像维度
+  portrait: {
+    // 雷达图维度 0-100
+    dimensions: [
+      { name: "创作活跃", value: 82 },
+      { name: "工具深度", value: 65 },
+      { name: "付费意愿", value: 78 },
+      { name: "分享传播", value: 45 },
+      { name: "学习成长", value: 70 },
+      { name: "客户服务", value: 58 },
+    ],
+    persona: "高频创作型设计师",
+    personaDesc: "该用户具有较高的创作频率和付费意愿，善于利用AI工具提升效率。分享传播维度有提升空间，可通过激励计划提升带单能力。",
+    interests: ["AI设计", "高端住宅", "全屋定制", "智能家居", "新材料"],
+    stylePreference: { primary: "现代简约", secondary: "北欧", score: 92 },
+  },
+  // ── 新增：转化与复购
+  conversion: {
+    firstPayDays: 5,   // 注册到首次付费天数
+    upgradeCount: 2,    // 升级次数
+    upgradePath: ["基础版月卡", "专业版年卡", "专业版年卡(续)"],
+    avgRenewalCycle: 365, // 平均续费周期(天)
+    churnRisk: 15,      // 流失风险 0-100
+    renewalProbability: 85, // 续费概率
+    ltv: 28400,         // 生命周期价值
+    arpu: 775,          // 月均消费
+    repurchaseRate: 67, // 复购率
+    repurchaseHistory: [
+      { period: "2024-Q2", amount: 98, type: "首购" },
+      { period: "2024-Q3", amount: 980, type: "加购" },
+      { period: "2024-Q4", amount: 8800, type: "续费" },
+      { period: "2025-Q3", amount: 9800, type: "续费" },
+    ],
+  },
+  // ── 新增：带单能力
+  referral: {
+    totalReferred: 3,
+    convertedReferred: 2,
+    referralRevenue: 15600,
+    referralConvertRate: 67,
+    referredUsers: [
+      { name: "陈设计师", status: "已付费", amount: 8800, date: "2025-06-20" },
+      { name: "周设计师", status: "已付费", amount: 6800, date: "2025-08-15" },
+      { name: "刘设计师", status: "注册未付费", amount: 0, date: "2026-01-10" },
+    ],
+  },
+  // ── 新增：运营建议
+  recommendations: [
+    { type: "upsell", priority: "high", title: "推荐升级旗舰版", desc: "该用户AI设计使用率89%，已接近配额上限，旗舰版可提供更多AI额度和4K渲染权益", impact: "+¥5,200/年", icon: "upgrade" },
+    { type: "activation", priority: "medium", title: "推送4K渲染教程", desc: "4K渲染使用率仅16%，通过教程引导可提升功能深度评分", impact: "功能使用+30%", icon: "teach" },
+    { type: "referral", priority: "medium", title: "邀请加入推荐计划", desc: "该用户已成功推荐2人付费，适合纳入VIP推荐官计划", impact: "预计带单3人/季", icon: "share" },
+    { type: "retention", priority: "low", title: "预约续费回访", desc: "距离到期还有174天，可在到期前90天安排客户成功经理回访", impact: "续费率+12%", icon: "calendar" },
+  ],
 };
 
 /* ══════════════════════════════════════════════
@@ -124,6 +177,46 @@ const MOCK_EC = {
   reachRecords: [
     { id: "r1", type: "wechat", campaign: "", content: "微信发送效果图确认，客户非常满意客厅方案", status: "replied", sentAt: "2026-03-12", openedAt: "2026-03-12" },
     { id: "r2", type: "sms", campaign: "施工进度通知", content: "您的装修项目已进入木工阶段", status: "opened", sentAt: "2026-03-01", openedAt: "2026-03-01" },
+  ],
+  // ── 新增：客户画像
+  portrait: {
+    intentScore: 92,
+    satisfactionScore: 88,
+    cooperationDepth: 75,
+    referralWillingness: 60,
+    persona: "高净值全屋定制客户",
+    personaDesc: "该客户预算充裕，决策明确，对设计品质要求高。已签约并进入施工阶段，满意度较高。具备转介绍潜力。",
+    decisionFactors: ["设计效果", "品牌口碑", "价格合理", "服务态度"],
+    budgetLevel: "高端" as const,
+  },
+  // ── 新增：转化路径
+  conversionPath: {
+    totalDays: 87,   // 从录入到成交天数
+    touchpoints: 12,  // 触达次数
+    stages: [
+      { name: "初次接触", date: "2025-08-20", days: 0 },
+      { name: "需求确认", date: "2025-09-01", days: 12 },
+      { name: "方案沟通", date: "2025-09-20", days: 31 },
+      { name: "到店体验", date: "2025-10-10", days: 51 },
+      { name: "报价确认", date: "2025-10-30", days: 71 },
+      { name: "签约成交", date: "2025-11-15", days: 87 },
+    ],
+    contractAmount: 128000,
+    estimateRepurchase: "高（可能追加软装/衣柜）",
+  },
+  // ── 新增：复购与增购潜力
+  repurchase: {
+    probability: 72,
+    potentialItems: ["软装搭配方案", "卧室衣柜定制", "智能家居集成"],
+    estimatedAmount: "3-5万",
+    nextBestAction: "施工完成后推送软装搭配服务",
+  },
+  // ── 新增：运营建议
+  recommendations: [
+    { type: "cross_sell", priority: "high", title: "推荐软装搭配服务", desc: "客户全屋定制即将完工，可适时推送软装搭配方案，预计增购3-5万", impact: "+¥3-5万", icon: "package" },
+    { type: "referral", priority: "high", title: "邀请老带新", desc: "客户满意度88分，可邀请参与老带新活动，赠送保养服务作为激励", impact: "预计带单1-2单", icon: "users" },
+    { type: "satisfaction", priority: "medium", title: "安排阶段回访", desc: "木工阶段即将完成，建议安排回访确认满意度，预防售后投诉", impact: "满意度+5%", icon: "heart" },
+    { type: "retention", priority: "low", title: "建立长期关系", desc: "施工完成后纳入VIP客户群，定期推送家居保养和智能家居升级信息", impact: "LTV+30%", icon: "star" },
   ],
 };
 
@@ -165,13 +258,10 @@ export default function CustomerDetail() {
           HEADER: Profile Summary Strip
           ═══════════════════════════════════════════ */}
       <div className="mt-4 rounded-xl border border-border/60 bg-card overflow-hidden">
-        {/* Top bar with avatar + core info */}
         <div className="p-5 flex items-start gap-5">
-          {/* Avatar */}
           <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <span className="text-2xl font-bold text-primary">{(isDesigner ? d.name : ec.name)[0]}</span>
           </div>
-          {/* Core Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-1">
               <h2 className="text-lg font-semibold">{isDesigner ? d.name : ec.name}</h2>
@@ -180,6 +270,11 @@ export default function CustomerDetail() {
               </span>
               <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${lcInfo.color}`}>{lcInfo.label}</span>
               {!isDesigner && <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${FOLLOW_STATUS_MAP[ec.followStatus].color}`}>{FOLLOW_STATUS_MAP[ec.followStatus].label}</span>}
+              {/* Persona tag */}
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-violet-50 text-violet-700">
+                <Sparkles className="h-3 w-3" />
+                {isDesigner ? d.portrait.persona : ec.portrait.persona}
+              </span>
             </div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" /><span className="font-mono">{isDesigner ? d.phone : ec.phone}</span></span>
@@ -188,9 +283,7 @@ export default function CustomerDetail() {
               {isDesigner && <span className="inline-flex items-center gap-1"><Briefcase className="h-3.5 w-3.5" />{d.company}</span>}
               {!isDesigner && <span className="inline-flex items-center gap-1"><Building2 className="h-3.5 w-3.5" />{ec.sourceEnterprise}</span>}
               {!isDesigner && <span className="inline-flex items-center gap-1"><User className="h-3.5 w-3.5" />负责人: {ec.assignedStaff}</span>}
-              {!isDesigner && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{ec.address}</span>}
             </div>
-            {/* Tags */}
             <div className="flex flex-wrap gap-1.5 mt-2">
               {(isDesigner ? d.tags : ec.tags).map((t, i) => (
                 <span key={i} className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-muted text-muted-foreground">{t}</span>
@@ -198,14 +291,23 @@ export default function CustomerDetail() {
             </div>
           </div>
           {/* Right: Key metrics */}
-          {isDesigner && (
-            <div className="hidden lg:flex items-center gap-6 shrink-0">
-              <MetricPill label="CVS" value={d.cvsScore} suffix="/100" color={d.cvsScore >= 80 ? "text-emerald-600" : d.cvsScore >= 50 ? "text-primary" : "text-amber-600"} />
-              <MetricPill label="使用率" value={`${d.usageRate}%`} color={d.usageRate >= 70 ? "text-emerald-600" : d.usageRate >= 30 ? "text-primary" : "text-amber-600"} />
-              <MetricPill label="累计消费" value={`¥${d.totalSpent.toLocaleString()}`} />
-              <MetricPill label="续费" value={`${d.renewalCount}次`} />
-            </div>
-          )}
+          <div className="hidden lg:flex items-center gap-5 shrink-0">
+            {isDesigner ? (
+              <>
+                <MetricPill label="CVS" value={d.cvsScore} suffix="/100" color={d.cvsScore >= 80 ? "text-emerald-600" : d.cvsScore >= 50 ? "text-primary" : "text-amber-600"} />
+                <MetricPill label="续费概率" value={`${d.conversion.renewalProbability}%`} color="text-emerald-600" />
+                <MetricPill label="LTV" value={`¥${d.conversion.ltv.toLocaleString()}`} />
+                <MetricPill label="流失风险" value={`${d.conversion.churnRisk}%`} color={d.conversion.churnRisk >= 50 ? "text-red-600" : "text-emerald-600"} />
+              </>
+            ) : (
+              <>
+                <MetricPill label="意向度" value={`${ec.portrait.intentScore}分`} color="text-emerald-600" />
+                <MetricPill label="满意度" value={`${ec.portrait.satisfactionScore}分`} color="text-primary" />
+                <MetricPill label="合同额" value={`¥${(ec.conversionPath.contractAmount/10000).toFixed(1)}万`} />
+                <MetricPill label="复购概率" value={`${ec.repurchase.probability}%`} color="text-emerald-600" />
+              </>
+            )}
+          </div>
         </div>
 
         {/* Alerts banner */}
@@ -234,6 +336,65 @@ export default function CustomerDetail() {
         {/* ── LEFT COLUMN (5 cols) ── */}
         <div className="lg:col-span-5 space-y-5">
 
+          {/* ★ 用户画像 — 雷达图 + 画像描述 */}
+          <SectionCard title="用户画像" icon={Brain}>
+            {isDesigner ? (
+              <div>
+                {/* Radar chart via SVG */}
+                <div className="flex items-start gap-4">
+                  <div className="w-[160px] h-[160px] shrink-0">
+                    <RadarChart dimensions={d.portrait.dimensions} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-violet-50 text-violet-700">{d.portrait.persona}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-3">{d.portrait.personaDesc}</p>
+                    <div className="mb-2">
+                      <span className="text-[11px] text-muted-foreground">兴趣标签</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {d.portrait.interests.map(t => (
+                          <span key={t} className="px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary">{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground">风格偏好</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-medium">{d.portrait.stylePreference.primary}</span>
+                        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden max-w-[80px]">
+                          <div className="h-full bg-primary rounded-full" style={{ width: `${d.portrait.stylePreference.score}%` }} />
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">{d.portrait.stylePreference.score}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground leading-relaxed">{ec.portrait.personaDesc}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <ScoreGauge label="意向度" value={ec.portrait.intentScore} />
+                  <ScoreGauge label="满意度" value={ec.portrait.satisfactionScore} />
+                  <ScoreGauge label="合作深度" value={ec.portrait.cooperationDepth} />
+                  <ScoreGauge label="转介绍意愿" value={ec.portrait.referralWillingness} />
+                </div>
+                <div>
+                  <span className="text-[11px] text-muted-foreground">决策因素</span>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {ec.portrait.decisionFactors.map((f, i) => (
+                      <span key={f} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-muted text-muted-foreground">
+                        <span className="text-primary font-bold">{i + 1}</span>{f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <InfoItem label="预算水平" value={ec.portrait.budgetLevel === "高端" ? "💎 高端客户" : "中端客户"} />
+              </div>
+            )}
+          </SectionCard>
+
           {/* Section: 基本档案 */}
           <SectionCard title="基本档案" icon={FileText}>
             {isDesigner ? (
@@ -246,15 +407,9 @@ export default function CustomerDetail() {
                 <InfoItem label="套餐到期" value={d.packageExpiry} />
                 <InfoItem label="最近设备" value={d.lastDevice} />
                 <InfoItem label="最近IP" value={d.lastIP} mono />
-                <div className="col-span-2">
-                  <InfoItem label="擅长风格" value={d.specialties.join("、")} />
-                </div>
-                <div className="col-span-2">
-                  <InfoItem label="认证资质" value={d.certifications.join("、")} />
-                </div>
-                <div className="col-span-2">
-                  <InfoItem label="备注" value={d.remark || "—"} />
-                </div>
+                <div className="col-span-2"><InfoItem label="擅长风格" value={d.specialties.join("、")} /></div>
+                <div className="col-span-2"><InfoItem label="认证资质" value={d.certifications.join("、")} /></div>
+                <div className="col-span-2"><InfoItem label="备注" value={d.remark || "—"} /></div>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
@@ -262,7 +417,6 @@ export default function CustomerDetail() {
                 <InfoItem label="最近跟进" value={ec.lastFollowAt} />
                 <InfoItem label="所属企业" value={ec.sourceEnterprise} />
                 <InfoItem label="负责人" value={ec.assignedStaff} />
-                <InfoItem label="意向等级" value={ec.intentLevel === "high" ? "🟢 高意向" : ec.intentLevel === "medium" ? "🟡 中意向" : "⚪ 低意向"} />
                 <InfoItem label="装修阶段" value={ec.decorateStage} />
                 <InfoItem label="户型" value={ec.houseType} />
                 <InfoItem label="面积" value={ec.area} />
@@ -270,12 +424,8 @@ export default function CustomerDetail() {
                 <InfoItem label="交付预期" value={ec.expectedDelivery} />
                 <InfoItem label="家庭成员" value={ec.familyMembers} />
                 <InfoItem label="风格偏好" value={ec.preferenceStyle} />
-                <div className="col-span-2">
-                  <InfoItem label="详细地址" value={ec.address} />
-                </div>
-                <div className="col-span-2">
-                  <InfoItem label="备注" value={ec.remark || "—"} />
-                </div>
+                <InfoItem label="地址" value={ec.address} />
+                <div className="col-span-2"><InfoItem label="备注" value={ec.remark || "—"} /></div>
               </div>
             )}
           </SectionCard>
@@ -297,7 +447,7 @@ export default function CustomerDetail() {
             </div>
           </SectionCard>
 
-          {/* Section: 关联企业 (EC only) */}
+          {/* 关联企业 (EC only) */}
           {!isDesigner && (
             <SectionCard title="关联企业" icon={Building2} badge={`${ec.linkedEnterprises.length}家`}>
               <div className="space-y-3">
@@ -324,7 +474,7 @@ export default function CustomerDetail() {
             </SectionCard>
           )}
 
-          {/* Section: 跟进记录 */}
+          {/* 跟进记录 */}
           <SectionCard title="跟进记录" icon={MessageSquare}
             action={<button onClick={() => setShowAddFollow(true)} className="text-xs text-primary hover:underline flex items-center gap-0.5"><Plus className="h-3 w-3" />新增</button>}
           >
@@ -366,7 +516,7 @@ export default function CustomerDetail() {
             </div>
           </SectionCard>
 
-          {/* Section: 触达记录 */}
+          {/* 触达记录 */}
           <SectionCard title="触达记录" icon={Send}>
             {(isDesigner ? d.reachRecords : ec.reachRecords).length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-4">暂无触达记录</p>
@@ -406,7 +556,154 @@ export default function CustomerDetail() {
         {/* ── RIGHT COLUMN (7 cols) ── */}
         <div className="lg:col-span-7 space-y-5">
 
-          {/* Designer: 数据概览 */}
+          {/* ★ 运营建议 — AI Smart Recommendations */}
+          <SectionCard title="智能运营建议" icon={Lightbulb}>
+            <div className="space-y-2.5">
+              {(isDesigner ? d.recommendations : ec.recommendations).map((rec, i) => {
+                const priorityColors: Record<string, string> = {
+                  high: "border-l-red-500 bg-red-50/30",
+                  medium: "border-l-amber-500 bg-amber-50/30",
+                  low: "border-l-blue-500 bg-blue-50/30",
+                };
+                const priorityLabels: Record<string, { label: string; color: string }> = {
+                  high: { label: "高优", color: "bg-red-100 text-red-700" },
+                  medium: { label: "中优", color: "bg-amber-100 text-amber-700" },
+                  low: { label: "低优", color: "bg-blue-100 text-blue-700" },
+                };
+                const pl = priorityLabels[rec.priority];
+                return (
+                  <div key={i} className={`p-3 rounded-lg border-l-[3px] border border-border/40 ${priorityColors[rec.priority]}`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${pl.color}`}>{pl.label}</span>
+                      <span className="text-sm font-medium">{rec.title}</span>
+                      <span className="ml-auto text-[11px] font-medium text-emerald-600">{rec.impact}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{rec.desc}</p>
+                    <div className="flex gap-2 mt-2">
+                      <Button variant="outline" size="sm" className="h-6 text-[11px]" onClick={() => toast.success("已创建执行任务")}>立即执行</Button>
+                      <Button variant="ghost" size="sm" className="h-6 text-[11px]" onClick={() => toast.success("已加入待办")}>加入待办</Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </SectionCard>
+
+          {/* ★ 转化分析 (Designer) — 复购路径 + LTV */}
+          {isDesigner && (
+            <SectionCard title="转化与复购分析" icon={Repeat}>
+              <div className="space-y-4">
+                {/* Key conversion metrics row */}
+                <div className="grid grid-cols-5 gap-3">
+                  <MiniStat label="首购转化" value={`${d.conversion.firstPayDays}天`} desc="注册→付费" />
+                  <MiniStat label="复购率" value={`${d.conversion.repurchaseRate}%`} desc="重复购买" highlight />
+                  <MiniStat label="续费概率" value={`${d.conversion.renewalProbability}%`} desc="预测值" />
+                  <MiniStat label="月均ARPU" value={`¥${d.conversion.arpu}`} desc="平均消费" />
+                  <MiniStat label="客户LTV" value={`¥${(d.conversion.ltv/10000).toFixed(1)}万`} desc="生命周期价值" highlight />
+                </div>
+
+                {/* Upgrade path visualization */}
+                <div>
+                  <h5 className="text-xs font-medium text-muted-foreground mb-2">升级路径</h5>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {d.conversion.upgradePath.map((step, i) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <span className={`px-2 py-1 rounded-lg text-[11px] font-medium border ${i === d.conversion.upgradePath.length - 1 ? "border-primary bg-primary/10 text-primary" : "border-border/60 text-muted-foreground"}`}>{step}</span>
+                        {i < d.conversion.upgradePath.length - 1 && <ArrowRight className="h-3 w-3 text-muted-foreground/50" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Repurchase timeline */}
+                <div>
+                  <h5 className="text-xs font-medium text-muted-foreground mb-2">复购时间线</h5>
+                  <div className="flex gap-2 flex-wrap">
+                    {d.conversion.repurchaseHistory.map((rp, i) => (
+                      <div key={i} className="flex-1 min-w-[100px] p-2.5 rounded-lg border border-border/40 text-center">
+                        <div className="text-[10px] text-muted-foreground">{rp.period}</div>
+                        <div className="text-sm font-bold mt-0.5">¥{rp.amount.toLocaleString()}</div>
+                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium mt-1 ${rp.type === "首购" ? "bg-blue-100 text-blue-700" : rp.type === "加购" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>{rp.type}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Risk meter */}
+                <div className="flex items-center gap-4 p-3 rounded-lg border border-border/40 bg-muted/20">
+                  <div>
+                    <span className="text-[11px] text-muted-foreground">流失风险</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${d.conversion.churnRisk >= 50 ? "bg-red-500" : d.conversion.churnRisk >= 30 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${d.conversion.churnRisk}%` }} />
+                      </div>
+                      <span className={`text-sm font-bold ${d.conversion.churnRisk >= 50 ? "text-red-600" : d.conversion.churnRisk >= 30 ? "text-amber-600" : "text-emerald-600"}`}>{d.conversion.churnRisk}%</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 text-xs text-muted-foreground">
+                    平均续费周期 {d.conversion.avgRenewalCycle} 天，已升级 {d.conversion.upgradeCount} 次
+                  </div>
+                </div>
+              </div>
+            </SectionCard>
+          )}
+
+          {/* ★ 转化路径 (EC) */}
+          {!isDesigner && (
+            <SectionCard title="转化路径分析" icon={Target}>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <MiniStat label="转化周期" value={`${ec.conversionPath.totalDays}天`} desc="录入→成交" />
+                  <MiniStat label="触达次数" value={`${ec.conversionPath.touchpoints}次`} desc="总接触点" />
+                  <MiniStat label="合同金额" value={`¥${(ec.conversionPath.contractAmount/10000).toFixed(1)}万`} desc="已签约" highlight />
+                </div>
+
+                {/* Conversion stages flow */}
+                <div className="relative">
+                  <div className="flex items-center">
+                    {ec.conversionPath.stages.map((s, i) => (
+                      <div key={i} className="flex-1 relative">
+                        <div className="flex flex-col items-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i === ec.conversionPath.stages.length - 1 ? "bg-emerald-100 text-emerald-700" : "bg-primary/10 text-primary"}`}>
+                            {i + 1}
+                          </div>
+                          <span className="text-[10px] font-medium mt-1 text-center">{s.name}</span>
+                          <span className="text-[9px] text-muted-foreground">{s.date}</span>
+                          {s.days > 0 && <span className="text-[9px] text-primary">+{s.days}天</span>}
+                        </div>
+                        {i < ec.conversionPath.stages.length - 1 && (
+                          <div className="absolute top-4 left-[60%] w-[80%] h-px bg-border/60" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Repurchase potential */}
+                <div className="p-3 rounded-lg border border-border/40 bg-muted/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium">复购与增购潜力</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
+                      <TrendingUp className="h-3 w-3" />{ec.repurchase.probability}%
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {ec.repurchase.potentialItems.map(item => (
+                      <span key={item} className="px-2 py-0.5 rounded text-[10px] bg-primary/10 text-primary font-medium">{item}</span>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-medium">预估增购金额: </span>{ec.repurchase.estimatedAmount}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    <span className="font-medium">最佳行动: </span>{ec.repurchase.nextBestAction}
+                  </div>
+                </div>
+              </div>
+            </SectionCard>
+          )}
+
+          {/* Designer: 核心指标 + CVS */}
           {isDesigner && (
             <>
               <SectionCard title="核心指标" icon={BarChart3}>
@@ -422,7 +719,6 @@ export default function CustomerDetail() {
                 </div>
               </SectionCard>
 
-              {/* CVS score breakdown */}
               <SectionCard title="客户价值评分 (CVS)" icon={Award}>
                 <div className="flex items-center gap-6 mb-4">
                   <div className="relative w-20 h-20">
@@ -457,10 +753,40 @@ export default function CustomerDetail() {
             </>
           )}
 
+          {/* ★ 带单能力 (Designer) */}
+          {isDesigner && (
+            <SectionCard title="带单能力" icon={UserPlus}>
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                <MiniStat label="推荐人数" value={d.referral.totalReferred} desc="累计推荐" />
+                <MiniStat label="转化人数" value={d.referral.convertedReferred} desc="已付费" highlight />
+                <MiniStat label="转化率" value={`${d.referral.referralConvertRate}%`} desc="推荐转化" />
+                <MiniStat label="推荐营收" value={`¥${(d.referral.referralRevenue/10000).toFixed(1)}万`} desc="带单金额" highlight />
+              </div>
+              <div className="space-y-2">
+                {d.referral.referredUsers.map((u, i) => (
+                  <div key={i} className="flex items-center justify-between p-2.5 rounded-lg border border-border/40">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium">{u.name}</span>
+                        <span className="text-[10px] text-muted-foreground ml-2">{u.date}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {u.amount > 0 && <span className="text-sm font-medium">¥{u.amount.toLocaleString()}</span>}
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${u.status === "已付费" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{u.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          )}
+
           {/* 权益账户 (Designer) */}
           {isDesigner && (
-            <SectionCard title="权益账户" icon={Gift}
-              badge={`${d.currentPackage} · 到期 ${d.packageExpiry}`}>
+            <SectionCard title="权益账户" icon={Gift} badge={`${d.currentPackage} · 到期 ${d.packageExpiry}`}>
               <div className="grid grid-cols-3 gap-3">
                 {d.entitlements.map((e, i) => {
                   const rate = Math.round((e.used / e.total) * 100);
@@ -481,13 +807,9 @@ export default function CustomerDetail() {
                   );
                 })}
               </div>
-              {/* Usage trend */}
               <div className="mt-4 pt-4 border-t border-border/40">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-muted-foreground">近30天消耗趋势</span>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <span className="w-2 h-2 rounded-full bg-primary/60 inline-block" />日消耗
-                  </div>
                 </div>
                 <div className="flex items-end gap-[2px] h-12">
                   {d.usageTrend.map((v, i) => (
@@ -526,7 +848,6 @@ export default function CustomerDetail() {
           {isDesigner && (
             <SectionCard title="行为轨迹" icon={MousePointerClick}>
               <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                {/* Timeline */}
                 <div className="lg:col-span-3 relative pl-5">
                   <div className="absolute left-[7px] top-1 bottom-1 w-px bg-border/60" />
                   {d.behaviors.map((b, i) => (
@@ -541,7 +862,6 @@ export default function CustomerDetail() {
                     </div>
                   ))}
                 </div>
-                {/* Feature usage + Active hours */}
                 <div className="lg:col-span-2 space-y-4">
                   <div>
                     <h5 className="text-xs font-medium mb-2 text-muted-foreground">功能偏好排名</h5>
@@ -655,5 +975,88 @@ function StatBlock({ label, value, suffix }: { label: string; value: React.React
       </div>
       <div className="text-[10px] text-muted-foreground mt-0.5">{label}</div>
     </div>
+  );
+}
+
+function MiniStat({ label, value, desc, highlight }: { label: string; value: React.ReactNode; desc?: string; highlight?: boolean }) {
+  return (
+    <div className={`p-2.5 rounded-lg border text-center ${highlight ? "border-primary/30 bg-primary/5" : "border-border/40"}`}>
+      <div className={`text-base font-bold ${highlight ? "text-primary" : ""}`}>{value}</div>
+      <div className="text-[10px] font-medium mt-0.5">{label}</div>
+      {desc && <div className="text-[9px] text-muted-foreground">{desc}</div>}
+    </div>
+  );
+}
+
+function ScoreGauge({ label, value }: { label: string; value: number }) {
+  const color = value >= 80 ? "text-emerald-600" : value >= 60 ? "text-primary" : "text-amber-600";
+  const bgColor = value >= 80 ? "bg-emerald-500" : value >= 60 ? "bg-primary" : "bg-amber-500";
+  return (
+    <div className="p-2.5 rounded-lg border border-border/40 text-center">
+      <div className={`text-lg font-bold ${color}`}>{value}</div>
+      <div className="w-full h-1 bg-muted rounded-full overflow-hidden mt-1">
+        <div className={`h-full rounded-full ${bgColor}`} style={{ width: `${value}%` }} />
+      </div>
+      <div className="text-[10px] text-muted-foreground mt-1">{label}</div>
+    </div>
+  );
+}
+
+/* ── SVG Radar Chart ── */
+function RadarChart({ dimensions }: { dimensions: { name: string; value: number }[] }) {
+  const n = dimensions.length;
+  const cx = 80, cy = 80, r = 60;
+
+  const getPoint = (i: number, val: number) => {
+    const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+    return {
+      x: cx + (r * val / 100) * Math.cos(angle),
+      y: cy + (r * val / 100) * Math.sin(angle),
+    };
+  };
+
+  const levels = [25, 50, 75, 100];
+
+  return (
+    <svg viewBox="0 0 160 160" className="w-full h-full">
+      {/* Grid rings */}
+      {levels.map(l => (
+        <polygon key={l}
+          points={Array.from({ length: n }, (_, i) => {
+            const p = getPoint(i, l);
+            return `${p.x},${p.y}`;
+          }).join(" ")}
+          fill="none" className="stroke-border/40" strokeWidth="0.5"
+        />
+      ))}
+      {/* Axes */}
+      {dimensions.map((_, i) => {
+        const p = getPoint(i, 100);
+        return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} className="stroke-border/30" strokeWidth="0.5" />;
+      })}
+      {/* Data polygon */}
+      <polygon
+        points={dimensions.map((d, i) => {
+          const p = getPoint(i, d.value);
+          return `${p.x},${p.y}`;
+        }).join(" ")}
+        className="fill-primary/15 stroke-primary" strokeWidth="1.5"
+      />
+      {/* Data points */}
+      {dimensions.map((d, i) => {
+        const p = getPoint(i, d.value);
+        return <circle key={i} cx={p.x} cy={p.y} r="2.5" className="fill-primary" />;
+      })}
+      {/* Labels */}
+      {dimensions.map((d, i) => {
+        const p = getPoint(i, 120);
+        return (
+          <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
+            className="fill-muted-foreground text-[8px]">
+            {d.name}
+          </text>
+        );
+      })}
+    </svg>
   );
 }

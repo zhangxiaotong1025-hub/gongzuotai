@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Eye, Play, Pause, BarChart3, Users, Send, Gift, Ticket, Package } from "lucide-react";
+import { Plus, Eye, Play, Pause, BarChart3, Users, Send, Gift, Ticket, Package, TrendingUp, DollarSign, Target, Percent, ArrowUpRight } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
 const SEGMENTS = generateSegments();
 const CAMPAIGNS = generateCampaigns();
 
-const TABS = ["客户分群", "营销活动", "转化效果"];
+const TABS = ["客户分群", "营销活动", "转化效果", "ROI分析"];
 
 /* ── Segment Columns ── */
 const segCols: TableColumn<CustomerSegment>[] = [
@@ -65,14 +65,14 @@ export default function MarketingStrategy() {
   const [newCampaign, setNewCampaign] = useState({ name: "", type: "message", segmentId: "", content: "" });
 
   const segActions: ActionItem<CustomerSegment>[] = [
-    { label: "查看客户", onClick: () => navigate("/customer/designer") },
+    { label: "查看客户", onClick: () => navigate("/customer/list") },
     { label: "创建活动", onClick: (r) => { setNewCampaign(p => ({ ...p, segmentId: r.id })); setShowCreateCampaign(true); setTab(1); } },
     { label: (r) => r.status === "active" ? "停用" : "启用", onClick: (r) => toast.success(`分群已${r.status === "active" ? "停用" : "启用"}`) },
   ];
 
   const cmpActions: ActionItem<MarketingCampaign>[] = [
     { label: "查看效果", onClick: () => setTab(2) },
-    { label: (r) => r.status === "running" ? "暂停" : r.status === "draft" ? "发布" : "查看", onClick: (r) => toast.success(`活动操作成功`) },
+    { label: (r) => r.status === "running" ? "暂停" : r.status === "draft" ? "发布" : "查看", onClick: () => toast.success("活动操作成功") },
   ];
 
   const handleCreateSegment = () => {
@@ -94,10 +94,12 @@ export default function MarketingStrategy() {
   const totalConvert = CAMPAIGNS.reduce((a, c) => a + c.convertCount, 0);
   const totalAmount = CAMPAIGNS.reduce((a, c) => a + c.convertAmount, 0);
   const overallRate = totalReach > 0 ? Math.round((totalConvert / totalReach) * 100) : 0;
+  const totalCost = 28000; // 模拟营销成本
+  const roi = totalCost > 0 ? ((totalAmount - totalCost) / totalCost * 100).toFixed(0) : 0;
 
   return (
     <div>
-      <PageHeader title="营销策略" subtitle="客户分群与精准触达" />
+      <PageHeader title="营销策略" subtitle="客户分群、精准触达与转化ROI分析" />
 
       <div className="flex items-center gap-1 mb-5 border-b border-border/60">
         {TABS.map((t, i) => (
@@ -202,23 +204,21 @@ export default function MarketingStrategy() {
       {/* Tab 2: Conversion Tracking */}
       {tab === 2 && (
         <div className="space-y-6">
-          {/* KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
             {[
-              { label: "总触达人数", value: totalReach, prefix: "" },
-              { label: "总转化人数", value: totalConvert, prefix: "" },
-              { label: "总体转化率", value: `${overallRate}%`, prefix: "" },
-              { label: "转化总金额", value: `¥${totalAmount.toLocaleString()}`, prefix: "" },
-              { label: "活动数", value: CAMPAIGNS.length, prefix: "" },
+              { label: "总触达人数", value: totalReach },
+              { label: "总转化人数", value: totalConvert },
+              { label: "总体转化率", value: `${overallRate}%` },
+              { label: "转化总金额", value: `¥${totalAmount.toLocaleString()}` },
+              { label: "活动数", value: CAMPAIGNS.length },
             ].map(k => (
               <div key={k.label} className="rounded-xl border border-border/60 bg-card p-4 text-center">
-                <div className="text-2xl font-bold text-primary">{k.prefix}{k.value}</div>
+                <div className="text-2xl font-bold text-primary">{k.value}</div>
                 <div className="text-xs text-muted-foreground mt-1">{k.label}</div>
               </div>
             ))}
           </div>
 
-          {/* Per-campaign effect */}
           <div className="rounded-xl border border-border/60 bg-card p-5">
             <h4 className="text-sm font-medium mb-4">各活动转化效果</h4>
             <div className="space-y-4">
@@ -240,7 +240,6 @@ export default function MarketingStrategy() {
                       <div><div className="text-sm font-medium text-primary">{c.convertCount} <span className="text-[10px] text-muted-foreground">({convertRate}%)</span></div><div className="text-[10px] text-muted-foreground">转化</div></div>
                       <div><div className="text-sm font-medium">¥{c.convertAmount.toLocaleString()}</div><div className="text-[10px] text-muted-foreground">金额</div></div>
                     </div>
-                    {/* Funnel bar */}
                     <div className="flex gap-1 mt-3 h-2">
                       <div className="bg-blue-400 rounded-l" style={{ width: `${reachRate}%` }} title="触达率" />
                       <div className="bg-primary rounded-r" style={{ width: `${convertRate}%` }} title="转化率" />
@@ -249,6 +248,105 @@ export default function MarketingStrategy() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: ROI Analysis */}
+      {tab === 3 && (
+        <div className="space-y-6">
+          {/* ROI Summary */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="rounded-xl border border-border/60 bg-card p-5 text-center">
+              <DollarSign className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
+              <div className="text-2xl font-bold text-primary">¥{totalAmount.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground mt-1">营销总营收</div>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card p-5 text-center">
+              <Target className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
+              <div className="text-2xl font-bold">¥{totalCost.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground mt-1">营销总成本</div>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card p-5 text-center">
+              <TrendingUp className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
+              <div className="text-2xl font-bold text-emerald-600">{roi}%</div>
+              <div className="text-xs text-muted-foreground mt-1">投资回报率 (ROI)</div>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card p-5 text-center">
+              <Percent className="h-5 w-5 text-muted-foreground mx-auto mb-1" />
+              <div className="text-2xl font-bold">¥{totalConvert > 0 ? Math.round(totalAmount / totalConvert).toLocaleString() : 0}</div>
+              <div className="text-xs text-muted-foreground mt-1">客均转化价值</div>
+            </div>
+          </div>
+
+          {/* Per-campaign ROI */}
+          <div className="rounded-xl border border-border/60 bg-card p-5">
+            <h4 className="text-sm font-medium mb-4">各活动 ROI 对比</h4>
+            <div className="space-y-3">
+              {CAMPAIGNS.map(c => {
+                const estCost = Math.round(totalCost * (c.targetCount / CAMPAIGNS.reduce((a, x) => a + x.targetCount, 0)));
+                const cRoi = estCost > 0 ? Math.round(((c.convertAmount - estCost) / estCost) * 100) : 0;
+                const cac = c.convertCount > 0 ? Math.round(estCost / c.convertCount) : 0;
+                return (
+                  <div key={c.id} className="p-4 rounded-lg border border-border/40">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <div className="text-sm font-medium">{c.name}</div>
+                        <div className="text-xs text-muted-foreground">{CAMPAIGN_TYPE_MAP[c.type]}</div>
+                      </div>
+                      <div className={`text-lg font-bold ${cRoi >= 100 ? "text-emerald-600" : cRoi >= 0 ? "text-primary" : "text-red-600"}`}>
+                        ROI {cRoi}%
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-5 gap-4">
+                      <div className="text-center">
+                        <div className="text-sm font-medium">¥{estCost.toLocaleString()}</div>
+                        <div className="text-[10px] text-muted-foreground">投入成本</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-medium">¥{c.convertAmount.toLocaleString()}</div>
+                        <div className="text-[10px] text-muted-foreground">转化营收</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-medium text-emerald-600">¥{(c.convertAmount - estCost).toLocaleString()}</div>
+                        <div className="text-[10px] text-muted-foreground">净利润</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-medium">¥{cac.toLocaleString()}</div>
+                        <div className="text-[10px] text-muted-foreground">获客成本(CAC)</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-medium">{c.convertCount > 0 ? Math.round(c.convertAmount / c.convertCount).toLocaleString() : 0}</div>
+                        <div className="text-[10px] text-muted-foreground">客均价值</div>
+                      </div>
+                    </div>
+                    {/* ROI bar */}
+                    <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${cRoi >= 100 ? "bg-emerald-500" : cRoi >= 0 ? "bg-primary/60" : "bg-red-400"}`}
+                        style={{ width: `${Math.min(100, Math.abs(cRoi) / 3)}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Insights */}
+          <div className="rounded-xl border border-border/60 bg-card p-5">
+            <h4 className="text-sm font-medium mb-3">💡 营销洞察</h4>
+            <div className="space-y-2">
+              {[
+                { insight: "「春季续费优惠活动」ROI最高，建议加大续费类活动投入", type: "positive" },
+                { insight: "「流失客户召回消息」转化率偏低(8%)，建议优化召回策略，增加权益激励", type: "warning" },
+                { insight: "权益赠送类活动的获客成本最低，适合新用户激活场景", type: "positive" },
+                { insight: "建议将高价值活跃分群的专属套餐活动尽快上线，预计可带来¥89,000增量", type: "action" },
+              ].map((ins, i) => (
+                <div key={i} className={`flex items-start gap-2 p-3 rounded-lg border ${ins.type === "positive" ? "border-emerald-200 bg-emerald-50/30" : ins.type === "warning" ? "border-amber-200 bg-amber-50/30" : "border-blue-200 bg-blue-50/30"}`}>
+                  <span className="shrink-0 mt-0.5">{ins.type === "positive" ? "✅" : ins.type === "warning" ? "⚠️" : "🎯"}</span>
+                  <span className="text-xs leading-relaxed">{ins.insight}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
