@@ -411,7 +411,7 @@ export default function CustomerDetail() {
                       action={<button onClick={() => setShowPortrait(true)} className="text-[10px] text-primary hover:underline flex items-center gap-0.5"><ExternalLink className="h-3 w-3" />完整画像</button>}
                     />
                     <div className="w-[140px] h-[140px] mx-auto mt-2"><RadarChart dimensions={portrait.radarDimensions} /></div>
-                    <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed text-center">{portrait.behaviorSummary}</p>
+                    <p className="text-[11px] text-muted-foreground mt-2 leading-relaxed text-center">{portrait.personaDesc}</p>
                   </div>
                   {/* CVS + Core Stats */}
                   <div className="lg:col-span-4 rounded-xl border border-border/60 bg-card p-4">
@@ -492,7 +492,7 @@ export default function CustomerDetail() {
                         );
                       })}
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-2 italic">{portrait.needsSummary}</p>
+                    <p className="text-[10px] text-muted-foreground mt-2 italic">{portrait.serviceApproach}</p>
                   </div>
                 </div>
               </div>
@@ -520,7 +520,7 @@ export default function CustomerDetail() {
                         ))}
                       </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-2 italic">{portrait.personalitySummary}</p>
+                    <p className="text-[10px] text-muted-foreground mt-2 italic">{portrait.personaDesc}</p>
                   </div>
                   <div className="lg:col-span-7 rounded-xl border border-border/60 bg-card p-4">
                     <SectionTitle icon={FileText} title="基本信息" />
@@ -574,7 +574,7 @@ export default function CustomerDetail() {
                         );
                       })}
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-2 italic">{portrait.needsSummary}</p>
+                    <p className="text-[10px] text-muted-foreground mt-2 italic">{portrait.serviceApproach}</p>
                   </div>
                 </div>
               </div>
