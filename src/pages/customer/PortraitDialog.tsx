@@ -488,17 +488,32 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
             <section id="p-narrative">
               <SectionLabel title="综合研判 · 这个人是谁" />
               <div className="mt-3 space-y-3">
-                {/* Profile narrative */}
+                {/* Profile identity cards */}
+                <div className="grid grid-cols-4 gap-2">
+                  {data.profileCards.map((card, i) => {
+                    const Icon = PROFILE_ICON_MAP[card.icon] || Target;
+                    const colorCls = PROFILE_COLOR_MAP[card.color] || PROFILE_COLOR_MAP.primary;
+                    return (
+                      <div key={i} className={`rounded-xl border p-3 ${colorCls}`}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Icon className="h-3.5 w-3.5" />
+                          <span className="text-[9px] opacity-70">{card.label}</span>
+                        </div>
+                        <span className="text-[11px] font-semibold leading-tight block">{card.value}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Narrative summary - collapsed */}
                 <div className="rounded-xl border border-border/40 bg-gradient-to-br from-muted/20 to-muted/5 p-4">
-                  <div className="flex items-start gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <Users className="h-3.5 w-3.5 text-primary" />
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Users className="h-3 w-3 text-primary" />
                     </div>
-                    <div>
-                      <span className="text-[11px] font-semibold">客户全貌</span>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">{data.profileNarrative}</p>
-                    </div>
+                    <span className="text-[11px] font-semibold">深度分析</span>
                   </div>
+                  <p className="text-[10px] text-muted-foreground leading-[1.7]">{data.profileNarrative}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -896,20 +911,34 @@ function RadarChart({ dimensions }: { dimensions: { name: string; value: number 
       {[25, 50, 75, 100].map(l => (
         <polygon key={l}
           points={Array.from({ length: n }, (_, i) => { const p = pt(i, l); return `${p.x},${p.y}`; }).join(" ")}
-          fill="none" className="stroke-border/25" strokeWidth="0.5" />
+          fill="none" stroke="hsl(var(--border) / 0.25)" strokeWidth="0.5" />
       ))}
-      {dimensions.map((_, i) => { const p = pt(i, 100); return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} className="stroke-border/15" strokeWidth="0.5" />; })}
+      {dimensions.map((_, i) => { const p = pt(i, 100); return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="hsl(var(--border) / 0.15)" strokeWidth="0.5" />; })}
       <polygon
         points={dimensions.map((dd, i) => { const p = pt(i, dd.value); return `${p.x},${p.y}`; }).join(" ")}
-        className="fill-primary/12 stroke-primary" strokeWidth="1.5" strokeLinejoin="round" />
+        fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="round" />
       {dimensions.map((dd, i) => {
         const p = pt(i, dd.value);
-        return <circle key={`d${i}`} cx={p.x} cy={p.y} r="3" className="fill-primary stroke-background" strokeWidth="1.5" />;
+        return <circle key={`d${i}`} cx={p.x} cy={p.y} r="3" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1.5" />;
       })}
       {dimensions.map((dd, i) => {
         const p = pt(i, 120);
-        return <text key={`t${i}`} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle" className="fill-muted-foreground text-[7px] font-medium">{dd.name}</text>;
+        return <text key={`t${i}`} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle" fill="hsl(var(--muted-foreground))" fontSize="7" fontWeight="500">{dd.name}</text>;
       })}
     </svg>
   );
 }
+
+const PROFILE_ICON_MAP: Record<string, React.ElementType> = {
+  user: Users, map: Target, zap: Zap, brain: Brain, dollar: DollarSign,
+  repeat: Repeat, clock: Clock, target: Target, home: Shield, eye: Eye,
+  share: MessageCircle, star: Star,
+};
+const PROFILE_COLOR_MAP: Record<string, string> = {
+  primary: "bg-primary/10 text-primary border-primary/20",
+  blue: "bg-blue-500/10 text-blue-600 border-blue-200",
+  emerald: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
+  violet: "bg-violet-500/10 text-violet-600 border-violet-200",
+  amber: "bg-amber-500/10 text-amber-600 border-amber-200",
+  cyan: "bg-cyan-500/10 text-cyan-600 border-cyan-200",
+};
