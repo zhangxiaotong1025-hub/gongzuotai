@@ -57,6 +57,12 @@ export interface ServiceStrategy {
   expectedOutcome: string;
   icon: React.ElementType;
 }
+export interface ProfileCard {
+  icon: string;
+  label: string;
+  value: string;
+  color: string;
+}
 export interface PortraitData {
   behaviorTraits: BehaviorTrait[];
   personalityTraits: PersonalityTrait[];
@@ -69,13 +75,13 @@ export interface PortraitData {
   activityHeatmap: number[][];
   interestBubbles: { name: string; weight: number; color: string }[];
   journeyStages: { name: string; status: "done" | "current" | "future"; metric: string }[];
-  // ── New rich narrative fields ──
-  profileNarrative: string;       // 一段话讲清楚这个人
-  valueAssessment: string;        // 价值研判
-  serviceApproach: string;        // 服务策略总纲
+  profileCards: ProfileCard[];
+  profileNarrative: string;
+  valueAssessment: string;
+  serviceApproach: string;
   riskOpportunities: RiskOpportunity[];
   serviceStrategies: ServiceStrategy[];
-  keyInsights: string[];          // 关键洞察 bullet points
+  keyInsights: string[];
   communicationStyle: { style: string; dos: string[]; donts: string[] };
   decisionFactors: { factor: string; weight: number; evidence: string }[];
 }
@@ -86,6 +92,16 @@ export interface PortraitData {
 export const DESIGNER_PORTRAIT: PortraitData = {
   persona: "效率创作型",
   personaDesc: "以产出效率为核心竞争力的实战型设计师，善用AI工具批量出图，服务中小型家装客户为主，正处于从「接单执行」向「品牌化运营」转型的关键期",
+  profileCards: [
+    { icon: "user", label: "身份", value: "室内设计师 · 4年", color: "primary" },
+    { icon: "map", label: "市场", value: "杭州 · 中小型家装", color: "blue" },
+    { icon: "zap", label: "产出力", value: "42套/月 Top 8%", color: "emerald" },
+    { icon: "brain", label: "工作方式", value: "AI出图占比87%", color: "violet" },
+    { icon: "dollar", label: "累计消费", value: "¥28,600", color: "amber" },
+    { icon: "repeat", label: "续费习惯", value: "3次 · 提前8天", color: "cyan" },
+    { icon: "clock", label: "效率提升", value: "4.2h→1.8h/套", color: "emerald" },
+    { icon: "target", label: "核心驱动", value: "效率 · 接单 · ROI", color: "primary" },
+  ],
   healthScore: 78,
 
   profileNarrative: "张明是一位从业4年的室内设计师，目前服务于杭州地区的中小型家装市场。他的核心特征是「效率至上」——月均产出42套设计方案（平台Top 8%），AI辅助出图占比达87%，单套方案平均耗时从入驻初期的4.2小时压缩至1.8小时。他是典型的工具型用户，对能提升出图速度和客户成交的功能有极高的付费意愿（历史续费3次，每次均在到期前主动续费），但对社交传播类功能兴趣较低。从消费行为看，他属于「精准投入型」——只为直接产生收益的功能付费，累计消费¥28,600，ARPU高于同级用户均值35%。当前最大风险点是过度依赖单一风格（78%为现代简约），一旦市场风格偏好变化，产出竞争力可能下降。最大机会点是他的高产出量尚未转化为个人品牌影响力——他从未使用过作品展示和设计师主页功能，而同量级设计师中，开通主页者的客户溢价平均高出22%。",
@@ -210,6 +226,16 @@ export const DESIGNER_PORTRAIT: PortraitData = {
 export const EC_PORTRAIT: PortraitData = {
   persona: "品质决策型",
   personaDesc: "高净值家庭装修决策人，追求「省心+高品质」的一站式服务体验，决策周期长但一旦信任建立后忠诚度极高，有较强的朋友圈传播意愿",
+  profileCards: [
+    { icon: "user", label: "身份", value: "女主人 · 35-40岁", color: "primary" },
+    { icon: "home", label: "项目", value: "140㎡改善型住房", color: "blue" },
+    { icon: "dollar", label: "预算", value: "¥35万 · 高于均值40%", color: "amber" },
+    { icon: "clock", label: "决策周期", value: "87天 · 信任后极快", color: "violet" },
+    { icon: "eye", label: "决策方式", value: "视觉驱动 · 效果图优先", color: "cyan" },
+    { icon: "share", label: "传播力", value: "朋友圈3次 · 带来2咨询", color: "emerald" },
+    { icon: "star", label: "品质态度", value: "品质优先 · 愿意溢价", color: "amber" },
+    { icon: "target", label: "核心诉求", value: "省心 · 收纳 · 一站式", color: "primary" },
+  ],
   healthScore: 85,
 
   profileNarrative: "李女士是一位35-40岁的高净值家庭女主人，正在为新购的140㎡改善型住房进行全屋装修。她的决策特征是「视觉驱动+品质导向」——在87天的决策周期中，她浏览了380+张效果图，对比了3个平台的方案，最终选择我们是因为「效果图最真实，而且设计师能根据我的想法快速改方案」。她的预算定位在中高端（总预算约¥35万，客单价高于区域均值40%），愿意为品质溢价，但需要被「看到」而非「说服」——她更相信效果图和实景对比，而非销售话术。值得重点关注的是，她在签约后的朋友圈分享了3次装修进展，带来了2个朋友的咨询。她是典型的「体验驱动型传播者」——如果服务体验超预期，她会自发传播；但如果任何环节让她感到「不专业」，她也会迅速在社交圈表达不满。",
@@ -405,9 +431,9 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                 <div className="col-span-3 rounded-xl border border-border/40 bg-gradient-to-br from-primary/5 to-primary/10 p-4 flex flex-col items-center text-center">
                   <div className="relative w-20 h-20">
                     <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
-                      <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5" className="stroke-muted/40" />
+                      <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5" stroke="hsl(var(--muted) / 0.4)" />
                       <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5"
-                        className={data.healthScore >= 70 ? "stroke-emerald-500" : data.healthScore >= 40 ? "stroke-amber-500" : "stroke-red-500"}
+                        stroke={data.healthScore >= 70 ? "#10b981" : data.healthScore >= 40 ? "#f59e0b" : "#ef4444"}
                         strokeLinecap="round" strokeDasharray={`${data.healthScore * 2.14} 214`} />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -462,17 +488,32 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
             <section id="p-narrative">
               <SectionLabel title="综合研判 · 这个人是谁" />
               <div className="mt-3 space-y-3">
-                {/* Profile narrative */}
+                {/* Profile identity cards */}
+                <div className="grid grid-cols-4 gap-2">
+                  {data.profileCards.map((card, i) => {
+                    const Icon = PROFILE_ICON_MAP[card.icon] || Target;
+                    const colorCls = PROFILE_COLOR_MAP[card.color] || PROFILE_COLOR_MAP.primary;
+                    return (
+                      <div key={i} className={`rounded-xl border p-3 ${colorCls}`}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Icon className="h-3.5 w-3.5" />
+                          <span className="text-[9px] opacity-70">{card.label}</span>
+                        </div>
+                        <span className="text-[11px] font-semibold leading-tight block">{card.value}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Narrative summary - collapsed */}
                 <div className="rounded-xl border border-border/40 bg-gradient-to-br from-muted/20 to-muted/5 p-4">
-                  <div className="flex items-start gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <Users className="h-3.5 w-3.5 text-primary" />
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Users className="h-3 w-3 text-primary" />
                     </div>
-                    <div>
-                      <span className="text-[11px] font-semibold">客户全貌</span>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">{data.profileNarrative}</p>
-                    </div>
+                    <span className="text-[11px] font-semibold">深度分析</span>
                   </div>
+                  <p className="text-[10px] text-muted-foreground leading-[1.7]">{data.profileNarrative}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -720,9 +761,9 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                       {/* Confidence ring */}
                       <div className="relative w-11 h-11 shrink-0">
                         <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
-                          <circle cx="22" cy="22" r="17" fill="none" strokeWidth="3" className="stroke-muted/30" />
+                          <circle cx="22" cy="22" r="17" fill="none" strokeWidth="3" stroke="hsl(var(--muted) / 0.3)" />
                           <circle cx="22" cy="22" r="17" fill="none" strokeWidth="3"
-                            className={p.confidence >= 85 ? "stroke-emerald-500" : p.confidence >= 70 ? "stroke-primary" : "stroke-amber-500"}
+                            stroke={p.confidence >= 85 ? "#10b981" : p.confidence >= 70 ? "hsl(var(--primary))" : "#f59e0b"}
                             strokeLinecap="round" strokeDasharray={`${p.confidence * 1.07} 107`} />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
@@ -870,20 +911,34 @@ function RadarChart({ dimensions }: { dimensions: { name: string; value: number 
       {[25, 50, 75, 100].map(l => (
         <polygon key={l}
           points={Array.from({ length: n }, (_, i) => { const p = pt(i, l); return `${p.x},${p.y}`; }).join(" ")}
-          fill="none" className="stroke-border/25" strokeWidth="0.5" />
+          fill="none" stroke="hsl(var(--border) / 0.25)" strokeWidth="0.5" />
       ))}
-      {dimensions.map((_, i) => { const p = pt(i, 100); return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} className="stroke-border/15" strokeWidth="0.5" />; })}
+      {dimensions.map((_, i) => { const p = pt(i, 100); return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke="hsl(var(--border) / 0.15)" strokeWidth="0.5" />; })}
       <polygon
         points={dimensions.map((dd, i) => { const p = pt(i, dd.value); return `${p.x},${p.y}`; }).join(" ")}
-        className="fill-primary/12 stroke-primary" strokeWidth="1.5" strokeLinejoin="round" />
+        fill="hsl(var(--primary) / 0.15)" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinejoin="round" />
       {dimensions.map((dd, i) => {
         const p = pt(i, dd.value);
-        return <circle key={`d${i}`} cx={p.x} cy={p.y} r="3" className="fill-primary stroke-background" strokeWidth="1.5" />;
+        return <circle key={`d${i}`} cx={p.x} cy={p.y} r="3" fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth="1.5" />;
       })}
       {dimensions.map((dd, i) => {
         const p = pt(i, 120);
-        return <text key={`t${i}`} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle" className="fill-muted-foreground text-[7px] font-medium">{dd.name}</text>;
+        return <text key={`t${i}`} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle" fill="hsl(var(--muted-foreground))" fontSize="7" fontWeight="500">{dd.name}</text>;
       })}
     </svg>
   );
 }
+
+const PROFILE_ICON_MAP: Record<string, React.ElementType> = {
+  user: Users, map: Target, zap: Zap, brain: Brain, dollar: DollarSign,
+  repeat: Repeat, clock: Clock, target: Target, home: Shield, eye: Eye,
+  share: MessageCircle, star: Star,
+};
+const PROFILE_COLOR_MAP: Record<string, string> = {
+  primary: "bg-primary/10 text-primary border-primary/20",
+  blue: "bg-blue-500/10 text-blue-600 border-blue-200",
+  emerald: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
+  violet: "bg-violet-500/10 text-violet-600 border-violet-200",
+  amber: "bg-amber-500/10 text-amber-600 border-amber-200",
+  cyan: "bg-cyan-500/10 text-cyan-600 border-cyan-200",
+};
