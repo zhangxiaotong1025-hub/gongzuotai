@@ -46,6 +46,12 @@ import CustomerDetail from "./pages/customer/CustomerDetail";
 import CustomerCreate from "./pages/customer/CustomerCreate";
 import CustomerOverview from "./pages/customer/CustomerOverview";
 import MarketingStrategy from "./pages/customer/MarketingStrategy";
+import ModelList from "./pages/model/ModelList";
+import ModelDetail from "./pages/model/ModelDetail";
+import ModelCreate from "./pages/model/ModelCreate";
+import ProductList from "./pages/product/ProductList";
+import ProductDetail from "./pages/product/ProductDetail";
+import ProductCreate from "./pages/product/ProductCreate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -105,8 +111,12 @@ function ProtectedRoutes() {
         <Route path="/customer/marketing" element={<MarketingStrategy />} />
         <Route path="/attribute" element={<PlaceholderPage title="属性管理" />} />
         <Route path="/category" element={<PlaceholderPage title="类目管理" />} />
-        <Route path="/material" element={<PlaceholderPage title="素材管理" />} />
-        <Route path="/product" element={<PlaceholderPage title="商品管理" />} />
+        <Route path="/model" element={<ModelList />} />
+        <Route path="/model/detail/:id" element={<ModelDetail />} />
+        <Route path="/model/create" element={<ModelCreate />} />
+        <Route path="/product" element={<ProductList />} />
+        <Route path="/product/detail/:id" element={<ProductDetail />} />
+        <Route path="/product/create" element={<ProductCreate />} />
         <Route path="/authorization" element={<PlaceholderPage title="授权管理" />} />
         <Route path="/plan" element={<PlaceholderPage title="方案管理" />} />
         <Route path="/front-category" element={<PlaceholderPage title="前台类目管理" />} />
