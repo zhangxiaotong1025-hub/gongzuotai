@@ -165,7 +165,7 @@ export default function ProductDetail() {
 
       <div className="space-y-8 mt-6">
         {/* ═══ Floor 1: Overview ═══ */}
-        <section id="overview" ref={(el) => { sectionRefs.current["overview"] = el; }}>
+        <section id="overview" ref={(el: HTMLDivElement | null) => { sectionRefs.current["overview"] = el; }}>
           {/* Hero card */}
           <div className="bg-card rounded-xl border border-border/40 overflow-hidden mb-6" style={{ boxShadow: "var(--shadow-sm)" }}>
             <div className="flex gap-6 p-6">
@@ -225,7 +225,7 @@ export default function ProductDetail() {
         </section>
 
         {/* ═══ Floor 2: SKUs ═══ */}
-        <section id="skus" ref={(el) => { sectionRefs.current["skus"] = el; }}>
+        <section id="skus" ref={(el: HTMLDivElement | null) => { sectionRefs.current["skus"] = el; }}>
           <div className="bg-card rounded-xl border border-border/40 overflow-hidden" style={{ boxShadow: "var(--shadow-sm)" }}>
             <div className="px-5 py-4 border-b border-border/30 flex items-center justify-between">
               <SectionTitle icon={Tag} title="商品SKU" badge={`${spu.skus.length} 个`} />
@@ -314,7 +314,7 @@ export default function ProductDetail() {
         </section>
 
         {/* ═══ Floor 3: Models ═══ */}
-        <section id="models" ref={(el) => { sectionRefs.current["models"] = el; }}>
+        <section id="models" ref={(el: HTMLDivElement | null) => { sectionRefs.current["models"] = el; }}>
           <div className="bg-card rounded-xl border border-border/40 p-6" style={{ boxShadow: "var(--shadow-sm)" }}>
             <SectionTitle icon={Link2} title="关联模型" badge={`${modelCount} 个模型SPU`} />
             <div className="space-y-4">
@@ -349,7 +349,7 @@ export default function ProductDetail() {
         </section>
 
         {/* ═══ Floor 4: Commercial ═══ */}
-        <section id="commercial" ref={(el) => { sectionRefs.current["commercial"] = el; }}>
+        <section id="commercial" ref={(el: HTMLDivElement | null) => { sectionRefs.current["commercial"] = el; }}>
           <div className="bg-card rounded-xl border border-border/40 p-6" style={{ boxShadow: "var(--shadow-sm)" }}>
             <SectionTitle icon={FileText} title="商业属性" />
             <div className="grid grid-cols-2 gap-6">
