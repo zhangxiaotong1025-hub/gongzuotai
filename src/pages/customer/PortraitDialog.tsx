@@ -431,9 +431,9 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                 <div className="col-span-3 rounded-xl border border-border/40 bg-gradient-to-br from-primary/5 to-primary/10 p-4 flex flex-col items-center text-center">
                   <div className="relative w-20 h-20">
                     <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
-                      <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5" className="stroke-muted/40" />
+                      <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5" stroke="hsl(var(--muted) / 0.4)" />
                       <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5"
-                        className={data.healthScore >= 70 ? "stroke-emerald-500" : data.healthScore >= 40 ? "stroke-amber-500" : "stroke-red-500"}
+                        stroke={data.healthScore >= 70 ? "#10b981" : data.healthScore >= 40 ? "#f59e0b" : "#ef4444"}
                         strokeLinecap="round" strokeDasharray={`${data.healthScore * 2.14} 214`} />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
