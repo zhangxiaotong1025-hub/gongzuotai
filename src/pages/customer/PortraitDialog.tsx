@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Brain, Activity, Heart, Target, Sparkles, Zap, Eye, Users, Star, Clock,
   Lightbulb, TrendingUp, Shield, AlertTriangle, CheckCircle, ArrowRight,
-  MessageCircle, Repeat, DollarSign, Rocket, Flame, ThumbsUp, Award,
+  MessageCircle, Repeat, DollarSign, Rocket, Flame, ThumbsUp, Award, Info,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════
@@ -103,13 +104,9 @@ export const DESIGNER_PORTRAIT: PortraitData = {
     { icon: "target", label: "核心驱动", value: "效率 · 接单 · ROI", color: "primary" },
   ],
   healthScore: 78,
-
   profileNarrative: "张明是一位从业4年的室内设计师，目前服务于杭州地区的中小型家装市场。他的核心特征是「效率至上」——月均产出42套设计方案（平台Top 8%），AI辅助出图占比达87%，单套方案平均耗时从入驻初期的4.2小时压缩至1.8小时。他是典型的工具型用户，对能提升出图速度和客户成交的功能有极高的付费意愿（历史续费3次，每次均在到期前主动续费），但对社交传播类功能兴趣较低。从消费行为看，他属于「精准投入型」——只为直接产生收益的功能付费，累计消费¥28,600，ARPU高于同级用户均值35%。当前最大风险点是过度依赖单一风格（78%为现代简约），一旦市场风格偏好变化，产出竞争力可能下降。最大机会点是他的高产出量尚未转化为个人品牌影响力——他从未使用过作品展示和设计师主页功能，而同量级设计师中，开通主页者的客户溢价平均高出22%。",
-
   valueAssessment: "当前客户生命周期价值（LTV）预估¥85,000，位于平台设计师P75分位。续费确定性高（历史续费率100%，平均提前8天续费），但增购空间尚未打开——他只使用基础渲染和AI出图两大核心模块，VR全景、智能家居方案等高价值模块使用率为零。若成功激活品牌化运营（作品集+设计师主页），预估LTV可提升至¥120,000+，同时带来2-3个转介绍获客。",
-
   serviceApproach: "对张明的服务核心是「用效率换信任，用数据说服」。他不需要情感关怀式服务，而是需要被证明：你推荐的功能确实能帮他多接单、多赚钱。每一次触达都应该带有明确的数据支撑和ROI预估，而非泛泛的功能介绍。建议的沟通节奏是每月1-2次高价值触达，避免高频打扰。最佳触达时间为工作日下午14:00-16:00（他的方案整理时段，注意力有空闲）。",
-
   keyInsights: [
     "他的效率优势正在形成「路径依赖」——87%使用AI出图意味着一旦竞品提供更快的AI工具，迁移风险极高",
     "最近30天4K渲染使用率从8%升至16%，说明他开始接触对效果要求更高的客户，这是推动套餐升级的窗口",
@@ -117,7 +114,6 @@ export const DESIGNER_PORTRAIT: PortraitData = {
     "教程完成率78%但从不参与社区讨论，说明他是「静默学习者」——适合推送文字教程而非直播课",
     "3次续费均在到期前8天内完成，说明他有固定的费用审核周期，到期前10天是最佳续费提醒时间点",
   ],
-
   communicationStyle: {
     style: "直接、数据驱动、结果导向",
     dos: [
@@ -133,7 +129,6 @@ export const DESIGNER_PORTRAIT: PortraitData = {
       "不要发大段文字，他偏好结构化的清单式信息",
     ],
   },
-
   decisionFactors: [
     { factor: "能否提升出图效率", weight: 35, evidence: "历史上所有付费决策都与效率提升直接相关" },
     { factor: "能否增加客户成交", weight: 30, evidence: "3次主动咨询均涉及「如何让客户更快签约」" },
@@ -141,7 +136,6 @@ export const DESIGNER_PORTRAIT: PortraitData = {
     { factor: "学习成本", weight: 10, evidence: "放弃过2次新功能尝试，原因是「学不会」「太复杂」" },
     { factor: "同行口碑", weight: 5, evidence: "加入了2个设计师社群，偶尔参考群内推荐" },
   ],
-
   riskOpportunities: [
     { type: "risk", title: "风格依赖风险", detail: "78%方案为现代简约，一旦市场趋势转向（如新中式热度已同比上升45%），他的方案模板库将面临大面积失效，导致产出效率骤降", impact: "high", action: "在现有AI出图流程中嵌入「风格多样性提示」，并赠送新中式模板体验包" },
     { type: "risk", title: "竞品迁移风险", detail: "高度工具化的使用方式意味着低切换成本。竞品X近期上线了类似AI出图功能，且首年定价低30%", impact: "medium", action: "在续费窗口期（到期前10天）提供忠诚用户专属续费折扣，并展示历史数据资产价值" },
@@ -149,14 +143,12 @@ export const DESIGNER_PORTRAIT: PortraitData = {
     { type: "opportunity", title: "4K渲染升级窗口", detail: "近30天4K使用率翻倍（8%→16%），说明客户群体正在升级。当前基础版4K额度即将用尽", impact: "medium", action: "在他下次触发4K渲染时弹出升级引导，展示「专业版用户平均客单价高出¥2,800」" },
     { type: "opportunity", title: "转介绍激活潜力", detail: "已推荐3人注册但未形成持续机制。设计师社群中有一定影响力，若激活可成为KOC", impact: "medium", action: "推出「师徒计划」——每成功推荐1人续费，双方各获1个月高级功能体验" },
   ],
-
   serviceStrategies: [
     { title: "风格拓展引导", timing: "本周内", channel: "站内消息 + 模板推送", content: "推送「新中式AI快速出图」模板包，附带3分钟快速上手视频。话术：「你的出图效率可以直接复用到新中式——已有127位设计师用同样方法拓展了第二风格线」", expectedOutcome: "新中式方案产出从0提升至月均5套，降低风格集中度风险", icon: Lightbulb },
     { title: "设计师主页激活", timing: "下次续费时（预计4月中旬）", channel: "1对1微信", content: "精选他的10套高赞方案，提供「一键开通设计师主页」的专属链接。话术：「你上月产出42套方案，是平台Top 8%的设计师。同级别设计师开通主页后，月均多接3.2单，客单价提升¥2,200。我们帮你精选了10套最佳作品，点击即可上线」", expectedOutcome: "开通主页后3个月内自然询盘+15-20个，预计新增GMV ¥8,000-12,000", icon: Rocket },
     { title: "续费关怀触达", timing: "到期前10天", channel: "站内通知 + 短信", content: "展示他过去一年的使用数据报告（方案数、渲染量、节省时间），并提供忠诚用户专属续费价（95折）。话术：「过去一年你用平台节省了约480小时，产出了504套方案。作为连续3年的忠诚用户，我们为你准备了专属续费方案」", expectedOutcome: "续费率维持100%，同时引导关注专业版增值功能", icon: Repeat },
     { title: "高端客户承接能力培养", timing: "持续（月度）", channel: "精准推送教程", content: "每月推送1篇「高端住宅设计出图技巧」文字教程（非视频），重点讲解4K渲染、灯光氛围、材质细节的快速调参方法", expectedOutcome: "4K渲染使用率提升至40%，支撑他承接更高客单价项目", icon: TrendingUp },
   ],
-
   radarDimensions: [
     { name: "创作活跃", value: 92 }, { name: "工具深度", value: 65 },
     { name: "付费意愿", value: 82 }, { name: "分享传播", value: 35 },
@@ -220,9 +212,6 @@ export const DESIGNER_PORTRAIT: PortraitData = {
   ],
 };
 
-/* ═══════════════════════════════════════════
-   MOCK DATA — END CUSTOMER
-   ═══════════════════════════════════════════ */
 export const EC_PORTRAIT: PortraitData = {
   persona: "品质决策型",
   personaDesc: "高净值家庭装修决策人，追求「省心+高品质」的一站式服务体验，决策周期长但一旦信任建立后忠诚度极高，有较强的朋友圈传播意愿",
@@ -237,13 +226,9 @@ export const EC_PORTRAIT: PortraitData = {
     { icon: "target", label: "核心诉求", value: "省心 · 收纳 · 一站式", color: "primary" },
   ],
   healthScore: 85,
-
   profileNarrative: "李女士是一位35-40岁的高净值家庭女主人，正在为新购的140㎡改善型住房进行全屋装修。她的决策特征是「视觉驱动+品质导向」——在87天的决策周期中，她浏览了380+张效果图，对比了3个平台的方案，最终选择我们是因为「效果图最真实，而且设计师能根据我的想法快速改方案」。她的预算定位在中高端（总预算约¥35万，客单价高于区域均值40%），愿意为品质溢价，但需要被「看到」而非「说服」——她更相信效果图和实景对比，而非销售话术。值得重点关注的是，她在签约后的朋友圈分享了3次装修进展，带来了2个朋友的咨询。她是典型的「体验驱动型传播者」——如果服务体验超预期，她会自发传播；但如果任何环节让她感到「不专业」，她也会迅速在社交圈表达不满。",
-
   valueAssessment: "当前订单金额¥35万（已签约），预计全项目周期贡献GMV ¥42-48万（含增购软装+智能家居概率72%）。更重要的是她的社交传播价值——她的朋友圈已带来2个精准咨询，若服务体验持续超预期，预估全周期可转介绍3-5个同圈层客户，间接贡献GMV ¥80-120万。她是该企业近半年获客成本最低的渠道来源之一。",
-
   serviceApproach: "李女士的服务核心是「超预期的可视化体验+适度的主动关怀」。她不需要被频繁跟进（会感到被催促），但需要在关键节点收到「比她预期更多」的信息——比如施工前主动发送材料实拍对比图、每个节点完成后发送实景vs效果图对比。沟通风格上要专业但不生硬，适当加入生活化的关心（如「上次您提到孩子喜欢蓝色，我们在儿童房加了一个星空主题灯带方案，您看看？」）。",
-
   keyInsights: [
     "她的决策周期虽长（87天），但信任建立后极少反复——签约后只提出了2次小修改，远低于同类客户均值（7次），说明前期沟通充分有效",
     "她在晚上19:00-22:00浏览方案的频率最高，周末全天活跃，说明装修决策是她的「家庭项目」，可能与家人一起讨论",
@@ -251,7 +236,6 @@ export const EC_PORTRAIT: PortraitData = {
     "签约后她主动问过2次施工进度，间隔分别是12天和15天，建议每10天主动推送一次进度报告，比她主动问的频率略快",
     "她分享到朋友圈的3次内容都是效果图而非施工照片，说明「视觉美感」是她最愿意展示的维度——应重点打磨交付时的最终效果呈现",
   ],
-
   communicationStyle: {
     style: "温和专业、注重细节、偏好视觉沟通",
     dos: [
@@ -267,7 +251,6 @@ export const EC_PORTRAIT: PortraitData = {
       "不要在没有视觉素材的情况下描述方案变更——她需要「看到」而不是「听到」",
     ],
   },
-
   decisionFactors: [
     { factor: "效果图真实度", weight: 30, evidence: "3次提到「效果图和实际能一样吗？」" },
     { factor: "设计师响应速度", weight: 25, evidence: "选择我们的原因是「改方案快」" },
@@ -275,21 +258,18 @@ export const EC_PORTRAIT: PortraitData = {
     { factor: "一站式省心程度", weight: 15, evidence: "明确说「不想自己跑建材市场」" },
     { factor: "朋友推荐/口碑", weight: 10, evidence: "首次到店是因为邻居推荐" },
   ],
-
   riskOpportunities: [
     { type: "opportunity", title: "高传播价值客户", detail: "已自发朋友圈分享3次，带来2个精准咨询。她的社交圈层为同小区30-45岁业主群体，正是企业核心目标客群。如果提供「分享激励」（如软装优惠券），预计可再带来3-5个转介绍", impact: "high", action: "在施工关键节点提供专属「进展分享素材包」（精修效果图+对比视频），降低她的分享制作成本" },
     { type: "opportunity", title: "软装+智能家居增购", detail: "她2次提到对软装搭配的兴趣，1次主动询问智能窗帘。当前订单仅含硬装+定制柜，软装和智能家居增购空间约¥8-12万", impact: "high", action: "在硬装施工完成70%时（预计5月中旬），邀请参观软装样板间，同时展示智能家居体验方案" },
     { type: "risk", title: "施工阶段信任衰减", detail: "她的信任建立在「视觉体验」上，但施工阶段（拆改、水电、木工）视觉呈现度低，可能导致她感到进展不透明而焦虑", impact: "medium", action: "引入「施工可视化」——每个阶段提供工地实拍+下阶段效果预览，保持视觉连续性" },
     { type: "risk", title: "细节不满导致口碑反转", detail: "她对细节极其敏感（3次提到收纳细节），如果交付时任何细节与预期不符，她的社交传播会迅速从正面转为负面", impact: "high", action: "交付前安排预验收，逐项核对她在沟通中提到的所有细节需求（已整理清单共17条）" },
   ],
-
   serviceStrategies: [
     { title: "主动进度推送机制", timing: "即刻启动·每10天一次", channel: "微信图文消息", content: "每10天推送一次「装修进度报告」，包含：工地实拍3-5张、当前进度百分比、下阶段预告（附效果图预览）、以及一个她关心的细节确认（如「您提到的鞋柜感应灯已预留线位，下周安装」）", expectedOutcome: "消除施工阶段信息不对称，维持信任度。预计将她的主动询问频率从2周/次降至1月/次", icon: Eye },
     { title: "软装方案前置预热", timing: "硬装进度70%时（约5月中旬）", channel: "到店体验邀约", content: "邀请她和家人周末到店体验软装样板间。提前准备3套与她硬装风格匹配的软装方案（现代简约·奶油色系），重点展示她关注的收纳解决方案在软装阶段的升级可能", expectedOutcome: "软装增购转化率预估72%，预计增购金额¥6-8万", icon: Heart },
     { title: "转介绍激励计划", timing: "每次朋友圈分享后24小时内", channel: "微信私聊", content: "在她分享装修进展后，私聊发送感谢+专属推荐码：「感谢分享！如果朋友感兴趣，通过您的推荐码签约，双方各享软装设计费8折优惠」。同时提供「精修分享素材包」让她下次分享时使用", expectedOutcome: "3个月内新增转介绍2-3人，降低企业获客成本40%", icon: Users },
     { title: "交付仪式感打造", timing: "交付前2周开始准备", channel: "到店+入户", content: "交付前安排「预验收」——逐项核对17条细节需求。正式交付日准备「新家入住仪式包」（含鲜花、入住卡、家居使用手册），并提供专业摄影师拍摄新家照片（她可用于朋友圈分享）", expectedOutcome: "交付满意度100%，预计触发至少2次高质量朋友圈分享", icon: Award },
   ],
-
   radarDimensions: [
     { name: "意向度", value: 95 }, { name: "满意度", value: 88 },
     { name: "合作深度", value: 75 }, { name: "转介绍力", value: 82 },
@@ -370,606 +350,16 @@ const SECTIONS = [
 ];
 
 /* ═══════════════════════════════════════════
-   COMPONENT
+   HELPERS
    ═══════════════════════════════════════════ */
-interface Props { open: boolean; onOpenChange: (v: boolean) => void; isDesigner: boolean; name: string; }
-
-export default function PortraitDialog({ open, onOpenChange, isDesigner, name }: Props) {
-  const data = isDesigner ? DESIGNER_PORTRAIT : EC_PORTRAIT;
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeNav, setActiveNav] = useState("p-hero");
-
-  useEffect(() => {
-    const c = scrollRef.current;
-    if (!c) return;
-    const handler = () => {
-      for (let i = SECTIONS.length - 1; i >= 0; i--) {
-        const el = c.querySelector(`#${SECTIONS[i].id}`) as HTMLElement;
-        if (el && el.offsetTop - c.scrollTop <= 64) { setActiveNav(SECTIONS[i].id); return; }
-      }
-      setActiveNav(SECTIONS[0].id);
-    };
-    c.addEventListener("scroll", handler, { passive: true });
-    return () => c.removeEventListener("scroll", handler);
-  }, [open]);
-
-  const scrollTo = (id: string) => {
-    const c = scrollRef.current;
-    const el = c?.querySelector(`#${id}`) as HTMLElement;
-    if (el && c) c.scrollTo({ top: el.offsetTop - 48, behavior: "smooth" });
-  };
-
+function TipWrap({ tip, children }: { tip: string; children: React.ReactNode }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[920px] p-0 gap-0 overflow-hidden" style={{ maxHeight: "92vh" }}>
-        <DialogHeader className="px-5 pt-4 pb-0">
-          <DialogTitle className="text-sm flex items-center gap-2">
-            <Brain className="h-4 w-4 text-primary" />{name} · 深度用户画像
-          </DialogTitle>
-        </DialogHeader>
-
-        {/* Nav */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/40 px-5 mt-2">
-          <div className="flex gap-0.5 py-1 overflow-x-auto">
-            {SECTIONS.map(s => (
-              <button key={s.id} onClick={() => scrollTo(s.id)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all whitespace-nowrap ${activeNav === s.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div ref={scrollRef} className="overflow-y-auto px-5 pb-6" style={{ maxHeight: "calc(92vh - 90px)" }}>
-          <div className="space-y-6 pt-4">
-
-            {/* ═══ HERO ═══ */}
-            <section id="p-hero">
-              <div className="grid grid-cols-12 gap-4">
-                {/* Persona Card */}
-                <div className="col-span-3 rounded-xl border border-border/40 bg-gradient-to-br from-primary/5 to-primary/10 p-4 flex flex-col items-center text-center">
-                  <div className="relative w-20 h-20">
-                    <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
-                      <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5" stroke="hsl(var(--muted) / 0.4)" />
-                      <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5"
-                        stroke={data.healthScore >= 70 ? "#10b981" : data.healthScore >= 40 ? "#f59e0b" : "#ef4444"}
-                        strokeLinecap="round" strokeDasharray={`${data.healthScore * 2.14} 214`} />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-lg font-bold">{data.healthScore}</span>
-                      <span className="text-[8px] text-muted-foreground">健康度</span>
-                    </div>
-                  </div>
-                  <div className="mt-2 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
-                    <span className="text-[11px] font-semibold text-primary">{data.persona}</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed">{data.personaDesc}</p>
-                </div>
-
-                {/* Radar */}
-                <div className="col-span-4 rounded-xl border border-border/40 p-3">
-                  <div className="w-[180px] h-[180px] mx-auto">
-                    <RadarChart dimensions={data.radarDimensions} />
-                  </div>
-                  <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 mt-1">
-                    {data.radarDimensions.map(d => (
-                      <div key={d.name} className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        <span className="text-[9px] text-muted-foreground">{d.name}</span>
-                        <span className="text-[9px] font-bold ml-auto">{d.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Decision Factors */}
-                <div className="col-span-5 rounded-xl border border-border/40 p-4">
-                  <span className="text-[10px] font-medium text-muted-foreground">决策因素权重</span>
-                  <div className="space-y-2 mt-2">
-                    {data.decisionFactors.map((f, i) => (
-                      <div key={i}>
-                        <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-[10px] font-medium">{f.factor}</span>
-                          <span className="text-[10px] font-bold text-primary">{f.weight}%</span>
-                        </div>
-                        <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-primary/60 transition-all" style={{ width: `${f.weight * 2.85}%` }} />
-                        </div>
-                        <p className="text-[9px] text-muted-foreground mt-0.5">{f.evidence}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* ═══ NARRATIVE — 综合研判 ═══ */}
-            <section id="p-narrative">
-              <SectionLabel title="综合研判 · 这个人是谁" />
-              <div className="mt-3 space-y-3">
-                <div className="grid grid-cols-4 gap-2">
-                  {data.profileCards.map((card, i) => {
-                    const Icon = PROFILE_ICON_MAP[card.icon] || Target;
-                    const colorCls = PROFILE_COLOR_MAP[card.color] || PROFILE_COLOR_MAP.primary;
-                    return (
-                      <div key={i} className={`rounded-xl border p-3 ${colorCls}`}>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <Icon className="h-3.5 w-3.5" />
-                          <span className="text-[9px] opacity-70">{card.label}</span>
-                        </div>
-                        <span className="text-[11px] font-semibold leading-tight block">{card.value}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="grid grid-cols-12 gap-3">
-                  {/* LEFT COL */}
-                  <div className="col-span-7 space-y-3">
-                    <div className="rounded-xl border border-border/40 bg-gradient-to-br from-muted/30 to-background p-4">
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <Sparkles className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold">三句话看懂他</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {data.profileNarrative.split("。").filter(Boolean).slice(0, 3).map((sentence, i) => (
-                          <div key={i} className="rounded-lg border border-border/40 bg-card px-3 py-2">
-                            <div className="flex items-center gap-1 mb-1">
-                              <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[8px] font-bold flex items-center justify-center">{i + 1}</span>
-                              <span className="text-[9px] text-muted-foreground">核心判断</span>
-                            </div>
-                            <p className="text-[10px] text-foreground leading-relaxed">{sentence}。</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-border/40 p-4">
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <DollarSign className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold">价值信号</span>
-                      </div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[
-                          { label: "健康度", value: data.healthScore },
-                          { label: data.radarDimensions[0]?.name ?? "—", value: data.radarDimensions[0]?.value ?? 0 },
-                          { label: data.radarDimensions[2]?.name ?? "—", value: data.radarDimensions[2]?.value ?? 0 },
-                          { label: data.radarDimensions[3]?.name ?? "—", value: data.radarDimensions[3]?.value ?? 0 },
-                        ].map((m, i) => (
-                          <div key={i} className="text-center">
-                            <div className="relative w-10 h-10 mx-auto">
-                              <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
-                                <circle cx="20" cy="20" r="16" fill="none" strokeWidth="2.5" stroke="hsl(var(--muted) / 0.3)" />
-                                <circle cx="20" cy="20" r="16" fill="none" strokeWidth="2.5"
-                                  stroke={m.value >= 80 ? "#10b981" : m.value >= 50 ? "hsl(var(--primary))" : "#f59e0b"}
-                                  strokeLinecap="round" strokeDasharray={`${m.value * 1.005} 100.5`} />
-                              </svg>
-                              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold">{m.value}</span>
-                            </div>
-                            <span className="text-[8px] text-muted-foreground mt-0.5 block">{m.label}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 mt-3">
-                        {data.valueAssessment.split("。").filter(Boolean).slice(0, 2).map((item, i) => (
-                          <div key={i} className="rounded-lg border border-border/40 px-3 py-2 bg-card">
-                            <p className="text-[10px] text-muted-foreground leading-relaxed">{item}。</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-border/40 p-4">
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <Lightbulb className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold">关键洞察</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {data.keyInsights.slice(0, 4).map((insight, i) => (
-                          <div key={i} className="rounded-lg border border-border/40 bg-card px-3 py-2">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="w-5 h-5 rounded-md bg-primary/10 text-primary text-[8px] font-bold flex items-center justify-center shrink-0">{String(i + 1).padStart(2, "0")}</span>
-                              <span className="text-[9px] text-muted-foreground">Insight</span>
-                            </div>
-                            <p className="text-[10px] text-muted-foreground leading-relaxed">{insight}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* RIGHT COL */}
-                  <div className="col-span-5 space-y-3">
-                    <div className="rounded-xl border border-border/40 p-4">
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <TrendingUp className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold">决策抓手</span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {data.decisionFactors.map((factor, i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            <span className="text-[10px] font-medium w-24 shrink-0 truncate">{factor.factor}</span>
-                            <div className="flex-1 h-1.5 rounded-full bg-muted/30 overflow-hidden">
-                              <div className="h-full rounded-full bg-primary/60" style={{ width: `${factor.weight * 2.85}%` }} />
-                            </div>
-                            <span className="text-[9px] font-bold text-primary w-8 text-right tabular-nums">{factor.weight}%</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-border/40 p-4">
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <Target className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold">服务总纲</span>
-                      </div>
-                      <div className="space-y-2">
-                        {data.serviceStrategies.slice(0, 3).map((item, i) => {
-                          const Icon = item.icon;
-                          return (
-                            <div key={i} className="rounded-lg border border-border/40 bg-card px-3 py-2">
-                              <div className="flex items-start gap-2">
-                                <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                                  <Icon className="h-3 w-3 text-primary" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <span className="text-[10px] font-semibold">{item.title}</span>
-                                  <div className="flex gap-1 mt-0.5 flex-wrap">
-                                    <span className="px-1 py-0.5 rounded bg-muted text-muted-foreground text-[8px]">{item.timing}</span>
-                                    <span className="px-1 py-0.5 rounded bg-primary/10 text-primary text-[8px]">{item.channel}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl border border-border/40 p-4">
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <MessageCircle className="h-3.5 w-3.5 text-primary" />
-                        <span className="text-[11px] font-semibold">沟通指南</span>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary ml-auto">{data.communicationStyle.style}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="rounded-lg border border-primary/15 bg-primary/5 p-2.5">
-                          <span className="text-[9px] font-medium text-primary flex items-center gap-1 mb-1.5">
-                            <CheckCircle className="h-3 w-3" /> 推荐
-                          </span>
-                          <div className="space-y-1">
-                            {data.communicationStyle.dos.slice(0, 3).map((d, i) => (
-                              <div key={i} className="rounded bg-background px-2 py-1">
-                                <p className="text-[9px] text-muted-foreground leading-relaxed">{d}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="rounded-lg border border-destructive/15 bg-destructive/5 p-2.5">
-                          <span className="text-[9px] font-medium text-destructive flex items-center gap-1 mb-1.5">
-                            <AlertTriangle className="h-3 w-3" /> 避免
-                          </span>
-                          <div className="space-y-1">
-                            {data.communicationStyle.donts.slice(0, 3).map((d, i) => (
-                              <div key={i} className="rounded bg-background px-2 py-1">
-                                <p className="text-[9px] text-muted-foreground leading-relaxed">{d}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* ═══ BEHAVIOR + PERSONALITY (combined compact) ═══ */}
-            <section id="p-behavior">
-              <SectionLabel title="行为特征 & 性格画像" />
-              <div className="grid grid-cols-12 gap-3 mt-3">
-                {/* Behavior - compact cards */}
-                <div className="col-span-7">
-                  <div className="grid grid-cols-3 gap-2">
-                    {data.behaviorTraits.map((t, i) => {
-                      const Icon = t.icon;
-                      const levelColor = t.level === "high" ? "text-emerald-500" : t.level === "medium" ? "text-amber-500" : "text-muted-foreground";
-                      const dotColor = t.level === "high" ? "bg-emerald-500" : t.level === "medium" ? "bg-amber-400" : "bg-muted-foreground/40";
-                      return (
-                        <div key={i} className="rounded-xl border border-border/40 p-3 group hover:border-primary/30 transition-colors">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-1.5">
-                              <Icon className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                              <span className="text-[10px] font-semibold">{t.label}</span>
-                            </div>
-                            <span className={`text-[12px] font-bold tabular-nums ${levelColor}`}>{t.score}</span>
-                          </div>
-                          <div className="h-1 rounded-full bg-muted/30 overflow-hidden mb-1.5">
-                            <div className={`h-full rounded-full ${dotColor}`} style={{ width: `${t.score}%`, opacity: 0.7 }} />
-                          </div>
-                          <p className="text-[9px] text-muted-foreground leading-tight">{t.evidence}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Personality - compact */}
-                <div className="col-span-5" id="p-personality">
-                  <div className="rounded-xl border border-border/40 p-4 h-full">
-                    <div className="space-y-3">
-                      {data.personalityTraits.map((t, i) => (
-                        <div key={i}>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] font-medium">{t.dimension}</span>
-                            <span className="text-[9px] text-primary font-medium">{t.desc}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[8px] text-muted-foreground w-8 text-right shrink-0">{t.leftLabel}</span>
-                            <div className="flex-1 h-2 bg-muted/30 rounded-full relative">
-                              <div className="absolute inset-0 rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10" />
-                              </div>
-                              <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary shadow-sm border-[1.5px] border-background"
-                                style={{ left: `calc(${t.score}% - 5px)` }} />
-                            </div>
-                            <span className="text-[8px] text-muted-foreground w-8 shrink-0">{t.rightLabel}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* ═══ ACTIVITY HEATMAP ═══ */}
-            <section id="p-heatmap">
-              <SectionLabel title="活跃热力图" />
-              <div className="rounded-xl border border-border/40 p-3 mt-3">
-                <div className="flex gap-1">
-                  <div className="flex flex-col gap-[2px] pt-4 pr-1 shrink-0">
-                    {["一", "二", "三", "四", "五", "六", "日"].map(d => (
-                      <div key={d} className="h-[14px] flex items-center"><span className="text-[8px] text-muted-foreground">{d}</span></div>
-                    ))}
-                  </div>
-                  <div className="flex-1 overflow-x-auto">
-                    <div className="flex gap-[2px] mb-[2px]">
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <div key={i} className="flex-1 min-w-[14px] text-center">
-                          <span className="text-[7px] text-muted-foreground">{i % 3 === 0 ? `${i}` : ""}</span>
-                        </div>
-                      ))}
-                    </div>
-                    {data.activityHeatmap.map((row, ri) => (
-                      <div key={ri} className="flex gap-[2px]">
-                        {row.map((v, ci) => {
-                          const max = Math.max(...data.activityHeatmap.flat());
-                          const intensity = max > 0 ? v / max : 0;
-                          return (
-                            <div key={ci} className="flex-1 min-w-[14px] h-[14px] rounded-sm transition-colors"
-                              style={{ backgroundColor: v === 0 ? "hsl(var(--muted) / 0.3)" : `hsl(var(--primary) / ${0.15 + intensity * 0.75})` }}
-                              title={`周${"一二三四五六日"[ri]} ${ci}:00 — ${v}次`} />
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center justify-end gap-1 mt-2">
-                  <span className="text-[8px] text-muted-foreground">少</span>
-                  {[0.15, 0.3, 0.5, 0.7, 0.9].map((o, i) => (
-                    <div key={i} className="w-3 h-3 rounded-sm" style={{ backgroundColor: `hsl(var(--primary) / ${o})` }} />
-                  ))}
-                  <span className="text-[8px] text-muted-foreground">多</span>
-                </div>
-              </div>
-            </section>
-
-            {/* ═══ INTEREST BUBBLES ═══ */}
-            <section id="p-interests">
-              <SectionLabel title="兴趣关注图谱" />
-              <div className="rounded-xl border border-border/40 p-4 mt-3">
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  {data.interestBubbles
-                    .sort((a, b) => b.weight - a.weight)
-                    .map((b, i) => {
-                      const size = 32 + (b.weight / 100) * 56;
-                      return (
-                        <div key={i}
-                          className={`${b.color} rounded-full flex items-center justify-center text-white shrink-0 transition-transform hover:scale-110 cursor-default`}
-                          style={{ width: `${size}px`, height: `${size}px`, opacity: 0.25 + (b.weight / 100) * 0.65 }}
-                          title={`${b.name}: ${b.weight}%`}
-                        >
-                          <span className="text-[9px] font-medium text-center leading-tight px-1" style={{ fontSize: `${Math.max(8, size / 8)}px` }}>
-                            {b.name}
-                          </span>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            </section>
-
-            {/* ═══ NEEDS PRIORITY MATRIX ═══ */}
-            <section id="p-needs">
-              <SectionLabel title="深层需求矩阵" />
-              <div className="space-y-2 mt-3">
-                {data.deepNeeds.map((n, i) => {
-                  const Icon = n.icon;
-                  const urgencyColors = { urgent: "border-red-200 bg-red-500/5", normal: "border-blue-200 bg-blue-500/5", latent: "border-muted bg-muted/20" };
-                  const urgencyLabel = { urgent: "紧急", normal: "一般", latent: "潜在" };
-                  const urgencyTag = { urgent: "bg-red-500/10 text-red-600", normal: "bg-blue-500/10 text-blue-600", latent: "bg-muted text-muted-foreground" };
-                  return (
-                    <div key={i} className={`rounded-xl border ${urgencyColors[n.urgency]} p-4`}>
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center shrink-0 border border-border/40">
-                          <Icon className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[11px] font-semibold">{n.need}</span>
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${urgencyTag[n.urgency]}`}>{urgencyLabel[n.urgency]}</span>
-                            <span className="text-[9px] text-muted-foreground ml-auto">重要性 {n.importance}</span>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{n.detail}</p>
-                          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-border/30">
-                            <div className="flex items-center gap-1">
-                              <span className="text-[9px] text-muted-foreground">数据依据：</span>
-                              <span className="text-[9px] font-medium">{n.basis}</span>
-                            </div>
-                            <ArrowRight className="h-3 w-3 text-muted-foreground/40" />
-                            <div className="flex items-center gap-1">
-                              <span className="text-[9px] text-muted-foreground">建议动作：</span>
-                              <span className="text-[9px] font-medium text-primary">{n.suggestion}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* ═══ PREFERENCE ═══ */}
-            <section id="p-preference">
-              <SectionLabel title="偏好深度洞察" />
-              <div className="space-y-2 mt-3">
-                {data.designPreferences.map((p, i) => (
-                  <div key={i} className="rounded-lg border border-border/40 p-3">
-                    <div className="flex items-center gap-3">
-                      {/* Confidence ring */}
-                      <div className="relative w-11 h-11 shrink-0">
-                        <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
-                          <circle cx="22" cy="22" r="17" fill="none" strokeWidth="3" stroke="hsl(var(--muted) / 0.3)" />
-                          <circle cx="22" cy="22" r="17" fill="none" strokeWidth="3"
-                            stroke={p.confidence >= 85 ? "#10b981" : p.confidence >= 70 ? "hsl(var(--primary))" : "#f59e0b"}
-                            strokeLinecap="round" strokeDasharray={`${p.confidence * 1.07} 107`} />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-[9px] font-bold">{p.confidence}</span>
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] text-muted-foreground">{p.dimension}</span>
-                          <span className="text-[11px] font-semibold">{p.preference}</span>
-                          <span className="text-[9px] text-muted-foreground ml-auto">{p.basis}</span>
-                        </div>
-                        <p className="text-[9px] text-muted-foreground leading-relaxed mt-1">{p.detail}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* ═══ RISK & OPPORTUNITY ═══ */}
-            <section id="p-risk">
-              <SectionLabel title="风险与机会识别" />
-              <div className="space-y-2 mt-3">
-                {data.riskOpportunities.map((ro, i) => {
-                  const isRisk = ro.type === "risk";
-                  const impactColors = { high: "bg-red-500", medium: "bg-amber-500", low: "bg-muted-foreground" };
-                  return (
-                    <div key={i} className={`rounded-xl border p-4 ${isRisk ? "border-red-200/60 bg-red-500/3" : "border-emerald-200/60 bg-emerald-500/3"}`}>
-                      <div className="flex items-start gap-3">
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isRisk ? "bg-red-500/10" : "bg-emerald-500/10"}`}>
-                          {isRisk ? <AlertTriangle className="h-3.5 w-3.5 text-red-500" /> : <Rocket className="h-3.5 w-3.5 text-emerald-500" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-semibold">{ro.title}</span>
-                            <span className={`text-[8px] px-1.5 py-0.5 rounded-full text-white ${impactColors[ro.impact]}`}>
-                              {ro.impact === "high" ? "高影响" : ro.impact === "medium" ? "中影响" : "低影响"}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{ro.detail}</p>
-                          <div className="mt-2 pt-2 border-t border-border/30 flex items-start gap-1.5">
-                            <ArrowRight className="h-3 w-3 text-primary shrink-0 mt-0.5" />
-                            <p className="text-[10px] text-primary font-medium leading-relaxed">{ro.action}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* ═══ SERVICE STRATEGY ═══ */}
-            <section id="p-strategy">
-              <SectionLabel title="精准服务策略" />
-              <div className="space-y-2 mt-3">
-                {data.serviceStrategies.map((s, i) => {
-                  const Icon = s.icon;
-                  return (
-                    <div key={i} className="rounded-xl border border-border/40 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                          <Icon className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-[11px] font-semibold">{s.title}</span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{s.timing}</span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600">{s.channel}</span>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed mt-1.5">{s.content}</p>
-                          <div className="mt-2 pt-2 border-t border-border/30 flex items-start gap-1.5">
-                            <TrendingUp className="h-3 w-3 text-emerald-500 shrink-0 mt-0.5" />
-                            <p className="text-[10px] text-emerald-600 font-medium leading-relaxed">{s.expectedOutcome}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* ═══ JOURNEY ═══ */}
-            <section id="p-journey">
-              <SectionLabel title="客户旅程" />
-              <div className="rounded-xl border border-border/40 p-4 mt-3">
-                <div className="flex items-center">
-                  {data.journeyStages.map((s, i) => {
-                    const done = s.status === "done";
-                    const current = s.status === "current";
-                    return (
-                      <div key={i} className="flex items-center flex-1">
-                        <div className="flex flex-col items-center flex-1">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${
-                            done ? "bg-emerald-500 border-emerald-400 text-white" :
-                            current ? "bg-primary border-primary text-primary-foreground animate-pulse" :
-                            "bg-muted border-border text-muted-foreground"
-                          }`}>
-                            {done ? "✓" : i + 1}
-                          </div>
-                          <span className={`text-[10px] font-medium mt-1 ${current ? "text-primary" : done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
-                          <span className="text-[9px] text-muted-foreground">{s.metric}</span>
-                        </div>
-                        {i < data.journeyStages.length - 1 && (
-                          <div className={`h-0.5 flex-1 mx-0.5 rounded ${done ? "bg-emerald-500" : "bg-border"}`} />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
-
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <Tooltip delayDuration={200}>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-[11px] leading-relaxed">{tip}</TooltipContent>
+    </Tooltip>
   );
 }
-
-/* ═══════════════════════════════════════════
-   SUB COMPONENTS
-   ═══════════════════════════════════════════ */
 
 function SectionLabel({ title }: { title: string }) {
   return (
@@ -1016,10 +406,612 @@ const PROFILE_ICON_MAP: Record<string, React.ElementType> = {
   share: MessageCircle, star: Star,
 };
 const PROFILE_COLOR_MAP: Record<string, string> = {
-  primary: "bg-primary/10 text-primary border-primary/20",
-  blue: "bg-blue-500/10 text-blue-600 border-blue-200",
-  emerald: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
-  violet: "bg-violet-500/10 text-violet-600 border-violet-200",
-  amber: "bg-amber-500/10 text-amber-600 border-amber-200",
-  cyan: "bg-cyan-500/10 text-cyan-600 border-cyan-200",
+  primary: "bg-primary/8 text-primary border-primary/15",
+  blue: "bg-blue-500/8 text-blue-600 border-blue-200/50",
+  emerald: "bg-emerald-500/8 text-emerald-600 border-emerald-200/50",
+  violet: "bg-violet-500/8 text-violet-600 border-violet-200/50",
+  amber: "bg-amber-500/8 text-amber-600 border-amber-200/50",
+  cyan: "bg-cyan-500/8 text-cyan-600 border-cyan-200/50",
 };
+
+/* ═══════════════════════════════════════════
+   COMPONENT
+   ═══════════════════════════════════════════ */
+interface Props { open: boolean; onOpenChange: (v: boolean) => void; isDesigner: boolean; name: string; }
+
+export default function PortraitDialog({ open, onOpenChange, isDesigner, name }: Props) {
+  const data = isDesigner ? DESIGNER_PORTRAIT : EC_PORTRAIT;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeNav, setActiveNav] = useState("p-hero");
+
+  useEffect(() => {
+    const c = scrollRef.current;
+    if (!c) return;
+    const handler = () => {
+      for (let i = SECTIONS.length - 1; i >= 0; i--) {
+        const el = c.querySelector(`#${SECTIONS[i].id}`) as HTMLElement;
+        if (el && el.offsetTop - c.scrollTop <= 64) { setActiveNav(SECTIONS[i].id); return; }
+      }
+      setActiveNav(SECTIONS[0].id);
+    };
+    c.addEventListener("scroll", handler, { passive: true });
+    return () => c.removeEventListener("scroll", handler);
+  }, [open]);
+
+  const scrollTo = (id: string) => {
+    const c = scrollRef.current;
+    const el = c?.querySelector(`#${id}`) as HTMLElement;
+    if (el && c) c.scrollTo({ top: el.offsetTop - 48, behavior: "smooth" });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[960px] p-0 gap-0 overflow-hidden" style={{ maxHeight: "92vh" }}>
+        <DialogHeader className="px-6 pt-5 pb-0">
+          <DialogTitle className="text-sm flex items-center gap-2">
+            <Brain className="h-4 w-4 text-primary" />{name} · 深度用户画像
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Nav */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/30 px-6 mt-3">
+          <div className="flex gap-1 py-1.5 overflow-x-auto">
+            {SECTIONS.map(s => (
+              <button key={s.id} onClick={() => scrollTo(s.id)}
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap ${activeNav === s.id ? "bg-primary/10 text-primary shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <TooltipProvider>
+          <div ref={scrollRef} className="overflow-y-auto px-6 pb-8" style={{ maxHeight: "calc(92vh - 100px)" }}>
+            <div className="space-y-8 pt-5">
+
+              {/* ═══ HERO ═══ */}
+              <section id="p-hero">
+                <div className="grid grid-cols-12 gap-5">
+                  {/* Persona Card */}
+                  <div className="col-span-3 rounded-2xl border border-border/30 bg-gradient-to-br from-primary/5 to-primary/8 p-5 flex flex-col items-center text-center">
+                    <div className="relative w-20 h-20">
+                      <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
+                        <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5" stroke="hsl(var(--muted) / 0.3)" />
+                        <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5"
+                          stroke={data.healthScore >= 70 ? "#10b981" : data.healthScore >= 40 ? "#f59e0b" : "#ef4444"}
+                          strokeLinecap="round" strokeDasharray={`${data.healthScore * 2.14} 214`} />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-lg font-bold">{data.healthScore}</span>
+                        <span className="text-[8px] text-muted-foreground">健康度</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 px-3 py-1 rounded-full bg-primary/10 border border-primary/15">
+                      <span className="text-[11px] font-semibold text-primary">{data.persona}</span>
+                    </div>
+                    <TipWrap tip={data.personaDesc}>
+                      <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed line-clamp-3 cursor-help">{data.personaDesc}</p>
+                    </TipWrap>
+                  </div>
+
+                  {/* Radar */}
+                  <div className="col-span-4 rounded-2xl border border-border/30 p-4">
+                    <div className="w-[180px] h-[180px] mx-auto">
+                      <RadarChart dimensions={data.radarDimensions} />
+                    </div>
+                    <div className="grid grid-cols-3 gap-x-3 gap-y-1 mt-2">
+                      {data.radarDimensions.map(d => (
+                        <div key={d.name} className="flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                          <span className="text-[9px] text-muted-foreground">{d.name}</span>
+                          <span className="text-[9px] font-bold ml-auto tabular-nums">{d.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Decision Factors */}
+                  <div className="col-span-5 rounded-2xl border border-border/30 p-5">
+                    <span className="text-[10px] font-medium text-muted-foreground">决策因素权重</span>
+                    <div className="space-y-3.5 mt-3">
+                      {data.decisionFactors.map((f, i) => (
+                        <TipWrap key={i} tip={f.evidence}>
+                          <div className="cursor-help">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] font-medium">{f.factor}</span>
+                              <span className="text-[10px] font-bold text-primary tabular-nums">{f.weight}%</span>
+                            </div>
+                            <div className="h-1.5 bg-muted/20 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full bg-primary/50 transition-all" style={{ width: `${f.weight * 2.85}%` }} />
+                            </div>
+                          </div>
+                        </TipWrap>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* ═══ NARRATIVE — 综合研判 ═══ */}
+              <section id="p-narrative">
+                <SectionLabel title="综合研判 · 这个人是谁" />
+                <div className="mt-4 space-y-4">
+                  {/* Profile Cards */}
+                  <div className="grid grid-cols-4 gap-2.5">
+                    {data.profileCards.map((card, i) => {
+                      const Icon = PROFILE_ICON_MAP[card.icon] || Target;
+                      const colorCls = PROFILE_COLOR_MAP[card.color] || PROFILE_COLOR_MAP.primary;
+                      return (
+                        <div key={i} className={`rounded-xl border p-3.5 ${colorCls}`}>
+                          <div className="flex items-center gap-1.5 mb-1.5">
+                            <Icon className="h-3.5 w-3.5 opacity-70" />
+                            <span className="text-[9px] opacity-60">{card.label}</span>
+                          </div>
+                          <span className="text-[11px] font-semibold leading-tight block">{card.value}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-4">
+                    {/* LEFT COL */}
+                    <div className="col-span-7 space-y-4">
+                      {/* Three Sentences */}
+                      <div className="rounded-2xl border border-border/30 bg-gradient-to-br from-muted/20 to-background p-5">
+                        <div className="flex items-center gap-1.5 mb-4">
+                          <Sparkles className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[11px] font-semibold">三句话看懂他</span>
+                        </div>
+                        <div className="space-y-2.5">
+                          {data.profileNarrative.split("。").filter(Boolean).slice(0, 3).map((sentence, i) => (
+                            <div key={i} className="flex gap-3 items-start">
+                              <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                              <p className="text-[10px] text-foreground/80 leading-relaxed">{sentence}。</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Value Signal */}
+                      <div className="rounded-2xl border border-border/30 p-5">
+                        <div className="flex items-center gap-1.5 mb-4">
+                          <DollarSign className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[11px] font-semibold">价值信号</span>
+                        </div>
+                        <div className="grid grid-cols-4 gap-3">
+                          {[
+                            { label: "健康度", value: data.healthScore },
+                            { label: data.radarDimensions[0]?.name ?? "—", value: data.radarDimensions[0]?.value ?? 0 },
+                            { label: data.radarDimensions[2]?.name ?? "—", value: data.radarDimensions[2]?.value ?? 0 },
+                            { label: data.radarDimensions[3]?.name ?? "—", value: data.radarDimensions[3]?.value ?? 0 },
+                          ].map((m, i) => (
+                            <div key={i} className="text-center">
+                              <div className="relative w-11 h-11 mx-auto">
+                                <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
+                                  <circle cx="22" cy="22" r="17" fill="none" strokeWidth="2.5" stroke="hsl(var(--muted) / 0.25)" />
+                                  <circle cx="22" cy="22" r="17" fill="none" strokeWidth="2.5"
+                                    stroke={m.value >= 80 ? "#10b981" : m.value >= 50 ? "hsl(var(--primary))" : "#f59e0b"}
+                                    strokeLinecap="round" strokeDasharray={`${m.value * 1.07} 107`} />
+                                </svg>
+                                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">{m.value}</span>
+                              </div>
+                              <span className="text-[9px] text-muted-foreground mt-1 block">{m.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <TipWrap tip={data.valueAssessment}>
+                          <p className="text-[10px] text-muted-foreground leading-relaxed mt-4 pt-3 border-t border-border/20 line-clamp-2 cursor-help">
+                            {data.valueAssessment.split("。")[0]}。
+                          </p>
+                        </TipWrap>
+                      </div>
+
+                      {/* Key Insights */}
+                      <div className="rounded-2xl border border-border/30 p-5">
+                        <div className="flex items-center gap-1.5 mb-4">
+                          <Lightbulb className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[11px] font-semibold">关键洞察</span>
+                        </div>
+                        <div className="space-y-2">
+                          {data.keyInsights.slice(0, 5).map((insight, i) => (
+                            <TipWrap key={i} tip={insight}>
+                              <div className="flex items-start gap-2.5 cursor-help group">
+                                <span className="w-5 h-5 rounded-md bg-primary/8 text-primary text-[8px] font-bold flex items-center justify-center shrink-0 mt-0.5">{String(i + 1).padStart(2, "0")}</span>
+                                <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1 group-hover:text-foreground transition-colors">{insight}</p>
+                              </div>
+                            </TipWrap>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* RIGHT COL */}
+                    <div className="col-span-5 space-y-4">
+                      {/* Decision Factors compact */}
+                      <div className="rounded-2xl border border-border/30 p-5">
+                        <div className="flex items-center gap-1.5 mb-4">
+                          <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[11px] font-semibold">决策抓手</span>
+                        </div>
+                        <div className="space-y-3">
+                          {data.decisionFactors.map((factor, i) => (
+                            <TipWrap key={i} tip={factor.evidence}>
+                              <div className="flex items-center gap-2.5 cursor-help group">
+                                <span className="text-[10px] font-medium w-24 shrink-0 truncate group-hover:text-primary transition-colors">{factor.factor}</span>
+                                <div className="flex-1 h-1.5 rounded-full bg-muted/20 overflow-hidden">
+                                  <div className="h-full rounded-full bg-primary/50" style={{ width: `${factor.weight * 2.85}%` }} />
+                                </div>
+                                <span className="text-[9px] font-bold text-primary w-8 text-right tabular-nums">{factor.weight}%</span>
+                              </div>
+                            </TipWrap>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Service Approach */}
+                      <div className="rounded-2xl border border-border/30 p-5">
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <Shield className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[11px] font-semibold">服务总纲</span>
+                        </div>
+                        <TipWrap tip={data.serviceApproach}>
+                          <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-3 cursor-help">{data.serviceApproach}</p>
+                        </TipWrap>
+                      </div>
+
+                      {/* Communication */}
+                      <div className="rounded-2xl border border-border/30 p-5">
+                        <div className="flex items-center gap-1.5 mb-3">
+                          <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[11px] font-semibold">沟通方式</span>
+                          <span className="text-[9px] text-muted-foreground ml-auto">{data.communicationStyle.style}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <span className="text-[9px] font-medium text-emerald-600 mb-2 block">✓ 建议</span>
+                            <div className="space-y-1.5">
+                              {data.communicationStyle.dos.map((d, i) => (
+                                <TipWrap key={i} tip={d}>
+                                  <p className="text-[9px] text-muted-foreground line-clamp-1 cursor-help hover:text-foreground transition-colors">
+                                    {d.length > 20 ? d.slice(0, 20) + "…" : d}
+                                  </p>
+                                </TipWrap>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-medium text-red-500 mb-2 block">✗ 避免</span>
+                            <div className="space-y-1.5">
+                              {data.communicationStyle.donts.map((d, i) => (
+                                <TipWrap key={i} tip={d}>
+                                  <p className="text-[9px] text-muted-foreground line-clamp-1 cursor-help hover:text-foreground transition-colors">
+                                    {d.length > 20 ? d.slice(0, 20) + "…" : d}
+                                  </p>
+                                </TipWrap>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* ═══ BEHAVIOR & PERSONALITY ═══ */}
+              <section id="p-behavior">
+                <SectionLabel title="行为特征 · 性格特征" />
+                <div className="grid grid-cols-2 gap-5 mt-4">
+                  {/* Behavior */}
+                  <div className="rounded-2xl border border-border/30 p-5">
+                    <span className="text-[10px] font-semibold text-muted-foreground mb-4 block">行为指纹</span>
+                    <div className="grid grid-cols-2 gap-3">
+                      {data.behaviorTraits.map((t, i) => {
+                        const Icon = t.icon;
+                        const levelColor = t.level === "high" ? "text-emerald-500" : t.level === "medium" ? "text-primary" : "text-muted-foreground";
+                        return (
+                          <TipWrap key={i} tip={t.detail}>
+                            <div className="rounded-xl border border-border/20 p-3 cursor-help group hover:border-primary/20 transition-all hover:shadow-sm">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-1.5">
+                                  <Icon className={`h-3 w-3 ${levelColor}`} />
+                                  <span className="text-[10px] font-medium">{t.label}</span>
+                                </div>
+                                <span className="text-[11px] font-bold tabular-nums">{t.score}</span>
+                              </div>
+                              <div className="h-1 rounded-full bg-muted/20 overflow-hidden mb-2">
+                                <div className={`h-full rounded-full transition-all ${t.level === "high" ? "bg-emerald-500/60" : t.level === "medium" ? "bg-primary/50" : "bg-muted-foreground/40"}`} style={{ width: `${t.score}%` }} />
+                              </div>
+                              <span className="text-[9px] text-muted-foreground">{t.evidence}</span>
+                            </div>
+                          </TipWrap>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Personality */}
+                  <div className="rounded-2xl border border-border/30 p-5">
+                    <span className="text-[10px] font-semibold text-muted-foreground mb-4 block">性格谱系</span>
+                    <div className="space-y-4">
+                      {data.personalityTraits.map((t, i) => (
+                        <TipWrap key={i} tip={t.detail}>
+                          <div className="cursor-help group">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-[10px] font-medium group-hover:text-primary transition-colors">{t.dimension}</span>
+                              <span className="text-[9px] text-primary/80 font-medium bg-primary/6 px-2 py-0.5 rounded-full">{t.desc}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[8px] text-muted-foreground w-8 text-right shrink-0">{t.leftLabel}</span>
+                              <div className="flex-1 h-1.5 bg-muted/15 rounded-full relative">
+                                <div className="absolute inset-0 rounded-full overflow-hidden">
+                                  <div className="h-full bg-gradient-to-r from-primary/5 via-transparent to-primary/5" />
+                                </div>
+                                <div className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary shadow-sm border-2 border-background transition-all group-hover:scale-125"
+                                  style={{ left: `calc(${t.score}% - 5px)` }} />
+                              </div>
+                              <span className="text-[8px] text-muted-foreground w-8 shrink-0">{t.rightLabel}</span>
+                            </div>
+                          </div>
+                        </TipWrap>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* ═══ ACTIVITY HEATMAP ═══ */}
+              <section id="p-heatmap">
+                <SectionLabel title="活跃热力图" />
+                <div className="rounded-2xl border border-border/30 p-5 mt-4">
+                  <div className="flex gap-1">
+                    <div className="flex flex-col gap-[3px] pt-5 pr-2 shrink-0">
+                      {["一", "二", "三", "四", "五", "六", "日"].map(d => (
+                        <div key={d} className="h-[16px] flex items-center"><span className="text-[8px] text-muted-foreground">{d}</span></div>
+                      ))}
+                    </div>
+                    <div className="flex-1 overflow-x-auto">
+                      <div className="flex gap-[3px] mb-[3px]">
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <div key={i} className="flex-1 min-w-[16px] text-center">
+                            <span className="text-[7px] text-muted-foreground/60">{i % 3 === 0 ? `${i}` : ""}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {data.activityHeatmap.map((row, ri) => (
+                        <div key={ri} className="flex gap-[3px]">
+                          {row.map((v, ci) => {
+                            const max = Math.max(...data.activityHeatmap.flat());
+                            const intensity = max > 0 ? v / max : 0;
+                            return (
+                              <div key={ci} className="flex-1 min-w-[16px] h-[16px] rounded transition-colors"
+                                style={{ backgroundColor: v === 0 ? "hsl(var(--muted) / 0.15)" : `hsl(var(--primary) / ${0.12 + intensity * 0.7})` }}
+                                title={`周${"一二三四五六日"[ri]} ${ci}:00 — ${v}次`} />
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-1.5 mt-3">
+                    <span className="text-[8px] text-muted-foreground">少</span>
+                    {[0.12, 0.25, 0.42, 0.6, 0.82].map((o, i) => (
+                      <div key={i} className="w-3 h-3 rounded" style={{ backgroundColor: `hsl(var(--primary) / ${o})` }} />
+                    ))}
+                    <span className="text-[8px] text-muted-foreground">多</span>
+                  </div>
+                </div>
+              </section>
+
+              {/* ═══ INTEREST BUBBLES ═══ */}
+              <section id="p-interests">
+                <SectionLabel title="兴趣关注图谱" />
+                <div className="rounded-2xl border border-border/30 p-6 mt-4">
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    {data.interestBubbles
+                      .sort((a, b) => b.weight - a.weight)
+                      .map((b, i) => {
+                        const size = 36 + (b.weight / 100) * 52;
+                        return (
+                          <TipWrap key={i} tip={`${b.name}：关注度 ${b.weight}%`}>
+                            <div
+                              className={`${b.color} rounded-full flex items-center justify-center text-white shrink-0 transition-transform hover:scale-110 cursor-help`}
+                              style={{ width: `${size}px`, height: `${size}px`, opacity: 0.3 + (b.weight / 100) * 0.6 }}
+                            >
+                              <span className="text-center leading-tight px-1 font-medium" style={{ fontSize: `${Math.max(9, size / 7.5)}px` }}>
+                                {b.name}
+                              </span>
+                            </div>
+                          </TipWrap>
+                        );
+                      })}
+                  </div>
+                </div>
+              </section>
+
+              {/* ═══ NEEDS PRIORITY ═══ */}
+              <section id="p-needs">
+                <SectionLabel title="深层需求矩阵" />
+                <div className="space-y-3 mt-4">
+                  {data.deepNeeds.map((n, i) => {
+                    const Icon = n.icon;
+                    const urgencyBorder = { urgent: "border-red-200/40", normal: "border-blue-200/40", latent: "border-border/30" };
+                    const urgencyBg = { urgent: "bg-red-500/3", normal: "bg-blue-500/3", latent: "bg-muted/10" };
+                    const urgencyLabel = { urgent: "紧急", normal: "一般", latent: "潜在" };
+                    const urgencyTag = { urgent: "bg-red-500/8 text-red-600", normal: "bg-blue-500/8 text-blue-600", latent: "bg-muted text-muted-foreground" };
+                    return (
+                      <div key={i} className={`rounded-2xl border ${urgencyBorder[n.urgency]} ${urgencyBg[n.urgency]} p-4`}>
+                        <div className="flex items-start gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-background flex items-center justify-center shrink-0 border border-border/30 shadow-sm">
+                            <Icon className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[11px] font-semibold">{n.need}</span>
+                              <span className={`text-[9px] px-2 py-0.5 rounded-full ${urgencyTag[n.urgency]}`}>{urgencyLabel[n.urgency]}</span>
+                              <span className="text-[9px] text-muted-foreground ml-auto tabular-nums">重要性 {n.importance}</span>
+                            </div>
+                            <TipWrap tip={n.detail}>
+                              <p className="text-[10px] text-muted-foreground leading-relaxed mt-1.5 line-clamp-2 cursor-help">{n.detail}</p>
+                            </TipWrap>
+                            <div className="flex items-center gap-4 mt-3 pt-2.5 border-t border-border/20">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[9px] text-muted-foreground/60">依据</span>
+                                <span className="text-[9px] font-medium">{n.basis}</span>
+                              </div>
+                              <ArrowRight className="h-3 w-3 text-muted-foreground/30" />
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[9px] text-muted-foreground/60">建议</span>
+                                <span className="text-[9px] font-medium text-primary">{n.suggestion}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* ═══ PREFERENCE ═══ */}
+              <section id="p-preference">
+                <SectionLabel title="偏好深度洞察" />
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  {data.designPreferences.map((p, i) => (
+                    <TipWrap key={i} tip={p.detail}>
+                      <div className="rounded-2xl border border-border/30 p-4 cursor-help group hover:border-primary/20 hover:shadow-sm transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-12 h-12 shrink-0">
+                            <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+                              <circle cx="24" cy="24" r="19" fill="none" strokeWidth="2.5" stroke="hsl(var(--muted) / 0.2)" />
+                              <circle cx="24" cy="24" r="19" fill="none" strokeWidth="2.5"
+                                stroke={p.confidence >= 85 ? "#10b981" : p.confidence >= 70 ? "hsl(var(--primary))" : "#f59e0b"}
+                                strokeLinecap="round" strokeDasharray={`${p.confidence * 1.19} 119.4`} />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-[10px] font-bold">{p.confidence}</span>
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[9px] text-muted-foreground">{p.dimension}</span>
+                            <span className="text-[11px] font-semibold block mt-0.5">{p.preference}</span>
+                            <span className="text-[9px] text-muted-foreground/60 mt-1 block">{p.basis}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </TipWrap>
+                  ))}
+                </div>
+              </section>
+
+              {/* ═══ RISK & OPPORTUNITY ═══ */}
+              <section id="p-risk">
+                <SectionLabel title="风险与机会识别" />
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  {data.riskOpportunities.map((ro, i) => {
+                    const isRisk = ro.type === "risk";
+                    const impactLabel = { high: "高影响", medium: "中影响", low: "低影响" };
+                    const impactColor = { high: "bg-red-500/10 text-red-600", medium: "bg-amber-500/10 text-amber-600", low: "bg-muted text-muted-foreground" };
+                    return (
+                      <div key={i} className={`rounded-2xl border p-4 ${isRisk ? "border-red-200/30 bg-red-500/2" : "border-emerald-200/30 bg-emerald-500/2"}`}>
+                        <div className="flex items-start gap-3">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isRisk ? "bg-red-500/8" : "bg-emerald-500/8"}`}>
+                            {isRisk ? <AlertTriangle className="h-3.5 w-3.5 text-red-500" /> : <Rocket className="h-3.5 w-3.5 text-emerald-500" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-semibold">{ro.title}</span>
+                              <span className={`text-[8px] px-1.5 py-0.5 rounded-full ${impactColor[ro.impact]}`}>
+                                {impactLabel[ro.impact]}
+                              </span>
+                            </div>
+                            <TipWrap tip={ro.detail}>
+                              <p className="text-[10px] text-muted-foreground leading-relaxed mt-1.5 line-clamp-2 cursor-help">{ro.detail}</p>
+                            </TipWrap>
+                            <TipWrap tip={ro.action}>
+                              <div className="mt-2.5 pt-2 border-t border-border/20 flex items-center gap-1.5 cursor-help">
+                                <ArrowRight className="h-3 w-3 text-primary shrink-0" />
+                                <p className="text-[10px] text-primary font-medium line-clamp-1">{ro.action}</p>
+                              </div>
+                            </TipWrap>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* ═══ SERVICE STRATEGY ═══ */}
+              <section id="p-strategy">
+                <SectionLabel title="精准服务策略" />
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  {data.serviceStrategies.map((s, i) => {
+                    const Icon = s.icon;
+                    return (
+                      <div key={i} className="rounded-2xl border border-border/30 p-4 hover:shadow-sm transition-shadow">
+                        <div className="flex items-start gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center shrink-0">
+                            <Icon className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[11px] font-semibold block">{s.title}</span>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className="text-[9px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground">{s.timing}</span>
+                              <span className="text-[9px] px-2 py-0.5 rounded-full bg-blue-500/8 text-blue-600">{s.channel}</span>
+                            </div>
+                            <TipWrap tip={s.content}>
+                              <p className="text-[10px] text-muted-foreground leading-relaxed mt-2 line-clamp-2 cursor-help">{s.content}</p>
+                            </TipWrap>
+                            <TipWrap tip={s.expectedOutcome}>
+                              <div className="mt-2.5 pt-2 border-t border-border/20 flex items-center gap-1.5 cursor-help">
+                                <TrendingUp className="h-3 w-3 text-emerald-500 shrink-0" />
+                                <p className="text-[10px] text-emerald-600 font-medium line-clamp-1">{s.expectedOutcome}</p>
+                              </div>
+                            </TipWrap>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* ═══ JOURNEY ═══ */}
+              <section id="p-journey">
+                <SectionLabel title="客户旅程" />
+                <div className="rounded-2xl border border-border/30 p-6 mt-4">
+                  <div className="flex items-center">
+                    {data.journeyStages.map((s, i) => {
+                      const done = s.status === "done";
+                      const current = s.status === "current";
+                      return (
+                        <div key={i} className="flex items-center flex-1">
+                          <div className="flex flex-col items-center flex-1">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${
+                              done ? "bg-emerald-500 border-emerald-400 text-white" :
+                              current ? "bg-primary border-primary text-primary-foreground animate-pulse" :
+                              "bg-muted/40 border-border text-muted-foreground"
+                            }`}>
+                              {done ? "✓" : i + 1}
+                            </div>
+                            <span className={`text-[10px] font-medium mt-2 ${current ? "text-primary" : done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
+                            <span className="text-[9px] text-muted-foreground mt-0.5">{s.metric}</span>
+                          </div>
+                          {i < data.journeyStages.length - 1 && (
+                            <div className={`h-0.5 flex-1 mx-1 rounded ${done ? "bg-emerald-500/60" : "bg-border/40"}`} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </div>
+        </TooltipProvider>
+      </DialogContent>
+    </Dialog>
+  );
+}
