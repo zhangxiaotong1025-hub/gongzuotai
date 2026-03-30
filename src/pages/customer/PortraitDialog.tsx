@@ -761,9 +761,9 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                       {/* Confidence ring */}
                       <div className="relative w-11 h-11 shrink-0">
                         <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
-                          <circle cx="22" cy="22" r="17" fill="none" strokeWidth="3" className="stroke-muted/30" />
+                          <circle cx="22" cy="22" r="17" fill="none" strokeWidth="3" stroke="hsl(var(--muted) / 0.3)" />
                           <circle cx="22" cy="22" r="17" fill="none" strokeWidth="3"
-                            className={p.confidence >= 85 ? "stroke-emerald-500" : p.confidence >= 70 ? "stroke-primary" : "stroke-amber-500"}
+                            stroke={p.confidence >= 85 ? "#10b981" : p.confidence >= 70 ? "hsl(var(--primary))" : "#f59e0b"}
                             strokeLinecap="round" strokeDasharray={`${p.confidence * 1.07} 107`} />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
