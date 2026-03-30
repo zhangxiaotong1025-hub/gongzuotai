@@ -110,7 +110,7 @@ export function getSpuRelatedModelCount(spu: ProductSpu): number {
 /** 聚合所有 SKU 的应用企业（去重） */
 export function getSpuAppliedEnterprises(spu: ProductSpu): AppliedEnterprise[] {
   const map = new Map<string, AppliedEnterprise>();
-  spu.skus.forEach((sku) => sku.appliedEnterprises.forEach((e) => map.set(e.id, e)));
+  spu.skus.forEach((sku) => (sku.appliedEnterprises || []).forEach((e) => map.set(e.id, e)));
   return Array.from(map.values());
 }
 

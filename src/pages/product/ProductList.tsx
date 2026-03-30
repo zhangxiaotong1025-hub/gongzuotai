@@ -194,7 +194,7 @@ export default function ProductList() {
 
   /* ── Stats (aggregate from SKUs) ── */
   const stats = useMemo((): StatCard[] => {
-    const allSkus = categoryFiltered.flatMap((s) => s.skus);
+    // Stats are computed from SPU-level aggregation
     const total = categoryFiltered.length;
     const approved = categoryFiltered.filter((s) => getSpuAggregatedAuditStatus(s) === "APPROVED").length;
     const pending = categoryFiltered.filter((s) => getSpuAggregatedAuditStatus(s) === "PENDING").length;
@@ -517,7 +517,7 @@ export default function ProductList() {
                           onClick={() => setEnterpriseDialogSku(sku)}
                           className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
                         >
-                          <Building2 className="h-3 w-3" />{sku.appliedEnterprises.length}
+                          <Building2 className="h-3 w-3" />{(sku.appliedEnterprises || []).length}
                         </button>
                       </div>
 
