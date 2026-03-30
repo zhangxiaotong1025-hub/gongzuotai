@@ -403,87 +403,96 @@ export default function CustomerDetail() {
           {(() => {
             const portrait = isDesigner ? DESIGNER_PORTRAIT : EC_PORTRAIT;
             return (
-              <div className="rounded-xl border border-border/60 bg-card p-6">
-                <div className="flex items-center justify-between mb-5">
+              <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-border/30">
                   <SectionTitle icon={Brain} title="用户画像" />
                   <button onClick={() => setShowPortrait(true)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium text-primary bg-primary/8 hover:bg-primary/12 border border-primary/15 transition-colors">
-                    <ExternalLink className="h-3 w-3" />深度画像分析
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium text-primary bg-primary/8 hover:bg-primary/12 border border-primary/15 transition-colors">
+                    <ExternalLink className="h-3.5 w-3.5" />深度画像分析
                   </button>
                 </div>
 
-                <div className="flex gap-6">
-                  {/* Left: Identity + Health Gauge */}
-                  <div className="flex items-center gap-4 shrink-0">
-                    <div className="relative w-[72px] h-[72px]">
-                      <svg className="w-[72px] h-[72px] -rotate-90" viewBox="0 0 72 72">
-                        <circle cx="36" cy="36" r="30" fill="none" strokeWidth="5" stroke="hsl(var(--muted) / 0.25)" />
-                        <circle cx="36" cy="36" r="30" fill="none" strokeWidth="5"
-                          stroke={portrait.healthScore >= 70 ? "#10b981" : portrait.healthScore >= 40 ? "#f59e0b" : "#ef4444"}
-                          strokeLinecap="round" strokeDasharray={`${portrait.healthScore * 1.885} 188.5`} />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-lg font-bold">{portrait.healthScore}</span>
-                        <span className="text-[8px] text-muted-foreground -mt-0.5">健康度</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/15 text-center">
-                        <span className="text-[11px] font-semibold text-primary">{portrait.persona}</span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed max-w-[140px] line-clamp-2">{portrait.personaDesc}</p>
-                    </div>
-                  </div>
-
-                  {/* Center: Radar */}
-                  <div className="shrink-0 w-[120px] h-[120px]">
-                    <RadarChart dimensions={portrait.radarDimensions} />
-                  </div>
-
-                  {/* Right: Key insights - "Three Sentences" */}
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1 mb-2">
-                      <Lightbulb className="h-3 w-3" />三句话看懂他
-                    </span>
-                    <div className="space-y-2">
-                      {portrait.profileNarrative.split("。").filter(Boolean).slice(0, 3).map((s, i) => (
-                        <div key={i} className="flex gap-2 items-start">
-                          <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                          <p className="text-[11px] text-foreground/80 leading-relaxed">{s}。</p>
+                {/* Body */}
+                <div className="p-6">
+                  <div className="grid grid-cols-12 gap-6">
+                    {/* Col 1: Health + Persona */}
+                    <div className="col-span-3 flex flex-col items-center gap-4 py-2">
+                      <div className="relative w-[88px] h-[88px]">
+                        <svg className="w-[88px] h-[88px] -rotate-90" viewBox="0 0 88 88">
+                          <circle cx="44" cy="44" r="36" fill="none" strokeWidth="6" stroke="hsl(var(--muted) / 0.2)" />
+                          <circle cx="44" cy="44" r="36" fill="none" strokeWidth="6"
+                            stroke={portrait.healthScore >= 70 ? "hsl(var(--success))" : portrait.healthScore >= 40 ? "hsl(var(--warning))" : "hsl(var(--destructive))"}
+                            strokeLinecap="round" strokeDasharray={`${portrait.healthScore * 2.262} 226.2`} />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-2xl font-bold tabular-nums">{portrait.healthScore}</span>
+                          <span className="text-[9px] text-muted-foreground -mt-0.5">健康度</span>
                         </div>
-                      ))}
+                      </div>
+                      <div className="text-center space-y-1.5">
+                        <div className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/15">
+                          <span className="text-xs font-semibold text-primary">{portrait.persona}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed max-w-[160px]">{portrait.personaDesc}</p>
+                      </div>
+                    </div>
+
+                    {/* Col 2: Radar */}
+                    <div className="col-span-3 flex flex-col items-center justify-center">
+                      <div className="w-[140px] h-[140px]">
+                        <RadarChart dimensions={portrait.radarDimensions} />
+                      </div>
+                      <span className="text-[9px] text-muted-foreground mt-1">能力维度</span>
+                    </div>
+
+                    {/* Col 3: Three Sentences */}
+                    <div className="col-span-6">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+                        <span className="text-xs font-semibold">三句话看懂他</span>
+                      </div>
+                      <div className="space-y-3">
+                        {portrait.profileNarrative.split("。").filter(Boolean).slice(0, 3).map((s, i) => (
+                          <div key={i} className="flex gap-3 items-start p-3 rounded-lg bg-muted/30 border border-border/20">
+                            <span className="w-5 h-5 rounded-full bg-primary/12 text-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                            <p className="text-xs text-foreground/85 leading-relaxed">{s}。</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Bottom strip: key metrics */}
-                <div className="mt-5 pt-4 border-t border-border/30 flex items-center gap-3 flex-wrap">
-                  {isDesigner ? (
-                    <>
-                      <MiniMetric label="CVS评分" value={d.cvsScore} suffix="分" color={d.cvsScore >= 70 ? "primary" : "amber"} />
-                      <MiniMetric label="续费概率" value={d.conversion.renewalProbability} suffix="%" color="emerald" />
-                      <MiniMetric label="流失风险" value={d.conversion.churnRisk} suffix="%" color={d.conversion.churnRisk >= 30 ? "red" : "emerald"} />
-                      <MiniMetric label="使用率" value={d.usageRate} suffix="%" color={d.usageRate >= 50 ? "emerald" : "amber"} />
-                      <MiniMetric label="功能深度" value={d.featuresUsed} suffix="/8" color="blue" />
-                      <MiniMetric label="累计消费" value={`¥${(d.totalSpent/1000).toFixed(1)}K`} color="primary" />
-                    </>
-                  ) : (
-                    <>
-                      <MiniMetric label="意向度" value={ec.portrait.intentScore} suffix="分" color="primary" />
-                      <MiniMetric label="满意度" value={ec.portrait.satisfactionScore} suffix="分" color="emerald" />
-                      <MiniMetric label="合作深度" value={ec.portrait.cooperationDepth} suffix="分" color="blue" />
-                      <MiniMetric label="复购概率" value={ec.repurchase.probability} suffix="%" color="amber" />
-                      <MiniMetric label="合同额" value={`¥${(ec.conversionPath.contractAmount/10000).toFixed(1)}万`} color="primary" />
-                    </>
-                  )}
-                  {/* Top decision factors as chips */}
-                  <div className="ml-auto flex items-center gap-1.5">
-                    <span className="text-[9px] text-muted-foreground">决策因素:</span>
-                    {portrait.decisionFactors.slice(0, 3).map((f, i) => (
-                      <span key={i} className="px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-muted/60 text-muted-foreground border border-border/30">
-                        {f.factor} {f.weight}%
-                      </span>
-                    ))}
+                {/* Footer: KPI strip */}
+                <div className="px-6 py-4 border-t border-border/30 bg-muted/15">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    {isDesigner ? (
+                      <>
+                        <MiniMetric label="CVS评分" value={d.cvsScore} suffix="分" color={d.cvsScore >= 70 ? "primary" : "amber"} />
+                        <MiniMetric label="续费概率" value={d.conversion.renewalProbability} suffix="%" color="emerald" />
+                        <MiniMetric label="流失风险" value={d.conversion.churnRisk} suffix="%" color={d.conversion.churnRisk >= 30 ? "red" : "emerald"} />
+                        <MiniMetric label="使用率" value={d.usageRate} suffix="%" color={d.usageRate >= 50 ? "emerald" : "amber"} />
+                        <MiniMetric label="功能深度" value={d.featuresUsed} suffix="/8" color="blue" />
+                        <MiniMetric label="累计消费" value={`¥${(d.totalSpent/1000).toFixed(1)}K`} color="primary" />
+                      </>
+                    ) : (
+                      <>
+                        <MiniMetric label="意向度" value={ec.portrait.intentScore} suffix="分" color="primary" />
+                        <MiniMetric label="满意度" value={ec.portrait.satisfactionScore} suffix="分" color="emerald" />
+                        <MiniMetric label="合作深度" value={ec.portrait.cooperationDepth} suffix="分" color="blue" />
+                        <MiniMetric label="复购概率" value={ec.repurchase.probability} suffix="%" color="amber" />
+                        <MiniMetric label="合同额" value={`¥${(ec.conversionPath.contractAmount/10000).toFixed(1)}万`} color="primary" />
+                      </>
+                    )}
+                    <div className="ml-auto flex items-center gap-2">
+                      <span className="text-[10px] text-muted-foreground">决策因素</span>
+                      {portrait.decisionFactors.slice(0, 3).map((f, i) => (
+                        <span key={i} className="px-2 py-1 rounded-full text-[10px] font-medium bg-card text-muted-foreground border border-border/40">
+                          {f.factor} {f.weight}%
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
