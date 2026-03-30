@@ -19,6 +19,10 @@ import wardrobe from "@/assets/products/wardrobe.jpg";
 import wardrobeOak from "@/assets/products/wardrobe-oak.jpg";
 import coffeeTable from "@/assets/products/coffee-table.jpg";
 import coffeeTableWood from "@/assets/products/coffee-table-wood.jpg";
+import sceneLivingRoom from "@/assets/products/scene-living-room.jpg";
+import sceneBedroom from "@/assets/products/scene-bedroom.jpg";
+import detailFabric from "@/assets/products/detail-fabric.jpg";
+import detailWoodJoint from "@/assets/products/detail-wood-joint.jpg";
 
 export type ProductCategory = "SUPPLY_CHAIN" | "ENTERPRISE" | "PRIVATE";
 export type ProductAuditStatus = "PENDING" | "APPROVED" | "REJECTED";
@@ -68,11 +72,27 @@ export interface ProductSku {
   updatedAt: string;
 }
 
+export interface ProductMedia {
+  url: string;
+  label?: string;
+}
+
 export interface ProductSpu {
   id: string;
   productSpuCode: string;
   productSpuName: string;
   thumbnailUrl: string;
+  /** 商品展示图（主图轮播） */
+  displayImages?: string[];
+  /** 详情图（细节特写） */
+  detailImages?: ProductMedia[];
+  /** 场景图（空间效果图） */
+  sceneImages?: ProductMedia[];
+  /** 视频素材 */
+  videos?: ProductMedia[];
+  /** SPU 级关联模型（方便 SKU 快速设置） */
+  modelSpuId?: string;
+  modelSpuName?: string;
   category: ProductCategory;
   ownerEnterpriseName: string;
   brandName: string;
@@ -86,6 +106,8 @@ export interface ProductSpu {
     warranty: string;
     certifications: string[];
     deliveryCycle: string;
+    material?: string;
+    dimensions?: string;
   };
   createdAt: string;
   updatedAt: string;
@@ -153,6 +175,11 @@ export const productSpuData: ProductSpu[] = [
     productSpuCode: "PRD-001",
     productSpuName: "北欧客厅三人沙发",
     thumbnailUrl: sofaNordic,
+    displayImages: [sofaNordic, sofaBlue, sofaGrey],
+    detailImages: [{ url: detailFabric, label: "面料细节" }, { url: detailWoodJoint, label: "框架工艺" }],
+    sceneImages: [{ url: sceneLivingRoom, label: "客厅效果" }],
+    videos: [],
+    modelSpuId: "mspu-1", modelSpuName: "北欧布艺沙发",
     category: "SUPPLY_CHAIN",
     ownerEnterpriseName: "居然之家",
     brandName: "居然优选",
@@ -161,7 +188,7 @@ export const productSpuData: ProductSpu[] = [
     frontendCategoryName: "客厅家具",
     description: "北欧风格三人位布艺沙发，简约大气，舒适耐用",
     sellingPoints: ["高弹力海绵坐垫", "可拆洗面料", "实木框架"],
-    commercialAttrs: { origin: "广东佛山", warranty: "3年", certifications: ["ISO9001", "绿色环保认证"], deliveryCycle: "7-15天" },
+    commercialAttrs: { origin: "广东佛山", warranty: "3年", certifications: ["ISO9001", "绿色环保认证"], deliveryCycle: "7-15天", material: "实木框架+高弹力海绵+布艺面料", dimensions: "1800×900×850mm" },
     createdAt: "2026-01-20",
     updatedAt: "2026-03-12",
     skus: [
@@ -202,6 +229,10 @@ export const productSpuData: ProductSpu[] = [
     productSpuCode: "PRD-002",
     productSpuName: "北欧客厅套装",
     thumbnailUrl: livingroomSet,
+    displayImages: [livingroomSet, sofaNordic, coffeeTable],
+    detailImages: [{ url: detailFabric, label: "面料特写" }],
+    sceneImages: [{ url: sceneLivingRoom, label: "客厅全景" }],
+    videos: [],
     category: "SUPPLY_CHAIN",
     ownerEnterpriseName: "居然之家",
     brandName: "居然优选",
@@ -248,6 +279,11 @@ export const productSpuData: ProductSpu[] = [
     productSpuCode: "PRD-003",
     productSpuName: "现代轻奢主卧双人床",
     thumbnailUrl: bedLuxury,
+    displayImages: [bedLuxury, bedBlack],
+    detailImages: [{ url: detailFabric, label: "皮质细节" }],
+    sceneImages: [{ url: sceneBedroom, label: "卧室效果" }],
+    videos: [],
+    modelSpuId: "mspu-3", modelSpuName: "现代轻奢双人床",
     category: "ENTERPRISE",
     ownerEnterpriseName: "欧派家居",
     brandName: "欧派",
@@ -256,7 +292,7 @@ export const productSpuData: ProductSpu[] = [
     frontendCategoryName: "卧室家具",
     description: "现代轻奢风格双人床，优质真皮/布艺可选",
     sellingPoints: ["头层真皮", "静音排骨架", "液压储物"],
-    commercialAttrs: { origin: "广东广州", warranty: "5年", certifications: ["ISO9001", "绿色环保认证", "欧标E1"], deliveryCycle: "15-25天" },
+    commercialAttrs: { origin: "广东广州", warranty: "5年", certifications: ["ISO9001", "绿色环保认证", "欧标E1"], deliveryCycle: "15-25天", material: "头层真皮/布艺+静音排骨架", dimensions: "1500/1800×2000mm" },
     createdAt: "2026-02-25",
     updatedAt: "2026-03-15",
     skus: [
