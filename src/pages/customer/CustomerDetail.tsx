@@ -398,253 +398,94 @@ export default function CustomerDetail() {
       {/* ═══ CONTENT ═══ */}
       <div className="mt-4 space-y-5">
 
-        {/* ── 画像 ── */}
+        {/* ── 画像概览 ── */}
         <section id="sec-portrait">
           {(() => {
             const portrait = isDesigner ? DESIGNER_PORTRAIT : EC_PORTRAIT;
             return (
-              <div className="space-y-4">
-                {/* Row 1: Persona + Radar + Profile Cards */}
-                <div className="grid grid-cols-12 gap-4">
-                  {/* Persona Identity */}
-                  <div className="col-span-3 rounded-xl border border-border/60 bg-gradient-to-br from-primary/5 to-primary/8 p-4 flex flex-col items-center text-center">
-                    <div className="relative w-16 h-16">
-                      <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
-                        <circle cx="32" cy="32" r="27" fill="none" strokeWidth="4" stroke="hsl(var(--muted) / 0.3)" />
-                        <circle cx="32" cy="32" r="27" fill="none" strokeWidth="4"
+              <div className="rounded-xl border border-border/60 bg-card p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <SectionTitle icon={Brain} title="用户画像" />
+                  <button onClick={() => setShowPortrait(true)}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium text-primary bg-primary/8 hover:bg-primary/12 border border-primary/15 transition-colors">
+                    <ExternalLink className="h-3 w-3" />深度画像分析
+                  </button>
+                </div>
+
+                <div className="flex gap-5">
+                  {/* Left: Identity + Health Gauge */}
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="relative w-[72px] h-[72px]">
+                      <svg className="w-[72px] h-[72px] -rotate-90" viewBox="0 0 72 72">
+                        <circle cx="36" cy="36" r="30" fill="none" strokeWidth="5" stroke="hsl(var(--muted) / 0.25)" />
+                        <circle cx="36" cy="36" r="30" fill="none" strokeWidth="5"
                           stroke={portrait.healthScore >= 70 ? "#10b981" : portrait.healthScore >= 40 ? "#f59e0b" : "#ef4444"}
-                          strokeLinecap="round" strokeDasharray={`${portrait.healthScore * 1.7} 170`} />
+                          strokeLinecap="round" strokeDasharray={`${portrait.healthScore * 1.885} 188.5`} />
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-base font-bold">{portrait.healthScore}</span>
-                        <span className="text-[7px] text-muted-foreground">健康度</span>
+                        <span className="text-lg font-bold">{portrait.healthScore}</span>
+                        <span className="text-[8px] text-muted-foreground -mt-0.5">健康度</span>
                       </div>
                     </div>
-                    <div className="mt-2 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/15">
-                      <span className="text-[11px] font-semibold text-primary">{portrait.persona}</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed line-clamp-3">{portrait.personaDesc}</p>
-                    <button onClick={() => setShowPortrait(true)}
-                      className="mt-auto pt-2 text-[10px] text-primary hover:underline flex items-center gap-0.5">
-                      <ExternalLink className="h-3 w-3" />完整画像
-                    </button>
-                  </div>
-
-                  {/* Radar Chart */}
-                  <div className="col-span-3 rounded-xl border border-border/60 bg-card p-4">
-                    <div className="w-[130px] h-[130px] mx-auto">
-                      <RadarChart dimensions={portrait.radarDimensions} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-2">
-                      {portrait.radarDimensions.map(dim => (
-                        <div key={dim.name} className="flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-                          <span className="text-[9px] text-muted-foreground">{dim.name}</span>
-                          <span className="text-[9px] font-bold ml-auto tabular-nums">{dim.value}</span>
-                        </div>
-                      ))}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/15 text-center">
+                        <span className="text-[11px] font-semibold text-primary">{portrait.persona}</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed max-w-[140px] line-clamp-2">{portrait.personaDesc}</p>
                     </div>
                   </div>
 
-                  {/* Profile Cards Grid */}
-                  <div className="col-span-6 rounded-xl border border-border/60 bg-card p-4">
-                    <SectionTitle icon={Sparkles} title="用户速览" />
-                    <div className="grid grid-cols-4 gap-2 mt-2">
-                      {portrait.profileCards.map((card, i) => {
-                        const iconMap: Record<string, React.ElementType> = {
-                          user: User, map: MapPin, zap: Zap, brain: Brain, dollar: Award,
-                          repeat: Repeat, clock: Clock, target: Target, home: Shield, eye: Eye,
-                          share: Send, star: Star,
-                        };
-                        const colorMap: Record<string, string> = {
-                          primary: "bg-primary/8 text-primary border-primary/15",
-                          blue: "bg-blue-500/8 text-blue-600 border-blue-200/40",
-                          emerald: "bg-emerald-500/8 text-emerald-600 border-emerald-200/40",
-                          violet: "bg-violet-500/8 text-violet-600 border-violet-200/40",
-                          amber: "bg-amber-500/8 text-amber-600 border-amber-200/40",
-                          cyan: "bg-cyan-500/8 text-cyan-600 border-cyan-200/40",
-                        };
-                        const Icon = iconMap[card.icon] || Target;
-                        const cls = colorMap[card.color] || colorMap.primary;
-                        return (
-                          <div key={i} className={`rounded-lg border p-2 ${cls}`}>
-                            <div className="flex items-center gap-1 mb-0.5">
-                              <Icon className="h-3 w-3 opacity-60" />
-                              <span className="text-[8px] opacity-50">{card.label}</span>
-                            </div>
-                            <span className="text-[10px] font-semibold leading-tight block">{card.value}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                  {/* Center: Radar */}
+                  <div className="shrink-0 w-[120px] h-[120px]">
+                    <RadarChart dimensions={portrait.radarDimensions} />
                   </div>
-                </div>
 
-                {/* Row 2: Key Insights + Decision Factors + Top Needs */}
-                <div className="grid grid-cols-12 gap-4">
-                  {/* Three Sentences */}
-                  <div className="col-span-4 rounded-xl border border-border/60 bg-card p-4">
-                    <SectionTitle icon={Lightbulb} title="三句话看懂他" />
-                    <div className="space-y-2 mt-2">
+                  {/* Right: Key insights - "Three Sentences" */}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1 mb-2">
+                      <Lightbulb className="h-3 w-3" />三句话看懂他
+                    </span>
+                    <div className="space-y-2">
                       {portrait.profileNarrative.split("。").filter(Boolean).slice(0, 3).map((s, i) => (
                         <div key={i} className="flex gap-2 items-start">
-                          <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[8px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                          <p className="text-[10px] text-muted-foreground leading-relaxed line-clamp-2">{s}。</p>
+                          <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                          <p className="text-[11px] text-foreground/80 leading-relaxed">{s}。</p>
                         </div>
                       ))}
                     </div>
                   </div>
-
-                  {/* Decision Factors */}
-                  <div className="col-span-4 rounded-xl border border-border/60 bg-card p-4">
-                    <SectionTitle icon={TrendingUp} title="决策因素" />
-                    <div className="space-y-2.5 mt-2">
-                      {portrait.decisionFactors.slice(0, 4).map((f, i) => (
-                        <div key={i}>
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="text-[10px] font-medium">{f.factor}</span>
-                            <span className="text-[10px] font-bold text-primary tabular-nums">{f.weight}%</span>
-                          </div>
-                          <div className="h-1 bg-muted/20 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full bg-primary/50" style={{ width: `${f.weight * 2.85}%` }} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Top Needs */}
-                  <div className="col-span-4 rounded-xl border border-border/60 bg-card p-4">
-                    <SectionTitle icon={Target} title="核心需求" />
-                    <div className="space-y-1.5 mt-2">
-                      {portrait.deepNeeds.slice(0, 4).map((n, i) => {
-                        const uMap = { urgent: { l: "迫切", c: "bg-red-100 text-red-700" }, normal: { l: "常规", c: "bg-blue-100 text-blue-700" }, latent: { l: "潜在", c: "bg-muted text-muted-foreground" } };
-                        const u = uMap[n.urgency];
-                        const Icon = n.icon;
-                        return (
-                          <div key={i} className="flex items-center gap-2 p-2 rounded-lg border border-border/30 hover:border-primary/20 transition-colors">
-                            <div className="w-6 h-6 rounded-md bg-primary/8 flex items-center justify-center shrink-0">
-                              <Icon className="h-3 w-3 text-primary" />
-                            </div>
-                            <span className="text-[10px] font-medium flex-1 truncate">{n.need}</span>
-                            <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-medium shrink-0 ${u.c}`}>{u.l}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
                 </div>
 
-                {/* Row 3: Behavior Traits + Communication Style */}
-                <div className="grid grid-cols-12 gap-4">
-                  <div className="col-span-6 rounded-xl border border-border/60 bg-card p-4">
-                    <SectionTitle icon={Activity} title="行为特征" />
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      {portrait.behaviorTraits.slice(0, 6).map((t, i) => {
-                        const Icon = t.icon;
-                        const levelColor = t.level === "high" ? "text-emerald-500" : t.level === "medium" ? "text-amber-500" : "text-muted-foreground";
-                        return (
-                          <div key={i} className="flex items-center gap-2 p-2 rounded-lg border border-border/30">
-                            <Icon className={`h-3.5 w-3.5 shrink-0 ${levelColor}`} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-medium">{t.label}</span>
-                                <span className="text-[10px] font-bold tabular-nums">{t.score}</span>
-                              </div>
-                              <div className="h-1 rounded-full bg-muted/20 overflow-hidden mt-1">
-                                <div className={`h-full rounded-full ${t.level === "high" ? "bg-emerald-500/50" : t.level === "medium" ? "bg-amber-500/50" : "bg-muted-foreground/30"}`} style={{ width: `${t.score}%` }} />
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <div className="col-span-6 rounded-xl border border-border/60 bg-card p-4">
-                    <SectionTitle icon={MessageSquare} title="沟通方式指南" />
-                    <div className="flex items-center gap-1.5 mt-2 mb-3">
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/8 text-primary font-medium">{portrait.communicationStyle.style}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-[9px] font-medium text-emerald-600 mb-1.5 block">✓ 建议做</span>
-                        <div className="space-y-1">
-                          {portrait.communicationStyle.dos.map((d, i) => (
-                            <p key={i} className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1">· {d}</p>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-medium text-red-500 mb-1.5 block">✗ 避免做</span>
-                        <div className="space-y-1">
-                          {portrait.communicationStyle.donts.map((d, i) => (
-                            <p key={i} className="text-[10px] text-muted-foreground leading-relaxed line-clamp-1">· {d}</p>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+                {/* Bottom strip: key metrics */}
+                <div className="mt-4 pt-3 border-t border-border/30 flex items-center gap-3 flex-wrap">
+                  {isDesigner ? (
+                    <>
+                      <MiniMetric label="CVS评分" value={d.cvsScore} suffix="分" color={d.cvsScore >= 70 ? "primary" : "amber"} />
+                      <MiniMetric label="续费概率" value={d.conversion.renewalProbability} suffix="%" color="emerald" />
+                      <MiniMetric label="流失风险" value={d.conversion.churnRisk} suffix="%" color={d.conversion.churnRisk >= 30 ? "red" : "emerald"} />
+                      <MiniMetric label="使用率" value={d.usageRate} suffix="%" color={d.usageRate >= 50 ? "emerald" : "amber"} />
+                      <MiniMetric label="功能深度" value={d.featuresUsed} suffix="/8" color="blue" />
+                      <MiniMetric label="累计消费" value={`¥${(d.totalSpent/1000).toFixed(1)}K`} color="primary" />
+                    </>
+                  ) : (
+                    <>
+                      <MiniMetric label="意向度" value={ec.portrait.intentScore} suffix="分" color="primary" />
+                      <MiniMetric label="满意度" value={ec.portrait.satisfactionScore} suffix="分" color="emerald" />
+                      <MiniMetric label="合作深度" value={ec.portrait.cooperationDepth} suffix="分" color="blue" />
+                      <MiniMetric label="复购概率" value={ec.repurchase.probability} suffix="%" color="amber" />
+                      <MiniMetric label="合同额" value={`¥${(ec.conversionPath.contractAmount/10000).toFixed(1)}万`} color="primary" />
+                    </>
+                  )}
+                  {/* Top decision factors as chips */}
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <span className="text-[9px] text-muted-foreground">决策因素:</span>
+                    {portrait.decisionFactors.slice(0, 3).map((f, i) => (
+                      <span key={i} className="px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-muted/60 text-muted-foreground border border-border/30">
+                        {f.factor} {f.weight}%
+                      </span>
+                    ))}
                   </div>
                 </div>
-
-                {/* Isdesigner-specific stats */}
-                {isDesigner && (
-                  <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-4 rounded-xl border border-border/60 bg-card p-4">
-                      <SectionTitle icon={Award} title="CVS 价值评分" />
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="relative w-14 h-14 shrink-0">
-                          <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-                            <circle cx="28" cy="28" r="23" fill="none" strokeWidth="4" stroke="hsl(var(--muted) / 0.25)" />
-                            <circle cx="28" cy="28" r="23" fill="none" strokeWidth="4" stroke="hsl(var(--primary))" strokeLinecap="round" strokeDasharray={`${d.cvsScore * 1.45} 145`} />
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center"><span className="text-sm font-bold text-primary">{d.cvsScore}</span></div>
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          {[
-                            { dim: "使用率", w: 30, s: Math.round(d.usageRate * 0.3) },
-                            { dim: "活跃度", w: 20, s: Math.round((d.loginDays30 / 30) * 100 * 0.2) },
-                            { dim: "消费", w: 25, s: Math.min(25, Math.round(d.totalSpent / 2000)) },
-                            { dim: "续费", w: 15, s: Math.min(15, d.renewalCount * 5) },
-                          ].map(s => (
-                            <div key={s.dim} className="flex items-center gap-1.5 text-[10px]">
-                              <span className="w-8 text-muted-foreground">{s.dim}</span>
-                              <div className="flex-1 h-1 bg-muted/20 rounded-full overflow-hidden"><div className="h-full bg-primary/50 rounded-full" style={{ width: `${(s.s / s.w) * 100}%` }} /></div>
-                              <span className="text-muted-foreground w-7 text-right tabular-nums">{s.s}/{s.w}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-span-4 rounded-xl border border-border/60 bg-card p-4">
-                      <SectionTitle icon={BarChart3} title="核心指标" />
-                      <div className="grid grid-cols-3 gap-2 mt-2">
-                        <Stat label="设计方案" value={d.designCount} />
-                        <Stat label="渲染次数" value={d.renderCount} />
-                        <Stat label="30天登录" value={`${d.loginDays30}天`} />
-                        <Stat label="总项目" value={d.totalProjects} />
-                        <Stat label="均单价值" value={`¥${(d.avgProjectValue / 1000).toFixed(1)}K`} />
-                        <Stat label="累计消费" value={`¥${(d.totalSpent / 1000).toFixed(1)}K`} />
-                      </div>
-                    </div>
-                    <div className="col-span-4 rounded-xl border border-border/60 bg-card p-4">
-                      <SectionTitle icon={AlertTriangle} title="风险与机会" />
-                      <div className="space-y-1.5 mt-2">
-                        {portrait.riskOpportunities.slice(0, 4).map((ro, i) => {
-                          const isRisk = ro.type === "risk";
-                          return (
-                            <div key={i} className={`flex items-center gap-2 p-2 rounded-lg border ${isRisk ? "border-red-200/40 bg-red-500/3" : "border-emerald-200/40 bg-emerald-500/3"}`}>
-                              {isRisk ? <AlertTriangle className="h-3 w-3 text-red-500 shrink-0" /> : <Rocket className="h-3 w-3 text-emerald-500 shrink-0" />}
-                              <span className="text-[10px] font-medium flex-1 truncate">{ro.title}</span>
-                              <span className={`text-[8px] px-1.5 py-0.5 rounded-full ${isRisk ? "bg-red-500/10 text-red-600" : "bg-emerald-500/10 text-emerald-600"}`}>
-                                {ro.impact === "high" ? "高" : "中"}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })()}
