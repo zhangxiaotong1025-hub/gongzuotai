@@ -130,9 +130,9 @@ export default function ProductDetail() {
         prevPath={curIdx > 0 ? `/product/detail/${allIds[curIdx - 1]}` : null}
         nextPath={curIdx < allIds.length - 1 ? `/product/detail/${allIds[curIdx + 1]}` : null}
         statusToggle={
-          spu.auditStatus === "APPROVED"
+          getSpuAggregatedAuditStatus(spu) === "APPROVED"
             ? {
-                currentActive: spu.shelfStatus === "ON_SHELF",
+                currentActive: getSpuAggregatedShelfStatus(spu) === "ON_SHELF",
                 activeLabel: "已上架",
                 inactiveLabel: "已下架",
                 onToggle: () => {},
@@ -186,9 +186,9 @@ export default function ProductDetail() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={auditBadge[spu.auditStatus]}>{auditLabel[spu.auditStatus]}</span>
-                    {spu.auditStatus === "APPROVED" && (
-                      <span className={shelfBadge[spu.shelfStatus]}>{shelfLabel[spu.shelfStatus]}</span>
+                    <span className={auditBadge[getSpuAggregatedAuditStatus(spu)]}>{auditLabel[getSpuAggregatedAuditStatus(spu)]}</span>
+                    {getSpuAggregatedAuditStatus(spu) === "APPROVED" && (
+                      <span className={shelfBadge[getSpuAggregatedShelfStatus(spu)]}>{shelfLabel[getSpuAggregatedShelfStatus(spu)]}</span>
                     )}
                   </div>
                 </div>
