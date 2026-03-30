@@ -359,8 +359,7 @@ export const EC_PORTRAIT: PortraitData = {
 const SECTIONS = [
   { id: "p-hero", label: "总览" },
   { id: "p-narrative", label: "研判" },
-  { id: "p-behavior", label: "行为" },
-  { id: "p-personality", label: "性格" },
+  { id: "p-behavior", label: "行为·性格" },
   { id: "p-heatmap", label: "活跃" },
   { id: "p-interests", label: "兴趣" },
   { id: "p-needs", label: "需求" },
