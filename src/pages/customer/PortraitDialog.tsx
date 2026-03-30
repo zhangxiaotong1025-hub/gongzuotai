@@ -678,7 +678,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                             <span className="text-[9px] font-medium text-emerald-600 mb-2 block">✓ 建议</span>
                             <div className="space-y-1.5">
                               {data.communicationStyle.dos.map((d, i) => (
-                                <TipWrap key={i} tip={d}>
+                                <TipWrap key={i} tip={d} showIcon={false}>
                                   <p className="text-[9px] text-muted-foreground line-clamp-1 cursor-help hover:text-foreground transition-colors">
                                     {d.length > 20 ? d.slice(0, 20) + "…" : d}
                                   </p>
@@ -690,7 +690,7 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                             <span className="text-[9px] font-medium text-red-500 mb-2 block">✗ 避免</span>
                             <div className="space-y-1.5">
                               {data.communicationStyle.donts.map((d, i) => (
-                                <TipWrap key={i} tip={d}>
+                                <TipWrap key={i} tip={d} showIcon={false}>
                                   <p className="text-[9px] text-muted-foreground line-clamp-1 cursor-help hover:text-foreground transition-colors">
                                     {d.length > 20 ? d.slice(0, 20) + "…" : d}
                                   </p>
