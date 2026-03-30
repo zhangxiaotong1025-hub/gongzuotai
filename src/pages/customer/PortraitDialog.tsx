@@ -57,6 +57,12 @@ export interface ServiceStrategy {
   expectedOutcome: string;
   icon: React.ElementType;
 }
+export interface ProfileCard {
+  icon: string;
+  label: string;
+  value: string;
+  color: string;
+}
 export interface PortraitData {
   behaviorTraits: BehaviorTrait[];
   personalityTraits: PersonalityTrait[];
@@ -69,13 +75,13 @@ export interface PortraitData {
   activityHeatmap: number[][];
   interestBubbles: { name: string; weight: number; color: string }[];
   journeyStages: { name: string; status: "done" | "current" | "future"; metric: string }[];
-  // ── New rich narrative fields ──
-  profileNarrative: string;       // 一段话讲清楚这个人
-  valueAssessment: string;        // 价值研判
-  serviceApproach: string;        // 服务策略总纲
+  profileCards: ProfileCard[];
+  profileNarrative: string;
+  valueAssessment: string;
+  serviceApproach: string;
   riskOpportunities: RiskOpportunity[];
   serviceStrategies: ServiceStrategy[];
-  keyInsights: string[];          // 关键洞察 bullet points
+  keyInsights: string[];
   communicationStyle: { style: string; dos: string[]; donts: string[] };
   decisionFactors: { factor: string; weight: number; evidence: string }[];
 }
