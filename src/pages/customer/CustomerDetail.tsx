@@ -206,6 +206,7 @@ export default function CustomerDetail() {
   const [newFollow, setNewFollow] = useState({ type: "phone", content: "" });
   const [activeSection, setActiveSection] = useState("sec-portrait");
   const [showMoreInfo, setShowMoreInfo] = useState(false);
+  const [showPortrait, setShowPortrait] = useState(false);
 
   const d = D;
   const ec = EC;
