@@ -396,7 +396,7 @@ export default function CustomerDetail() {
       </div>
 
       {/* ═══ CONTENT ═══ */}
-      <div className="mt-4 space-y-6">
+      <div className="mt-6 space-y-8">
 
         {/* ── 画像概览 ── */}
         <section id="sec-portrait">
