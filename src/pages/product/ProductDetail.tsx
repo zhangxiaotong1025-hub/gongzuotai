@@ -73,6 +73,36 @@ export default function ProductDetail() {
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const spu = productSpuData.find((s) => s.id === id);
+
+  const scrollToFloor = useCallback((floorId: string) => {
+    const el = sectionRefs.current[floorId];
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActiveFloor(entry.target.id);
+        }
+      },
+      { rootMargin: `-${SCROLL_OFFSET}px 0px -60% 0px`, threshold: 0.1 }
+    );
+    Object.values(sectionRefs.current).forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  const toggleSkuExpand = useCallback((skuId: string) => {
+    setExpandedSkus((prev) => {
+      const next = new Set(prev);
+      next.has(skuId) ? next.delete(skuId) : next.add(skuId);
+      return next;
+    });
+  }, []);
+
   if (!spu) return <div className="p-8 text-center text-muted-foreground">商品不存在</div>;
 
   const allIds = productSpuData.map((s) => s.id);
