@@ -19,6 +19,10 @@ import wardrobe from "@/assets/products/wardrobe.jpg";
 import wardrobeOak from "@/assets/products/wardrobe-oak.jpg";
 import coffeeTable from "@/assets/products/coffee-table.jpg";
 import coffeeTableWood from "@/assets/products/coffee-table-wood.jpg";
+import sceneLivingRoom from "@/assets/products/scene-living-room.jpg";
+import sceneBedroom from "@/assets/products/scene-bedroom.jpg";
+import detailFabric from "@/assets/products/detail-fabric.jpg";
+import detailWoodJoint from "@/assets/products/detail-wood-joint.jpg";
 
 export type ProductCategory = "SUPPLY_CHAIN" | "ENTERPRISE" | "PRIVATE";
 export type ProductAuditStatus = "PENDING" | "APPROVED" | "REJECTED";
@@ -68,11 +72,27 @@ export interface ProductSku {
   updatedAt: string;
 }
 
+export interface ProductMedia {
+  url: string;
+  label?: string;
+}
+
 export interface ProductSpu {
   id: string;
   productSpuCode: string;
   productSpuName: string;
   thumbnailUrl: string;
+  /** 商品展示图（主图轮播） */
+  displayImages: string[];
+  /** 详情图（细节特写） */
+  detailImages: ProductMedia[];
+  /** 场景图（空间效果图） */
+  sceneImages: ProductMedia[];
+  /** 视频素材 */
+  videos: ProductMedia[];
+  /** SPU 级关联模型（方便 SKU 快速设置） */
+  modelSpuId?: string;
+  modelSpuName?: string;
   category: ProductCategory;
   ownerEnterpriseName: string;
   brandName: string;
@@ -86,6 +106,8 @@ export interface ProductSpu {
     warranty: string;
     certifications: string[];
     deliveryCycle: string;
+    material?: string;
+    dimensions?: string;
   };
   createdAt: string;
   updatedAt: string;
