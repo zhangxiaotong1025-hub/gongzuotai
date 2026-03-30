@@ -5,7 +5,7 @@ import {
   MessageSquare, Plus, TrendingUp, Send, Clock, BarChart3, MapPin, Mail,
   Briefcase, Award, AlertTriangle, Repeat, UserPlus, Brain, Lightbulb,
   Sparkles, ArrowRight, ChevronDown, ChevronUp, Target, Zap, Heart,
-  Shield, RefreshCw, BookOpen, Megaphone, Star, Activity, Eye, ExternalLink,
+  Shield, RefreshCw, BookOpen, Megaphone, Star, Activity, Eye, ExternalLink, Rocket,
 } from "lucide-react";
 import PortraitDialog, { DESIGNER_PORTRAIT, EC_PORTRAIT } from "./PortraitDialog";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
