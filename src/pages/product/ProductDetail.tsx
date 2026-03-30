@@ -112,35 +112,6 @@ export default function ProductDetail() {
   const modelCount = getSpuRelatedModelCount(spu);
   const formatPrice = (n: number) => `¥${n.toLocaleString()}`;
 
-  const scrollToFloor = useCallback((floorId: string) => {
-    const el = sectionRefs.current[floorId];
-    if (el) {
-      const top = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
-      window.scrollTo({ top, behavior: "smooth" });
-    }
-  }, []);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActiveFloor(entry.target.id);
-        }
-      },
-      { rootMargin: `-${SCROLL_OFFSET}px 0px -60% 0px`, threshold: 0.1 }
-    );
-    Object.values(sectionRefs.current).forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
-  const toggleSkuExpand = (skuId: string) => {
-    setExpandedSkus((prev) => {
-      const next = new Set(prev);
-      next.has(skuId) ? next.delete(skuId) : next.add(skuId);
-      return next;
-    });
-  };
-
   // Group SKUs by model SPU
   const modelGroups = new Map<string, { modelSpuName: string; modelSpuId: string; skus: ProductSku[] }>();
   for (const sku of spu.skus) {
