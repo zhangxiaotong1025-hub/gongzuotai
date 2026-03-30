@@ -99,10 +99,8 @@ function ProtectedRoutes() {
         <Route path="/brand/create" element={<BrandCreate />} />
         <Route path="/customer" element={<Navigate to="/customer/overview" replace />} />
         <Route path="/customer/overview" element={<CustomerOverview />} />
-        <Route path="/customer/designer" element={<CustomerList />} />
-        <Route path="/customer/end-customer" element={<CustomerList />} />
-        <Route path="/customer/designer/detail/:id" element={<CustomerDetail />} />
-        <Route path="/customer/end-customer/detail/:id" element={<CustomerDetail />} />
+        <Route path="/customer/list" element={<CustomerList />} />
+        <Route path="/customer/detail/:id" element={<CustomerDetail />} />
         <Route path="/customer/create" element={<CustomerCreate />} />
         <Route path="/customer/marketing" element={<MarketingStrategy />} />
         <Route path="/attribute" element={<PlaceholderPage title="属性管理" />} />

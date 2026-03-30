@@ -71,8 +71,7 @@ const navItems: NavItem[] = [
     icon: Users,
     children: [
       { label: "客户概览", path: "/customer/overview" },
-      { label: "个人设计师", path: "/customer/designer" },
-      { label: "企业下游客户", path: "/customer/end-customer" },
+      { label: "客户列表", path: "/customer/list" },
       { label: "营销策略", path: "/customer/marketing" },
     ],
   },
