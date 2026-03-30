@@ -194,7 +194,7 @@ export default function ProductList() {
 
   /* ── Stats (aggregate from SKUs) ── */
   const stats = useMemo((): StatCard[] => {
-    const allSkus = categoryFiltered.flatMap((s) => s.skus);
+    // Stats are computed from SPU-level aggregation
     const total = categoryFiltered.length;
     const approved = categoryFiltered.filter((s) => getSpuAggregatedAuditStatus(s) === "APPROVED").length;
     const pending = categoryFiltered.filter((s) => getSpuAggregatedAuditStatus(s) === "PENDING").length;
