@@ -83,13 +83,13 @@ export interface ProductSpu {
   productSpuName: string;
   thumbnailUrl: string;
   /** 商品展示图（主图轮播） */
-  displayImages: string[];
+  displayImages?: string[];
   /** 详情图（细节特写） */
-  detailImages: ProductMedia[];
+  detailImages?: ProductMedia[];
   /** 场景图（空间效果图） */
-  sceneImages: ProductMedia[];
+  sceneImages?: ProductMedia[];
   /** 视频素材 */
-  videos: ProductMedia[];
+  videos?: ProductMedia[];
   /** SPU 级关联模型（方便 SKU 快速设置） */
   modelSpuId?: string;
   modelSpuName?: string;

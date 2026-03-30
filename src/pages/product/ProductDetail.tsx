@@ -12,7 +12,7 @@ import {
   auditLabel, auditBadge, shelfLabel, shelfBadge,
   getSpuPriceRange, getSpuTotalStock, getSpuRelatedModelCount,
   getSpuAggregatedAuditStatus, getSpuAggregatedShelfStatus,
-  getSpuAppliedEnterprises, getSpuSpecSummary,
+  getSpuAppliedEnterprises, getSpuSpecSummary as getSpuSpecSummaryFn,
 } from "@/data/product";
 
 /* ── Constants ── */
