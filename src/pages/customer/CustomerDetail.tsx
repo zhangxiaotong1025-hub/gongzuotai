@@ -396,15 +396,15 @@ export default function CustomerDetail() {
       </div>
 
       {/* ═══ CONTENT ═══ */}
-      <div className="mt-6 space-y-8">
+      <div className="mt-8 space-y-10">
 
         {/* ── 画像概览 ── */}
         <section id="sec-portrait">
           {(() => {
             const portrait = isDesigner ? DESIGNER_PORTRAIT : EC_PORTRAIT;
             return (
-              <div className="rounded-xl border border-border/60 bg-card p-5">
-                <div className="flex items-center justify-between mb-4">
+              <div className="rounded-xl border border-border/60 bg-card p-6">
+                <div className="flex items-center justify-between mb-5">
                   <SectionTitle icon={Brain} title="用户画像" />
                   <button onClick={() => setShowPortrait(true)}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium text-primary bg-primary/8 hover:bg-primary/12 border border-primary/15 transition-colors">
@@ -412,7 +412,7 @@ export default function CustomerDetail() {
                   </button>
                 </div>
 
-                <div className="flex gap-5">
+                <div className="flex gap-6">
                   {/* Left: Identity + Health Gauge */}
                   <div className="flex items-center gap-4 shrink-0">
                     <div className="relative w-[72px] h-[72px]">
@@ -457,7 +457,7 @@ export default function CustomerDetail() {
                 </div>
 
                 {/* Bottom strip: key metrics */}
-                <div className="mt-4 pt-3 border-t border-border/30 flex items-center gap-3 flex-wrap">
+                <div className="mt-5 pt-4 border-t border-border/30 flex items-center gap-3 flex-wrap">
                   {isDesigner ? (
                     <>
                       <MiniMetric label="CVS评分" value={d.cvsScore} suffix="分" color={d.cvsScore >= 70 ? "primary" : "amber"} />
@@ -493,9 +493,9 @@ export default function CustomerDetail() {
 
         {/* ── 智能运营建议 ── */}
         <section id="sec-recommend">
-          <div className="rounded-xl border border-border/60 bg-card p-4">
+          <div className="rounded-xl border border-border/60 bg-card p-6">
             <SectionTitle icon={Lightbulb} title="智能运营建议" badge="基于用户行为数据分析" />
-            <div className="space-y-3 mt-3">
+            <div className="space-y-4 mt-4">
               {(isDesigner ? d.recommendations : ec.recommendations).map((rec, i) => {
                 const pBorder: Record<string, string> = { high: "border-l-red-400", medium: "border-l-amber-400", low: "border-l-blue-400" };
                 const pLabel: Record<string, { t: string; c: string }> = { high: { t: "高优", c: "bg-red-100 text-red-700" }, medium: { t: "中优", c: "bg-amber-100 text-amber-700" }, low: { t: "低优", c: "bg-blue-100 text-blue-700" } };
@@ -544,8 +544,8 @@ export default function CustomerDetail() {
         {/* ── 转化分析 ── */}
         <section id="sec-conversion">
           {isDesigner ? (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <div className="lg:col-span-5 rounded-xl border border-border/60 bg-card p-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-5 rounded-xl border border-border/60 bg-card p-5">
                 <SectionTitle icon={Repeat} title="转化与复购" />
                 <div className="grid grid-cols-3 gap-2 mt-2">
                   <Stat label="首购转化" value={`${d.conversion.firstPayDays}天`} highlight />
@@ -563,7 +563,7 @@ export default function CustomerDetail() {
                   <span className="text-xs font-bold text-emerald-600">{d.conversion.churnRisk}%</span>
                 </div>
               </div>
-              <div className="lg:col-span-7 rounded-xl border border-border/60 bg-card p-4">
+              <div className="lg:col-span-7 rounded-xl border border-border/60 bg-card p-5">
                 <SectionTitle icon={TrendingUp} title="升级路径与复购时间线" />
                 <div className="flex items-center gap-1 mt-2 mb-3 flex-wrap">
                   {d.conversion.upgradePath.map((step, i) => (
@@ -621,9 +621,9 @@ export default function CustomerDetail() {
         {/* ── 带单 (Designer) ── */}
         {isDesigner && (
           <section id="sec-referral">
-            <div className="rounded-xl border border-border/60 bg-card p-4">
+            <div className="rounded-xl border border-border/60 bg-card p-6">
               <SectionTitle icon={UserPlus} title="带单能力" />
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-3">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-4">
                 <div className="lg:col-span-4 grid grid-cols-2 gap-2">
                   <Stat label="推荐人数" value={d.referral.totalReferred} />
                   <Stat label="已转化" value={d.referral.convertedReferred} highlight />
@@ -653,9 +653,9 @@ export default function CustomerDetail() {
         {/* ── 关联企业 (EC) ── */}
         {!isDesigner && (
           <section id="sec-enterprise">
-            <div className="rounded-xl border border-border/60 bg-card p-4">
+            <div className="rounded-xl border border-border/60 bg-card p-6">
               <SectionTitle icon={Building2} title="关联企业" badge={`${ec.linkedEnterprises.length}家`} />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
                 {ec.linkedEnterprises.map(ent => (
                   <div key={ent.id} className="p-3 rounded-lg border border-border/40">
                     <div className="flex items-center gap-2 mb-2">
@@ -679,9 +679,9 @@ export default function CustomerDetail() {
         {/* ── 权益 (Designer) ── */}
         {isDesigner && (
           <section id="sec-entitlement">
-            <div className="rounded-xl border border-border/60 bg-card p-4">
+            <div className="rounded-xl border border-border/60 bg-card p-6">
               <SectionTitle icon={Gift} title="权益账户" badge={`${d.currentPackage} · ${d.packageExpiry}`} />
-              <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 mt-3">
+              <div className="grid grid-cols-3 lg:grid-cols-6 gap-3 mt-4">
                 {d.entitlements.map((e, i) => {
                   const rate = Math.round((e.used / e.total) * 100);
                   return (
@@ -709,9 +709,9 @@ export default function CustomerDetail() {
         {/* ── 服务记录 (EC) ── */}
         {!isDesigner && (
           <section id="sec-service">
-            <div className="rounded-xl border border-border/60 bg-card p-4">
+            <div className="rounded-xl border border-border/60 bg-card p-6">
               <SectionTitle icon={FileText} title="服务记录" badge={`${ec.serviceRecords.length}条`} />
-              <div className="space-y-2 mt-3">
+              <div className="space-y-3 mt-4">
                 {ec.serviceRecords.map(rec => (
                   <div key={rec.id} className="flex items-start gap-3 p-2.5 rounded-lg border border-border/40">
                     <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5"><FileText className="h-3 w-3 text-primary" /></div>
@@ -734,8 +734,8 @@ export default function CustomerDetail() {
         {/* ── 行为轨迹 (Designer) ── */}
         {isDesigner && (
           <section id="sec-behavior">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              <div className="lg:col-span-5 rounded-xl border border-border/60 bg-card p-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-5 rounded-xl border border-border/60 bg-card p-5">
                 <SectionTitle icon={MousePointerClick} title="近期行为" />
                 <div className="space-y-1.5 mt-2">
                   {d.behaviors.map((b, i) => (
@@ -750,7 +750,7 @@ export default function CustomerDetail() {
                   ))}
                 </div>
               </div>
-              <div className="lg:col-span-4 rounded-xl border border-border/60 bg-card p-4">
+              <div className="lg:col-span-4 rounded-xl border border-border/60 bg-card p-5">
                 <SectionTitle icon={BarChart3} title="功能偏好" />
                 <div className="space-y-1.5 mt-2">
                   {d.featureUsage.map((f, i) => (
@@ -763,7 +763,7 @@ export default function CustomerDetail() {
                   ))}
                 </div>
               </div>
-              <div className="lg:col-span-3 rounded-xl border border-border/60 bg-card p-4">
+              <div className="lg:col-span-3 rounded-xl border border-border/60 bg-card p-5">
                 <SectionTitle icon={Clock} title="活跃时段" />
                 <div className="flex items-end gap-[2px] h-16 mt-2">
                   {d.activeHours.map((v, i) => (
@@ -780,9 +780,9 @@ export default function CustomerDetail() {
         {/* ── 订单 (Designer) ── */}
         {isDesigner && (
           <section id="sec-orders">
-            <div className="rounded-xl border border-border/60 bg-card p-4">
+            <div className="rounded-xl border border-border/60 bg-card p-6">
               <SectionTitle icon={ShoppingBag} title="订单记录" badge={`${d.orders.length}笔 · ¥${d.totalSpent.toLocaleString()}`} />
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 mt-3">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-4">
                 {d.orders.map(o => (
                   <div key={o.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-border/40">
                     <div className="w-8 h-8 rounded bg-emerald-50 flex items-center justify-center shrink-0"><ShoppingBag className="h-3.5 w-3.5 text-emerald-600" /></div>
@@ -800,8 +800,8 @@ export default function CustomerDetail() {
 
         {/* ── 跟进 & 触达 ── */}
         <section id="sec-follow">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-border/60 bg-card p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="rounded-xl border border-border/60 bg-card p-5">
               <SectionTitle icon={MessageSquare} title="跟进记录"
                 action={<button onClick={() => setShowAddFollow(true)} className="text-[10px] text-primary hover:underline flex items-center gap-0.5"><Plus className="h-3 w-3" />新增</button>}
               />
@@ -839,7 +839,7 @@ export default function CustomerDetail() {
                 ))}
               </div>
             </div>
-            <div className="rounded-xl border border-border/60 bg-card p-4">
+            <div className="rounded-xl border border-border/60 bg-card p-5">
               <SectionTitle icon={Send} title="触达记录" />
               <div className="space-y-1.5 mt-2">
                 {(isDesigner ? d.reachRecords : ec.reachRecords).map(r => {
@@ -881,11 +881,13 @@ export default function CustomerDetail() {
 
 function SectionTitle({ icon: Icon, title, badge, action }: { icon: React.ElementType; title: string; badge?: string; action?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-        <h4 className="text-xs font-medium">{title}</h4>
-        {badge && <span className="text-[9px] text-muted-foreground px-1 py-0.5 rounded bg-muted">{badge}</span>}
+    <div className="flex items-center justify-between pb-3 mb-1 border-b border-border/30">
+      <div className="flex items-center gap-2">
+        <div className="w-6 h-6 rounded-md bg-primary/8 flex items-center justify-center">
+          <Icon className="h-3.5 w-3.5 text-primary" />
+        </div>
+        <h4 className="text-sm font-semibold">{title}</h4>
+        {badge && <span className="text-[10px] text-muted-foreground px-1.5 py-0.5 rounded-full bg-muted/60">{badge}</span>}
       </div>
       {action}
     </div>
