@@ -77,8 +77,20 @@ const navItems: NavItem[] = [
   },
   { label: "属性管理", icon: Sliders, path: "/attribute" },
   { label: "类目管理", icon: FolderTree, path: "/category" },
-  { label: "素材管理", icon: Package, path: "/material" },
-  { label: "商品管理", icon: ShoppingBag, path: "/product" },
+  {
+    label: "模型管理",
+    icon: Box,
+    children: [
+      { label: "模型列表", path: "/model" },
+    ],
+  },
+  {
+    label: "商品管理",
+    icon: ShoppingBag,
+    children: [
+      { label: "商品列表", path: "/product" },
+    ],
+  },
   { label: "授权管理", icon: Key, path: "/authorization" },
   { label: "方案管理", icon: Layout, path: "/plan" },
   { label: "前台类目管理", icon: Monitor, path: "/front-category" },
