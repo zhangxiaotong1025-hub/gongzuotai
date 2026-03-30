@@ -910,7 +910,19 @@ function Stat({ label, value, highlight }: { label: string; value: React.ReactNo
   );
 }
 
-function Badge({ children, color, className: cn }: { children: React.ReactNode; color?: string; className?: string }) {
+function MiniMetric({ label, value, suffix, color = "primary" }: { label: string; value: React.ReactNode; suffix?: string; color?: string }) {
+  const colorMap: Record<string, string> = {
+    primary: "text-primary", emerald: "text-emerald-600", blue: "text-blue-600",
+    amber: "text-amber-600", red: "text-red-500",
+  };
+  return (
+    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/40 border border-border/30">
+      <span className={`text-sm font-bold tabular-nums ${colorMap[color] || colorMap.primary}`}>{value}{suffix}</span>
+      <span className="text-[9px] text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
   const base = "px-1.5 py-0.5 rounded text-[10px] font-medium";
   const c = color === "primary" ? "bg-primary/10 text-primary" : color === "amber" ? "bg-amber-50 text-amber-700" : "";
   return <span className={`${base} ${cn || c}`}>{children}</span>;
