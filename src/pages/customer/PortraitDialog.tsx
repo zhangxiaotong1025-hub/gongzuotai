@@ -1,19 +1,20 @@
 import { useRef, useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
-  Brain, Activity, Heart, Target, Lightbulb, TrendingUp,
-  Zap, Eye, Shield, Users, Sparkles, Star, Clock, BarChart3,
+  Brain, Activity, Heart, Target, Sparkles, Zap, Eye, Users, Star, Clock,
+  Lightbulb, TrendingUp, Shield,
 } from "lucide-react";
 
-/* ═══ Types ═══ */
+/* ═══════════════════════════════════════════
+   TYPES
+   ═══════════════════════════════════════════ */
 export interface BehaviorTrait {
   label: string;
   level: "high" | "medium" | "low";
-  score: number; // 0-100 for bar
+  score: number;
   evidence: string;
   icon: React.ElementType;
 }
-
 export interface PersonalityTrait {
   dimension: string;
   score: number;
@@ -21,23 +22,21 @@ export interface PersonalityTrait {
   rightLabel: string;
   desc: string;
 }
-
 export interface DeepNeed {
   category: string;
   need: string;
   urgency: "urgent" | "normal" | "latent";
+  importance: number; // 0-100
   basis: string;
   suggestion: string;
   icon: React.ElementType;
 }
-
 export interface DesignPreference {
   dimension: string;
   preference: string;
   confidence: number;
   basis: string;
 }
-
 export interface PortraitData {
   behaviorTraits: BehaviorTrait[];
   personalityTraits: PersonalityTrait[];
@@ -47,392 +46,562 @@ export interface PortraitData {
   personalitySummary: string;
   needsSummary: string;
   radarDimensions: { name: string; value: number }[];
+  persona: string;
+  personaDesc: string;
+  healthScore: number;
+  activityHeatmap: number[][]; // 7 days x 24 hours
+  interestBubbles: { name: string; weight: number; color: string }[];
+  journeyStages: { name: string; status: "done" | "current" | "future"; metric: string }[];
 }
 
-/* ═══ Mock Data — Designer ═══ */
+/* ═══════════════════════════════════════════
+   MOCK DATA
+   ═══════════════════════════════════════════ */
 export const DESIGNER_PORTRAIT: PortraitData = {
-  behaviorSummary: "高频创作驱动型用户，工作时间集中在工作日下午，偏好AI辅助快速出图，对新功能接受度高但深度使用有限。",
-  personalitySummary: "理性务实的效率主义者，注重投入产出比，对品质有要求但不愿为「锦上添花」付费，社交意愿中等。",
-  needsSummary: "核心诉求是提升出图效率和客户成交率，潜在需求是专业品牌建设和被动获客能力。",
+  persona: "效率创作型",
+  personaDesc: "高频使用 AI 工具快速出图，注重效率与投入产出比",
+  healthScore: 78,
+  behaviorSummary: "高频创作驱动型用户，偏好AI辅助快速出图，对新功能接受度高。",
+  personalitySummary: "理性务实的效率主义者，注重投入产出比。",
+  needsSummary: "提升出图效率和客户成交率，潜在需求是专业品牌建设。",
   radarDimensions: [
     { name: "创作活跃", value: 82 }, { name: "工具深度", value: 65 },
     { name: "付费意愿", value: 78 }, { name: "分享传播", value: 45 },
     { name: "学习成长", value: 70 }, { name: "客户服务", value: 58 },
   ],
+  activityHeatmap: [
+    [0,0,0,0,0,0,1,3,8,12,15,10,5,9,18,22,15,8,4,2,1,0,0,0],
+    [0,0,0,0,0,1,2,5,10,14,18,12,6,11,20,25,18,10,5,3,1,0,0,0],
+    [0,0,0,0,0,0,1,4,9,11,14,8,4,8,15,19,14,7,3,2,0,0,0,0],
+    [0,0,0,0,0,1,2,6,12,16,20,14,7,12,22,28,20,12,6,4,2,1,0,0],
+    [0,0,0,0,0,0,1,5,11,15,18,11,5,10,19,24,17,9,4,2,1,0,0,0],
+    [0,0,0,0,0,0,0,2,4,6,8,5,3,4,6,8,5,3,1,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,2,3,4,2,1,2,3,4,2,1,0,0,0,0,0,0],
+  ],
+  interestBubbles: [
+    { name: "AI设计", weight: 89, color: "bg-primary" },
+    { name: "3D渲染", weight: 71, color: "bg-blue-500" },
+    { name: "方案导出", weight: 54, color: "bg-emerald-500" },
+    { name: "模型下载", weight: 38, color: "bg-amber-500" },
+    { name: "VR全景", weight: 25, color: "bg-violet-500" },
+    { name: "智能家居", weight: 18, color: "bg-pink-500" },
+    { name: "全屋定制", weight: 65, color: "bg-cyan-500" },
+    { name: "高端住宅", weight: 72, color: "bg-indigo-500" },
+  ],
+  journeyStages: [
+    { name: "注册", status: "done", metric: "2024-03" },
+    { name: "首次付费", status: "done", metric: "5天" },
+    { name: "活跃使用", status: "done", metric: "22天/月" },
+    { name: "升级套餐", status: "done", metric: "2次" },
+    { name: "推荐他人", status: "current", metric: "3人" },
+    { name: "品牌大使", status: "future", metric: "—" },
+  ],
   behaviorTraits: [
-    { label: "高频创作者", level: "high", score: 92, evidence: "月均设计42套 Top 8%，日均AI调用9.3次", icon: Zap },
-    { label: "效率优先型", level: "high", score: 88, evidence: "单方案耗时从4.2h→1.8h，依赖AI+微调", icon: Activity },
-    { label: "渲染质量敏感", level: "medium", score: 65, evidence: "3D渲染71% · 4K仅16%，频繁对比分辨率", icon: Eye },
-    { label: "功能探索", level: "medium", score: 58, evidence: "使用6/8核心功能，VR仅体验性使用", icon: Lightbulb },
-    { label: "社交传播", level: "low", score: 35, evidence: "公开分享3次/月，但私域推荐转化率67%", icon: Users },
-    { label: "学习意愿", level: "medium", score: 70, evidence: "教程完成率78%，新功能72h内尝试", icon: Brain },
+    { label: "高频创作", score: 92, level: "high", evidence: "月均42套 Top 8%", icon: Zap },
+    { label: "效率优先", score: 88, level: "high", evidence: "方案耗时 4.2→1.8h", icon: Activity },
+    { label: "渲染敏感", score: 65, level: "medium", evidence: "3D 71% · 4K 16%", icon: Eye },
+    { label: "功能探索", score: 58, level: "medium", evidence: "6/8 核心功能", icon: Lightbulb },
+    { label: "社交传播", score: 35, level: "low", evidence: "公开分享 3次/月", icon: Users },
+    { label: "学习意愿", score: 70, level: "medium", evidence: "教程完成率 78%", icon: Brain },
   ],
   personalityTraits: [
-    { dimension: "决策风格", score: 75, leftLabel: "感性", rightLabel: "理性", desc: "使用率>70%才触发购买，数据驱动型" },
-    { dimension: "价格敏感度", score: 40, leftLabel: "高", rightLabel: "低", desc: "年付折扣偏好，有感知但不影响核心决策" },
-    { dimension: "社交倾向", score: 45, leftLabel: "内向", rightLabel: "外向", desc: "私下推荐为主，适合KOC型运营" },
-    { dimension: "风险偏好", score: 60, leftLabel: "保守", rightLabel: "进取", desc: "新功能先测试方案验证再用于正式项目" },
-    { dimension: "品牌忠诚", score: 72, leftLabel: "低", rightLabel: "高", desc: "连续2次续费+升级，竞品使用极低" },
+    { dimension: "决策风格", score: 75, leftLabel: "感性", rightLabel: "理性", desc: "数据驱动型" },
+    { dimension: "价格敏感", score: 40, leftLabel: "敏感", rightLabel: "不敏感", desc: "价值导向" },
+    { dimension: "社交倾向", score: 45, leftLabel: "内向", rightLabel: "外向", desc: "私域影响力" },
+    { dimension: "风险偏好", score: 60, leftLabel: "保守", rightLabel: "进取", desc: "谨慎尝鲜" },
+    { dimension: "品牌忠诚", score: 72, leftLabel: "低", rightLabel: "高", desc: "持续续费" },
   ],
   deepNeeds: [
-    { category: "效率", need: "缩短从接单到出图全流程时间", urgency: "urgent", basis: "项目周期14→8天，近期频繁批量渲染", suggestion: "开通「智能方案模板」自动生成初稿", icon: Zap },
-    { category: "获客", need: "建立个人品牌，实现被动获客", urgency: "normal", basis: "推荐均来自口碑，从未展示作品", suggestion: "引导设计师主页+作品集展示", icon: Target },
-    { category: "品质", need: "提升交付物专业度", urgency: "normal", basis: "PDF导出56次但4K渲染仅8次", suggestion: "赠5次4K体验+对比案例", icon: Star },
-    { category: "成长", need: "拓展设计风格范围", urgency: "latent", basis: "现代简约78%，市场新中式需求35%", suggestion: "推新中式AI模板包+培训", icon: TrendingUp },
+    { category: "效率", need: "缩短全流程出图时间", urgency: "urgent", importance: 95, basis: "频繁批量渲染", suggestion: "智能方案模板", icon: Zap },
+    { category: "获客", need: "建立个人品牌", urgency: "normal", importance: 70, basis: "从未展示作品", suggestion: "设计师主页", icon: Target },
+    { category: "品质", need: "提升交付专业度", urgency: "normal", importance: 65, basis: "4K使用率低", suggestion: "赠送体验额度", icon: Star },
+    { category: "成长", need: "拓展风格范围", urgency: "latent", importance: 45, basis: "78%现代简约", suggestion: "新中式模板", icon: TrendingUp },
   ],
   designPreferences: [
-    { dimension: "设计风格", preference: "现代简约 (78%)", confidence: 95, basis: "42套中33套为现代简约" },
-    { dimension: "色彩倾向", preference: "低饱和暖色调", confidence: 82, basis: "白橡木、暖灰、米色占67%" },
-    { dimension: "空间类型", preference: "住宅全屋", confidence: 90, basis: "客厅38 > 厨房28 > 卧室22" },
-    { dimension: "材质偏好", preference: "实木+石材+金属", confidence: 75, basis: "木质52%、大理石18%" },
-    { dimension: "渲染偏好", preference: "自然光·45°俯角", confidence: 88, basis: "自然光79%，45°±10°占65%" },
+    { dimension: "设计风格", preference: "现代简约", confidence: 95, basis: "78% 方案" },
+    { dimension: "色彩倾向", preference: "低饱和暖色", confidence: 82, basis: "67% 材质" },
+    { dimension: "空间类型", preference: "住宅全屋", confidence: 90, basis: "客厅优先" },
+    { dimension: "材质偏好", preference: "实木+石材", confidence: 75, basis: "木质 52%" },
+    { dimension: "渲染偏好", preference: "自然光·45°", confidence: 88, basis: "79% 自然光" },
   ],
 };
 
-/* ═══ Mock Data — End Customer ═══ */
 export const EC_PORTRAIT: PortraitData = {
-  behaviorSummary: "决策周期87天的高净值客户，重视设计效果的直观感受，倾向于多方比较后集中决策。",
-  personalitySummary: "注重细节的品质追求者，对居住体验有明确标准，信任专业建议但需要视觉化验证。",
-  needsSummary: "核心诉求是获得「省心且高品质」的一站式装修体验，潜在需求是软装搭配和智能家居。",
+  persona: "品质决策型",
+  personaDesc: "重视设计效果直观感受，追求高品质一站式服务体验",
+  healthScore: 85,
+  behaviorSummary: "决策周期87天的高净值客户，重视设计效果直观感受。",
+  personalitySummary: "注重细节的品质追求者，信任专业建议但需视觉验证。",
+  needsSummary: "省心且高品质的一站式装修体验。",
   radarDimensions: [
     { name: "意向度", value: 92 }, { name: "满意度", value: 88 },
     { name: "合作深度", value: 75 }, { name: "转介绍", value: 60 },
     { name: "预算力", value: 85 }, { name: "配合度", value: 78 },
   ],
+  activityHeatmap: [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,5,4,2,0],
+    [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,4,6,5,2,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,4,3,1,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,8,6,3,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,5,4,1,0],
+    [0,0,0,0,0,0,0,0,0,1,2,3,2,1,2,3,2,1,0,1,2,1,0,0],
+    [0,0,0,0,0,0,0,0,0,2,3,4,3,2,3,4,3,2,1,1,1,0,0,0],
+  ],
+  interestBubbles: [
+    { name: "全屋定制", weight: 92, color: "bg-primary" },
+    { name: "现代简约", weight: 85, color: "bg-blue-500" },
+    { name: "橱柜", weight: 78, color: "bg-emerald-500" },
+    { name: "衣柜", weight: 72, color: "bg-amber-500" },
+    { name: "收纳方案", weight: 68, color: "bg-cyan-500" },
+    { name: "软装搭配", weight: 45, color: "bg-violet-500" },
+    { name: "智能家居", weight: 30, color: "bg-pink-500" },
+    { name: "环保材质", weight: 55, color: "bg-indigo-500" },
+  ],
+  journeyStages: [
+    { name: "录入", status: "done", metric: "2025-08" },
+    { name: "首次沟通", status: "done", metric: "12天" },
+    { name: "方案确认", status: "done", metric: "31天" },
+    { name: "到店体验", status: "done", metric: "51天" },
+    { name: "签约", status: "done", metric: "87天" },
+    { name: "增购复购", status: "current", metric: "72%" },
+  ],
   behaviorTraits: [
-    { label: "视觉决策型", level: "high", score: 90, evidence: "80%反馈围绕效果图，数据参数关注度低", icon: Eye },
-    { label: "多方比较者", level: "high", score: 85, evidence: "关联2家企业，3个平台搜索比价", icon: Users },
-    { label: "品质导向", level: "high", score: 88, evidence: "均价1250/㎡高于区域35%，关注环保", icon: Star },
-    { label: "沟通稳定", level: "medium", score: 65, evidence: "每周1次，工作日晚20:00-21:30", icon: Clock },
-    { label: "决策需推动", level: "medium", score: 55, evidence: "方案确认耗时22天，3次修改细节", icon: Shield },
+    { label: "视觉决策", score: 90, level: "high", evidence: "80% 看效果图", icon: Eye },
+    { label: "多方比较", score: 85, level: "high", evidence: "3平台对比", icon: Users },
+    { label: "品质导向", score: 88, level: "high", evidence: "均价+35%", icon: Star },
+    { label: "沟通稳定", score: 65, level: "medium", evidence: "每周1次", icon: Clock },
+    { label: "需要推动", score: 55, level: "medium", evidence: "确认耗22天", icon: Shield },
   ],
   personalityTraits: [
-    { dimension: "决策风格", score: 35, leftLabel: "感性", rightLabel: "理性", desc: "看重视觉效果和居住想象" },
-    { dimension: "价格敏感度", score: 30, leftLabel: "高", rightLabel: "低", desc: "高品质追加费用接受度高" },
-    { dimension: "参与意愿", score: 80, leftLabel: "低", rightLabel: "高", desc: "每套方案都提出修改意见" },
-    { dimension: "信任建立", score: 65, leftLabel: "慢", rightLabel: "快", desc: "第3次沟通后建立初步信任" },
-    { dimension: "传播意愿", score: 55, leftLabel: "低", rightLabel: "高", desc: "满意度高但未主动分享" },
+    { dimension: "决策风格", score: 35, leftLabel: "感性", rightLabel: "理性", desc: "视觉驱动" },
+    { dimension: "价格敏感", score: 30, leftLabel: "敏感", rightLabel: "不敏感", desc: "品质优先" },
+    { dimension: "参与度", score: 80, leftLabel: "被动", rightLabel: "主动", desc: "积极参与" },
+    { dimension: "信任速度", score: 65, leftLabel: "慢", rightLabel: "快", desc: "需验证" },
+    { dimension: "传播意愿", score: 55, leftLabel: "低", rightLabel: "高", desc: "需激励" },
   ],
   deepNeeds: [
-    { category: "品质", need: "一站式高品质全屋定制", urgency: "urgent", basis: "全品类合同+预算充足", suggestion: "推荐一站式管家服务", icon: Shield },
-    { category: "体验", need: "施工过程透明可视化", urgency: "normal", basis: "3次询问进度，要求拍照", suggestion: "开通工地直播+进度推送", icon: Eye },
-    { category: "延伸", need: "软装搭配与智能家居", urgency: "latent", basis: "2次提到软装，有5岁孩子", suggestion: "完工70%时推软装+安全方案", icon: Heart },
+    { category: "品质", need: "一站式全屋定制", urgency: "urgent", importance: 95, basis: "全品类合同", suggestion: "管家服务", icon: Shield },
+    { category: "体验", need: "施工透明可视", urgency: "normal", importance: 72, basis: "3次询问进度", suggestion: "工地直播", icon: Eye },
+    { category: "延伸", need: "软装+智能家居", urgency: "latent", importance: 50, basis: "2次提到软装", suggestion: "完工70%推方案", icon: Heart },
   ],
   designPreferences: [
-    { dimension: "整体风格", preference: "现代简约·留白感", confidence: 90, basis: "3次评审均选简洁方案" },
-    { dimension: "色调偏好", preference: "奶油白+原木+灰调", confidence: 85, basis: "参考图90%为暖白调" },
-    { dimension: "功能诉求", preference: "收纳>美观>智能", confidence: 78, basis: "3次提到收纳，U型厨房" },
+    { dimension: "风格", preference: "现代简约", confidence: 90, basis: "3次均选简洁" },
+    { dimension: "色调", preference: "奶油白+原木", confidence: 85, basis: "参考图90%暖白" },
+    { dimension: "功能", preference: "收纳优先", confidence: 78, basis: "3次提到收纳" },
   ],
 };
 
-/* ═══ Scroll Nav Sections ═══ */
+/* ═══════════════════════════════════════════
+   SCROLL NAV
+   ═══════════════════════════════════════════ */
 const SECTIONS = [
-  { id: "p-overview", label: "总览", icon: Brain },
-  { id: "p-behavior", label: "行为", icon: Activity },
-  { id: "p-personality", label: "性格", icon: Heart },
-  { id: "p-needs", label: "需求", icon: Target },
-  { id: "p-preference", label: "偏好", icon: Sparkles },
+  { id: "p-hero", label: "总览" },
+  { id: "p-behavior", label: "行为" },
+  { id: "p-personality", label: "性格" },
+  { id: "p-heatmap", label: "活跃" },
+  { id: "p-interests", label: "兴趣" },
+  { id: "p-needs", label: "需求" },
+  { id: "p-preference", label: "偏好" },
+  { id: "p-journey", label: "旅程" },
 ];
 
-/* ═══ Component ═══ */
-interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  isDesigner: boolean;
-  name: string;
-}
+/* ═══════════════════════════════════════════
+   COMPONENT
+   ═══════════════════════════════════════════ */
+interface Props { open: boolean; onOpenChange: (v: boolean) => void; isDesigner: boolean; name: string; }
 
 export default function PortraitDialog({ open, onOpenChange, isDesigner, name }: Props) {
   const data = isDesigner ? DESIGNER_PORTRAIT : EC_PORTRAIT;
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeNav, setActiveNav] = useState("p-overview");
+  const [activeNav, setActiveNav] = useState("p-hero");
 
-  // scroll spy within dialog
   useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
+    const c = scrollRef.current;
+    if (!c) return;
     const handler = () => {
       for (let i = SECTIONS.length - 1; i >= 0; i--) {
-        const el = container.querySelector(`#${SECTIONS[i].id}`) as HTMLElement;
-        if (el && el.offsetTop - container.scrollTop <= 60) {
-          setActiveNav(SECTIONS[i].id);
-          return;
-        }
+        const el = c.querySelector(`#${SECTIONS[i].id}`) as HTMLElement;
+        if (el && el.offsetTop - c.scrollTop <= 64) { setActiveNav(SECTIONS[i].id); return; }
       }
       setActiveNav(SECTIONS[0].id);
     };
-    container.addEventListener("scroll", handler, { passive: true });
-    return () => container.removeEventListener("scroll", handler);
+    c.addEventListener("scroll", handler, { passive: true });
+    return () => c.removeEventListener("scroll", handler);
   }, [open]);
 
-  const scrollToSection = (id: string) => {
-    const container = scrollRef.current;
-    const el = container?.querySelector(`#${id}`) as HTMLElement;
-    if (el && container) {
-      container.scrollTo({ top: el.offsetTop - 48, behavior: "smooth" });
-    }
+  const scrollTo = (id: string) => {
+    const c = scrollRef.current;
+    const el = c?.querySelector(`#${id}`) as HTMLElement;
+    if (el && c) c.scrollTo({ top: el.offsetTop - 48, behavior: "smooth" });
   };
-
-  const levelColors = { high: "bg-emerald-500", medium: "bg-amber-400", low: "bg-muted-foreground/40" };
-  const urgencyColors = { urgent: "from-red-500 to-red-400", normal: "from-blue-500 to-blue-400", latent: "from-muted-foreground/50 to-muted-foreground/30" };
-  const urgencyLabels = { urgent: "迫切", normal: "常规", latent: "潜在" };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden max-h-[90vh]">
+      <DialogContent className="max-w-[880px] p-0 gap-0 overflow-hidden" style={{ maxHeight: "90vh" }}>
         <DialogHeader className="px-5 pt-4 pb-0">
-          <DialogTitle className="flex items-center gap-2 text-sm">
-            <Brain className="h-4 w-4 text-primary" />
-            {name} · 完整用户画像
+          <DialogTitle className="text-sm flex items-center gap-2">
+            <Brain className="h-4 w-4 text-primary" />{name} · 用户画像
           </DialogTitle>
         </DialogHeader>
 
-        {/* Mini Nav */}
+        {/* Nav */}
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/40 px-5 mt-2">
-          <div className="flex items-center gap-0.5 py-1.5 overflow-x-auto">
+          <div className="flex gap-0.5 py-1 overflow-x-auto">
             {SECTIONS.map(s => (
-              <button key={s.id} onClick={() => scrollToSection(s.id)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all whitespace-nowrap ${
-                  activeNav === s.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                }`}
-              >
-                <s.icon className="h-3 w-3" />{s.label}
+              <button key={s.id} onClick={() => scrollTo(s.id)}
+                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all whitespace-nowrap ${activeNav === s.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                {s.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div ref={scrollRef} className="overflow-y-auto px-5 pb-5 space-y-6" style={{ maxHeight: "calc(90vh - 100px)" }}>
+        <div ref={scrollRef} className="overflow-y-auto px-5 pb-6" style={{ maxHeight: "calc(90vh - 90px)" }}>
+          <div className="space-y-6 pt-4">
 
-          {/* ═══ OVERVIEW ═══ */}
-          <section id="p-overview" className="pt-4">
-            <div className="grid grid-cols-12 gap-4">
-              {/* Radar */}
-              <div className="col-span-5">
-                <div className="rounded-xl border border-border/40 p-4 bg-muted/20">
+            {/* ═══ HERO ═══ */}
+            <section id="p-hero">
+              <div className="grid grid-cols-12 gap-4">
+                {/* Persona Card */}
+                <div className="col-span-3 rounded-xl border border-border/40 bg-gradient-to-br from-primary/5 to-primary/10 p-4 flex flex-col items-center text-center">
+                  {/* Health ring */}
+                  <div className="relative w-20 h-20">
+                    <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
+                      <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5" className="stroke-muted/40" />
+                      <circle cx="40" cy="40" r="34" fill="none" strokeWidth="5"
+                        className={data.healthScore >= 70 ? "stroke-emerald-500" : data.healthScore >= 40 ? "stroke-amber-500" : "stroke-red-500"}
+                        strokeLinecap="round" strokeDasharray={`${data.healthScore * 2.14} 214`} />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-lg font-bold">{data.healthScore}</span>
+                      <span className="text-[8px] text-muted-foreground">健康度</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
+                    <span className="text-[11px] font-semibold text-primary">{data.persona}</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1.5 leading-relaxed">{data.personaDesc}</p>
+                </div>
+
+                {/* Radar */}
+                <div className="col-span-4 rounded-xl border border-border/40 p-3">
                   <div className="w-[180px] h-[180px] mx-auto">
                     <RadarChart dimensions={data.radarDimensions} />
                   </div>
-                  <div className="grid grid-cols-3 gap-1 mt-2">
+                  <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 mt-1">
                     {data.radarDimensions.map(d => (
-                      <div key={d.name} className="text-center">
-                        <div className={`text-xs font-bold ${d.value >= 80 ? "text-primary" : d.value >= 60 ? "text-foreground" : "text-muted-foreground"}`}>{d.value}</div>
-                        <div className="text-[9px] text-muted-foreground">{d.name}</div>
+                      <div key={d.name} className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                        <span className="text-[9px] text-muted-foreground">{d.name}</span>
+                        <span className="text-[9px] font-bold ml-auto">{d.value}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
-              {/* Summary Cards */}
-              <div className="col-span-7 space-y-3">
-                <SummaryBanner icon={Activity} color="blue" label="行为特征" text={data.behaviorSummary} />
-                <SummaryBanner icon={Heart} color="violet" label="性格画像" text={data.personalitySummary} />
-                <SummaryBanner icon={Target} color="emerald" label="核心需求" text={data.needsSummary} />
-                {/* Quick trait badges */}
-                <div className="flex flex-wrap gap-1.5">
-                  {data.behaviorTraits.filter(t => t.level === "high").map((t, i) => {
-                    const Icon = t.icon;
-                    return (
-                      <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                        <Icon className="h-3 w-3" />{t.label}
-                      </span>
-                    );
-                  })}
-                  {data.behaviorTraits.filter(t => t.level === "medium").map((t, i) => {
-                    const Icon = t.icon;
-                    return (
-                      <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-100">
-                        <Icon className="h-3 w-3" />{t.label}
-                      </span>
-                    );
-                  })}
-                  {data.behaviorTraits.filter(t => t.level === "low").map((t, i) => {
-                    const Icon = t.icon;
-                    return (
-                      <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium bg-muted text-muted-foreground border border-border/40">
-                        <Icon className="h-3 w-3" />{t.label}
-                      </span>
-                    );
-                  })}
+
+                {/* Key Metrics Rings */}
+                <div className="col-span-5 rounded-xl border border-border/40 p-4">
+                  <span className="text-[10px] font-medium text-muted-foreground">核心能力矩阵</span>
+                  <div className="grid grid-cols-3 gap-3 mt-2">
+                    {data.radarDimensions.map((d, i) => {
+                      const colors = ["primary", "emerald-500", "blue-500", "amber-500", "violet-500", "cyan-500"];
+                      const c = colors[i % colors.length];
+                      return (
+                        <div key={d.name} className="text-center">
+                          <div className="relative w-12 h-12 mx-auto">
+                            <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+                              <circle cx="24" cy="24" r="19" fill="none" strokeWidth="3" className="stroke-muted/30" />
+                              <circle cx="24" cy="24" r="19" fill="none" strokeWidth="3"
+                                className={`stroke-${c}`} strokeLinecap="round"
+                                strokeDasharray={`${d.value * 1.19} 119`} />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className="text-[10px] font-bold">{d.value}</span>
+                            </div>
+                          </div>
+                          <span className="text-[9px] text-muted-foreground mt-0.5 block">{d.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          {/* ═══ BEHAVIOR ═══ */}
-          <section id="p-behavior">
-            <SectionLabel icon={Activity} title="行为特征分析" />
-            <div className="space-y-2 mt-3">
-              {data.behaviorTraits.map((t, i) => {
-                const Icon = t.icon;
-                return (
-                  <div key={i} className="flex items-center gap-3 group">
-                    <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                      <Icon className="h-3.5 w-3.5 text-blue-600" />
-                    </div>
-                    <div className="w-20 shrink-0">
-                      <span className="text-xs font-medium">{t.label}</span>
-                    </div>
-                    {/* Visual bar */}
-                    <div className="flex-1 h-6 bg-muted/40 rounded-lg overflow-hidden relative">
-                      <div className={`h-full rounded-lg ${levelColors[t.level]} transition-all`} style={{ width: `${t.score}%`, opacity: 0.7 }} />
-                      <span className="absolute inset-0 flex items-center px-2 text-[10px] text-foreground/80 font-medium">{t.evidence}</span>
-                    </div>
-                    <span className="text-xs font-bold w-8 text-right">{t.score}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* ═══ PERSONALITY ═══ */}
-          <section id="p-personality">
-            <SectionLabel icon={Heart} title="性格特征谱" />
-            <div className="grid grid-cols-1 gap-3 mt-3">
-              {data.personalityTraits.map((t, i) => (
-                <div key={i} className="p-3 rounded-lg border border-border/40">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-medium">{t.dimension}</span>
-                    <span className="text-[10px] text-muted-foreground">{t.desc}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-muted-foreground w-8 text-right shrink-0">{t.leftLabel}</span>
-                    <div className="flex-1 h-3 bg-muted rounded-full relative">
-                      {/* gradient track */}
-                      <div className="absolute inset-0 rounded-full overflow-hidden">
-                        <div className="h-full w-full bg-gradient-to-r from-violet-300/50 via-primary/20 to-blue-300/50" />
+            {/* ═══ BEHAVIOR TRAITS ═══ */}
+            <section id="p-behavior">
+              <SectionLabel title="行为特征指纹" />
+              <div className="space-y-1.5 mt-3">
+                {data.behaviorTraits.map((t, i) => {
+                  const Icon = t.icon;
+                  const barColor = t.level === "high" ? "bg-emerald-500" : t.level === "medium" ? "bg-amber-400" : "bg-muted-foreground/40";
+                  return (
+                    <div key={i} className="flex items-center gap-2 group">
+                      <div className="w-6 h-6 rounded bg-muted/50 flex items-center justify-center shrink-0">
+                        <Icon className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
-                      {/* dot */}
-                      <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-primary shadow-md border-2 border-background transition-all"
-                        style={{ left: `calc(${t.score}% - 8px)` }} />
-                      {/* scale marks */}
-                      {[0, 25, 50, 75, 100].map(m => (
-                        <div key={m} className="absolute top-0 h-full w-px bg-background/60" style={{ left: `${m}%` }} />
+                      <span className="text-[11px] font-medium w-16 shrink-0">{t.label}</span>
+                      <div className="flex-1 h-5 bg-muted/30 rounded overflow-hidden relative">
+                        <div className={`h-full rounded ${barColor} transition-all`} style={{ width: `${t.score}%`, opacity: 0.65 }} />
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground">{t.evidence}</span>
+                      </div>
+                      <span className="text-[11px] font-bold w-7 text-right tabular-nums">{t.score}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* ═══ PERSONALITY SPECTRUM ═══ */}
+            <section id="p-personality">
+              <SectionLabel title="性格特征谱" />
+              <div className="grid grid-cols-1 gap-2 mt-3">
+                {data.personalityTraits.map((t, i) => (
+                  <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border/40">
+                    <span className="text-[11px] font-medium w-14 shrink-0">{t.dimension}</span>
+                    <span className="text-[9px] text-muted-foreground w-10 text-right shrink-0">{t.leftLabel}</span>
+                    <div className="flex-1 h-3 bg-muted/40 rounded-full relative mx-1">
+                      {/* Gradient bg */}
+                      <div className="absolute inset-0 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-violet-400/30 via-primary/15 to-blue-400/30" />
+                      </div>
+                      {/* Scale ticks */}
+                      {[20, 40, 60, 80].map(m => (
+                        <div key={m} className="absolute top-0 h-full w-px bg-background/50" style={{ left: `${m}%` }} />
+                      ))}
+                      {/* Dot */}
+                      <div className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-primary shadow-md border-2 border-background"
+                        style={{ left: `calc(${t.score}% - 7px)` }} />
+                    </div>
+                    <span className="text-[9px] text-muted-foreground w-10 shrink-0">{t.rightLabel}</span>
+                    <span className="text-[10px] w-14 text-right text-muted-foreground shrink-0">{t.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* ═══ ACTIVITY HEATMAP ═══ */}
+            <section id="p-heatmap">
+              <SectionLabel title="活跃热力图" />
+              <div className="rounded-xl border border-border/40 p-3 mt-3">
+                <div className="flex gap-1">
+                  <div className="flex flex-col gap-[2px] pt-4 pr-1 shrink-0">
+                    {["一", "二", "三", "四", "五", "六", "日"].map(d => (
+                      <div key={d} className="h-[14px] flex items-center"><span className="text-[8px] text-muted-foreground">{d}</span></div>
+                    ))}
+                  </div>
+                  <div className="flex-1 overflow-x-auto">
+                    {/* Hour labels */}
+                    <div className="flex gap-[2px] mb-[2px]">
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <div key={i} className="flex-1 min-w-[14px] text-center">
+                          <span className="text-[7px] text-muted-foreground">{i % 3 === 0 ? `${i}` : ""}</span>
+                        </div>
                       ))}
                     </div>
-                    <span className="text-[10px] text-muted-foreground w-8 shrink-0">{t.rightLabel}</span>
-                    <span className="text-xs font-bold w-6 text-right text-primary">{t.score}</span>
+                    {/* Grid */}
+                    {data.activityHeatmap.map((row, ri) => (
+                      <div key={ri} className="flex gap-[2px]">
+                        {row.map((v, ci) => {
+                          const max = Math.max(...data.activityHeatmap.flat());
+                          const intensity = max > 0 ? v / max : 0;
+                          return (
+                            <div key={ci} className="flex-1 min-w-[14px] h-[14px] rounded-sm transition-colors"
+                              style={{ backgroundColor: v === 0 ? "hsl(var(--muted) / 0.3)" : `hsl(var(--primary) / ${0.15 + intensity * 0.75})` }}
+                              title={`周${"一二三四五六日"[ri]} ${ci}:00 — ${v}次`} />
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
+                {/* Legend */}
+                <div className="flex items-center justify-end gap-1 mt-2">
+                  <span className="text-[8px] text-muted-foreground">少</span>
+                  {[0.15, 0.3, 0.5, 0.7, 0.9].map((o, i) => (
+                    <div key={i} className="w-3 h-3 rounded-sm" style={{ backgroundColor: `hsl(var(--primary) / ${o})` }} />
+                  ))}
+                  <span className="text-[8px] text-muted-foreground">多</span>
+                </div>
+              </div>
+            </section>
 
-          {/* ═══ DEEP NEEDS ═══ */}
-          <section id="p-needs">
-            <SectionLabel icon={Target} title="深层需求图谱" />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
-              {data.deepNeeds.map((n, i) => {
-                const Icon = n.icon;
-                return (
-                  <div key={i} className="rounded-xl border border-border/40 overflow-hidden">
-                    {/* urgency color bar on top */}
-                    <div className={`h-1 bg-gradient-to-r ${urgencyColors[n.urgency]}`} />
-                    <div className="p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                          <Icon className="h-4 w-4 text-emerald-600" />
+            {/* ═══ INTEREST BUBBLES ═══ */}
+            <section id="p-interests">
+              <SectionLabel title="兴趣关注图谱" />
+              <div className="rounded-xl border border-border/40 p-4 mt-3">
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  {data.interestBubbles
+                    .sort((a, b) => b.weight - a.weight)
+                    .map((b, i) => {
+                      const size = 28 + (b.weight / 100) * 56; // 28-84px
+                      return (
+                        <div key={i}
+                          className={`${b.color} rounded-full flex items-center justify-center text-white shrink-0 transition-transform hover:scale-110 cursor-default`}
+                          style={{ width: `${size}px`, height: `${size}px`, opacity: 0.2 + (b.weight / 100) * 0.7 }}
+                          title={`${b.name}: ${b.weight}%`}
+                        >
+                          <span className="text-[9px] font-medium text-center leading-tight px-1" style={{ fontSize: `${Math.max(8, size / 8)}px` }}>
+                            {b.name}
+                          </span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-semibold">{n.need}</span>
-                            <span className={`px-1 py-0.5 rounded text-[9px] font-medium bg-gradient-to-r ${urgencyColors[n.urgency]} text-white`}>{urgencyLabels[n.urgency]}</span>
+                      );
+                    })}
+                </div>
+              </div>
+            </section>
+
+            {/* ═══ NEEDS PRIORITY MATRIX ═══ */}
+            <section id="p-needs">
+              <SectionLabel title="需求优先级矩阵" />
+              <div className="rounded-xl border border-border/40 p-4 mt-3">
+                {/* Matrix grid */}
+                <div className="relative h-48">
+                  {/* Axes */}
+                  <div className="absolute left-8 top-0 bottom-6 w-px bg-border/60" />
+                  <div className="absolute left-8 bottom-6 right-0 h-px bg-border/60" />
+                  <span className="absolute left-0 top-0 text-[8px] text-muted-foreground writing-mode-vertical" style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}>重要性 →</span>
+                  <span className="absolute right-0 bottom-0 text-[8px] text-muted-foreground">紧迫性 →</span>
+                  {/* Quadrant labels */}
+                  <span className="absolute left-10 top-1 text-[8px] text-muted-foreground/40">重要 · 不急</span>
+                  <span className="absolute right-2 top-1 text-[8px] text-muted-foreground/40">重要 · 紧急</span>
+                  {/* Dots */}
+                  {data.deepNeeds.map((n, i) => {
+                    const Icon = n.icon;
+                    const urgencyX = n.urgency === "urgent" ? 85 : n.urgency === "normal" ? 50 : 20;
+                    const importanceY = 100 - n.importance;
+                    const dotColors = { urgent: "bg-red-500 border-red-200", normal: "bg-blue-500 border-blue-200", latent: "bg-muted-foreground/60 border-muted" };
+                    return (
+                      <div key={i} className="absolute group" style={{ left: `calc(${urgencyX}% + 8px)`, top: `${importanceY * 0.42}%` }}>
+                        <div className={`w-10 h-10 rounded-full ${dotColors[n.urgency]} border-2 flex items-center justify-center shadow-sm cursor-default transition-transform hover:scale-125`}
+                          style={{ opacity: 0.3 + (n.importance / 100) * 0.6 }}>
+                          <Icon className="h-4 w-4 text-white" />
+                        </div>
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10">
+                          <div className="bg-popover border border-border rounded-lg shadow-md px-2.5 py-1.5 whitespace-nowrap">
+                            <div className="text-[10px] font-medium">{n.need}</div>
+                            <div className="text-[9px] text-muted-foreground">{n.basis} → {n.suggestion}</div>
                           </div>
-                          <span className="text-[10px] text-muted-foreground">{n.category}</span>
                         </div>
+                        <span className="text-[9px] font-medium mt-0.5 block text-center">{n.category}</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">{n.basis}</p>
-                      <div className="flex items-start gap-1.5 mt-2 p-2 rounded-lg bg-emerald-50/60 border border-emerald-100">
-                        <Lightbulb className="h-3 w-3 text-emerald-600 shrink-0 mt-0.5" />
-                        <span className="text-[11px] text-emerald-700">{n.suggestion}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* ═══ PREFERENCES ═══ */}
-          <section id="p-preference">
-            <SectionLabel icon={Sparkles} title="偏好洞察" />
-            <div className="space-y-2 mt-3">
-              {data.designPreferences.map((p, i) => (
-                <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg border border-border/40">
-                  <div className="w-16 shrink-0">
-                    <span className="text-[10px] text-muted-foreground">{p.dimension}</span>
-                  </div>
-                  <span className="text-xs font-medium flex-1">{p.preference}</span>
-                  {/* confidence ring */}
-                  <div className="relative w-9 h-9 shrink-0">
-                    <svg className="w-9 h-9 -rotate-90" viewBox="0 0 36 36">
-                      <circle cx="18" cy="18" r="14" fill="none" strokeWidth="3" className="stroke-muted" />
-                      <circle cx="18" cy="18" r="14" fill="none" strokeWidth="3"
-                        className={p.confidence >= 85 ? "stroke-emerald-500" : "stroke-amber-500"}
-                        strokeLinecap="round" strokeDasharray={`${p.confidence * 0.88} 88`} />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-[8px] font-bold">{p.confidence}</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground w-24 shrink-0 truncate">{p.basis}</span>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          </section>
+              </div>
+            </section>
 
+            {/* ═══ PREFERENCE ═══ */}
+            <section id="p-preference">
+              <SectionLabel title="偏好置信度" />
+              <div className="grid grid-cols-5 gap-2 mt-3">
+                {data.designPreferences.map((p, i) => (
+                  <div key={i} className="rounded-xl border border-border/40 p-3 text-center">
+                    {/* Confidence ring */}
+                    <div className="relative w-12 h-12 mx-auto">
+                      <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+                        <circle cx="24" cy="24" r="19" fill="none" strokeWidth="3.5" className="stroke-muted/30" />
+                        <circle cx="24" cy="24" r="19" fill="none" strokeWidth="3.5"
+                          className={p.confidence >= 85 ? "stroke-emerald-500" : p.confidence >= 70 ? "stroke-primary" : "stroke-amber-500"}
+                          strokeLinecap="round" strokeDasharray={`${p.confidence * 1.19} 119`} />
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-[10px] font-bold">{p.confidence}</span>
+                      </div>
+                    </div>
+                    <div className="mt-1.5">
+                      <div className="text-[9px] text-muted-foreground">{p.dimension}</div>
+                      <div className="text-[11px] font-medium mt-0.5">{p.preference}</div>
+                    </div>
+                    <div className="text-[8px] text-muted-foreground mt-1">{p.basis}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* ═══ JOURNEY ═══ */}
+            <section id="p-journey">
+              <SectionLabel title="客户旅程" />
+              <div className="rounded-xl border border-border/40 p-4 mt-3">
+                <div className="flex items-center">
+                  {data.journeyStages.map((s, i) => {
+                    const done = s.status === "done";
+                    const current = s.status === "current";
+                    return (
+                      <div key={i} className="flex items-center flex-1">
+                        <div className="flex flex-col items-center flex-1">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${
+                            done ? "bg-emerald-500 border-emerald-400 text-white" :
+                            current ? "bg-primary border-primary text-primary-foreground animate-pulse" :
+                            "bg-muted border-border text-muted-foreground"
+                          }`}>
+                            {done ? "✓" : current ? i + 1 : i + 1}
+                          </div>
+                          <span className={`text-[10px] font-medium mt-1 ${current ? "text-primary" : done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
+                          <span className="text-[9px] text-muted-foreground">{s.metric}</span>
+                        </div>
+                        {i < data.journeyStages.length - 1 && (
+                          <div className={`h-0.5 flex-1 mx-0.5 rounded ${done ? "bg-emerald-500" : "bg-border"}`} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-/* ═══ Sub Components ═══ */
+/* ═══════════════════════════════════════════
+   SUB COMPONENTS
+   ═══════════════════════════════════════════ */
 
-function SectionLabel({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
+function SectionLabel({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className="w-1 h-4 rounded-full bg-primary" />
-      <Icon className="h-3.5 w-3.5 text-primary" />
       <span className="text-xs font-semibold">{title}</span>
-    </div>
-  );
-}
-
-function SummaryBanner({ icon: Icon, color, label, text }: { icon: React.ElementType; color: string; label: string; text: string }) {
-  const iconColors: Record<string, string> = { blue: "bg-blue-100 text-blue-600", violet: "bg-violet-100 text-violet-600", emerald: "bg-emerald-100 text-emerald-600" };
-  const borderColors: Record<string, string> = { blue: "border-blue-100", violet: "border-violet-100", emerald: "border-emerald-100" };
-  return (
-    <div className={`flex items-start gap-2.5 p-2.5 rounded-lg border ${borderColors[color]} bg-card`}>
-      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${iconColors[color]}`}>
-        <Icon className="h-3.5 w-3.5" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <span className="text-[10px] font-semibold text-muted-foreground">{label}</span>
-        <p className="text-xs leading-relaxed mt-0.5">{text}</p>
-      </div>
     </div>
   );
 }
 
 function RadarChart({ dimensions }: { dimensions: { name: string; value: number }[] }) {
   const n = dimensions.length;
-  const cx = 70, cy = 70, r = 52;
+  const cx = 70, cy = 70, r = 55;
   const pt = (i: number, val: number) => {
     const a = (Math.PI * 2 * i) / n - Math.PI / 2;
     return { x: cx + (r * val / 100) * Math.cos(a), y: cy + (r * val / 100) * Math.sin(a) };
   };
   return (
     <svg viewBox="0 0 140 140" className="w-full h-full">
+      {/* Grid rings */}
       {[25, 50, 75, 100].map(l => (
-        <polygon key={l} points={Array.from({ length: n }, (_, i) => { const p = pt(i, l); return `${p.x},${p.y}`; }).join(" ")}
-          fill="none" className="stroke-border/30" strokeWidth="0.5" />
+        <polygon key={l}
+          points={Array.from({ length: n }, (_, i) => { const p = pt(i, l); return `${p.x},${p.y}`; }).join(" ")}
+          fill="none" className="stroke-border/25" strokeWidth="0.5" />
       ))}
-      {dimensions.map((_, i) => { const p = pt(i, 100); return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} className="stroke-border/20" strokeWidth="0.5" />; })}
-      <polygon points={dimensions.map((dd, i) => { const p = pt(i, dd.value); return `${p.x},${p.y}`; }).join(" ")} className="fill-primary/15 stroke-primary" strokeWidth="1.5" />
-      {dimensions.map((dd, i) => { const p = pt(i, dd.value); return <circle key={`d${i}`} cx={p.x} cy={p.y} r="2.5" className="fill-primary" />; })}
-      {dimensions.map((dd, i) => { const p = pt(i, 125); return <text key={`t${i}`} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle" className="fill-muted-foreground text-[7px]">{dd.name}</text>; })}
+      {/* Axis lines */}
+      {dimensions.map((_, i) => { const p = pt(i, 100); return <line key={i} x1={cx} y1={cy} x2={p.x} y2={p.y} className="stroke-border/15" strokeWidth="0.5" />; })}
+      {/* Fill area */}
+      <polygon
+        points={dimensions.map((dd, i) => { const p = pt(i, dd.value); return `${p.x},${p.y}`; }).join(" ")}
+        className="fill-primary/12 stroke-primary" strokeWidth="1.5" strokeLinejoin="round" />
+      {/* Data dots */}
+      {dimensions.map((dd, i) => {
+        const p = pt(i, dd.value);
+        return <circle key={`d${i}`} cx={p.x} cy={p.y} r="3" className="fill-primary stroke-background" strokeWidth="1.5" />;
+      })}
+      {/* Labels */}
+      {dimensions.map((dd, i) => {
+        const p = pt(i, 120);
+        return <text key={`t${i}`} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle" className="fill-muted-foreground text-[7px] font-medium">{dd.name}</text>;
+      })}
     </svg>
   );
 }
