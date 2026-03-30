@@ -488,7 +488,6 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
             <section id="p-narrative">
               <SectionLabel title="综合研判 · 这个人是谁" />
               <div className="mt-3 space-y-3">
-                {/* Profile identity cards */}
                 <div className="grid grid-cols-4 gap-2">
                   {data.profileCards.map((card, i) => {
                     const Icon = PROFILE_ICON_MAP[card.icon] || Target;
@@ -505,80 +504,174 @@ export default function PortraitDialog({ open, onOpenChange, isDesigner, name }:
                   })}
                 </div>
 
-                {/* Narrative summary - collapsed */}
-                <div className="rounded-xl border border-border/40 bg-gradient-to-br from-muted/20 to-muted/5 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-5 h-5 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <Users className="h-3 w-3 text-primary" />
-                    </div>
-                    <span className="text-[11px] font-semibold">深度分析</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground leading-[1.7]">{data.profileNarrative}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Value assessment */}
-                  <div className="rounded-xl border border-border/40 p-4">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
-                      <span className="text-[11px] font-semibold">价值研判</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">{data.valueAssessment}</p>
-                  </div>
-
-                  {/* Service approach */}
-                  <div className="rounded-xl border border-border/40 p-4">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Target className="h-3.5 w-3.5 text-blue-500" />
-                      <span className="text-[11px] font-semibold">服务总纲</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">{data.serviceApproach}</p>
-                  </div>
-                </div>
-
-                {/* Key insights */}
-                <div className="rounded-xl border border-border/40 p-4">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                    <span className="text-[11px] font-semibold">关键洞察</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {data.keyInsights.map((insight, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <div className="w-4 h-4 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                          <span className="text-[8px] font-bold text-amber-600">{i + 1}</span>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground leading-relaxed">{insight}</p>
+                <div className="grid grid-cols-12 gap-3">
+                  <div className="col-span-7 space-y-3">
+                    <div className="rounded-xl border border-border/40 bg-gradient-to-br from-muted/30 to-background p-4">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <Sparkles className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-[11px] font-semibold">三句话看懂他</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Communication style */}
-                <div className="rounded-xl border border-border/40 p-4">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <MessageCircle className="h-3.5 w-3.5 text-violet-500" />
-                    <span className="text-[11px] font-semibold">沟通方式指南</span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-600 ml-1">{data.communicationStyle.style}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 mt-2">
-                    <div>
-                      <span className="text-[10px] font-medium text-emerald-600 flex items-center gap-1 mb-1.5">
-                        <CheckCircle className="h-3 w-3" /> 推荐做法
-                      </span>
-                      <div className="space-y-1">
-                        {data.communicationStyle.dos.map((d, i) => (
-                          <p key={i} className="text-[10px] text-muted-foreground leading-relaxed pl-3 border-l-2 border-emerald-200">{d}</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {data.profileNarrative.split("。").filter(Boolean).slice(0, 3).map((sentence, i) => (
+                          <div key={i} className="rounded-lg border border-border/40 bg-card px-3 py-2">
+                            <div className="flex items-center gap-1 mb-1">
+                              <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[8px] font-bold flex items-center justify-center">{i + 1}</span>
+                              <span className="text-[9px] text-muted-foreground">核心判断</span>
+                            </div>
+                            <p className="text-[10px] text-foreground leading-relaxed">{sentence}。</p>
+                          </div>
                         ))}
                       </div>
                     </div>
-                    <div>
-                      <span className="text-[10px] font-medium text-red-500 flex items-center gap-1 mb-1.5">
-                        <AlertTriangle className="h-3 w-3" /> 避免做法
-                      </span>
-                      <div className="space-y-1">
-                        {data.communicationStyle.donts.map((d, i) => (
-                          <p key={i} className="text-[10px] text-muted-foreground leading-relaxed pl-3 border-l-2 border-red-200">{d}</p>
+
+                    <div className="rounded-xl border border-border/40 p-4">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <DollarSign className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-[11px] font-semibold">价值研判</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { label: "关系健康", value: data.healthScore, tip: "当前稳定度" },
+                          { label: data.radarDimensions[2]?.name ?? "商业价值", value: data.radarDimensions[2]?.value ?? 0, tip: "变现潜力" },
+                          { label: data.radarDimensions[3]?.name ?? "传播价值", value: data.radarDimensions[3]?.value ?? 0, tip: "扩散能力" },
+                          { label: data.radarDimensions[1]?.name ?? "合作深度", value: data.radarDimensions[1]?.value ?? 0, tip: "持续开发" },
+                        ].map((metric, i) => (
+                          <div key={i} className="rounded-lg bg-muted/30 px-3 py-2">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[9px] text-muted-foreground">{metric.label}</span>
+                              <span className="text-[10px] font-bold text-primary">{metric.value}</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-background overflow-hidden">
+                              <div className="h-full rounded-full bg-primary/70" style={{ width: `${metric.value}%` }} />
+                            </div>
+                            <span className="text-[8px] text-muted-foreground mt-1 block">{metric.tip}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-3">
+                        {data.valueAssessment.split("。").filter(Boolean).slice(0, 2).map((item, i) => (
+                          <div key={i} className="rounded-lg border border-border/40 px-3 py-2 bg-card">
+                            <p className="text-[10px] text-muted-foreground leading-relaxed">{item}。</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-border/40 p-4">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <Lightbulb className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-[11px] font-semibold">关键洞察</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {data.keyInsights.slice(0, 4).map((insight, i) => (
+                          <div key={i} className="rounded-lg border border-border/40 bg-card px-3 py-2">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="w-5 h-5 rounded-md bg-primary/10 text-primary text-[8px] font-bold flex items-center justify-center shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                              <span className="text-[9px] text-muted-foreground">Insight</span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground leading-relaxed">{insight}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-span-5 space-y-3">
+                    <div className="rounded-xl border border-border/40 p-4">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <Target className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-[11px] font-semibold">服务总纲</span>
+                      </div>
+                      <div className="space-y-2">
+                        {data.serviceStrategies.slice(0, 3).map((item, i) => {
+                          const Icon = item.icon;
+                          return (
+                            <div key={i} className="rounded-lg border border-border/40 bg-card px-3 py-2">
+                              <div className="flex items-start gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                  <Icon className="h-3.5 w-3.5 text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1 flex-wrap">
+                                    <span className="text-[10px] font-semibold">{item.title}</span>
+                                    <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[8px]">{item.channel}</span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-1 mt-1">
+                                    <div className="rounded bg-muted/30 px-2 py-1">
+                                      <span className="text-[8px] text-muted-foreground block">时机</span>
+                                      <span className="text-[9px] font-medium leading-tight">{item.timing}</span>
+                                    </div>
+                                    <div className="rounded bg-muted/30 px-2 py-1">
+                                      <span className="text-[8px] text-muted-foreground block">目标</span>
+                                      <span className="text-[9px] font-medium leading-tight">{item.expectedOutcome}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-3">
+                        {data.serviceApproach.split("。").filter(Boolean).slice(0, 2).map((item, i) => (
+                          <div key={i} className="rounded-lg bg-primary/5 border border-primary/10 px-3 py-2">
+                            <p className="text-[10px] text-muted-foreground leading-relaxed">{item}。</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-border/40 p-4">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-[11px] font-semibold">沟通方式指南</span>
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary ml-1">{data.communicationStyle.style}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-lg border border-primary/15 bg-primary/5 p-3">
+                          <span className="text-[10px] font-medium text-primary flex items-center gap-1 mb-2">
+                            <CheckCircle className="h-3 w-3" /> 推荐做法
+                          </span>
+                          <div className="space-y-1.5">
+                            {data.communicationStyle.dos.slice(0, 3).map((d, i) => (
+                              <div key={i} className="rounded bg-background px-2 py-1.5">
+                                <p className="text-[9px] text-muted-foreground leading-relaxed">{d}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-destructive/15 bg-destructive/5 p-3">
+                          <span className="text-[10px] font-medium text-destructive flex items-center gap-1 mb-2">
+                            <AlertTriangle className="h-3 w-3" /> 避免做法
+                          </span>
+                          <div className="space-y-1.5">
+                            {data.communicationStyle.donts.slice(0, 3).map((d, i) => (
+                              <div key={i} className="rounded bg-background px-2 py-1.5">
+                                <p className="text-[9px] text-muted-foreground leading-relaxed">{d}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-border/40 p-4">
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-[11px] font-semibold">决策抓手</span>
+                      </div>
+                      <div className="space-y-2">
+                        {data.decisionFactors.map((factor, i) => (
+                          <div key={i} className="rounded-lg bg-muted/30 px-3 py-2">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] font-medium">{factor.factor}</span>
+                              <span className="text-[10px] font-bold text-primary">{factor.weight}%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-background overflow-hidden">
+                              <div className="h-full rounded-full bg-primary/70" style={{ width: `${factor.weight * 2.85}%` }} />
+                            </div>
+                            <p className="text-[8px] text-muted-foreground mt-1">{factor.evidence}</p>
+                          </div>
                         ))}
                       </div>
                     </div>
