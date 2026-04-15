@@ -7,6 +7,7 @@ import {
   Camera, Video, Layers, Info, ExternalLink, Ruler,
 } from "lucide-react";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
+import ModuleAgentButton from "@/components/agent/ModuleAgentButton";
 import {
   productSpuData, type ProductSpu, type ProductSku,
   auditLabel, auditBadge, shelfLabel, shelfBadge,
@@ -183,6 +184,21 @@ export default function ProductDetail() {
               : undefined
           }
           onEdit={() => navigate(`/product/create?edit=${id}`)}
+          extra={
+            <ModuleAgentButton
+              domain="supply_chain"
+              label="AI 生成详情页"
+              context={{
+                productName: spu.productSpuName,
+                brand: spu.brand,
+                series: spu.series,
+                category: spu.category,
+                skuCount: spu.skus.length,
+                skus: spu.skus.map(s => ({ name: s.skuName, color: s.color, material: s.material, price: s.price })),
+              }}
+              prompt={`请为以下商品生成一个专业的详情页内容：\n商品名称：${spu.productSpuName}\n品牌：${spu.brand}\n系列：${spu.series}\n品类：${spu.category}\nSKU数量：${spu.skus.length}个\n\n请生成完整的详情页结构，包括：卖点提炼、场景描述、参数排版、展示策略建议。`}
+            />
+          }
         />
 
         {/* ── Floor navigation ── */}
