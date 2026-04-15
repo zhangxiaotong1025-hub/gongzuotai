@@ -52,6 +52,8 @@ import ModelCreate from "./pages/model/ModelCreate";
 import ProductList from "./pages/product/ProductList";
 import ProductDetail from "./pages/product/ProductDetail";
 import ProductCreate from "./pages/product/ProductCreate";
+import AgentCommandCenter from "./pages/agent/AgentCommandCenter";
+import LeadsOperation from "./pages/agent/LeadsOperation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -123,6 +125,8 @@ function ProtectedRoutes() {
         <Route path="/content" element={<PlaceholderPage title="内容管理" />} />
         <Route path="/marketing" element={<PlaceholderPage title="营销管理" />} />
         <Route path="/dashboard" element={<PlaceholderPage title="数据看版" />} />
+        <Route path="/agent" element={<AgentCommandCenter />} />
+        <Route path="/agent/leads" element={<LeadsOperation />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AdminLayout>

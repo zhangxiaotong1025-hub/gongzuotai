@@ -97,6 +97,14 @@ const navItems: NavItem[] = [
   { label: "内容管理", icon: FileText, path: "/content" },
   { label: "营销管理", icon: Megaphone, path: "/marketing" },
   { label: "数据看版", icon: BarChart3, path: "/dashboard" },
+  {
+    label: "智能经营",
+    icon: Zap,
+    children: [
+      { label: "经营中心", path: "/agent" },
+      { label: "精准客资", path: "/agent/leads" },
+    ],
+  },
 ];
 
 export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
