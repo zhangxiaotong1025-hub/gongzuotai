@@ -1,203 +1,180 @@
 import { useState } from "react";
 import {
-  Users, ArrowRight, TrendingUp, TrendingDown,
+  Users, TrendingUp, TrendingDown,
   AlertTriangle, CheckCircle2, Clock, Target,
-  Zap, Filter, ChevronRight, Brain, BarChart3,
-  UserCheck, UserX, Phone, ArrowUpRight,
+  Zap, ChevronRight, Brain, BarChart3,
+  Building2, ArrowRight, DollarSign, Phone,
+  Bot, Sparkles, ArrowUpRight, AlertCircle,
+  Layers, Eye, Shield,
 } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
-  generateLeadsFunnel, generateDesignerPerformance,
-  generateChannelPerformance, generateLeadRecords,
-  type LeadsFunnelStage, type DesignerPerformance,
-  type ChannelPerformance, type LeadRecord,
-} from "@/data/agent-business";
+  generateAcquisitionChannels, generateCleansingQueue,
+  generateEnterpriseDistributions, generateFeedbackMetrics,
+  generatePipelineStages,
+  type AcquisitionChannel, type EnterpriseDistribution,
+  type CleansingQueue, type FeedbackMetrics,
+} from "@/data/agent-leads-pipeline";
 
-const FUNNEL = generateLeadsFunnel();
-const DESIGNERS = generateDesignerPerformance();
-const CHANNELS = generateChannelPerformance();
-const LEADS = generateLeadRecords();
+const CHANNELS = generateAcquisitionChannels();
+const CLEANSING = generateCleansingQueue();
+const ENTERPRISES = generateEnterpriseDistributions();
+const FEEDBACK = generateFeedbackMetrics();
+const PIPELINE = generatePipelineStages();
 
-const TABS = ["转化漏斗", "客资明细", "设计师效能", "渠道分析"];
+const TABS = ["获客渠道", "清洗产线", "企业派发", "反馈闭环"] as const;
 
-/* ── Funnel Visualization ── */
-function FunnelChart({ stages }: { stages: LeadsFunnelStage[] }) {
-  const maxCount = stages[0].count;
+/* ── Channel Table ── */
+const channelCols: TableColumn<AcquisitionChannel>[] = [
+  { key: "channel", title: "渠道", width: 120, render: (v: string, r) => (
+    <div>
+      <div className="text-sm font-medium">{v}</div>
+      <div className={`text-[10px] ${r.trend === "down" ? "text-red-500" : r.trend === "up" ? "text-emerald-600" : "text-muted-foreground"}`}>
+        {r.trend === "down" ? "↓ 效果下降" : r.trend === "up" ? "↑ 持续增长" : "— 持平"}
+      </div>
+    </div>
+  )},
+  { key: "leads", title: "线索量", width: 70, render: (v: number) => <span className="text-sm font-medium">{v.toLocaleString()}</span> },
+  { key: "cost", title: "投入", width: 90, render: (v: number) => <span className="text-xs">¥{v.toLocaleString()}</span> },
+  { key: "cac", title: "CAC", width: 60, render: (v: number, r) => (
+    <span className={`text-sm font-bold ${v > 250 ? "text-red-600" : v > 150 ? "text-amber-600" : "text-emerald-600"}`}>¥{v}</span>
+  )},
+  { key: "qualifiedRate", title: "合格率", width: 70, render: (v: number) => (
+    <div className="flex items-center gap-1.5">
+      <div className="w-10 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className={`h-full rounded-full ${v >= 70 ? "bg-emerald-500" : v >= 50 ? "bg-amber-500" : "bg-red-400"}`} style={{ width: `${v}%` }} />
+      </div>
+      <span className="text-xs">{v}%</span>
+    </div>
+  )},
+  { key: "qualifiedCac", title: "合格CAC", width: 80, render: (v: number) => (
+    <span className={`text-xs font-medium ${v > 400 ? "text-red-600" : v > 200 ? "text-amber-600" : "text-emerald-600"}`}>¥{v}</span>
+  )},
+  { key: "conversions", title: "转化", width: 55, render: (v: number) => <span className="text-sm">{v}</span> },
+  { key: "roi", title: "ROI", width: 70, render: (v: number) => (
+    <span className={`text-sm font-bold ${v > 150 ? "text-emerald-600" : v > 50 ? "text-foreground" : "text-red-600"}`}>{v}%</span>
+  )},
+];
+
+const channelActions: ActionItem<AcquisitionChannel>[] = [
+  { label: "AI优化", onClick: (r) => toast.info(r.aiSuggestion) },
+  { label: "调整预算", onClick: () => toast.success("预算已调整") },
+];
+
+/* ── Enterprise Table ── */
+const enterpriseCols: TableColumn<EnterpriseDistribution>[] = [
+  { key: "name", title: "企业", width: 140, render: (_v, r) => (
+    <div>
+      <div className="text-sm font-medium">{r.name}</div>
+      <div className="text-[10px] text-muted-foreground">{r.type} · {r.region}</div>
+    </div>
+  )},
+  { key: "totalReceived", title: "收到/高意向", width: 90, render: (_v, r) => (
+    <div className="text-xs"><span className="font-medium">{r.totalReceived}</span><span className="text-muted-foreground"> / {r.highIntent}</span></div>
+  )},
+  { key: "contactRate", title: "联系率", width: 65, render: (v: number) => (
+    <span className={`text-xs font-medium ${v >= 85 ? "text-emerald-600" : v >= 70 ? "text-amber-600" : "text-red-600"}`}>{v}%</span>
+  )},
+  { key: "conversionRate", title: "转化率", width: 65, render: (v: number) => (
+    <span className={`text-xs font-bold ${v >= 25 ? "text-emerald-600" : v >= 15 ? "text-foreground" : "text-red-600"}`}>{v}%</span>
+  )},
+  { key: "feedbackRate", title: "反馈率", width: 70, render: (v: number) => (
+    <div className="flex items-center gap-1.5">
+      <div className="w-10 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className={`h-full rounded-full ${v >= 60 ? "bg-emerald-500" : v >= 40 ? "bg-amber-500" : "bg-red-400"}`} style={{ width: `${Math.min(100, v)}%` }} />
+      </div>
+      <span className={`text-xs ${v < 30 ? "text-red-600 font-medium" : ""}`}>{v}%</span>
+    </div>
+  )},
+  { key: "avgResponseTime", title: "响应", width: 60, render: (v: string, r) => (
+    <span className={`text-xs ${r.riskLevel === "high" ? "text-red-600 font-medium" : ""}`}>{v}</span>
+  )},
+  { key: "satisfaction", title: "满意度", width: 60, render: (v: number) => (
+    <span className={`text-xs font-medium ${v >= 4 ? "text-emerald-600" : v >= 3 ? "text-amber-600" : "text-red-600"}`}>★ {v}</span>
+  )},
+  { key: "revenue", title: "贡献营收", width: 90, render: (v: number) => <span className="text-xs">¥{v.toLocaleString()}</span> },
+  { key: "riskLevel", title: "风险", width: 50, render: (v: string) => (
+    <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+      v === "high" ? "bg-red-100 text-red-700" : v === "medium" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
+    }`}>{v === "high" ? "高" : v === "中" ? "中" : "低"}</span>
+  )},
+];
+
+const enterpriseActions: ActionItem<EnterpriseDistribution>[] = [
+  { label: "AI诊断", onClick: (r) => toast.info(r.aiInsight) },
+  { label: "调整配额", onClick: () => toast.success("已调整") },
+  { label: "暂停派发", onClick: () => toast.warning("已暂停"), isDanger: true },
+];
+
+/* ── Cleansing Pipeline Viz ── */
+function CleansingPipeline({ queue }: { queue: CleansingQueue[] }) {
+  const total = queue.reduce((s, q) => s + q.count, 0);
   return (
-    <div className="space-y-2">
-      {stages.map((s, i) => {
-        const width = Math.max(20, (s.count / maxCount) * 100);
-        const statusColor = s.status === "critical" ? "bg-red-500" : s.status === "warning" ? "bg-amber-500" : "bg-primary";
-        const statusBg = s.status === "critical" ? "bg-red-50" : s.status === "warning" ? "bg-amber-50" : "bg-emerald-50";
-        return (
-          <div key={s.stage} className="flex items-center gap-4">
-            <div className="w-20 text-right text-xs text-muted-foreground shrink-0">{s.stage}</div>
-            <div className="flex-1 relative">
-              <div className={`h-10 rounded-lg ${statusBg} relative overflow-hidden`} style={{ width: `${width}%` }}>
-                <div className={`absolute inset-0 ${statusColor} opacity-20`} />
-                <div className="absolute inset-0 flex items-center px-3 gap-3">
-                  <span className="text-sm font-bold">{s.count}</span>
-                  {i > 0 && (
-                    <span className={`text-[11px] font-medium ${
-                      s.status === "critical" ? "text-red-700" : s.status === "warning" ? "text-amber-700" : "text-emerald-700"
-                    }`}>
-                      转化率 {s.conversionRate}%
-                      {s.conversionRate < s.benchmark && ` (基准${s.benchmark}%)`}
-                    </span>
-                  )}
-                </div>
-              </div>
-              {s.status !== "healthy" && (
-                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <AlertTriangle className={`h-4 w-4 ${s.status === "critical" ? "text-red-500" : "text-amber-500"}`} />
-                </div>
-              )}
+    <div className="space-y-4">
+      {/* Stacked bar */}
+      <div className="h-8 rounded-lg overflow-hidden flex">
+        {queue.map(q => (
+          <div key={q.status} className={`${q.color} relative group`} style={{ width: `${q.percentage}%` }}>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+              <span className="text-[10px] text-white font-medium whitespace-nowrap">{q.status} {q.count}</span>
             </div>
-            <div className="w-16 text-xs text-muted-foreground shrink-0 text-right">{s.avgTime}</div>
           </div>
-        );
-      })}
-      <div className="flex items-center gap-4 mt-1">
-        <div className="w-20" />
-        <div className="flex-1 flex justify-between text-[10px] text-muted-foreground px-1">
-          <span>← 漏斗宽度 = 客资数量</span>
-          <span>平均耗时 →</span>
-        </div>
-        <div className="w-16" />
+        ))}
+      </div>
+      {/* Legend */}
+      <div className="flex flex-wrap gap-x-4 gap-y-2">
+        {queue.map(q => (
+          <div key={q.status} className="flex items-center gap-1.5">
+            <div className={`w-2.5 h-2.5 rounded-sm ${q.color}`} />
+            <span className="text-[11px] text-muted-foreground">{q.status}</span>
+            <span className="text-[11px] font-medium">{q.count}</span>
+            <span className="text-[10px] text-muted-foreground">({q.percentage}%)</span>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-/* ── Lead Table Columns ── */
-const leadCols: TableColumn<LeadRecord>[] = [
-  { key: "customerName", title: "客户", width: 120, render: (_v, r) => (
-    <div>
-      <div className="text-sm font-medium">{r.customerName}</div>
-      <div className="text-[11px] text-muted-foreground">{r.phone}</div>
-    </div>
-  )},
-  { key: "channel", title: "来源", width: 100, render: (v: string) => <span className="text-xs">{v}</span> },
-  { key: "intentLevel", title: "意向", width: 60, render: (v: string) => (
-    <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
-      v === "high" ? "bg-red-100 text-red-700" : v === "medium" ? "bg-amber-100 text-amber-700" : "bg-muted text-muted-foreground"
-    }`}>{v === "high" ? "高" : v === "medium" ? "中" : "低"}</span>
-  )},
-  { key: "assignedTo", title: "跟进人", width: 80 },
-  { key: "stage", title: "阶段", width: 80, render: (v: string) => <span className="text-xs">{v}</span> },
-  { key: "responseTime", title: "响应时效", width: 80, render: (v: string, r) => (
-    <span className={`text-xs font-medium ${r.riskFlag ? "text-red-600" : "text-foreground"}`}>{v}</span>
-  )},
-  { key: "followCount", title: "跟进次数", width: 70, render: (v: number) => <span className="text-sm">{v}</span> },
-  { key: "estimatedValue", title: "预估价值", width: 90, render: (v: number) => <span className="text-sm">¥{v.toLocaleString()}</span> },
-  { key: "riskFlag", title: "风险", width: 90, render: (v?: string) => v ? (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">
-      <AlertTriangle className="h-3 w-3" />{v}
-    </span>
-  ) : <span className="text-xs text-muted-foreground">-</span> },
-];
-
-const leadActions: ActionItem<LeadRecord>[] = [
-  { label: "重新分配", onClick: () => toast.success("已重新分配") },
-  { label: "AI分析", onClick: () => toast.info("正在分析客资画像...") },
-];
-
-/* ── Designer Performance Columns ── */
-const designerCols: TableColumn<DesignerPerformance>[] = [
-  { key: "name", title: "设计师", width: 100, render: (_v, r) => (
-    <div>
-      <div className="text-sm font-medium">{r.name}</div>
-      <div className="text-[11px] text-muted-foreground">{r.enterprise}</div>
-    </div>
-  )},
-  { key: "activeLeads", title: "在跟/容量", width: 90, render: (_v, r) => {
-    const ratio = r.activeLeads / r.capacity;
-    return (
-      <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium ${ratio > 1 ? "text-red-600" : ""}`}>{r.activeLeads}/{r.capacity}</span>
-        <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden">
-          <div className={`h-full rounded-full ${ratio > 1 ? "bg-red-500" : ratio > 0.8 ? "bg-amber-500" : "bg-primary"}`}
-            style={{ width: `${Math.min(100, ratio * 100)}%` }} />
-        </div>
-      </div>
-    );
-  }},
-  { key: "conversionRate", title: "转化率", width: 80, render: (v: number) => (
-    <span className={`text-sm font-bold ${v >= 35 ? "text-emerald-600" : v >= 25 ? "text-foreground" : "text-red-600"}`}>{v}%</span>
-  )},
-  { key: "avgResponseTime", title: "平均响应", width: 80, render: (v: string, r) => (
-    <span className={`text-xs ${r.riskLevel === "high" ? "text-red-600 font-medium" : ""}`}>{v}</span>
-  )},
-  { key: "revenue30d", title: "30天营收", width: 100, render: (v: number) => <span className="text-sm">¥{v.toLocaleString()}</span> },
-  { key: "trend", title: "趋势", width: 50, render: (v: string) =>
-    v === "up" ? <TrendingUp className="h-4 w-4 text-emerald-600" /> : v === "down" ? <TrendingDown className="h-4 w-4 text-red-600" /> : <span className="text-xs text-muted-foreground">—</span>
-  },
-  { key: "riskLevel", title: "风险", width: 60, render: (v: string) => (
-    <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
-      v === "high" ? "bg-red-100 text-red-700" : v === "medium" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
-    }`}>{v === "high" ? "高" : v === "medium" ? "中" : "低"}</span>
-  )},
-];
-
-const designerActions: ActionItem<DesignerPerformance>[] = [
-  { label: "调整容量", onClick: () => toast.success("容量已调整") },
-  { label: "查看客资", onClick: () => toast.info("跳转客资列表") },
-];
-
 export default function LeadsOperation() {
   const [tab, setTab] = useState(0);
 
-  // KPI summary
-  const totalLeads = FUNNEL[0].count;
-  const totalConversions = FUNNEL[FUNNEL.length - 1].count;
-  const overallRate = Math.round((totalConversions / totalLeads) * 100 * 10) / 10;
-  const riskLeads = LEADS.filter(l => l.riskFlag).length;
-  const overloadedDesigners = DESIGNERS.filter(d => d.activeLeads > d.capacity).length;
+  // Summary KPIs
+  const totalCost = CHANNELS.reduce((s, c) => s + c.cost, 0);
+  const totalLeads = CHANNELS.reduce((s, c) => s + c.leads, 0);
+  const totalQualified = CHANNELS.reduce((s, c) => s + c.qualified, 0);
+  const avgCAC = Math.round(totalCost / totalLeads);
+  const avgQualifiedCAC = Math.round(totalCost / totalQualified);
+  const totalRevenue = CHANNELS.reduce((s, c) => s + c.revenue, 0);
 
   return (
     <div>
-      <PageHeader title="精准客资运营" subtitle="AI 驱动的客资全链路管理 — 从获客到签约的智能闭环" />
+      <PageHeader title="精准客资运营" subtitle="平台客资管线全链路分析 — 从获取到反馈闭环" />
 
-      {/* KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-        {[
-          { label: "本月客资", value: totalLeads.toLocaleString(), icon: Users, color: "text-primary" },
-          { label: "签约成交", value: totalConversions.toLocaleString(), icon: CheckCircle2, color: "text-emerald-600" },
-          { label: "整体转化率", value: `${overallRate}%`, icon: Target, color: "text-primary" },
-          { label: "风险客资", value: `${riskLeads}条`, icon: AlertTriangle, color: "text-red-600" },
-          { label: "超载设计师", value: `${overloadedDesigners}人`, icon: UserX, color: "text-amber-600" },
-        ].map(k => (
-          <div key={k.label} className="rounded-xl border border-border/60 bg-card p-3.5 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
-              <k.icon className={`h-4 w-4 ${k.color}`} />
+      {/* Pipeline Summary Bar */}
+      <div className="flex items-center gap-0 mb-5 rounded-xl border border-border/60 bg-card overflow-hidden">
+        {PIPELINE.map((s, i) => {
+          const maxCount = PIPELINE[0].count;
+          const pct = Math.round((s.count / maxCount) * 100);
+          return (
+            <div key={s.id} className={`flex-1 p-3 border-r border-border/40 last:border-0 cursor-pointer hover:bg-muted/30 transition-colors ${tab === i && i < 4 ? "bg-primary/5" : ""}`}
+              onClick={() => { if (i < 4) setTab(i); }}>
+              <div className="text-[10px] text-muted-foreground mb-0.5">{s.stage}</div>
+              <div className="text-lg font-bold">{s.count.toLocaleString()}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+                  <div className={`h-full rounded-full ${s.automationLevel >= 30 ? "bg-primary" : s.automationLevel >= 15 ? "bg-amber-500" : "bg-red-400"}`}
+                    style={{ width: `${s.automationLevel}%` }} />
+                </div>
+                <span className="text-[9px] text-muted-foreground shrink-0">AI {s.automationLevel}%</span>
+              </div>
             </div>
-            <div>
-              <div className={`text-lg font-bold ${k.color}`}>{k.value}</div>
-              <div className="text-[11px] text-muted-foreground">{k.label}</div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
-
-      {/* AI Insight Banner */}
-      {riskLeads > 0 && (
-        <div className="flex items-center gap-3 p-3 mb-5 rounded-xl border border-amber-200 bg-amber-50/40">
-          <Brain className="h-5 w-5 text-amber-600 shrink-0" />
-          <div className="flex-1 text-xs">
-            <span className="font-medium text-amber-800">AI 建议：</span>
-            <span className="text-amber-700">
-              {riskLeads} 条客资存在超时风险，建议将「王浩然」「周文」的超载客资转移给空闲的Top设计师「吴建国」「张明」，预计可挽回 ¥{(riskLeads * 35000).toLocaleString()} 潜在营收
-            </span>
-          </div>
-          <Button size="sm" variant="outline" className="h-7 text-xs border-amber-300 text-amber-700 shrink-0"
-            onClick={() => toast.success("已执行智能重分配")}>
-            <Zap className="h-3 w-3 mr-1" />一键重分配
-          </Button>
-        </div>
-      )}
 
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-5 border-b border-border/60">
@@ -209,161 +186,247 @@ export default function LeadsOperation() {
         ))}
       </div>
 
-      {/* Tab 0: Funnel */}
+      {/* ── Tab 0: Acquisition ── */}
       {tab === 0 && (
-        <div className="space-y-6">
-          <div className="rounded-xl border border-border/60 bg-card p-5">
-            <h4 className="text-sm font-medium mb-4 flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-primary" />
-              客资转化漏斗
-              <span className="text-[11px] text-muted-foreground font-normal">红色/黄色阶段表示低于行业基准</span>
-            </h4>
-            <FunnelChart stages={FUNNEL} />
-          </div>
-
-          {/* AI Diagnosis */}
-          <div className="rounded-xl border border-border/60 bg-card p-5">
-            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-              <Brain className="h-4 w-4 text-primary" />
-              AI 漏斗诊断
-            </h4>
-            <div className="space-y-3">
-              {[
-                { stage: "首次联系", status: "critical" as const, diagnosis: "平均首次联系时效18.5h，远超4h最佳窗口期。主要原因：3位设计师负荷超标，导致新客资无法及时响应。", action: "优化分配算法 + 设置4h超时自动转移", impact: "预计转化率提升8-12%" },
-                { stage: "智能分配", status: "warning" as const, diagnosis: "分配流失率4.8%，主因：部分区域无匹配设计师。建议引入跨区域/跨企业调配机制。", action: "启用跨企业客资共享池", impact: "预计减少60条/月流失" },
-                { stage: "方案推荐→签约", status: "healthy" as const, diagnosis: "该阶段转化率65%，高于行业基准55%，优势明显。3D方案演示环节转化贡献最大。", action: "推广方案演示标准流程至所有设计师", impact: "维持优势并标准化复制" },
-              ].map(d => (
-                <div key={d.stage} className={`p-4 rounded-lg border ${
-                  d.status === "critical" ? "border-red-200 bg-red-50/30" : d.status === "warning" ? "border-amber-200 bg-amber-50/30" : "border-emerald-200 bg-emerald-50/30"
-                }`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                      d.status === "critical" ? "bg-red-100 text-red-700" : d.status === "warning" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
-                    }`}>{d.stage}</span>
-                    <span className={`text-[10px] ${d.status === "critical" ? "text-red-600" : d.status === "warning" ? "text-amber-600" : "text-emerald-600"}`}>
-                      {d.status === "critical" ? "需立即优化" : d.status === "warning" ? "可改善" : "表现良好"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2">{d.diagnosis}</p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-muted-foreground">建议：</span>
-                      <span className="text-[11px] font-medium">{d.action}</span>
-                    </div>
-                    <span className="text-[10px] text-emerald-600 font-medium">{d.impact}</span>
-                  </div>
-                </div>
-              ))}
+        <div className="space-y-5">
+          {/* Cost Alert */}
+          <div className="flex items-center gap-3 p-3 rounded-xl border border-red-200 bg-red-50/40">
+            <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+            <div className="flex-1 text-xs">
+              <span className="font-medium text-red-800">获客成本预警：</span>
+              <span className="text-red-700">
+                本月综合CAC ¥{avgCAC}（合格线索CAC ¥{avgQualifiedCAC}），较上月上升17.5%。
+                「400电话」合格CAC高达¥697，建议立即用AI外呼替代。「小红书」ROI仅40.8%，建议暂停直投。
+              </span>
             </div>
           </div>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { label: "总投入", value: `¥${totalCost.toLocaleString()}`, sub: `${CHANNELS.length}个渠道` },
+              { label: "获取线索", value: totalLeads.toLocaleString(), sub: `合格${totalQualified}条` },
+              { label: "综合CAC", value: `¥${avgCAC}`, sub: `合格CAC ¥${avgQualifiedCAC}` },
+              { label: "客资营收", value: `¥${totalRevenue.toLocaleString()}`, sub: `毛利率${Math.round((1 - totalCost / totalRevenue) * 100)}%` },
+            ].map(k => (
+              <div key={k.label} className="rounded-lg border border-border/60 bg-card p-3">
+                <div className="text-[10px] text-muted-foreground">{k.label}</div>
+                <div className="text-lg font-bold">{k.value}</div>
+                <div className="text-[10px] text-muted-foreground">{k.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          <AdminTable columns={channelCols} data={CHANNELS} actions={channelActions} rowKey={r => r.channel} />
         </div>
       )}
 
-      {/* Tab 1: Lead Records */}
+      {/* ── Tab 1: Cleansing ── */}
       {tab === 1 && (
-        <AdminTable columns={leadCols} data={LEADS} actions={leadActions} rowKey={r => r.id} />
-      )}
-
-      {/* Tab 2: Designer Performance */}
-      {tab === 2 && (
-        <div className="space-y-4">
-          {/* AI Summary */}
-          <div className="rounded-xl border border-border/60 bg-card p-4">
-            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-              <Brain className="h-4 w-4 text-primary" />
-              设计师效能分析
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/30">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <UserCheck className="h-4 w-4 text-emerald-600" />
-                  <span className="text-xs font-medium text-emerald-800">Top 表现</span>
-                </div>
-                <p className="text-[11px] text-emerald-700">「吴建国」转化率45%，响应0.8h，且仅承载5/15客资。建议优先增加其客资分配。</p>
-              </div>
-              <div className="p-3 rounded-lg border border-red-200 bg-red-50/30">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <UserX className="h-4 w-4 text-red-600" />
-                  <span className="text-xs font-medium text-red-800">严重超载</span>
-                </div>
-                <p className="text-[11px] text-red-700">「王浩然」14/10超载40%，响应26h，转化率仅18%。建议立即暂停新客资分配并转移4条至空闲设计师。</p>
-              </div>
-              <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/30">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <Clock className="h-4 w-4 text-amber-600" />
-                  <span className="text-xs font-medium text-amber-800">响应偏慢</span>
-                </div>
-                <p className="text-[11px] text-amber-700">「周文」平均响应32h，建议开启4h未响应自动提醒，8h未响应自动转移机制。</p>
-              </div>
-            </div>
-          </div>
-
-          <AdminTable columns={designerCols} data={DESIGNERS} actions={designerActions} rowKey={r => r.id} />
-        </div>
-      )}
-
-      {/* Tab 3: Channel Analysis */}
-      {tab === 3 && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="rounded-xl border border-border/60 bg-card p-5">
             <h4 className="text-sm font-medium mb-4 flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" />
-              渠道效果对比
+              清洗队列状态
             </h4>
-            <div className="space-y-3">
-              {CHANNELS.map(ch => {
-                const maxRevenue = Math.max(...CHANNELS.map(c => c.revenue));
-                return (
-                  <div key={ch.channel} className="p-4 rounded-lg border border-border/40">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{ch.channel}</span>
-                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                          ch.quality === "high" ? "bg-emerald-100 text-emerald-700" : ch.quality === "medium" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
-                        }`}>{ch.quality === "high" ? "优质" : ch.quality === "medium" ? "一般" : "待优化"}</span>
-                      </div>
-                      <span className={`text-sm font-bold ${ch.roi > 500 ? "text-emerald-600" : ch.roi > 200 ? "text-foreground" : "text-amber-600"}`}>
-                        ROI {ch.roi}%
+            <CleansingPipeline queue={CLEANSING} />
+          </div>
+
+          {/* Bottleneck & AI Solution */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="rounded-xl border border-red-200 bg-red-50/30 p-5">
+              <h4 className="text-sm font-medium text-red-800 mb-3 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+                当前瓶颈
+              </h4>
+              <div className="space-y-3">
+                {[
+                  { issue: "客服团队8人，日均处理能力500条", detail: "当前日均获取142条，积压420条待清洗。旺季将严重不足。" },
+                  { issue: "人工清洗合格率仅62.4%", detail: "主观判断标准不一致，不同客服的合格率差异达±18%。" },
+                  { issue: "单条清洗成本约¥8.5", detail: "含客服工资、外呼话费、CRM工具费用。月均清洗成本¥36,380。" },
+                ].map((b, i) => (
+                  <div key={i} className="p-3 rounded-lg border border-red-200/60 bg-white/60">
+                    <div className="text-xs font-medium text-red-800 mb-0.5">{b.issue}</div>
+                    <div className="text-[10px] text-red-600">{b.detail}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5">
+              <h4 className="text-sm font-medium text-emerald-800 mb-3 flex items-center gap-2">
+                <Bot className="h-4 w-4 text-emerald-600" />
+                AI 解决方案
+              </h4>
+              <div className="space-y-3">
+                {[
+                  { solution: "AI外呼初筛（Phase 1）", detail: "AI自动拨打、确认号码有效性、初步意向判断。预计替代70%人工初筛。", saving: "节省¥12万/月", ready: true },
+                  { solution: "智能意向评分（Phase 2）", detail: "基于用户行为、表单信息、对话内容多维度打分。标准化替代主观判断。", saving: "合格率提升至78%", ready: true },
+                  { solution: "需求信息AI补全（Phase 3）", detail: "AI对话自动获取户型、预算、风格偏好等关键信息，减少人工回访。", saving: "信息完整度提升60%", ready: false },
+                ].map((s, i) => (
+                  <div key={i} className={`p-3 rounded-lg border ${s.ready ? "border-emerald-300 bg-white/60" : "border-emerald-200/60"}`}>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-xs font-medium text-emerald-800">{s.solution}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${s.ready ? "bg-emerald-200 text-emerald-800" : "bg-muted text-muted-foreground"}`}>
+                        {s.ready ? "可启用" : "规划中"}
                       </span>
                     </div>
-                    <div className="grid grid-cols-5 gap-3 text-center mb-2">
-                      <div><div className="text-sm font-medium">{ch.leads}</div><div className="text-[10px] text-muted-foreground">线索数</div></div>
-                      <div><div className="text-sm font-medium">¥{ch.cost.toLocaleString()}</div><div className="text-[10px] text-muted-foreground">投入</div></div>
-                      <div><div className="text-sm font-medium">{ch.conversions}</div><div className="text-[10px] text-muted-foreground">转化</div></div>
-                      <div><div className="text-sm font-medium">¥{ch.revenue.toLocaleString()}</div><div className="text-[10px] text-muted-foreground">营收</div></div>
-                      <div><div className="text-sm font-medium">¥{ch.cac.toLocaleString()}</div><div className="text-[10px] text-muted-foreground">CAC</div></div>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${ch.quality === "high" ? "bg-emerald-500" : ch.quality === "medium" ? "bg-amber-500" : "bg-red-400"}`}
-                        style={{ width: `${(ch.revenue / maxRevenue) * 100}%` }} />
-                    </div>
+                    <div className="text-[10px] text-emerald-700 mb-1">{s.detail}</div>
+                    <span className="text-[10px] font-bold text-emerald-600">{s.saving}</span>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Tab 2: Enterprise Distribution ── */}
+      {tab === 2 && (
+        <div className="space-y-5">
+          <div className="flex items-center gap-3 p-3 rounded-xl border border-amber-200 bg-amber-50/40">
+            <Brain className="h-5 w-5 text-amber-600 shrink-0" />
+            <div className="flex-1 text-xs">
+              <span className="font-medium text-amber-800">AI 派发建议：</span>
+              <span className="text-amber-700">
+                「好莱客」「志邦」反馈率低于25%，建议降级至B级或启动质量保障金。
+                「尚品宅配」「城市之光」表现优异，建议增加配额并提升单价至¥250/条。
+                启用智能匹配后，预计整体转化率可提升8-12%。
+              </span>
             </div>
           </div>
 
-          {/* AI Channel Insights */}
-          <div className="rounded-xl border border-border/60 bg-card p-5">
-            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-              <Brain className="h-4 w-4 text-primary" />
-              AI 渠道优化建议
+          {/* Distribution Stats */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { label: "总派发量", value: ENTERPRISES.reduce((s, e) => s + e.totalReceived, 0).toLocaleString(), color: "" },
+              { label: "平均联系率", value: `${Math.round(ENTERPRISES.reduce((s, e) => s + e.contactRate, 0) / ENTERPRISES.length)}%`, color: "" },
+              { label: "平均转化率", value: `${Math.round(ENTERPRISES.reduce((s, e) => s + e.conversionRate, 0) / ENTERPRISES.length)}%`, color: "" },
+              { label: "平均反馈率", value: `${Math.round(ENTERPRISES.reduce((s, e) => s + e.feedbackRate, 0) / ENTERPRISES.length)}%`, color: "text-red-600" },
+            ].map(k => (
+              <div key={k.label} className="rounded-lg border border-border/60 bg-card p-3">
+                <div className="text-[10px] text-muted-foreground">{k.label}</div>
+                <div className={`text-lg font-bold ${k.color}`}>{k.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <AdminTable columns={enterpriseCols} data={ENTERPRISES} actions={enterpriseActions} rowKey={r => r.id} />
+        </div>
+      )}
+
+      {/* ── Tab 3: Feedback Loop ── */}
+      {tab === 3 && (
+        <div className="space-y-5">
+          {/* Core Problem */}
+          <div className="rounded-xl border border-red-200 bg-red-50/30 p-5">
+            <h4 className="text-sm font-medium text-red-800 mb-3 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              核心断裂点：客资派发后管线失控
             </h4>
-            <div className="space-y-2">
-              {[
-                { insight: "「3D方案分享」零成本获客且转化率最高(37.8%)，建议将其升级为核心获客策略，设计师每分享一个方案奖励50积分", type: "positive" },
-                { insight: "「抖音信息流」获客量最大但CAC偏高(¥1,349)，建议优化落地页并增加3D效果展示，预计可降低CAC 20-30%", type: "action" },
-                { insight: "「小红书种草」ROI仅104%，投入产出比最低，建议暂停直接投放，转为KOL合作+方案分享组合策略", type: "warning" },
-                { insight: "「线下活动」虽然获客量少但客单价最高(¥5,000)，建议增加频次并与3D现场体验结合", type: "positive" },
-              ].map((ins, i) => (
-                <div key={i} className={`flex items-start gap-2 p-3 rounded-lg border ${
-                  ins.type === "positive" ? "border-emerald-200 bg-emerald-50/30" : ins.type === "warning" ? "border-amber-200 bg-amber-50/30" : "border-blue-200 bg-blue-50/30"
+            <p className="text-xs text-red-700 leading-relaxed mb-4">
+              平台每月派发2,340条客资给企业，但仅收到34.2%的跟进反馈（800条）。
+              这意味着65.8%的客资进入了"黑箱"——我们无法知道客户是否被联系、是否成交、客资质量到底如何。
+              没有反馈数据，渠道优化、质量提升、定价策略全部无据可依。
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {FEEDBACK.map(f => (
+                <div key={f.metric} className={`p-3 rounded-lg border ${
+                  f.status === "danger" ? "border-red-200 bg-white/60" : f.status === "warning" ? "border-amber-200 bg-amber-50/20" : "border-emerald-200 bg-emerald-50/20"
                 }`}>
-                  <span className="shrink-0 mt-0.5">{ins.type === "positive" ? "✅" : ins.type === "warning" ? "⚠️" : "🎯"}</span>
-                  <span className="text-xs leading-relaxed">{ins.insight}</span>
+                  <div className="text-[10px] text-muted-foreground mb-1">{f.metric}</div>
+                  <div className={`text-lg font-bold ${
+                    f.status === "danger" ? "text-red-600" : f.status === "warning" ? "text-amber-600" : "text-emerald-600"
+                  }`}>{f.value}</div>
+                  <div className="text-[10px] text-muted-foreground">{f.benchmark}</div>
+                  <div className="text-[10px] text-red-600 mt-1">{f.impact}</div>
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Solution: Incentive System */}
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/30 p-5">
+            <h4 className="text-sm font-medium text-emerald-800 mb-3 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-emerald-600" />
+              解决方案：让企业「自愿」回传数据
+            </h4>
+            <p className="text-xs text-emerald-700 mb-4">
+              企业不反馈的根因是「没有动力」。必须让反馈行为与客资质量、价格优惠直接挂钩，
+              让企业感受到「反馈越多，拿到的客资越好越便宜」。
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                {
+                  title: "💰 质量保障金机制",
+                  desc: "预付10%保证金，每条回传跟进记录后退还。未回传自动扣除。",
+                  detail: "例：¥200/条客资，企业预付¥20保证金。回传后退¥20，未回传扣除。",
+                  targetEffect: "预计反馈率 34% → 65%",
+                },
+                {
+                  title: "🎁 反馈积分兑客资",
+                  desc: "回传1条跟进=5积分，100积分兑1条免费高意向客资。",
+                  detail: "正向激励：越积极反馈，获得的免费客资越多。企业边省钱边贡献数据。",
+                  targetEffect: "预计月增免费客资200条",
+                },
+                {
+                  title: "📊 动态折扣挂钩",
+                  desc: "反馈率≥80%享8折，≥60%享9折，<40%按标准+10%。",
+                  detail: "用价格杠杆驱动行为改变。高反馈率企业获得成本优势。",
+                  targetEffect: "预计复购率提升12%",
+                },
+                {
+                  title: "🤖 AI自动催促",
+                  desc: "客资派发48h后未回传，系统自动发送催促。72h仍未回传标记为风险。",
+                  detail: "配合AI外呼自动询问跟进状态，降低人工催收成本。",
+                  targetEffect: "预计回传延迟 4.2天 → 1.5天",
+                },
+              ].map((s, i) => (
+                <div key={i} className="p-4 rounded-lg border border-emerald-300 bg-white/60">
+                  <div className="text-sm font-medium mb-1.5">{s.title}</div>
+                  <p className="text-xs text-muted-foreground mb-1">{s.desc}</p>
+                  <p className="text-[10px] text-muted-foreground mb-2">{s.detail}</p>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-100 border border-emerald-200">
+                    <Target className="h-3 w-3 text-emerald-600" />
+                    <span className="text-[11px] font-medium text-emerald-700">{s.targetEffect}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button className="mt-4 w-full" onClick={() => toast.success("已创建激励方案草案")}>
+              <Zap className="h-4 w-4 mr-2" />
+              一键生成激励方案配置
+            </Button>
+          </div>
+
+          {/* Closed Loop Visualization */}
+          <div className="rounded-xl border border-border/60 bg-card p-5">
+            <h4 className="text-sm font-medium mb-4 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-primary" />
+              目标：数据飞轮闭环
+            </h4>
+            <div className="flex items-center justify-center gap-2 py-4 flex-wrap">
+              {[
+                { label: "渠道投放", icon: "📡" },
+                { label: "AI清洗", icon: "🤖" },
+                { label: "智能派发", icon: "🎯" },
+                { label: "企业跟进", icon: "👥" },
+                { label: "数据回传", icon: "📊" },
+                { label: "优化迭代", icon: "⚡" },
+              ].map((step, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg border border-border/60 bg-muted/20 min-w-[72px]">
+                    <span className="text-lg">{step.icon}</span>
+                    <span className="text-[10px] font-medium">{step.label}</span>
+                  </div>
+                  {i < 5 && <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-xs text-muted-foreground">
+              回传数据驱动渠道/清洗/派发三环节持续优化 → 客资质量提升 → 企业更愿意反馈 → 正循环
+            </p>
           </div>
         </div>
       )}
