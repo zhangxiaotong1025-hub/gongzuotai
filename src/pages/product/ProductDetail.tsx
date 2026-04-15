@@ -188,6 +188,8 @@ export default function ProductDetail() {
             <ModuleAgentButton
               domain="supply_chain"
               label="AI 生成详情页"
+              relatedModule="product"
+              relatedResourceId={id!}
               context={{
                 productName: spu.productSpuName,
                 brand: spu.brandName,

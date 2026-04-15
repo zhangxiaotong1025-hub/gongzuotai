@@ -1,12 +1,150 @@
-// Agent chat streaming utility
+// Agent chat streaming utility + conversation persistence
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/agent-chat`;
 
 export type AgentDomain = "supply_chain" | "content" | "operation" | "design" | "general";
 
 export interface AgentMessage {
+  id?: string;
   role: "user" | "assistant";
   content: string;
+  createdAt?: string;
 }
+
+export interface Conversation {
+  id: string;
+  title: string;
+  agentDomain: AgentDomain;
+  relatedModule?: string;
+  relatedResourceId?: string;
+  messages: AgentMessage[];
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GeneratedResult {
+  id: string;
+  conversationId?: string;
+  taskType: string;
+  agentDomain: AgentDomain;
+  relatedModule: string;
+  relatedResourceId: string;
+  inputParams: Record<string, unknown>;
+  outputResult: Record<string, unknown>;
+  createdAt: string;
+}
+
+// ── Conversation persistence (localStorage, ready for DB migration) ──
+
+const CONV_STORAGE_KEY = "agent_conversations";
+const RESULT_STORAGE_KEY = "agent_generated_results";
+
+function genId() {
+  return crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+export function loadConversations(): Conversation[] {
+  try {
+    return JSON.parse(localStorage.getItem(CONV_STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function loadConversationsByDomain(domain: AgentDomain): Conversation[] {
+  return loadConversations().filter((c) => c.agentDomain === domain);
+}
+
+export function loadConversation(id: string): Conversation | null {
+  return loadConversations().find((c) => c.id === id) || null;
+}
+
+export function saveConversation(conv: Conversation): void {
+  const all = loadConversations();
+  const idx = all.findIndex((c) => c.id === conv.id);
+  conv.updatedAt = new Date().toISOString();
+  if (idx >= 0) {
+    all[idx] = conv;
+  } else {
+    all.unshift(conv);
+  }
+  // Keep max 50 conversations
+  localStorage.setItem(CONV_STORAGE_KEY, JSON.stringify(all.slice(0, 50)));
+}
+
+export function deleteConversation(id: string): void {
+  const all = loadConversations().filter((c) => c.id !== id);
+  localStorage.setItem(CONV_STORAGE_KEY, JSON.stringify(all));
+}
+
+export function createConversation(domain: AgentDomain, relatedModule?: string, relatedResourceId?: string): Conversation {
+  const conv: Conversation = {
+    id: genId(),
+    title: "新对话",
+    agentDomain: domain,
+    relatedModule,
+    relatedResourceId,
+    messages: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  saveConversation(conv);
+  return conv;
+}
+
+// Auto-generate title from first user message
+export function autoTitle(content: string): string {
+  const cleaned = content.replace(/\n/g, " ").trim();
+  return cleaned.length > 30 ? cleaned.slice(0, 30) + "..." : cleaned;
+}
+
+// ── Generated results persistence ──
+
+export function loadResults(): GeneratedResult[] {
+  try {
+    return JSON.parse(localStorage.getItem(RESULT_STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function loadResultsByResource(module: string, resourceId: string): GeneratedResult[] {
+  return loadResults().filter(
+    (r) => r.relatedModule === module && r.relatedResourceId === resourceId
+  );
+}
+
+export function saveResult(result: GeneratedResult): void {
+  const all = loadResults();
+  all.unshift(result);
+  localStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(all.slice(0, 200)));
+}
+
+export function createAndSaveResult(
+  conversationId: string | undefined,
+  taskType: string,
+  domain: AgentDomain,
+  relatedModule: string,
+  relatedResourceId: string,
+  inputParams: Record<string, unknown>,
+  outputResult: Record<string, unknown>
+): GeneratedResult {
+  const result: GeneratedResult = {
+    id: genId(),
+    conversationId,
+    taskType,
+    agentDomain: domain,
+    relatedModule,
+    relatedResourceId,
+    inputParams,
+    outputResult,
+    createdAt: new Date().toISOString(),
+  };
+  saveResult(result);
+  return result;
+}
+
+// ── Streaming ──
 
 export async function streamAgentChat({
   messages,
