@@ -106,7 +106,7 @@ const enterpriseCols: TableColumn<EnterpriseDistribution>[] = [
 const enterpriseActions: ActionItem<EnterpriseDistribution>[] = [
   { label: "AI诊断", onClick: (r) => toast.info(r.aiInsight) },
   { label: "调整配额", onClick: () => toast.success("已调整") },
-  { label: "暂停派发", onClick: () => toast.warning("已暂停"), isDanger: true },
+  { label: "暂停派发", onClick: () => toast.warning("已暂停"), danger: true },
 ];
 
 /* ── Cleansing Pipeline Viz ── */
