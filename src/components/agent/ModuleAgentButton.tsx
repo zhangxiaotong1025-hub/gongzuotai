@@ -9,17 +9,18 @@ interface ModuleAgentButtonProps {
   label?: string;
   context?: Record<string, unknown>;
   prompt?: string;
+  /** For result persistence */
+  relatedModule?: string;
+  relatedResourceId?: string;
 }
 
-/**
- * Inline Agent button for module pages.
- * Opens the Agent panel with pre-configured domain and optional context/prompt.
- */
 export default function ModuleAgentButton({
   domain,
   label = "AI 助手",
   context,
   prompt,
+  relatedModule,
+  relatedResourceId,
 }: ModuleAgentButtonProps) {
   const [open, setOpen] = useState(false);
 
@@ -41,6 +42,9 @@ export default function ModuleAgentButton({
         defaultDomain={domain}
         context={context}
         initialPrompt={prompt}
+        relatedModule={relatedModule}
+        relatedResourceId={relatedResourceId}
+        saveResults={!!(relatedModule && relatedResourceId)}
       />
     </>
   );
