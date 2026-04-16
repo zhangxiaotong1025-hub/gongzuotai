@@ -4,7 +4,8 @@ import {
   Building2, Users, Shield, Gift, Tag, UserCircle, Sliders,
   FolderTree, Package, ShoppingBag, Key, Layout, Monitor,
   FileText, Megaphone, BarChart3, ChevronDown, Zap, Ruler,
-  Box, Layers, ClipboardList, Wallet, Activity,
+  Box, Layers, ClipboardList, Wallet, Activity, Store,
+  Briefcase, Star, Heart,
 } from "lucide-react";
 
 interface NavGrandChild {
@@ -111,6 +112,18 @@ const navItems: NavItem[] = [
     ],
   },
   { label: "数据看版", icon: BarChart3, path: "/dashboard" },
+  {
+    label: "商家经营",
+    icon: Store,
+    children: [
+      { label: "商家工作台", path: "/merchant" },
+      { label: "我的客资", path: "/merchant/leads" },
+      { label: "签单管理", path: "/merchant/deals" },
+      { label: "项目交付", path: "/merchant/projects" },
+      { label: "客户评价", path: "/merchant/reviews" },
+      { label: "老客运营", path: "/merchant/retention" },
+    ],
+  },
   {
     label: "智能经营",
     icon: Zap,
