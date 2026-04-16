@@ -54,7 +54,7 @@ export default function Tracking() {
     <div className="space-y-5">
       <PageHeader
         title="跟进追踪"
-        description="企业跟进看板 · 超时预警 · 反馈催促"
+        subtitle="企业跟进看板 · 超时预警 · 反馈催促"
         actions={
           <div className="flex gap-2">
             {overdueCount > 0 && (

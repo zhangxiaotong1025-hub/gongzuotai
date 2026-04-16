@@ -53,7 +53,7 @@ export default function Settlement() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="结算中心" description="CPA/CPS计费 · 对账结算 · 保障金管理" />
+      <PageHeader title="结算中心" subtitle="CPA/CPS计费 · 对账结算 · 保障金管理" />
 
       <div className="grid grid-cols-4 gap-3">
         {[

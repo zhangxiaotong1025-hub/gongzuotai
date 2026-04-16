@@ -111,7 +111,7 @@ export default function CallCenter() {
 
   return (
     <div className="space-y-5">
-      <PageHeader title="呼叫中心" description="AI外呼 + 人工坐席 · 线索初筛工作台" />
+      <PageHeader title="呼叫中心" subtitle="AI外呼 + 人工坐席 · 线索初筛工作台" />
 
       {/* AI vs Human comparison */}
       <div className="grid grid-cols-2 gap-4">

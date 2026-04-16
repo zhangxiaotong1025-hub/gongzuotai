@@ -52,7 +52,7 @@ export default function MarketingDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="营销驾驶舱"
-        description="精准客资全链路监控 · 从流量到成交的闭环管理"
+        subtitle="精准客资全链路监控 · 从流量到成交的闭环管理"
       />
 
       {/* KPI Cards */}

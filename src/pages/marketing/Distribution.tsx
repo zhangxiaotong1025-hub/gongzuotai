@@ -80,7 +80,7 @@ export default function Distribution() {
     <div className="space-y-5">
       <PageHeader
         title="智能派发"
-        description="多维匹配引擎 · 企业画像 · 派发记录"
+        subtitle="多维匹配引擎 · 企业画像 · 派发记录"
         actions={
           <Button size="sm" onClick={() => toast.info("执行智能派发（规划中）")}>
             <Zap className="h-3.5 w-3.5 mr-1" /> 执行派发

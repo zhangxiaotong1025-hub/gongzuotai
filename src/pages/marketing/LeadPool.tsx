@@ -110,7 +110,7 @@ export default function LeadPool() {
     <div className="space-y-5">
       <PageHeader
         title="线索池"
-        description="全量线索管理 · 清洗 · 评分 · 派发"
+        subtitle="全量线索管理 · 清洗 · 评分 · 派发"
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => toast.info("批量清洗（规划中）")}>

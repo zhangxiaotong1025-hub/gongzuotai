@@ -136,7 +136,7 @@ function IncentiveConfig() {
 export default function MarketingSettings() {
   return (
     <div className="space-y-5">
-      <PageHeader title="运营配置" description="评分模型 · 派发规则 · 激励机制 · 清洗标准" />
+      <PageHeader title="运营配置" subtitle="评分模型 · 派发规则 · 激励机制 · 清洗标准" />
 
       <Tabs defaultValue="scoring">
         <TabsList>

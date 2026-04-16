@@ -71,7 +71,7 @@ const actions: ActionItem<Channel>[] = [
 export default function ChannelList() {
   return (
     <div className="space-y-6">
-      <PageHeader title="渠道管理" description="多渠道投放效果监控与ROI优化" />
+      <PageHeader title="渠道管理" subtitle="多渠道投放效果监控与ROI优化" />
 
       {/* Summary cards */}
       <div className="grid grid-cols-4 gap-3">
