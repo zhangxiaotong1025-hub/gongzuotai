@@ -17,7 +17,7 @@ const OPP_LABELS: Record<string, { label: string; color: string }> = {
   referral: { label: "转介绍", color: "bg-emerald-500/10 text-emerald-600" },
 };
 
-const columns: Column<RetentionCustomer>[] = [
+const columns: TableColumn<RetentionCustomer>[] = [
   { key: "name", title: "客户", width: 80 },
   { key: "projectType", title: "项目类型", width: 100 },
   { key: "totalSpent", title: "历史消费", width: 100, render: (v: number) => `¥${(v / 10000).toFixed(1)}万` },

@@ -14,7 +14,7 @@ const funnelData = stageOrder.map((s) => ({
   amount: DEALS.filter((d) => d.stage === s).reduce((sum, d) => sum + d.amount, 0),
 }));
 
-const columns: Column<Deal>[] = [
+const columns: TableColumn<Deal>[] = [
   { key: "customerName", title: "客户", width: 100 },
   { key: "category", title: "品类", width: 100 },
   { key: "amount", title: "金额", width: 100, render: (v: number) => `¥${(v / 10000).toFixed(1)}万` },
@@ -35,9 +35,9 @@ const actions: ActionItem<Deal>[] = [
   { label: "推进阶段", onClick: () => {} },
 ];
 
-const filters: FilterField[] = [
-  { key: "stage", label: "阶段", type: "select", options: stageOrder.map((s) => ({ label: DEAL_STAGE_MAP[s].label, value: s })) },
-  { key: "category", label: "品类", type: "select", options: ["全屋定制", "厨房改造", "卫浴翻新"].map((c) => ({ label: c, value: c })) },
+const filters = [
+  { key: "stage", label: "阶段", type: "select" as const, options: stageOrder.map((s) => ({ label: DEAL_STAGE_MAP[s].label, value: s })) },
+  { key: "category", label: "品类", type: "select" as const, options: ["全屋定制", "厨房改造", "卫浴翻新"].map((c) => ({ label: c, value: c })) },
 ];
 
 export default function MerchantDeals() {
@@ -86,9 +86,7 @@ export default function MerchantDeals() {
         </div>
       </div>
 
-      <FilterBar fields={filters} onFilter={() => {}} />
       <AdminTable columns={columns} data={DEALS} rowKey={(r) => r.id} actions={actions} />
-      <Pagination current={page} total={DEALS.length} pageSize={20} onChange={setPage} />
     </div>
   );
 }
