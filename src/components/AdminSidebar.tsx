@@ -95,7 +95,21 @@ const navItems: NavItem[] = [
   { label: "方案管理", icon: Layout, path: "/plan" },
   { label: "前台类目管理", icon: Monitor, path: "/front-category" },
   { label: "内容管理", icon: FileText, path: "/content" },
-  { label: "营销管理", icon: Megaphone, path: "/marketing" },
+  {
+    label: "智能营销",
+    icon: Megaphone,
+    children: [
+      { label: "营销驾驶舱", path: "/marketing" },
+      { label: "渠道管理", path: "/marketing/channels" },
+      { label: "活动管理", path: "/marketing/campaigns" },
+      { label: "线索池", path: "/marketing/leads" },
+      { label: "呼叫中心", path: "/marketing/call-center" },
+      { label: "智能派发", path: "/marketing/distribution" },
+      { label: "跟进追踪", path: "/marketing/tracking" },
+      { label: "结算中心", path: "/marketing/settlement" },
+      { label: "运营配置", path: "/marketing/settings" },
+    ],
+  },
   { label: "数据看版", icon: BarChart3, path: "/dashboard" },
   {
     label: "智能经营",

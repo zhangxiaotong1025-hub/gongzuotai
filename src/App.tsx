@@ -54,6 +54,15 @@ import ProductDetail from "./pages/product/ProductDetail";
 import ProductCreate from "./pages/product/ProductCreate";
 import AgentCommandCenter from "./pages/agent/AgentCommandCenter";
 import LeadsOperation from "./pages/agent/LeadsOperation";
+import MarketingDashboard from "./pages/marketing/MarketingDashboard";
+import ChannelList from "./pages/marketing/ChannelList";
+import CampaignList from "./pages/marketing/CampaignList";
+import LeadPool from "./pages/marketing/LeadPool";
+import CallCenter from "./pages/marketing/CallCenter";
+import Distribution from "./pages/marketing/Distribution";
+import Tracking from "./pages/marketing/Tracking";
+import Settlement from "./pages/marketing/Settlement";
+import MarketingSettings from "./pages/marketing/MarketingSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -123,7 +132,15 @@ function ProtectedRoutes() {
         <Route path="/plan" element={<PlaceholderPage title="方案管理" />} />
         <Route path="/front-category" element={<PlaceholderPage title="前台类目管理" />} />
         <Route path="/content" element={<PlaceholderPage title="内容管理" />} />
-        <Route path="/marketing" element={<PlaceholderPage title="营销管理" />} />
+        <Route path="/marketing" element={<MarketingDashboard />} />
+        <Route path="/marketing/channels" element={<ChannelList />} />
+        <Route path="/marketing/campaigns" element={<CampaignList />} />
+        <Route path="/marketing/leads" element={<LeadPool />} />
+        <Route path="/marketing/call-center" element={<CallCenter />} />
+        <Route path="/marketing/distribution" element={<Distribution />} />
+        <Route path="/marketing/tracking" element={<Tracking />} />
+        <Route path="/marketing/settlement" element={<Settlement />} />
+        <Route path="/marketing/settings" element={<MarketingSettings />} />
         <Route path="/dashboard" element={<PlaceholderPage title="数据看版" />} />
         <Route path="/agent" element={<AgentCommandCenter />} />
         <Route path="/agent/leads" element={<LeadsOperation />} />
