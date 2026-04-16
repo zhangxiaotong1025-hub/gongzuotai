@@ -75,7 +75,7 @@ export default function Settlement() {
       <AdminTable
         columns={columns}
         data={RECORDS}
-        rowKey="id"
+        rowKey={(r) => r.id}
         actions={[
           { label: "查看对账单", onClick: () => toast.info("对账单详情（规划中）") },
           { label: "确认结算", onClick: (r) => r.status === "pending" ? toast.info("确认结算（规划中）") : toast.info("当前状态不可操作") },

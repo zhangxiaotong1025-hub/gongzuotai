@@ -140,7 +140,7 @@ export default function LeadPool() {
         })}
       </div>
 
-      <AdminTable columns={columns} data={filtered} actions={actions} rowKey="id" />
+      <AdminTable columns={columns} data={filtered} actions={actions} rowKey={(r) => r.id} />
     </div>
   );
 }

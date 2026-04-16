@@ -95,7 +95,7 @@ export default function ChannelList() {
         columns={columns}
         data={CHANNELS}
         actions={actions}
-        rowKey="id"
+        rowKey={(r) => r.id}
       />
     </div>
   );

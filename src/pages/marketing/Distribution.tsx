@@ -115,10 +115,10 @@ export default function Distribution() {
           <TabsTrigger value="enterprises">企业画像</TabsTrigger>
         </TabsList>
         <TabsContent value="records">
-          <AdminTable columns={recordColumns} data={RECORDS} rowKey="id" actions={[{ label: "详情", onClick: () => toast.info("派发详情（规划中）") }]} />
+          <AdminTable columns={recordColumns} data={RECORDS} rowKey={(r) => r.id} actions={[{ label: "详情", onClick: () => toast.info("派发详情（规划中）") }]} />
         </TabsContent>
         <TabsContent value="enterprises">
-          <AdminTable columns={enterpriseColumns} data={ENTERPRISES} rowKey="id" actions={[{ label: "查看", onClick: () => toast.info("企业详情（规划中）") }]} />
+          <AdminTable columns={enterpriseColumns} data={ENTERPRISES} rowKey={(r) => r.id} actions={[{ label: "查看", onClick: () => toast.info("企业详情（规划中）") }]} />
         </TabsContent>
       </Tabs>
     </div>

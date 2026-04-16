@@ -76,7 +76,7 @@ export default function CampaignList() {
         subtitle="营销活动全生命周期管理与效果归因"
         actions={<Button size="sm" onClick={() => toast.info("创建活动（规划中）")}>新建活动</Button>}
       />
-      <AdminTable columns={columns} data={CAMPAIGNS} actions={actions} rowKey="id" />
+      <AdminTable columns={columns} data={CAMPAIGNS} actions={actions} rowKey={(r) => r.id} />
     </div>
   );
 }

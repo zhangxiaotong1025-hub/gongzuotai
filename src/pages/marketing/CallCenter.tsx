@@ -163,10 +163,10 @@ export default function CallCenter() {
           <TabsTrigger value="agents">坐席管理</TabsTrigger>
         </TabsList>
         <TabsContent value="records">
-          <AdminTable columns={callColumns} data={CALLS} rowKey="id" actions={[{ label: "查看详情", onClick: () => toast.info("通话详情（规划中）") }]} />
+          <AdminTable columns={callColumns} data={CALLS} rowKey={(r) => r.id} actions={[{ label: "查看详情", onClick: () => toast.info("通话详情（规划中）") }]} />
         </TabsContent>
         <TabsContent value="agents">
-          <AdminTable columns={agentColumns} data={AGENTS} rowKey="id" actions={[{ label: "配置", onClick: () => toast.info("坐席配置（规划中）") }]} />
+          <AdminTable columns={agentColumns} data={AGENTS} rowKey={(r) => r.id} actions={[{ label: "配置", onClick: () => toast.info("坐席配置（规划中）") }]} />
         </TabsContent>
       </Tabs>
     </div>
