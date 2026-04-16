@@ -63,6 +63,12 @@ import Distribution from "./pages/marketing/Distribution";
 import Tracking from "./pages/marketing/Tracking";
 import Settlement from "./pages/marketing/Settlement";
 import MarketingSettings from "./pages/marketing/MarketingSettings";
+import MerchantDashboard from "./pages/merchant/MerchantDashboard";
+import MerchantLeads from "./pages/merchant/MerchantLeads";
+import MerchantDeals from "./pages/merchant/MerchantDeals";
+import MerchantProjects from "./pages/merchant/MerchantProjects";
+import MerchantReviews from "./pages/merchant/MerchantReviews";
+import MerchantRetention from "./pages/merchant/MerchantRetention";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -141,6 +147,12 @@ function ProtectedRoutes() {
         <Route path="/marketing/tracking" element={<Tracking />} />
         <Route path="/marketing/settlement" element={<Settlement />} />
         <Route path="/marketing/settings" element={<MarketingSettings />} />
+        <Route path="/merchant" element={<MerchantDashboard />} />
+        <Route path="/merchant/leads" element={<MerchantLeads />} />
+        <Route path="/merchant/deals" element={<MerchantDeals />} />
+        <Route path="/merchant/projects" element={<MerchantProjects />} />
+        <Route path="/merchant/reviews" element={<MerchantReviews />} />
+        <Route path="/merchant/retention" element={<MerchantRetention />} />
         <Route path="/dashboard" element={<PlaceholderPage title="数据看版" />} />
         <Route path="/agent" element={<AgentCommandCenter />} />
         <Route path="/agent/leads" element={<LeadsOperation />} />
