@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { Briefcase, TrendingUp, DollarSign, Clock, ArrowRight } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { AdminTable, type Column, type ActionItem } from "@/components/admin/AdminTable";
-import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
-import { Pagination } from "@/components/admin/Pagination";
+import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { generateDeals, DEAL_STAGE_MAP } from "@/data/merchant";
 import type { Deal } from "@/data/merchant";
 

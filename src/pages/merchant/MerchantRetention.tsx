@@ -1,6 +1,6 @@
 import { Heart, Gift, RefreshCw, Users, Phone, TrendingUp, Zap } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { AdminTable, type Column, type ActionItem } from "@/components/admin/AdminTable";
+import { AdminTable, type TableColumn, type ActionItem } from "@/components/admin/AdminTable";
 import { generateRetentionCustomers } from "@/data/merchant";
 import type { RetentionCustomer } from "@/data/merchant";
 
