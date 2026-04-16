@@ -11,11 +11,13 @@ Components: AdminTable, FilterBar, Pagination, PageHeader, DetailActionBar.
 Badges: rounded-full capsule, 1.5h solid dot indicator (info, success, danger).
 Forms: Sectioned Card Layout, 100px label width (right aligned, wide=120px).
 Business: Platform acquires leads → cleanses → distributes to enterprises. Revenue = lead sales.
+Dual-sided platform: Platform (acquisition) + Merchant (conversion/delivery/retention).
 
 ## Memories
 - [Project Context](mem://project/context) — Background: remodel Alibaba backend for home decor 3D design platform
 - [Leads Pipeline](mem://features/leads-pipeline-business-model) — Platform lead acquisition→cleansing→distribution→enterprise feedback loop
 - [Marketing System](mem://features/marketing-system-architecture) — 9-module intelligent marketing system: channels, campaigns, leads, calls, distribution, tracking, settlement, settings
+- [Merchant Modules](mem://features/merchant-modules) — 6-module merchant workbench: leads, deals, projects, reviews, retention
 - [Interaction Standards](mem://ui/interaction-standards) — Admin interaction patterns, wizard standard, editing is creating
 - [Standard Components](mem://ui/standard-components) — AdminTable, FilterBar, Pagination, PageHeader usage
 - [Visual Specification](mem://ui/visual-specification) — Dark mode hero, glassmorphism, useAnimatedValue, pulse animations
