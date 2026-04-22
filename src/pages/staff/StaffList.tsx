@@ -525,6 +525,7 @@ export default function StaffList() {
     { label: "查看", onClick: (r) => navigate(`/enterprise/staff/detail/${r.id}`) },
     { label: "编辑", onClick: (r) => navigate(`/enterprise/staff/create?id=${r.id}`) },
     { label: "权益设置", onClick: (r) => setBenefitDialogStaff(r) },
+    { label: "重置密码", onClick: (r) => setResetPwdStaff(r) },
     {
       label: "停用",
       onClick: (r) => { toast.success(`已停用「${r.name}」`); },
