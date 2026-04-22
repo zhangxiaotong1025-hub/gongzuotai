@@ -263,6 +263,25 @@ export default function LoginPage() {
               </div>
             )}
 
+            {/* Remember + Forgot */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <Checkbox
+                  checked={rememberPhone}
+                  onCheckedChange={(v) => setRememberPhone(!!v)}
+                  className="h-4 w-4"
+                />
+                <span className="text-[12px] text-muted-foreground">记住手机号</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => { setForgotPhone(phone); setShowForgot(true); }}
+                className="text-[12px] text-primary hover:text-primary/80 transition-colors"
+              >
+                忘记密码？
+              </button>
+            </div>
+
             <Button
               onClick={handleSubmit}
               disabled={submitting}
@@ -272,16 +291,85 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          <div className="mt-6 text-center">
-            <p className="text-xs text-muted-foreground">
+          {/* 初始密码 + Mock 提示 */}
+          <div className="mt-6 rounded-lg border border-primary/15 bg-primary/[0.03] px-3.5 py-2.5">
+            <div className="flex items-start gap-2">
+              <Info className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+              <div className="text-[12px] text-foreground leading-relaxed">
+                <span className="font-medium">初始密码：</span>
+                <code className="text-primary bg-primary/8 px-1.5 py-0.5 rounded mx-0.5 font-mono">Aa@123456</code>
+                <span className="text-muted-foreground">（管理员创建账号后默认密码，登录后请尽快修改）</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 text-center space-y-1">
+            <p className="text-[11px] text-muted-foreground">
               Mock 提示：验证码 <code className="text-foreground bg-muted px-1 rounded">1234</code>，密码 <code className="text-foreground bg-muted px-1 rounded">admin123</code>
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-[11px] text-muted-foreground">
               手机号 <code className="text-foreground bg-muted px-1 rounded">13800138000</code> 触发多企业选择
             </p>
           </div>
         </div>
       </div>
+
+      {/* 忘记密码 Dialog */}
+      <Dialog open={showForgot} onOpenChange={setShowForgot}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>找回密码</DialogTitle>
+            <DialogDescription className="text-[13px] text-muted-foreground">
+              通过手机号验证身份，重置密码后将自动登录
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="请输入手机号"
+                value={forgotPhone}
+                onChange={(e) => setForgotPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                className="pl-10 h-11"
+                maxLength={11}
+              />
+            </div>
+            <div className="relative">
+              <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="请输入验证码"
+                value={forgotCode}
+                onChange={(e) => setForgotCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                className="pl-10 pr-24 h-11"
+                maxLength={6}
+              />
+              <button
+                onClick={sendForgotSms}
+                disabled={forgotCountdown > 0}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[13px] font-medium text-primary hover:text-primary/80 disabled:text-muted-foreground disabled:cursor-not-allowed transition-colors"
+              >
+                {forgotCountdown > 0 ? `${forgotCountdown}s 后重发` : "获取验证码"}
+              </button>
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="password"
+                placeholder="请输入新密码（至少 6 位）"
+                value={forgotNewPwd}
+                onChange={(e) => setForgotNewPwd(e.target.value)}
+                className="pl-10 h-11"
+              />
+            </div>
+            <div className="flex gap-3 pt-1">
+              <Button variant="outline" className="flex-1" onClick={() => setShowForgot(false)}>取消</Button>
+              <Button className="flex-1" onClick={handleForgotSubmit} disabled={forgotSubmitting}>
+                {forgotSubmitting ? "提交中..." : "重置并登录"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
