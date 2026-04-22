@@ -17,24 +17,36 @@ import {
 type AuditStatus = "pending" | "approved" | "rejected";
 
 /* ── Mock Detail Data ── */
-const MOCK_DETAIL = {
+/** 总部企业 */
+const MOCK_HQ_DETAIL = {
   id: "202020",
+  isSub: false,
   name: "欧派家居集团股份有限公司",
   orgStructure: "总部",
   orgName: "欧派家居集团股份有限公司",
   type: "brand",
   typeName: "品牌商",
+  // 总部专属字段
+  license: "91440000MA5XXXXXX",
+  authType: "营业执照认证",
   industry: "家居建材",
+  businessScope: "广东",
+  contactName: "李娜",
+  staffCount: "500-1000人",
+  enterprisePhone: "18686886788",
+  regCapital: "10000 万元人民币",
+  brandMark: "OPPEIN 欧派",
+  // 公共
   region: "华东",
-  businessLicense: "",
   licenseNo: "91440000MA5XXXXXX",
-  legalRep: "王小二",
-  legalPhone: "18686886788",
   address: "上海市浦东新区陆家嘴金融中心8号楼XXX室",
   activationCode: "ACT-2025-0088",
   status: "active" as "active" | "inactive",
   auditStatus: "pending" as AuditStatus,
   admin: "",
+  // 子级专属（总部用占位）
+  parentName: "",
+  contactPhone: "",
   enabledProducts: ["国内3D工具", "国际3D工具", "精准客资"],
   supplyChain: "加入",
   renderRight: "未开启",
