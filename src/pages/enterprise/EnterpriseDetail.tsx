@@ -353,11 +353,6 @@ export default function EnterpriseDetail() {
                 <DetailItem label="企业类型" value={d.typeName} />
                 <DetailItem label="企业名称" value={d.name} />
                 <DetailItem label="企业ID" value={d.id} />
-                <DetailItem label="组织结构" value={
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
-                    {d.orgStructure}
-                  </span>
-                } />
                 <DetailItem label="企业联系人" value={d.contactName || "—"} />
                 <DetailItem label="联系人手机号" value={d.contactPhone || "—"} />
                 <DetailItem label="覆盖区域" value={d.region || "—"} />
@@ -382,14 +377,6 @@ export default function EnterpriseDetail() {
                 {/* 总部字段 */}
                 <DetailItem label="企业名称" value={d.name} />
                 <DetailItem label="企业ID" value={d.id} />
-                <DetailItem label="组织结构" value={
-                  <span className="flex items-center gap-1.5">
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
-                      {d.orgStructure}
-                    </span>
-                    <span className="text-foreground">{d.orgName}</span>
-                  </span>
-                } />
                 <DetailItem label="营业证" value={d.license} />
                 <DetailItem label="资质认证" value={d.authType} />
                 <DetailItem label="行业" value={d.industry} />
