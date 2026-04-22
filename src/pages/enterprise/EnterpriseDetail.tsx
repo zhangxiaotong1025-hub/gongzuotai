@@ -160,7 +160,7 @@ function DetailItem({ label, value, highlight, className }: {
 }
 
 /* ── Benefit Package Card — elegant, desaturated ── */
-function BenefitCard({ pkg }: { pkg: typeof MOCK_DETAIL.benefitPackages[0] }) {
+function BenefitCard({ pkg }: { pkg: typeof MOCK_HQ_DETAIL.benefitPackages[0] }) {
   const ratio = pkg.total > 0 ? pkg.used / pkg.total : 0;
   const cssVar = BENEFIT_VARIANTS[pkg.variant] || "--benefit-blue";
 
@@ -224,7 +224,7 @@ function BrandCard({ name }: { name: string }) {
 export default function EnterpriseDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [d, setD] = useState(MOCK_DETAIL);
+  const [d, setD] = useState(() => getDetailById(id));
   const [showAuditDialog, setShowAuditDialog] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
   const [showStatusConfirm, setShowStatusConfirm] = useState<"enable" | "disable" | null>(null);
