@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import ChangePasswordDialog from "@/pages/auth/ChangePasswordDialog";
 
 /* ── Types ── */
 interface OrgNode { id: string; name: string; children?: OrgNode[]; isDraft?: boolean; }
@@ -442,6 +443,7 @@ export default function StaffList() {
   const [editingOriginName, setEditingOriginName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<OrgNode | null>(null);
   const [benefitDialogStaff, setBenefitDialogStaff] = useState<StaffMember | null>(null);
+  const [resetPwdStaff, setResetPwdStaff] = useState<StaffMember | null>(null);
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
@@ -523,6 +525,7 @@ export default function StaffList() {
     { label: "查看", onClick: (r) => navigate(`/enterprise/staff/detail/${r.id}`) },
     { label: "编辑", onClick: (r) => navigate(`/enterprise/staff/create?id=${r.id}`) },
     { label: "权益设置", onClick: (r) => setBenefitDialogStaff(r) },
+    { label: "重置密码", onClick: (r) => setResetPwdStaff(r) },
     {
       label: "停用",
       onClick: (r) => { toast.success(`已停用「${r.name}」`); },
@@ -634,6 +637,14 @@ export default function StaffList() {
 
       {/* Benefit Config Dialog */}
       <BenefitConfigDialog open={!!benefitDialogStaff} onClose={() => setBenefitDialogStaff(null)} staffName={benefitDialogStaff?.name || ""} />
+
+      {/* 管理员重置员工密码 */}
+      <ChangePasswordDialog
+        open={!!resetPwdStaff}
+        onOpenChange={(o) => !o && setResetPwdStaff(null)}
+        targetUserId={resetPwdStaff?.id}
+        targetUserName={resetPwdStaff?.name}
+      />
     </div>
   );
 }

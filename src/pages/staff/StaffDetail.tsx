@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { User, Package, Info } from "lucide-react";
+import { User, Package, Info, KeyRound } from "lucide-react";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import ChangePasswordDialog from "@/pages/auth/ChangePasswordDialog";
 
 /* ── Benefit Card Palette ── */
 const VARIANT_VARS: Record<string, string> = {
@@ -93,6 +94,7 @@ export default function StaffDetail() {
   const { id } = useParams();
   const [d, setD] = useState(MOCK);
   const [showStatusConfirm, setShowStatusConfirm] = useState<"enable" | "disable" | null>(null);
+  const [showResetPwd, setShowResetPwd] = useState(false);
 
   const handleStatusConfirm = () => {
     if (showStatusConfirm === "enable") {
@@ -136,9 +138,18 @@ export default function StaffDetail() {
               </div>
             </div>
           </div>
-          <span className={d.status === "active" ? "badge-active" : "badge-inactive"}>
-            {d.status === "active" ? "正常" : "已停用"}
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowResetPwd(true)}
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border/70 bg-card text-[12.5px] text-foreground hover:border-primary/40 hover:text-primary transition-colors"
+            >
+              <KeyRound className="h-3.5 w-3.5" />
+              重置密码
+            </button>
+            <span className={d.status === "active" ? "badge-active" : "badge-inactive"}>
+              {d.status === "active" ? "正常" : "已停用"}
+            </span>
+          </div>
         </div>
 
         {/* 基础信息 */}
@@ -203,6 +214,14 @@ export default function StaffDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 管理员重置密码 */}
+      <ChangePasswordDialog
+        open={showResetPwd}
+        onOpenChange={setShowResetPwd}
+        targetUserId={d.id}
+        targetUserName={d.name}
+      />
     </div>
   );
 }

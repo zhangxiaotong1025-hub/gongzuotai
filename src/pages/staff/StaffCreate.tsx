@@ -421,6 +421,16 @@ export default function StaffCreate() {
         <div className="p-6">
           <div className="max-w-[760px] mx-auto space-y-5">
 
+            {/* 默认登录密码提示 */}
+            <div className="rounded-lg border border-primary/15 bg-primary/[0.03] px-4 py-3 flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+              <div className="text-[12.5px] leading-relaxed text-foreground">
+                <span className="font-medium">初始登录密码：</span>
+                <code className="text-primary bg-primary/8 px-1.5 py-0.5 rounded mx-0.5 font-mono text-[12px]">Aa@123456</code>
+                <span className="text-muted-foreground">　新建人员保存后将以该默认密码作为初始登录凭证，员工可通过手机验证码登录后在「修改密码」中自行设置；管理员也可在人员列表中直接「重置密码」。</span>
+              </div>
+            </div>
+
             {/* Basic Info */}
             <FormRow label="姓名" required>
               <input className="filter-input w-full" placeholder="请输入姓名" value={form.name} onChange={(e) => update("name", e.target.value)} />
