@@ -81,6 +81,8 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const result = await login(phone, method, credential);
+      if (rememberPhone) localStorage.setItem(REMEMBER_PHONE_KEY, phone);
+      else localStorage.removeItem(REMEMBER_PHONE_KEY);
       if (result.needSelectEnterprise) {
         setEnterprises(result.enterprises);
         setShowEnterpriseSelect(true);
@@ -91,6 +93,43 @@ export default function LoginPage() {
       toast({ title: "登录失败", description: e.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const sendForgotSms = () => {
+    if (!forgotPhone || forgotPhone.length !== 11) {
+      toast({ title: "请输入正确的手机号", variant: "destructive" });
+      return;
+    }
+    setForgotCountdown(60);
+    toast({ title: "验证码已发送", description: "Mock 验证码为 1234" });
+  };
+
+  const handleForgotSubmit = async () => {
+    if (!forgotPhone || forgotPhone.length !== 11) {
+      toast({ title: "请输入正确的手机号", variant: "destructive" });
+      return;
+    }
+    if (forgotCode !== "1234") {
+      toast({ title: "验证码错误", description: "Mock 验证码为 1234", variant: "destructive" });
+      return;
+    }
+    if (!forgotNewPwd || forgotNewPwd.length < 6) {
+      toast({ title: "新密码至少 6 位", variant: "destructive" });
+      return;
+    }
+    setForgotSubmitting(true);
+    try {
+      await login(forgotPhone, "sms", forgotCode);
+      if (rememberPhone) localStorage.setItem(REMEMBER_PHONE_KEY, forgotPhone);
+      toast({ title: "密码重置成功", description: "已自动登录" });
+      setShowForgot(false);
+      setForgotPhone(""); setForgotCode(""); setForgotNewPwd("");
+      navigate("/", { replace: true });
+    } catch (e: any) {
+      toast({ title: "重置失败", description: e.message, variant: "destructive" });
+    } finally {
+      setForgotSubmitting(false);
     }
   };
 
