@@ -214,6 +214,14 @@ export default function StaffDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 管理员重置密码 */}
+      <ChangePasswordDialog
+        open={showResetPwd}
+        onOpenChange={setShowResetPwd}
+        targetUserId={d.id}
+        targetUserName={d.name}
+      />
     </div>
   );
 }
