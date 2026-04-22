@@ -52,10 +52,10 @@ export default function ChangePasswordDialog({ open, onOpenChange, targetUserId,
     try {
       if (isAdminReset) {
         await resetPasswordForUser(targetUserId!, newPassword);
-        toast({ title: `已为 ${targetUserName} 重置密码` });
+        toast({ title: `已为 ${targetUserName} 重置密码`, description: "新密码已生效，请告知该员工使用新密码登录" });
       } else {
         await changePassword(oldPassword, newPassword);
-        toast({ title: "密码修改成功" });
+        toast({ title: "密码修改成功", description: "已自动保持当前登录状态，无需重新登录" });
       }
       reset();
       onOpenChange(false);
