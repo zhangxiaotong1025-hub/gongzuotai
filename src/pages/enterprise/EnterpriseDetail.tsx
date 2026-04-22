@@ -17,24 +17,36 @@ import {
 type AuditStatus = "pending" | "approved" | "rejected";
 
 /* ── Mock Detail Data ── */
-const MOCK_DETAIL = {
+/** 总部企业 */
+const MOCK_HQ_DETAIL = {
   id: "202020",
+  isSub: false,
   name: "欧派家居集团股份有限公司",
   orgStructure: "总部",
   orgName: "欧派家居集团股份有限公司",
   type: "brand",
   typeName: "品牌商",
+  // 总部专属字段
+  license: "91440000MA5XXXXXX",
+  authType: "营业执照认证",
   industry: "家居建材",
+  businessScope: "广东",
+  contactName: "李娜",
+  staffCount: "500-1000人",
+  enterprisePhone: "18686886788",
+  regCapital: "10000 万元人民币",
+  brandMark: "OPPEIN 欧派",
+  // 公共
   region: "华东",
-  businessLicense: "",
   licenseNo: "91440000MA5XXXXXX",
-  legalRep: "王小二",
-  legalPhone: "18686886788",
   address: "上海市浦东新区陆家嘴金融中心8号楼XXX室",
   activationCode: "ACT-2025-0088",
   status: "active" as "active" | "inactive",
   auditStatus: "pending" as AuditStatus,
   admin: "",
+  // 子级专属（总部用占位）
+  parentName: "",
+  contactPhone: "",
   enabledProducts: ["国内3D工具", "国际3D工具", "精准客资"],
   supplyChain: "加入",
   renderRight: "未开启",
@@ -63,6 +75,38 @@ const MOCK_DETAIL = {
     { id: "ar-3", action: "resubmit" as const, operator: "李娜", time: "2026-01-17 10:00", remark: "已补充营业执照信息，重新提交审核" },
   ] as AuditRecord[],
 };
+
+/** 子级企业 mock：字段口径与子级创建表单一致 */
+const MOCK_SUB_DETAIL: typeof MOCK_HQ_DETAIL = {
+  ...MOCK_HQ_DETAIL,
+  id: "ENT001-2-1",
+  isSub: true,
+  name: "欧派华东大区·上海旗舰店",
+  orgStructure: "门店",
+  orgName: "欧派华东大区·上海旗舰店",
+  type: "store",
+  typeName: "门店",
+  parentName: "欧派家居集团股份有限公司",
+  contactName: "张敏",
+  contactPhone: "13912345678",
+  region: "华东",
+  address: "上海市黄浦区南京东路 999 号 1F",
+  license: "",
+  authType: "",
+  industry: "",
+  businessScope: "",
+  staffCount: "",
+  enterprisePhone: "",
+  regCapital: "",
+  brandMark: "",
+  ownedBrands: [],
+  agentBrands: [],
+};
+
+function getDetailById(id: string | undefined) {
+  if (!id) return MOCK_HQ_DETAIL;
+  return id.includes("-") ? MOCK_SUB_DETAIL : MOCK_HQ_DETAIL;
+}
 
 /* ── Audit Status Config ── */
 const AUDIT_CFG: Record<AuditStatus, { label: string; icon: typeof Clock; statusVar: string }> = {
@@ -116,7 +160,7 @@ function DetailItem({ label, value, highlight, className }: {
 }
 
 /* ── Benefit Package Card — elegant, desaturated ── */
-function BenefitCard({ pkg }: { pkg: typeof MOCK_DETAIL.benefitPackages[0] }) {
+function BenefitCard({ pkg }: { pkg: typeof MOCK_HQ_DETAIL.benefitPackages[0] }) {
   const ratio = pkg.total > 0 ? pkg.used / pkg.total : 0;
   const cssVar = BENEFIT_VARIANTS[pkg.variant] || "--benefit-blue";
 
@@ -180,7 +224,7 @@ function BrandCard({ name }: { name: string }) {
 export default function EnterpriseDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [d, setD] = useState(MOCK_DETAIL);
+  const [d, setD] = useState(() => getDetailById(id));
   const [showAuditDialog, setShowAuditDialog] = useState(false);
   const [showAdminDialog, setShowAdminDialog] = useState(false);
   const [showStatusConfirm, setShowStatusConfirm] = useState<"enable" | "disable" | null>(null);
@@ -192,7 +236,7 @@ export default function EnterpriseDetail() {
 
   const auditCfg = AUDIT_CFG[d.auditStatus];
   const AuditIcon = auditCfg.icon;
-  const hasBrands = d.type === "brand" || d.type === "mall";
+  const hasBrands = !d.isSub && (d.type === "brand" || d.type === "mall");
   const canToggleStatus = d.auditStatus === "approved";
 
   const handleAuditConfirm = (result: { action: "approve" | "reject"; remark: string }) => {
@@ -302,41 +346,83 @@ export default function EnterpriseDetail() {
         } />
         <div className="px-6 py-5">
           <div className="grid grid-cols-3 gap-x-8 gap-y-4">
-            <DetailItem label="企业名称" value={d.name} />
-            <DetailItem label="企业ID" value={d.id} />
-            <DetailItem label="组织结构" value={
-              <span className="flex items-center gap-1.5">
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
-                  {d.orgStructure}
-                </span>
-                <span className="text-foreground">{d.orgName}</span>
-              </span>
-            } />
-            <DetailItem label="行业" value={d.industry} />
-            <DetailItem label="覆盖区域" value={d.region} />
-            <DetailItem label="营业执照" value={
-              <span className="w-14 h-14 rounded-lg border border-border/60 bg-muted/30 inline-flex items-center justify-center text-[10px] text-muted-foreground">暂无</span>
-            } />
-            <DetailItem label="执照编号" value={d.licenseNo} />
-            <DetailItem label="法人代表" value={d.legalRep} />
-            <DetailItem label="法人手机号" value={d.legalPhone} />
-            <DetailItem label="详细地址" value={d.address} className="col-span-2" />
-            <DetailItem label="激活券码" value={d.activationCode} />
-            <DetailItem label="管理员" value={
-              d.admin ? (
-                <span className="text-foreground font-medium">{d.admin}</span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <span className="text-muted-foreground">未设置</span>
-                  <button className="text-[12px] text-primary hover:text-primary/80 transition-colors"
-                    onClick={() => setShowAdminDialog(true)}>
-                    立即设置
-                  </button>
-                </span>
-              )
-            } />
+            {d.isSub ? (
+              <>
+                {/* 子级企业字段 */}
+                <DetailItem label="上级企业" value={d.parentName} highlight />
+                <DetailItem label="企业类型" value={d.typeName} />
+                <DetailItem label="企业名称" value={d.name} />
+                <DetailItem label="企业ID" value={d.id} />
+                <DetailItem label="组织结构" value={
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
+                    {d.orgStructure}
+                  </span>
+                } />
+                <DetailItem label="企业联系人" value={d.contactName || "—"} />
+                <DetailItem label="联系人手机号" value={d.contactPhone || "—"} />
+                <DetailItem label="覆盖区域" value={d.region || "—"} />
+                <DetailItem label="详细地址" value={d.address} className="col-span-2" />
+                <DetailItem label="激活券码" value={d.activationCode} />
+                <DetailItem label="管理员" value={
+                  d.admin ? (
+                    <span className="text-foreground font-medium">{d.admin}</span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <span className="text-muted-foreground">未设置</span>
+                      <button className="text-[12px] text-primary hover:text-primary/80 transition-colors"
+                        onClick={() => setShowAdminDialog(true)}>
+                        立即设置
+                      </button>
+                    </span>
+                  )
+                } />
+              </>
+            ) : (
+              <>
+                {/* 总部字段 */}
+                <DetailItem label="企业名称" value={d.name} />
+                <DetailItem label="企业ID" value={d.id} />
+                <DetailItem label="组织结构" value={
+                  <span className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium" style={{ background: "hsl(var(--primary) / 0.06)", color: "hsl(var(--primary))" }}>
+                      {d.orgStructure}
+                    </span>
+                    <span className="text-foreground">{d.orgName}</span>
+                  </span>
+                } />
+                <DetailItem label="营业证" value={d.license} />
+                <DetailItem label="资质认证" value={d.authType} />
+                <DetailItem label="行业" value={d.industry} />
+                <DetailItem label="营业范围" value={d.businessScope} />
+                <DetailItem label="覆盖区域" value={d.region} />
+                <DetailItem label="证件照" value={
+                  <span className="w-14 h-14 rounded-lg border border-border/60 bg-muted/30 inline-flex items-center justify-center text-[10px] text-muted-foreground">暂无</span>
+                } />
+                <DetailItem label="对接销售/顾问" value={d.contactName || "—"} />
+                <DetailItem label="企业人数" value={d.staffCount} />
+                <DetailItem label="企业手机号" value={d.enterprisePhone} />
+                <DetailItem label="注册资金" value={d.regCapital} />
+                <DetailItem label="品牌标识" value={d.brandMark} />
+                <DetailItem label="详细地址" value={d.address} className="col-span-2" />
+                <DetailItem label="激活券码" value={d.activationCode} />
+                <DetailItem label="管理员" value={
+                  d.admin ? (
+                    <span className="text-foreground font-medium">{d.admin}</span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <span className="text-muted-foreground">未设置</span>
+                      <button className="text-[12px] text-primary hover:text-primary/80 transition-colors"
+                        onClick={() => setShowAdminDialog(true)}>
+                        立即设置
+                      </button>
+                    </span>
+                  )
+                } />
+              </>
+            )}
           </div>
         </div>
+
 
         {/* ── 权益配置 ── */}
         <SectionHeader title="权益配置" icon={Package} action={
