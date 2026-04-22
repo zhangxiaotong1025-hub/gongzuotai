@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import ChangePasswordDialog from "@/pages/auth/ChangePasswordDialog";
 
 /* ── Types ── */
 interface OrgNode { id: string; name: string; children?: OrgNode[]; isDraft?: boolean; }
