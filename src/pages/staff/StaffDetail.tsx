@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { User, Package, Info } from "lucide-react";
+import { User, Package, Info, KeyRound } from "lucide-react";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import ChangePasswordDialog from "@/pages/auth/ChangePasswordDialog";
 
 /* ── Benefit Card Palette ── */
 const VARIANT_VARS: Record<string, string> = {
