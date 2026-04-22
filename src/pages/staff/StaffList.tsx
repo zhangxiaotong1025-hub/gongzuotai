@@ -443,6 +443,7 @@ export default function StaffList() {
   const [editingOriginName, setEditingOriginName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<OrgNode | null>(null);
   const [benefitDialogStaff, setBenefitDialogStaff] = useState<StaffMember | null>(null);
+  const [resetPwdStaff, setResetPwdStaff] = useState<StaffMember | null>(null);
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
