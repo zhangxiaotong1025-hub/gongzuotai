@@ -637,6 +637,14 @@ export default function StaffList() {
 
       {/* Benefit Config Dialog */}
       <BenefitConfigDialog open={!!benefitDialogStaff} onClose={() => setBenefitDialogStaff(null)} staffName={benefitDialogStaff?.name || ""} />
+
+      {/* 管理员重置员工密码 */}
+      <ChangePasswordDialog
+        open={!!resetPwdStaff}
+        onOpenChange={(o) => !o && setResetPwdStaff(null)}
+        targetUserId={resetPwdStaff?.id}
+        targetUserName={resetPwdStaff?.name}
+      />
     </div>
   );
 }
