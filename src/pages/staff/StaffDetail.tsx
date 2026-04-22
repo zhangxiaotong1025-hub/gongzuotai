@@ -94,6 +94,7 @@ export default function StaffDetail() {
   const { id } = useParams();
   const [d, setD] = useState(MOCK);
   const [showStatusConfirm, setShowStatusConfirm] = useState<"enable" | "disable" | null>(null);
+  const [showResetPwd, setShowResetPwd] = useState(false);
 
   const handleStatusConfirm = () => {
     if (showStatusConfirm === "enable") {
