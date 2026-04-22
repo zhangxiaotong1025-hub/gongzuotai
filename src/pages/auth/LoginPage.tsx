@@ -1,13 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, Enterprise } from "@/hooks/useAuth";
-import { Phone, Lock, MessageSquare, KeyRound, ChevronRight, Building2, Eye, EyeOff } from "lucide-react";
+import { Phone, Lock, MessageSquare, KeyRound, ChevronRight, Building2, Eye, EyeOff, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+/** 系统初始默认密码（管理员创建人员时自动赋予） */
+export const DEFAULT_INITIAL_PASSWORD = "Aa@123456";
+
 type LoginMethod = "sms" | "password";
+
+const REMEMBER_PHONE_KEY = "auth_remember_phone";
 
 export default function LoginPage() {
   const { login, selectEnterprise, isAuthenticated } = useAuth();
@@ -15,20 +22,35 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   const [method, setMethod] = useState<LoginMethod>("sms");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(() => localStorage.getItem(REMEMBER_PHONE_KEY) || "");
   const [smsCode, setSmsCode] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [rememberPhone, setRememberPhone] = useState(() => !!localStorage.getItem(REMEMBER_PHONE_KEY));
 
   // Enterprise selection state
   const [showEnterpriseSelect, setShowEnterpriseSelect] = useState(false);
   const [enterprises, setEnterprises] = useState<Enterprise[]>([]);
 
+  // Forgot password dialog
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotPhone, setForgotPhone] = useState("");
+  const [forgotCode, setForgotCode] = useState("");
+  const [forgotNewPwd, setForgotNewPwd] = useState("");
+  const [forgotCountdown, setForgotCountdown] = useState(0);
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
+
   useEffect(() => {
     if (isAuthenticated) navigate("/", { replace: true });
   }, [isAuthenticated, navigate]);
+
+  useEffect(() => {
+    if (forgotCountdown <= 0) return;
+    const t = setTimeout(() => setForgotCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [forgotCountdown]);
 
   useEffect(() => {
     if (countdown <= 0) return;
