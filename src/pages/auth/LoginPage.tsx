@@ -120,12 +120,19 @@ export default function LoginPage() {
     }
     setForgotSubmitting(true);
     try {
-      await login(forgotPhone, "sms", forgotCode);
+      const result = await login(forgotPhone, "sms", forgotCode);
       if (rememberPhone) localStorage.setItem(REMEMBER_PHONE_KEY, forgotPhone);
-      toast({ title: "密码重置成功", description: "已自动登录" });
+      else localStorage.removeItem(REMEMBER_PHONE_KEY);
       setShowForgot(false);
       setForgotPhone(""); setForgotCode(""); setForgotNewPwd("");
-      navigate("/", { replace: true });
+      if (result.needSelectEnterprise) {
+        toast({ title: "密码重置成功", description: "请选择要进入的企业" });
+        setEnterprises(result.enterprises);
+        setShowEnterpriseSelect(true);
+      } else {
+        toast({ title: "密码重置成功", description: "已自动登录" });
+        navigate("/", { replace: true });
+      }
     } catch (e: any) {
       toast({ title: "重置失败", description: e.message, variant: "destructive" });
     } finally {
