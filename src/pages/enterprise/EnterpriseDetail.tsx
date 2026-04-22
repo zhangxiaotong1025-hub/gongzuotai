@@ -76,6 +76,38 @@ const MOCK_HQ_DETAIL = {
   ] as AuditRecord[],
 };
 
+/** 子级企业 mock：字段口径与子级创建表单一致 */
+const MOCK_SUB_DETAIL: typeof MOCK_HQ_DETAIL = {
+  ...MOCK_HQ_DETAIL,
+  id: "ENT001-2-1",
+  isSub: true,
+  name: "欧派华东大区·上海旗舰店",
+  orgStructure: "门店",
+  orgName: "欧派华东大区·上海旗舰店",
+  type: "store",
+  typeName: "门店",
+  parentName: "欧派家居集团股份有限公司",
+  contactName: "张敏",
+  contactPhone: "13912345678",
+  region: "华东",
+  address: "上海市黄浦区南京东路 999 号 1F",
+  license: "",
+  authType: "",
+  industry: "",
+  businessScope: "",
+  staffCount: "",
+  enterprisePhone: "",
+  regCapital: "",
+  brandMark: "",
+  ownedBrands: [],
+  agentBrands: [],
+};
+
+function getDetailById(id: string | undefined) {
+  if (!id) return MOCK_HQ_DETAIL;
+  return id.includes("-") ? MOCK_SUB_DETAIL : MOCK_HQ_DETAIL;
+}
+
 /* ── Audit Status Config ── */
 const AUDIT_CFG: Record<AuditStatus, { label: string; icon: typeof Clock; statusVar: string }> = {
   pending: { label: "待审核", icon: Clock, statusVar: "warning" },
