@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Plus, X, Check, Search, ChevronRight } from "lucide-react";
-import { appData, capabilityData, EXCHANGE_TYPES, type Product, type ExchangeType, type EntitlementRule, getCapability, getRulesByApp, getRule } from "@/data/entitlement";
+import { useMemo, useState } from "react";
+import { Plus, X, Check, Search, ChevronRight, AlertCircle, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { appData, capabilityData, EXCHANGE_TYPES, type Product, type ExchangeType, type EntitlementRule, getCapability, getRulesByApp, getRule, getApp } from "@/data/entitlement";
 
 /* ── 二级弹窗：规则选择器（按能力分组）── */
 function RulePickerDialog({ open, onClose, onConfirm, appId, selectedIds }: {
