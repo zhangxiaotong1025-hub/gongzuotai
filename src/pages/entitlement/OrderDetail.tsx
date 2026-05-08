@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { orderData, accountData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, AUDIT_STATUS, skuData, bundleData, getOrderApps, getRule, getCapability, type EntitlementOrder } from "@/data/entitlement";
+import { orderData, accountData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, AUDIT_STATUS, skuData, bundleData, productData, getOrderApps, getRule, getCapability, type EntitlementOrder } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { OrderLifecycleFlow } from "@/components/admin/OrderLifecycleFlow";
 import { toast } from "sonner";
@@ -26,14 +26,18 @@ export default function OrderDetail() {
     if (item.type === "sku") {
       const sku = skuData.find((s) => s.id === item.itemId);
       const rules = sku ? sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean) : [];
-      return { ...item, sku, bundle: undefined, rules, appName: sku ? (apps.find((a) => a.id === sku.appId)?.name || "") : "" };
+      return { ...item, sku, bundle: undefined, product: undefined, rules, appName: sku ? (apps.find((a) => a.id === sku.appId)?.name || "") : "" };
+    } else if (item.type === "product") {
+      const product = productData.find((p) => p.id === item.itemId);
+      const rules = product ? product.ruleIds.map((rid) => getRule(rid)).filter(Boolean) : [];
+      return { ...item, sku: undefined, bundle: undefined, product, rules, appName: product ? (apps.find((a) => a.id === product.appId)?.name || "") : "" };
     } else {
       const bundle = bundleData.find((b) => b.id === item.itemId);
       const allRules = bundle ? bundle.items.flatMap((bi) => {
         const sku = skuData.find((s) => s.id === bi.skuId);
         return sku ? sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean) : [];
       }) : [];
-      return { ...item, sku: undefined, bundle, rules: allRules, appName: bundle ? (apps.find((a) => a.id === bundle.appId)?.name || "") : "" };
+      return { ...item, sku: undefined, bundle, product: undefined, rules: allRules, appName: bundle ? (apps.find((a) => a.id === bundle.appId)?.name || "") : "" };
     }
   });
 
