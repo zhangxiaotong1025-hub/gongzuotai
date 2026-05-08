@@ -830,7 +830,7 @@ export const orderData: EntitlementOrder[] = [
   {
     // 积分兑换订单 — 直接以"权益产品"为下单单元（无SKU）
     id: "ord19", orderNo: "ORD202603260001", customerType: "C", customerId: "user2", customerName: "李四",
-    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "active",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 0, creditAmount: 990, paymentStatus: "no_payment", orderStatus: "active",
     paidAt: "2026-03-26 11:00:05", remark: "积分兑换 990积分 → AI设计100次", createdAt: "2026-03-26 11:00:00",
     items: [{ type: "product", itemId: "prod1", itemName: "AI积分100次·兑换包", quantity: 1, unitPrice: 0 }],
     statusHistory: [
