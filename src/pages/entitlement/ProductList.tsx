@@ -6,7 +6,7 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download } from "lucide-react";
-import { productData as initialData, appData, EXCHANGE_TYPES, STATUS_MAP, getApp, type Product } from "@/data/entitlement";
+import { productData as initialData, appData, skuData, EXCHANGE_TYPES, STATUS_MAP, getApp, type Product } from "@/data/entitlement";
 import { ProductDialog } from "./dialogs/ProductDialog";
 
 const filterFields: FilterField[] = [
