@@ -184,7 +184,9 @@ export const ruleData: EntitlementRule[] = [
    交易性质的最小单元：一个产品打包 N 条规则，可通过积分兑换 / 内部发放 / 系统赠送 / 商品SKU 售卖
    规则 ↔ 产品：多对多
 */
-export type ExchangeType = "credit" | "internal_grant" | "system_grant" | "sku_only";
+/* 交易方式：定义"用户通过何种对价获得权益"，是产品的定性属性
+   注意：内部发放属于触发渠道（操作来源），不在此枚举内——管理员可将任意交易方式的产品高权限授予用户 */
+export type ExchangeType = "paid" | "credit" | "free";
 
 export interface Product {
   id: string;
@@ -192,7 +194,7 @@ export interface Product {
   code: string;
   appId: string;
   ruleIds: string[];
-  /** 交易方式：积分兑换 / 内部发放 / 系统赠送 / 仅供SKU封装售卖 */
+  /** 交易方式：付费售卖 / 积分兑换 / 免费发放 */
   exchangeType: ExchangeType;
   /** 积分价格（exchangeType = credit 时使用） */
   creditPrice?: number;
@@ -204,10 +206,9 @@ export interface Product {
 }
 
 export const EXCHANGE_TYPES: { value: ExchangeType; label: string; className: string; desc: string }[] = [
-  { value: "credit",         label: "积分兑换",   className: "badge-info",    desc: "用户使用积分兑换该权益产品" },
-  { value: "internal_grant", label: "内部发放",   className: "badge-warning", desc: "管理员手动发放给企业或用户" },
-  { value: "system_grant",   label: "系统赠送",   className: "badge-muted",   desc: "活动/任务/注册等场景系统自动下发" },
-  { value: "sku_only",       label: "仅供售卖",   className: "badge-active",  desc: "不直接发放，仅作为商品SKU的权益载体" },
+  { value: "paid",   label: "付费售卖", className: "badge-active", desc: "通过商品SKU以现金支付方式购买" },
+  { value: "credit", label: "积分兑换", className: "badge-info",   desc: "用户使用积分兑换该权益产品" },
+  { value: "free",   label: "免费发放", className: "badge-muted",  desc: "无需用户对价，系统/活动/任务/注册等场景自动下发" },
 ];
 
 export const productData: Product[] = [
