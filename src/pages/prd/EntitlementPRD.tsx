@@ -159,7 +159,7 @@ export default function EntitlementPRD() {
               { label: "规则", v: 70, icon: ListTree },
               { label: "权益产品", v: 30, icon: Package },
               { label: "商品", v: 14, icon: ShoppingCart },
-              { label: "套餐", v: 8,  icon: Tag },
+              { label: "套餐", v: 8,  icon: TagIcon },
               { label: "订单", v: 11, icon: FileText },
               { label: "账户", v: 5,  icon: Wallet },
             ].map((k) => (
