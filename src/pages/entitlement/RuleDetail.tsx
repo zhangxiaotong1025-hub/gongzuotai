@@ -4,6 +4,7 @@ import { ruleData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, BILLING_CYCLES
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { RuleDialog } from "./dialogs/RuleDialog";
 import { toast } from "sonner";
+import { Scale } from "lucide-react";
 
 export default function RuleDetail() {
   const { id } = useParams();
