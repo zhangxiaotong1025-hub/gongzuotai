@@ -235,7 +235,7 @@ export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; o
             </div>
 
             {form.ruleIds.length === 0 ? (
-              <div className="border border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all" onClick={() => setPickerOpen(true)}>
+              <div className={`border border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all ${touched && form.ruleIds.length === 0 ? "border-destructive/50 bg-destructive/5" : ""}`} onClick={() => setPickerOpen(true)}>
                 <p className="text-[13px] text-muted-foreground">点击选择权益规则</p>
                 <p className="text-[11px] text-muted-foreground/60 mt-1">支持按能力分组筛选、搜索、批量勾选</p>
               </div>
