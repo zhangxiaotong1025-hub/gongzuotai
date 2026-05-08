@@ -99,7 +99,7 @@ export function ProductDialog({ open, onClose, onSave, initial }: { open: boolea
     name: initial?.name || "", code: initial?.code || "",
     appId: initial?.appId || appData[0]?.id,
     ruleIds: initial?.ruleIds || [] as string[],
-    exchangeType: (initial?.exchangeType || "sku_only") as ExchangeType,
+    exchangeType: (initial?.exchangeType || "paid") as ExchangeType,
     creditPrice: initial?.creditPrice ?? 0,
     limitPerUser: initial?.limitPerUser ?? 0,
     description: initial?.description || "",
