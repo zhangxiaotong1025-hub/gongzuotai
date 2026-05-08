@@ -194,6 +194,11 @@ export const ruleData: EntitlementRule[] = [
   { id: "rule51", name: "客户画像开通",    code: "RULE_GUIDE_PROFILE",  capabilityId: "cap41", quota: 1,    periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "客户画像功能开通", status: "active", createdAt: "2026-03-12" },
   // 精准客资规则
   { id: "rule60", name: "线索100条/月",    code: "RULE_LEADS_100_M",    capabilityId: "cap50", quota: 100,  periodType: "MONTH", periodValue: 1, grantType: "MONTHLY_GRANT", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每月100条客资线索", status: "active", createdAt: "2026-03-12" },
+  // 国际3D工具规则
+  { id: "rule70", name: "国际AI 200次/日", code: "RULE_INTL_AI_200_DAY", capabilityId: "cap22", quota: 200, periodType: "DAY",       periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "国际版AI设计每日200次", status: "active", createdAt: "2026-03-12" },
+  { id: "rule71", name: "国际4K 3次/日",   code: "RULE_INTL_4K_3_DAY",   capabilityId: "cap23", quota: 3,   periodType: "DAY",       periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "国际版4K渲染每日3次", status: "active", createdAt: "2026-03-12" },
+  { id: "rule72", name: "海外素材库访问",  code: "RULE_INTL_MAT_ACCESS", capabilityId: "cap25", quota: 1,   periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME",      isCumulative: false, expirePolicy: "NEVER_EXPIRE",     description: "海外风格素材库访问权限", status: "active", createdAt: "2026-03-12" },
+  { id: "rule73", name: "国际全景5次/日",  code: "RULE_INTL_PANO_5_DAY", capabilityId: "cap24", quota: 5,   periodType: "DAY",       periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "国际版全景图每日5次", status: "active", createdAt: "2026-03-12" },
 ];
 
 /* ── Product (权益产品) ──
