@@ -4,7 +4,7 @@ import { capabilityData, ruleData, skuData, DATA_TYPES, STATUS_MAP, PERIOD_TYPES
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { CapDialog } from "./dialogs/CapDialog";
 import { toast } from "sonner";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Cpu } from "lucide-react";
 
 export default function CapabilityDetail() {
   const { id } = useParams();
