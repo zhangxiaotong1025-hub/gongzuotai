@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Search, Package, Layers, Building2, User } from "lucide-react";
-import { appData, skuData, bundleData, ORDER_TYPES, BILLING_CYCLES, CUSTOMER_TYPES, bEnterpriseData, cUserData, type EntitlementOrder, type OrderItem, type Sku, type Bundle, type CustomerType } from "@/data/entitlement";
+import { X, Search, Package, Layers, Building2, User, Sparkles } from "lucide-react";
+import { appData, skuData, bundleData, productData, EXCHANGE_TYPES, ORDER_TYPES, BILLING_CYCLES, CUSTOMER_TYPES, bEnterpriseData, cUserData, type EntitlementOrder, type OrderItem, type Sku, type Bundle, type Product, type CustomerType } from "@/data/entitlement";
 
 interface OrderDialogProps {
   open: boolean;
@@ -79,6 +79,9 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
     if (item.type === "sku") {
       const sku = skuData.find((s) => s.id === item.itemId);
       if (sku) selectedAppIds.add(sku.appId);
+    } else if (item.type === "product") {
+      const product = productData.find((p) => p.id === item.itemId);
+      if (product) selectedAppIds.add(product.appId);
     } else {
       const bundle = bundleData.find((b) => b.id === item.itemId);
       if (bundle) selectedAppIds.add(bundle.appId);
