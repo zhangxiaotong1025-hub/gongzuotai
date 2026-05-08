@@ -154,11 +154,18 @@ export function ProductDialog({ open, onClose, onSave, initial }: { open: boolea
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-[13px] text-muted-foreground">产品名称 <span className="text-destructive">*</span></label>
-              <input className="filter-input w-full" placeholder="如：新人大礼包" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <input className={`filter-input w-full ${touched && !form.name.trim() ? "ring-1 ring-destructive/50" : ""}`} placeholder="如：新人大礼包" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[13px] text-muted-foreground">产品编码 <span className="text-destructive">*</span></label>
-              <input className="filter-input w-full font-mono" placeholder="PROD_开头" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} disabled={isEdit} />
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] text-muted-foreground">产品编码 <span className="text-destructive">*</span></label>
+                {suggestedCode && form.code !== suggestedCode && !isEdit && (
+                  <button type="button" onClick={() => setForm({ ...form, code: suggestedCode })} className="inline-flex items-center gap-0.5 text-[11px] text-primary hover:underline">
+                    <Sparkles className="h-3 w-3" />使用建议
+                  </button>
+                )}
+              </div>
+              <input className={`filter-input w-full font-mono ${touched && !form.code.trim() ? "ring-1 ring-destructive/50" : ""}`} placeholder={suggestedCode || "PROD_开头"} value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} disabled={isEdit} />
             </div>
           </div>
           <div className="space-y-1.5">
