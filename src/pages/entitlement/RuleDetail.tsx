@@ -44,22 +44,27 @@ export default function RuleDetail() {
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-start justify-between mb-4">
-          <h2 className="text-[16px] font-semibold text-foreground">{rule.name}</h2>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Scale className="h-5 w-5 text-primary" /></div>
+            <div>
+              <h2 className="text-[16px] font-semibold text-foreground">{rule.name}</h2>
+              <code className="text-[12px] text-muted-foreground font-mono">{rule.code}</code>
+            </div>
+          </div>
           <span className={STATUS_MAP[rule.status].className}>{STATUS_MAP[rule.status].label}</span>
         </div>
-        <div className="grid grid-cols-4 gap-4 text-[13px]">
-          <div><span className="text-muted-foreground">规则编码</span><div className="font-mono text-foreground mt-0.5">{rule.code}</div></div>
+        <div className="grid grid-cols-5 gap-4 text-[13px]">
           <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5">{app ? <Link to={`/entitlement/app/detail/${app.id}`} className="text-primary hover:underline">{app.name}</Link> : "—"}</div></div>
           <div><span className="text-muted-foreground">关联能力</span><div className="mt-0.5">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-primary hover:underline">{cap.name}</Link> : "—"}</div></div>
-          <div><span className="text-muted-foreground">数据类型</span><div className="text-foreground mt-0.5">{cap ? `${DATA_TYPES.find((t) => t.value === cap.dataType)?.label.split("（")[0]} · ${cap.unit}` : "—"}</div></div>
-        </div>
-        <div className="grid grid-cols-4 gap-4 text-[13px] mt-4 pt-4 border-t">
           <div><span className="text-muted-foreground">额度</span><div className="text-foreground font-medium mt-0.5">{rule.quota.toLocaleString()} {cap?.unit}</div></div>
           <div><span className="text-muted-foreground">周期</span><div className="text-foreground mt-0.5">{PERIOD_TYPES.find((p) => p.value === rule.periodType)?.label}{rule.periodValue > 0 ? ` · ${rule.periodValue}` : ""}</div></div>
-          <div className="col-span-2"><span className="text-muted-foreground">发放策略</span><div className="text-foreground mt-0.5">{deriveRulePolicy(rule.periodType).label}<span className="ml-2 text-[11px] text-muted-foreground/70">（系统统一行为）</span></div></div>
           <div><span className="text-muted-foreground">引用SKU</span><div className={`font-medium mt-0.5 ${skus.length > 0 ? "text-primary" : "text-muted-foreground"}`}>{skus.length}</div></div>
         </div>
-        {rule.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t">{rule.description}</p>}
+        <div className="grid grid-cols-2 gap-4 text-[13px] mt-4 pt-4 border-t">
+          <div><span className="text-muted-foreground">数据类型</span><div className="text-foreground mt-0.5">{cap ? `${DATA_TYPES.find((t) => t.value === cap.dataType)?.label.split("（")[0]} · ${cap.unit}` : "—"}</div></div>
+          <div><span className="text-muted-foreground">发放策略</span><div className="text-foreground mt-0.5">{deriveRulePolicy(rule.periodType).label}<span className="ml-2 text-[11px] text-muted-foreground/70">（系统统一行为）</span></div></div>
+        </div>
+        {rule.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t leading-relaxed">{rule.description}</p>}
       </div>
 
       {/* Relationship chain */}
