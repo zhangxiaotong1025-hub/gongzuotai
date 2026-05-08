@@ -133,6 +133,13 @@ const navItems: NavItem[] = [
       { label: "精准客资", path: "/agent/leads" },
     ],
   },
+  {
+    label: "PRD设计",
+    icon: FileText,
+    children: [
+      { label: "权益设计", path: "/prd/entitlement" },
+    ],
+  },
 ];
 
 export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
