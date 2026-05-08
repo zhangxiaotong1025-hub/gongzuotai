@@ -4,6 +4,7 @@ import { skuData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TY
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { SkuDialog } from "./dialogs/SkuDialog";
 import { toast } from "sonner";
+import { Tag } from "lucide-react";
 
 export default function SkuDetail() {
   const { id } = useParams();
