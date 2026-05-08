@@ -106,12 +106,23 @@ export interface EntitlementRule {
   quota: number;
   periodType: PeriodType;
   periodValue: number;
-  grantType: GrantType;
-  isCumulative: boolean;
-  expirePolicy: ExpirePolicy;
+  /** @deprecated 由 periodType 自动派生：PERMANENT→ONE_TIME，DAY→DAILY_REFRESH，其余→MONTHLY_GRANT */
+  grantType?: GrantType;
+  /** @deprecated 平台统一不累积，剩余到期回收 */
+  isCumulative?: boolean;
+  /** @deprecated 由 periodType 自动派生：PERMANENT→NEVER_EXPIRE，否则 CLEAR_ON_EXPIRE */
+  expirePolicy?: ExpirePolicy;
   description: string;
   status: "active" | "inactive";
   createdAt: string;
+}
+
+/** 由周期类型派生发放/过期策略，对外统一展示 */
+export function deriveRulePolicy(periodType: PeriodType): { grantType: GrantType; expirePolicy: ExpirePolicy; label: string } {
+  if (periodType === "PERMANENT") return { grantType: "ONE_TIME", expirePolicy: "NEVER_EXPIRE", label: "一次性发放 · 永久有效" };
+  if (periodType === "DAY")       return { grantType: "DAILY_REFRESH", expirePolicy: "CLEAR_ON_EXPIRE", label: "每日刷新 · 到期清零" };
+  if (periodType === "MONTH")     return { grantType: "MONTHLY_GRANT", expirePolicy: "CLEAR_ON_EXPIRE", label: "每月发放 · 到期清零" };
+  return { grantType: "MONTHLY_GRANT", expirePolicy: "CLEAR_ON_EXPIRE", label: "每年发放 · 到期清零" };
 }
 
 export const PERIOD_TYPES: { value: PeriodType; label: string }[] = [
