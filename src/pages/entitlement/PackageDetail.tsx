@@ -49,16 +49,23 @@ export default function PackageDetail() {
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-start justify-between mb-4">
-          <div><h2 className="text-[16px] font-semibold text-foreground">{bundle.name}</h2><p className="text-[13px] text-muted-foreground mt-0.5">{bundle.description}</p></div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Layers className="h-5 w-5 text-primary" /></div>
+            <div>
+              <h2 className="text-[16px] font-semibold text-foreground">{bundle.name}</h2>
+              <code className="text-[12px] text-muted-foreground font-mono">{bundle.code}</code>
+            </div>
+          </div>
           <span className={STATUS_MAP[bundle.status].className}>{STATUS_MAP[bundle.status].label}</span>
         </div>
         <div className="grid grid-cols-5 gap-4 text-[13px]">
-          <div><span className="text-muted-foreground">编码</span><div className="font-mono text-foreground mt-0.5">{bundle.code}</div></div>
           <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5"><Link to={`/entitlement/app/detail/${bundle.appId}`} className="text-primary hover:underline">{bundle.appName}</Link></div></div>
-          <div><span className="text-muted-foreground">价格</span><div className="font-medium text-foreground mt-0.5">{bundle.price > 0 ? `¥${bundle.price}/${cycle}` : "免费"}{bundle.originalPrice ? ` (原¥${bundle.originalPrice})` : ""}</div></div>
+          <div><span className="text-muted-foreground">价格</span><div className="font-medium text-foreground mt-0.5">{bundle.price > 0 ? `¥${bundle.price}/${cycle}` : "免费"}</div></div>
+          {bundle.originalPrice ? <div><span className="text-muted-foreground">原价</span><div className="text-muted-foreground mt-0.5 line-through">¥{bundle.originalPrice}</div></div> : <div><span className="text-muted-foreground">计费周期</span><div className="text-foreground mt-0.5">{cycle}</div></div>}
           <div><span className="text-muted-foreground">包含商品</span><div className="text-primary font-medium mt-0.5">{bundle.items.length}个</div></div>
           <div><span className="text-muted-foreground">创建时间</span><div className="text-foreground mt-0.5">{bundle.createdAt}</div></div>
         </div>
+        {bundle.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t leading-relaxed">{bundle.description}</p>}
       </div>
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
