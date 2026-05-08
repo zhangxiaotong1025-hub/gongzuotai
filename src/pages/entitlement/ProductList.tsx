@@ -6,7 +6,7 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download } from "lucide-react";
-import { productData as initialData, appData, EXCHANGE_TYPES, STATUS_MAP, getApp, type Product } from "@/data/entitlement";
+import { productData as initialData, appData, skuData, EXCHANGE_TYPES, STATUS_MAP, getApp, type Product } from "@/data/entitlement";
 import { ProductDialog } from "./dialogs/ProductDialog";
 
 const filterFields: FilterField[] = [
@@ -48,6 +48,10 @@ export default function ProductList() {
     { key: "exchangeType", title: "交易方式", minWidth: 100, render: (v: string) => { const t = EXCHANGE_TYPES.find((x) => x.value === v); return t ? <span className={t.className}>{t.label}</span> : <span>—</span>; } },
     { key: "creditPrice", title: "积分", minWidth: 80, align: "right" as const, render: (v: number, row) => (row as Product).exchangeType === "credit" ? <span className="font-medium text-foreground">{v?.toLocaleString() || 0}</span> : <span className="text-muted-foreground">—</span> },
     { key: "ruleIds", title: "规则数", minWidth: 70, align: "center" as const, render: (_v: unknown, row) => <span className="text-primary font-medium">{((row as Product).ruleIds || []).length}</span> },
+    { key: "linkedSkus", title: "被引用商品", minWidth: 90, align: "center" as const, render: (_v: unknown, row) => {
+      const cnt = skuData.filter((s) => (s.productIds || []).includes((row as Product).id)).length;
+      return cnt > 0 ? <span className="text-foreground font-medium">{cnt}</span> : <span className="text-muted-foreground">—</span>;
+    } },
     { key: "limitPerUser", title: "每人限领", minWidth: 80, align: "center" as const, render: (v: number) => <span className="text-muted-foreground">{v && v > 0 ? `${v}次` : "不限"}</span> },
     { key: "status", title: "状态", minWidth: 70, render: (v: string) => { const cfg = STATUS_MAP[v]; return <span className={cfg.className}>{cfg.label}</span>; } },
     { key: "createdAt", title: "创建时间", minWidth: 100, render: (v) => <span className="text-muted-foreground">{v}</span> },

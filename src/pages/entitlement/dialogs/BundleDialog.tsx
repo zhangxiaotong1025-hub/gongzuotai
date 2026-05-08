@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Check } from "lucide-react";
 import { appData, skuData, getSkusByApp, BILLING_CYCLES, type Bundle, type BillingCycle } from "@/data/entitlement";
+import { getProductsBySkuId } from "@/data/entitlement";
 
 export function BundleDialog({ open, onClose, onSave, initial }: { open: boolean; onClose: () => void; onSave: (d: any) => void; initial?: Bundle | null }) {
   const [form, setForm] = useState({
@@ -83,7 +84,7 @@ export function BundleDialog({ open, onClose, onSave, initial }: { open: boolean
                     {form.selectedSkuIds.includes(s.id) && <Check className="h-3 w-3 text-primary-foreground" />}
                   </button>
                   <span className={`flex-1 ${form.selectedSkuIds.includes(s.id) ? "text-primary font-medium" : "text-foreground"}`}>{s.name}</span>
-                  <span className="text-[11px] text-muted-foreground">{(s.ruleIds || []).length}条规则</span>
+                  <span className="text-[11px] text-muted-foreground">权益产品 {getProductsBySkuId(s.id).length} 个 · 规则 {(s.ruleIds || []).length} 条</span>
                   {form.selectedSkuIds.includes(s.id) && (
                     <div className="flex items-center gap-1">
                       <span className="text-[11px] text-muted-foreground">×</span>
