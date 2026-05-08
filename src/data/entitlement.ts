@@ -83,6 +83,11 @@ export const capabilityData: Capability[] = [
   { id: "cap19", name: "实时渲染",       code: "FEATURE_REALTIME_RENDER", appId: "app1", dataType: "BOOLEAN", unit: "布尔", apiPath: "/api/feature/realtime-render", consumePerUse: 1, description: "实时渲染功能",        status: "active", createdAt: "2026-03-12" },
   { id: "cap20", name: "大文件上传",     code: "FEATURE_LARGE_FILE",    appId: "app1", dataType: "BOOLEAN",  unit: "布尔", apiPath: "/api/feature/large-file",     consumePerUse: 1, description: "大文件上传功能",       status: "active", createdAt: "2026-03-12" },
   { id: "cap21", name: "云存储",         code: "FEATURE_CLOUD_STORAGE", appId: "app1", dataType: "STORAGE",  unit: "MB",  apiPath: "/api/feature/storage",        consumePerUse: 1, description: "云端文件存储",         status: "active", createdAt: "2026-03-12" },
+  // 国际3D工具
+  { id: "cap22", name: "AI设计·国际",     code: "INTL_AI_DESIGN",        appId: "app2", dataType: "COUNTER",  unit: "次",  apiPath: "/intl/api/ai/design",         consumePerUse: 1, description: "国际版AI设计能力",     status: "active", createdAt: "2026-03-12" },
+  { id: "cap23", name: "4K渲染·国际",     code: "INTL_RENDER_4K",        appId: "app2", dataType: "COUNTER",  unit: "次",  apiPath: "/intl/api/render/4k",         consumePerUse: 1, description: "国际版4K渲染",         status: "active", createdAt: "2026-03-12" },
+  { id: "cap24", name: "全景导出·国际",   code: "INTL_EXPORT_PANORAMA",  appId: "app2", dataType: "COUNTER",  unit: "次",  apiPath: "/intl/api/export/panorama",   consumePerUse: 1, description: "国际版全景图导出",     status: "active", createdAt: "2026-03-12" },
+  { id: "cap25", name: "海外素材库",     code: "INTL_MATERIAL_LIB",     appId: "app2", dataType: "BOOLEAN",  unit: "布尔", apiPath: "/intl/api/material/lib",      consumePerUse: 1, description: "海外风格素材库访问",   status: "active", createdAt: "2026-03-12" },
   // AI设计家
   { id: "cap30", name: "AI方案生成",     code: "AI_PLAN_GEN",           appId: "app4", dataType: "COUNTER",  unit: "次",  apiPath: "/api/ai/plan",               consumePerUse: 1, description: "AI方案自动生成",       status: "active", createdAt: "2026-03-12" },
   { id: "cap31", name: "AI风格迁移",     code: "AI_STYLE_TRANSFER",     appId: "app4", dataType: "COUNTER",  unit: "次",  apiPath: "/api/ai/style-transfer",     consumePerUse: 1, description: "AI风格迁移能力",       status: "active", createdAt: "2026-03-12" },
@@ -189,6 +194,11 @@ export const ruleData: EntitlementRule[] = [
   { id: "rule51", name: "客户画像开通",    code: "RULE_GUIDE_PROFILE",  capabilityId: "cap41", quota: 1,    periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME", isCumulative: false, expirePolicy: "NEVER_EXPIRE", description: "客户画像功能开通", status: "active", createdAt: "2026-03-12" },
   // 精准客资规则
   { id: "rule60", name: "线索100条/月",    code: "RULE_LEADS_100_M",    capabilityId: "cap50", quota: 100,  periodType: "MONTH", periodValue: 1, grantType: "MONTHLY_GRANT", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每月100条客资线索", status: "active", createdAt: "2026-03-12" },
+  // 国际3D工具规则
+  { id: "rule70", name: "国际AI 200次/日", code: "RULE_INTL_AI_200_DAY", capabilityId: "cap22", quota: 200, periodType: "DAY",       periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "国际版AI设计每日200次", status: "active", createdAt: "2026-03-12" },
+  { id: "rule71", name: "国际4K 3次/日",   code: "RULE_INTL_4K_3_DAY",   capabilityId: "cap23", quota: 3,   periodType: "DAY",       periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "国际版4K渲染每日3次", status: "active", createdAt: "2026-03-12" },
+  { id: "rule72", name: "海外素材库访问",  code: "RULE_INTL_MAT_ACCESS", capabilityId: "cap25", quota: 1,   periodType: "PERMANENT", periodValue: 0, grantType: "ONE_TIME",      isCumulative: false, expirePolicy: "NEVER_EXPIRE",     description: "海外风格素材库访问权限", status: "active", createdAt: "2026-03-12" },
+  { id: "rule73", name: "国际全景5次/日",  code: "RULE_INTL_PANO_5_DAY", capabilityId: "cap24", quota: 5,   periodType: "DAY",       periodValue: 1, grantType: "DAILY_REFRESH", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "国际版全景图每日5次", status: "active", createdAt: "2026-03-12" },
 ];
 
 /* ── Product (权益产品) ──
@@ -244,6 +254,10 @@ export const productData: Product[] = [
   // 智能导购
   { id: "prod30", name: "导购标准权益包",        code: "PROD_GUIDE_STD",       appId: "app3", ruleIds: ["rule50"],          exchangeType: "paid",       limitPerUser: 0, status: "active", description: "导购推荐500次/月封装", createdAt: "2026-03-12" },
   { id: "prod31", name: "客户画像试用",          code: "PROD_GUIDE_PROFILE_TRIAL", appId: "app3", ruleIds: ["rule51"],      exchangeType: "free",   limitPerUser: 1, status: "active", description: "新企业入驻试用客户画像", createdAt: "2026-03-12" },
+  // 国际3D工具产品
+  { id: "prod40", name: "国际版基础包",          code: "PROD_INTL_BASIC",      appId: "app2", ruleIds: ["rule70", "rule71", "rule73"],          exchangeType: "paid",   limitPerUser: 0, status: "active", description: "国际版基础权益封装", createdAt: "2026-03-12" },
+  { id: "prod41", name: "国际版旗舰包",          code: "PROD_INTL_PRO",        appId: "app2", ruleIds: ["rule70", "rule71", "rule72", "rule73"], exchangeType: "paid",   limitPerUser: 0, status: "active", description: "国际版旗舰权益封装（含海外素材库）", createdAt: "2026-03-12" },
+  { id: "prod42", name: "海外素材库·体验",       code: "PROD_INTL_MAT_TRIAL",  appId: "app2", ruleIds: ["rule72"],                              exchangeType: "free",   limitPerUser: 1, status: "active", description: "新用户海外素材库7天体验", createdAt: "2026-03-12" },
 ];
 
 /* ── SKU (商品) ── */
@@ -274,23 +288,26 @@ export const BILLING_CYCLES: { value: BillingCycle; label: string }[] = [
 
 export const skuData: Sku[] = [
   // 国内3D - 单次充值
-  { id: "sku1",  name: "4K普通图",         code: "SKU_4K_SINGLE",    appId: "app1", ruleIds: ["rule28"],          price: 3,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 1,  description: "单次4K渲染",    createdAt: "2026-03-12" },
-  { id: "sku2",  name: "8K普通图",         code: "SKU_8K_SINGLE",    appId: "app1", ruleIds: ["rule29"],          price: 8,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 2,  description: "单次8K渲染",    createdAt: "2026-03-12" },
-  { id: "sku3",  name: "AI积分100·基础包", code: "SKU_AI_100",       appId: "app1", ruleIds: ["rule31"],          price: 9.9,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 3,  description: "100次AI积分",   createdAt: "2026-03-12" },
-  { id: "sku4",  name: "AI积分200·专业包", code: "SKU_AI_200",       appId: "app1", ruleIds: ["rule32"],          price: 19.9,  billingCycle: "once",    salesStatus: "on_sale", sortOrder: 4,  description: "200次AI积分",   createdAt: "2026-03-12" },
-  { id: "sku5",  name: "AI积分2000·高级包",code: "SKU_AI_2000",      appId: "app1", ruleIds: ["rule33"],          price: 169,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 5,  description: "2000次AI积分",  createdAt: "2026-03-12" },
+  { id: "sku1",  name: "4K普通图",         code: "SKU_4K_SINGLE",    appId: "app1", productIds: ["prod3"],         ruleIds: ["rule28"],          price: 3,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 1,  description: "单次4K渲染",    createdAt: "2026-03-12" },
+  { id: "sku2",  name: "8K普通图",         code: "SKU_8K_SINGLE",    appId: "app1", productIds: ["prod4"],         ruleIds: ["rule29"],          price: 8,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 2,  description: "单次8K渲染",    createdAt: "2026-03-12" },
+  { id: "sku3",  name: "AI积分100·基础包", code: "SKU_AI_100",       appId: "app1", productIds: ["prod1"],         ruleIds: ["rule31"],          price: 9.9,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 3,  description: "100次AI积分",   createdAt: "2026-03-12" },
+  { id: "sku4",  name: "AI积分200·专业包", code: "SKU_AI_200",       appId: "app1", productIds: ["prod2"],         ruleIds: ["rule32"],          price: 19.9,  billingCycle: "once",    salesStatus: "on_sale", sortOrder: 4,  description: "200次AI积分",   createdAt: "2026-03-12" },
+  { id: "sku5",  name: "AI积分2000·高级包",code: "SKU_AI_2000",      appId: "app1", productIds: [],                ruleIds: ["rule33"],          price: 169,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 5,  description: "2000次AI积分",  createdAt: "2026-03-12" },
   // 国内3D - 会员
-  { id: "sku6",  name: "免费版权益",       code: "SKU_FREE",         appId: "app1", ruleIds: ["rule1", "rule25", "rule7"], price: 0, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 10, description: "免费版基础权益", createdAt: "2026-03-12" },
-  { id: "sku7",  name: "基础会员权益",     code: "SKU_BASIC",        appId: "app1", ruleIds: ["rule2", "rule4", "rule9", "rule11", "rule12", "rule13", "rule14", "rule25"], price: 9.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 11, description: "基础会员权益包", createdAt: "2026-03-12" },
-  { id: "sku8",  name: "旗舰会员权益",     code: "SKU_PRO",          appId: "app1", ruleIds: ["rule3", "rule5", "rule6", "rule8", "rule10", "rule11", "rule12", "rule13", "rule14", "rule15", "rule16", "rule17", "rule18", "rule19", "rule20", "rule21", "rule22", "rule23", "rule24", "rule26"], price: 150, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 12, description: "旗舰会员全能力", createdAt: "2026-03-12" },
+  { id: "sku6",  name: "免费版权益",       code: "SKU_FREE",         appId: "app1", productIds: ["prod9"],         ruleIds: ["rule1", "rule25", "rule7"], price: 0, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 10, description: "免费版基础权益", createdAt: "2026-03-12" },
+  { id: "sku7",  name: "基础会员权益",     code: "SKU_BASIC",        appId: "app1", productIds: ["prod10"],        ruleIds: ["rule2", "rule4", "rule9", "rule11", "rule12", "rule13", "rule14", "rule25"], price: 9.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 11, description: "基础会员权益包", createdAt: "2026-03-12" },
+  { id: "sku8",  name: "旗舰会员权益",     code: "SKU_PRO",          appId: "app1", productIds: ["prod11"],        ruleIds: ["rule3", "rule5", "rule6", "rule8", "rule10", "rule11", "rule12", "rule13", "rule14", "rule15", "rule16", "rule17", "rule18", "rule19", "rule20", "rule21", "rule22", "rule23", "rule24", "rule26"], price: 150, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 12, description: "旗舰会员全能力", createdAt: "2026-03-12" },
   // AI设计家
-  { id: "sku20", name: "AI设计家基础版",   code: "SKU_AI_BASIC",     appId: "app4", ruleIds: ["rule40"],          price: 29.9,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "AI方案100次/月", createdAt: "2026-03-12" },
-  { id: "sku21", name: "AI设计家专业版",   code: "SKU_AI_PRO",       appId: "app4", ruleIds: ["rule40", "rule41"], price: 59.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "AI方案+风格迁移", createdAt: "2026-03-12" },
+  { id: "sku20", name: "AI设计家基础版",   code: "SKU_AI_BASIC",     appId: "app4", productIds: ["prod20"],        ruleIds: ["rule40"],          price: 29.9,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "AI方案100次/月", createdAt: "2026-03-12" },
+  { id: "sku21", name: "AI设计家专业版",   code: "SKU_AI_PRO",       appId: "app4", productIds: ["prod20", "prod21"], ruleIds: ["rule40", "rule41"], price: 59.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "AI方案+风格迁移", createdAt: "2026-03-12" },
   // 智能导购
-  { id: "sku30", name: "导购标准版",       code: "SKU_GUIDE_STD",    appId: "app3", ruleIds: ["rule50"],          price: 99,    billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "导购推荐500次/月", createdAt: "2026-03-12" },
-  { id: "sku31", name: "导购高级版",       code: "SKU_GUIDE_PRO",    appId: "app3", ruleIds: ["rule50", "rule51"], price: 199,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "导购+客户画像", createdAt: "2026-03-12" },
+  { id: "sku30", name: "导购标准版",       code: "SKU_GUIDE_STD",    appId: "app3", productIds: ["prod30"],        ruleIds: ["rule50"],          price: 99,    billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "导购推荐500次/月", createdAt: "2026-03-12" },
+  { id: "sku31", name: "导购高级版",       code: "SKU_GUIDE_PRO",    appId: "app3", productIds: ["prod30", "prod31"], ruleIds: ["rule50", "rule51"], price: 199, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "导购+客户画像", createdAt: "2026-03-12" },
   // 精准客资
-  { id: "sku40", name: "客资基础包",       code: "SKU_LEADS_100",    appId: "app5", ruleIds: ["rule60"],          price: 199,   billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "每月100条线索", createdAt: "2026-03-12" },
+  { id: "sku40", name: "客资基础包",       code: "SKU_LEADS_100",    appId: "app5", productIds: [],                ruleIds: ["rule60"],          price: 199,   billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "每月100条线索", createdAt: "2026-03-12" },
+  // 国际3D工具
+  { id: "sku50", name: "国际版基础",       code: "SKU_INTL_BASIC",   appId: "app2", productIds: ["prod40"],        ruleIds: ["rule70", "rule71", "rule73"],         price: 19.9,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1, description: "国际版基础月卡",  createdAt: "2026-03-12" },
+  { id: "sku51", name: "国际版旗舰",       code: "SKU_INTL_PRO",     appId: "app2", productIds: ["prod41"],        ruleIds: ["rule70", "rule71", "rule72", "rule73"], price: 49.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2, description: "国际版旗舰月卡（含海外素材库）", createdAt: "2026-03-12" },
 ];
 
 /* ── Bundle (套餐) ── */
@@ -340,6 +357,18 @@ export const bundleData: Bundle[] = [
   {
     id: "bun6", name: "导购+客资套装", code: "BUN_GUIDE_LEADS", appId: "app3", appName: "智能导购", price: 349, originalPrice: 398, billingCycle: "monthly", status: "on_sale", sortOrder: 1, description: "智能导购+精准客资联合套装", createdAt: "2026-03-12",
     items: [{ skuId: "sku31", skuName: "导购高级版", quantity: 1 }, { skuId: "sku40", skuName: "客资基础包", quantity: 1 }],
+  },
+  {
+    id: "bun7", name: "国际版旗舰", code: "BUN_INTL_PRO", appId: "app2", appName: "国际3D工具", price: 49.9, billingCycle: "monthly", status: "on_sale", sortOrder: 1, description: "国际版旗舰套餐", createdAt: "2026-03-12",
+    items: [{ skuId: "sku51", skuName: "国际版旗舰", quantity: 1 }],
+  },
+  {
+    id: "bun8", name: "全球设计组合", code: "BUN_GLOBAL_DESIGN", appId: "app1", appName: "国内3D工具", price: 388, originalPrice: 498, billingCycle: "monthly", status: "on_sale", sortOrder: 5, description: "国内+国际+AI设计家三联套装", createdAt: "2026-03-12",
+    items: [
+      { skuId: "sku8",  skuName: "旗舰会员权益",     quantity: 1 },
+      { skuId: "sku51", skuName: "国际版旗舰",       quantity: 1 },
+      { skuId: "sku21", skuName: "AI设计家专业版",   quantity: 1 },
+    ],
   },
 ];
 
@@ -795,9 +824,60 @@ export const orderData: EntitlementOrder[] = [
       { status: "suspended",     label: "权益暂停", time: "2026-03-22 09:00:00", remark: "企业合规检查，临时暂停权益使用" },
     ],
   },
+  {
+    // 积分兑换订单 — 直接以"权益产品"为下单单元（无SKU）
+    id: "ord19", orderNo: "ORD202603260001", customerType: "C", customerId: "user2", customerName: "李四",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "active",
+    paidAt: "2026-03-26 11:00:05", remark: "积分兑换 990积分 → AI设计100次", createdAt: "2026-03-26 11:00:00",
+    items: [{ type: "product", itemId: "prod1", itemName: "AI积分100次·兑换包", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建",     time: "2026-03-26 11:00:00", remark: "用户在积分商城下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-26 11:00:01" },
+      { status: "credit_paid",   label: "积分扣减完成", time: "2026-03-26 11:00:05", remark: "扣减 990 积分（余额 5240→4250）" },
+      { status: "granted",       label: "权益生效",     time: "2026-03-26 11:00:06", remark: "AI设计100次已入账" },
+    ],
+  },
+  {
+    // 国际版购买
+    id: "ord20", orderNo: "ORD202603270001", customerType: "B", customerId: "cust10", customerName: "北京金隅装饰工程有限公司",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 49.9, paymentStatus: "paid", orderStatus: "active",
+    paidAt: "2026-03-27 09:30:00", remark: "国际版旗舰月卡", createdAt: "2026-03-27 09:25:00",
+    items: [{ type: "bundle", itemId: "bun7", itemName: "国际版旗舰", quantity: 1, unitPrice: 49.9 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建",     time: "2026-03-27 09:25:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-27 09:25:01" },
+      { status: "paid",          label: "支付完成",     time: "2026-03-27 09:30:00", remark: "微信支付" },
+      { status: "granted",       label: "权益生效",     time: "2026-03-27 09:30:05", remark: "国际版旗舰已生效" },
+    ],
+  },
+  {
+    // 跨3应用大套餐
+    id: "ord21", orderNo: "ORD202603280001", customerType: "B", customerId: "cust11", customerName: "上海东易日盛装饰有限公司",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 388, paymentStatus: "paid", orderStatus: "active",
+    paidAt: "2026-03-28 14:30:00", expireAt: "2026-04-28", remark: "全球设计组合月卡", createdAt: "2026-03-28 14:25:00",
+    items: [{ type: "bundle", itemId: "bun8", itemName: "全球设计组合", quantity: 1, unitPrice: 388 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建",     time: "2026-03-28 14:25:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-28 14:25:01" },
+      { status: "paid",          label: "支付完成",     time: "2026-03-28 14:30:00", remark: "对公转账" },
+      { status: "granted",       label: "权益生效",     time: "2026-03-28 14:30:05", remark: "国内3D+国际3D+AI设计家 三应用权益已发放" },
+    ],
+  },
+  {
+    // 内部发放：以「权益产品」为发放单元（运营补偿包）
+    id: "ord22", orderNo: "ORD202603290001", customerType: "C", customerId: "user1", customerName: "张三",
+    orderType: "internal_grant", auditStatus: "approved", auditBy: "客服主管·赵敏", auditAt: "2026-03-29 10:15:00",
+    totalAmount: 0, paymentStatus: "no_payment", orderStatus: "active",
+    remark: "渲染失败补偿（工单 #20583）", createdAt: "2026-03-29 10:00:00",
+    items: [{ type: "product", itemId: "prod7", itemName: "运营补偿包", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建",     time: "2026-03-29 10:00:00", remark: "客服·林敏 创建补偿单" },
+      { status: "pending_audit", label: "提交审核",     time: "2026-03-29 10:00:01" },
+      { status: "approved",      label: "审核通过",     time: "2026-03-29 10:15:00", remark: "客服主管·赵敏 审核通过" },
+      { status: "granted",       label: "权益生效",     time: "2026-03-29 10:15:05", remark: "AI200次 + 4K1次 + 8K1次 已入账" },
+    ],
+  },
 ];
-
-/* ── AllocationRecord (分配记录 — 订单维度的权益分配) ── */
 export interface AllocationRecord {
   id: string;
   orderId: string;
