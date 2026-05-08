@@ -58,7 +58,7 @@ export default function AppDetail() {
           <div><span className="text-muted-foreground">规则</span><div className="text-primary font-medium mt-0.5">{rules.length}条</div></div>
           <div><span className="text-muted-foreground">商品SKU</span><div className="text-primary font-medium mt-0.5">{skus.length}个</div></div>
           <div><span className="text-muted-foreground">套餐</span><div className="text-primary font-medium mt-0.5">{bundles.length}个</div></div>
-          <div><span className="text-muted-foreground">创建时间</span><div className="text-foreground mt-0.5">{(app as any).createdAt || "—"}</div></div>
+          <div><span className="text-muted-foreground">创建时间</span><div className="text-foreground mt-0.5">{app.createdAt}</div></div>
         </div>
         {app.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t leading-relaxed">{app.description}</p>}
       </div>
