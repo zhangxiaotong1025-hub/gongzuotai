@@ -243,6 +243,9 @@ export interface Sku {
   name: string;
   code: string;
   appId: string;
+  /** 关联的权益产品（推荐方式，N:M）。一个 SKU 可包含多个 Product；一个 Product 可被多个 SKU 引用 */
+  productIds?: string[];
+  /** 兼容字段：直接关联规则（早期数据） */
   ruleIds: string[];
   price: number;
   billingCycle: BillingCycle;
@@ -346,7 +349,8 @@ export interface StatusHistoryEntry {
 }
 
 export interface OrderItem {
-  type: "sku" | "bundle";
+  /** product = 权益产品（积分兑换/内部发放/系统赠送的最小单元）； sku = 商品（付费售卖）； bundle = 套餐（多 SKU 组合促销） */
+  type: "product" | "sku" | "bundle";
   itemId: string;
   itemName: string;
   quantity: number;
@@ -456,10 +460,12 @@ export function getOrderAppIds(order: EntitlementOrder): string[] {
     if (item.type === "sku") {
       const sku = skuData.find((s) => s.id === item.itemId);
       if (sku) appIds.add(sku.appId);
+    } else if (item.type === "product") {
+      const product = productData.find((p) => p.id === item.itemId);
+      if (product) appIds.add(product.appId);
     } else {
       const bundle = bundleData.find((b) => b.id === item.itemId);
       if (bundle) appIds.add(bundle.appId);
-      // 套餐中的SKU可能跨应用
       if (bundle) {
         for (const bi of bundle.items) {
           const sku = skuData.find((s) => s.id === bi.skuId);

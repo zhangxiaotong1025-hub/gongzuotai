@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Search, Package, Layers, Building2, User } from "lucide-react";
-import { appData, skuData, bundleData, ORDER_TYPES, BILLING_CYCLES, CUSTOMER_TYPES, bEnterpriseData, cUserData, type EntitlementOrder, type OrderItem, type Sku, type Bundle, type CustomerType } from "@/data/entitlement";
+import { X, Search, Package, Layers, Building2, User, Sparkles } from "lucide-react";
+import { appData, skuData, bundleData, productData, EXCHANGE_TYPES, ORDER_TYPES, BILLING_CYCLES, CUSTOMER_TYPES, bEnterpriseData, cUserData, type EntitlementOrder, type OrderItem, type Sku, type Bundle, type Product, type CustomerType } from "@/data/entitlement";
 
 interface OrderDialogProps {
   open: boolean;
@@ -79,6 +79,9 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
     if (item.type === "sku") {
       const sku = skuData.find((s) => s.id === item.itemId);
       if (sku) selectedAppIds.add(sku.appId);
+    } else if (item.type === "product") {
+      const product = productData.find((p) => p.id === item.itemId);
+      if (product) selectedAppIds.add(product.appId);
     } else {
       const bundle = bundleData.find((b) => b.id === item.itemId);
       if (bundle) selectedAppIds.add(bundle.appId);
@@ -258,7 +261,7 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
               <div className="flex items-center justify-between">
                 <Label className="text-[13px]">订单商品 ({items.length})</Label>
                 <Button type="button" variant="outline" size="sm" className="h-7 text-[12px]" onClick={() => setPickerOpen(true)}>
-                  选择商品/套餐
+                  选择权益产品/商品/套餐
                 </Button>
               </div>
 
@@ -277,12 +280,19 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                   {items.map((item, idx) => {
                     const itemApp = item.type === "sku"
                       ? appData.find((a) => a.id === skuData.find((s) => s.id === item.itemId)?.appId)
+                      : item.type === "product"
+                      ? appData.find((a) => a.id === productData.find((p) => p.id === item.itemId)?.appId)
                       : appData.find((a) => a.id === bundleData.find((b) => b.id === item.itemId)?.appId);
+                    const typeBadge = item.type === "bundle"
+                      ? { label: "套餐", cls: "bg-accent text-accent-foreground" }
+                      : item.type === "product"
+                      ? { label: "权益产品", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" }
+                      : { label: "SKU", cls: "bg-primary/10 text-primary" };
                     return (
                       <div key={idx} className="flex items-center justify-between px-3 py-2 text-[13px]">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${item.type === "bundle" ? "bg-accent text-accent-foreground" : "bg-primary/10 text-primary"}`}>
-                            {item.type === "bundle" ? "套餐" : "SKU"}
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${typeBadge.cls}`}>
+                            {typeBadge.label}
                           </span>
                           <span className="font-medium truncate">{item.itemName}</span>
                           {itemApp && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">{itemApp.name}</span>}
@@ -331,7 +341,7 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
   existingItems: OrderItem[];
   onConfirm: (items: OrderItem[]) => void;
 }) {
-  const [tab, setTab] = useState<"sku" | "bundle">("sku");
+  const [tab, setTab] = useState<"product" | "sku" | "bundle">("product");
   const [search, setSearch] = useState("");
   const [appFilter, setAppFilter] = useState<string>("all");
   const [localItems, setLocalItems] = useState<OrderItem[]>([]);
@@ -344,6 +354,11 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
     }
   }, [open, existingItems]);
 
+  const filteredProducts = productData.filter((p) =>
+    p.status === "active" &&
+    (appFilter === "all" || p.appId === appFilter) &&
+    (!search || p.name.includes(search) || p.code.includes(search))
+  );
   const filteredSkus = skuData.filter((s) =>
     s.salesStatus === "on_sale" &&
     (appFilter === "all" || s.appId === appFilter) &&
@@ -355,6 +370,11 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
     (!search || b.name.includes(search) || b.code.includes(search))
   );
 
+  const productsByApp = appData.filter((a) => appFilter === "all" || a.id === appFilter).map((app) => ({
+    app,
+    products: filteredProducts.filter((p) => p.appId === app.id),
+  })).filter((g) => g.products.length > 0);
+
   const skusByApp = appData.filter((a) => appFilter === "all" || a.id === appFilter).map((app) => ({
     app,
     skus: filteredSkus.filter((s) => s.appId === app.id),
@@ -365,14 +385,15 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
     bundles: filteredBundles.filter((b) => b.appId === app.id),
   })).filter((g) => g.bundles.length > 0);
 
-  const isSelected = (type: "sku" | "bundle", id: string) => localItems.some((i) => i.type === type && i.itemId === id);
+  const isSelected = (type: "product" | "sku" | "bundle", id: string) => localItems.some((i) => i.type === type && i.itemId === id);
 
-  const toggleItem = (type: "sku" | "bundle", item: Sku | Bundle) => {
+  const toggleItem = (type: "product" | "sku" | "bundle", item: Product | Sku | Bundle) => {
     const id = item.id;
     if (isSelected(type, id)) {
       setLocalItems((prev) => prev.filter((i) => !(i.type === type && i.itemId === id)));
     } else {
-      setLocalItems((prev) => [...prev, { type, itemId: id, itemName: item.name, quantity: 1, unitPrice: item.price }]);
+      const price = type === "product" ? 0 : (item as Sku | Bundle).price;
+      setLocalItems((prev) => [...prev, { type, itemId: id, itemName: item.name, quantity: 1, unitPrice: price }]);
     }
   };
 
@@ -380,11 +401,14 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-[750px] max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>选择商品/套餐（支持跨应用）</DialogTitle>
+          <DialogTitle>选择权益产品 / 商品 / 套餐（支持跨应用）</DialogTitle>
         </DialogHeader>
 
         <div className="flex items-center gap-3 pb-3 border-b">
           <div className="flex gap-1 bg-muted rounded-lg p-0.5 shrink-0">
+            <button onClick={() => setTab("product")} className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors ${tab === "product" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
+              <Sparkles className="h-3.5 w-3.5 inline mr-1" />权益产品
+            </button>
             <button onClick={() => setTab("sku")} className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors ${tab === "sku" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
               <Package className="h-3.5 w-3.5 inline mr-1" />商品SKU
             </button>
@@ -407,7 +431,40 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
         </div>
 
         <div className="flex-1 overflow-y-auto min-h-[300px] py-2">
-          {tab === "sku" ? (
+          {tab === "product" ? (
+            <div className="space-y-3">
+              {productsByApp.map(({ app, products }) => (
+                <div key={app.id}>
+                  <div className="flex items-center gap-2 mb-1.5 px-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary font-medium">{app.name}</span>
+                    <span className="text-[11px] text-muted-foreground">{products.length}个产品</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    {products.map((product) => {
+                      const ex = EXCHANGE_TYPES.find((e) => e.value === product.exchangeType);
+                      return (
+                        <label key={product.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${isSelected("product", product.id) ? "bg-primary/5 border border-primary/20" : "hover:bg-muted/60 border border-transparent"}`}>
+                          <Checkbox checked={isSelected("product", product.id)} onCheckedChange={() => toggleItem("product", product)} />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[13px] font-medium text-foreground">{product.name}</div>
+                            <div className="text-[11px] text-muted-foreground font-mono">{product.code} · {product.ruleIds.length}条规则</div>
+                          </div>
+                          {ex && <span className={`${ex.className} shrink-0`}>{ex.label}</span>}
+                          {product.exchangeType === "credit" && product.creditPrice ? (
+                            <span className="text-[12px] text-muted-foreground shrink-0">{product.creditPrice}积分</span>
+                          ) : null}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              {productsByApp.length === 0 && <div className="text-center text-[13px] text-muted-foreground py-8">暂无符合条件的权益产品</div>}
+              <div className="px-3 py-2 mx-2 mt-2 rounded-md bg-muted/40 text-[11px] text-muted-foreground leading-relaxed">
+                💡 内部发放订单可直接选择权益产品下发，单价记为 ¥0；商务签约/线下收款场景请选 SKU 或套餐
+              </div>
+            </div>
+          ) : tab === "sku" ? (
             <div className="space-y-3">
               {skusByApp.map(({ app, skus }) => (
                 <div key={app.id}>

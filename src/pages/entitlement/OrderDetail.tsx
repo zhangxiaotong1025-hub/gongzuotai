@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { orderData, accountData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, AUDIT_STATUS, skuData, bundleData, getOrderApps, getRule, getCapability, type EntitlementOrder } from "@/data/entitlement";
+import { orderData, accountData, ORDER_STATUS, ORDER_TYPES, PAYMENT_STATUS, AUDIT_STATUS, skuData, bundleData, productData, getOrderApps, getRule, getCapability, type EntitlementOrder } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { OrderLifecycleFlow } from "@/components/admin/OrderLifecycleFlow";
 import { toast } from "sonner";
@@ -26,14 +26,18 @@ export default function OrderDetail() {
     if (item.type === "sku") {
       const sku = skuData.find((s) => s.id === item.itemId);
       const rules = sku ? sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean) : [];
-      return { ...item, sku, bundle: undefined, rules, appName: sku ? (apps.find((a) => a.id === sku.appId)?.name || "") : "" };
+      return { ...item, sku, bundle: undefined, product: undefined, rules, appName: sku ? (apps.find((a) => a.id === sku.appId)?.name || "") : "" };
+    } else if (item.type === "product") {
+      const product = productData.find((p) => p.id === item.itemId);
+      const rules = product ? product.ruleIds.map((rid) => getRule(rid)).filter(Boolean) : [];
+      return { ...item, sku: undefined, bundle: undefined, product, rules, appName: product ? (apps.find((a) => a.id === product.appId)?.name || "") : "" };
     } else {
       const bundle = bundleData.find((b) => b.id === item.itemId);
       const allRules = bundle ? bundle.items.flatMap((bi) => {
         const sku = skuData.find((s) => s.id === bi.skuId);
         return sku ? sku.ruleIds.map((rid) => getRule(rid)).filter(Boolean) : [];
       }) : [];
-      return { ...item, sku: undefined, bundle, rules: allRules, appName: bundle ? (apps.find((a) => a.id === bundle.appId)?.name || "") : "" };
+      return { ...item, sku: undefined, bundle, product: undefined, rules: allRules, appName: bundle ? (apps.find((a) => a.id === bundle.appId)?.name || "") : "" };
     }
   });
 
@@ -193,9 +197,9 @@ export default function OrderDetail() {
               {resolvedItems.map((item, idx) => (
                 <tr key={idx} className="border-b border-border/40 hover:bg-muted/30">
                   <td className="py-2.5">
-                    <Link to={item.type === "bundle" ? `/entitlement/package/detail/${item.itemId}` : `/entitlement/sku/detail/${item.itemId}`} className="text-primary hover:underline font-medium">{item.itemName}</Link>
+                    <Link to={item.type === "bundle" ? `/entitlement/package/detail/${item.itemId}` : item.type === "product" ? `/entitlement/product/detail/${item.itemId}` : `/entitlement/sku/detail/${item.itemId}`} className="text-primary hover:underline font-medium">{item.itemName}</Link>
                   </td>
-                  <td className="py-2.5"><span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${item.type === "bundle" ? "bg-accent text-accent-foreground" : "bg-primary/10 text-primary"}`}>{item.type === "bundle" ? "商品套餐" : "商品SKU"}</span></td>
+                  <td className="py-2.5"><span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${item.type === "bundle" ? "bg-accent text-accent-foreground" : item.type === "product" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-primary/10 text-primary"}`}>{item.type === "bundle" ? "商品套餐" : item.type === "product" ? "权益产品" : "商品SKU"}</span></td>
                   <td className="py-2.5 text-muted-foreground">{item.appName}</td>
                   <td className="py-2.5 text-right">{item.unitPrice > 0 ? `¥${item.unitPrice.toFixed(2)}` : "¥0.00"}</td>
                   <td className="py-2.5 text-right">{item.quantity}</td>
