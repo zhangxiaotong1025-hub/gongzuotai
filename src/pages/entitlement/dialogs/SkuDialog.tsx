@@ -152,7 +152,26 @@ export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; o
     sortOrder: initial?.sortOrder ?? 1, description: initial?.description || "",
   });
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [touched, setTouched] = useState(false);
   const isEdit = Boolean(initial);
+  const app = getApp(form.appId);
+  const suggestedCode = useMemo(() => {
+    if (!app || isEdit || !form.name.trim()) return "";
+    return `SKU_${app.code}_${Date.now().toString().slice(-4)}`;
+  }, [app, form.name, isEdit]);
+
+  const errors: string[] = [];
+  if (!form.name.trim()) errors.push("商品名称");
+  if (!form.code.trim()) errors.push("商品编码");
+  if (form.ruleIds.length === 0) errors.push("关联权益规则");
+  if (form.price < 0) errors.push("价格不能为负");
+
+  const handleSubmit = () => {
+    setTouched(true);
+    if (errors.length > 0) { toast.error(`请完善：${errors.join("、")}`); return; }
+    onSave(form);
+  };
+
   if (!open) return null;
 
   const selectedRules = form.ruleIds.map((rid) => getRule(rid)).filter(Boolean) as EntitlementRule[];
