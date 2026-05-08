@@ -4,6 +4,7 @@ import { skuData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TY
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { SkuDialog } from "./dialogs/SkuDialog";
 import { toast } from "sonner";
+import { Tag } from "lucide-react";
 
 export default function SkuDetail() {
   const { id } = useParams();
@@ -44,17 +45,23 @@ export default function SkuDetail() {
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-start justify-between mb-4">
-          <h2 className="text-[16px] font-semibold text-foreground">{sku.name}</h2>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Tag className="h-5 w-5 text-primary" /></div>
+            <div>
+              <h2 className="text-[16px] font-semibold text-foreground">{sku.name}</h2>
+              <code className="text-[12px] text-muted-foreground font-mono">{sku.code}</code>
+            </div>
+          </div>
           <span className={STATUS_MAP[sku.salesStatus].className}>{STATUS_MAP[sku.salesStatus].label}</span>
         </div>
         <div className="grid grid-cols-5 gap-4 text-[13px]">
-          <div><span className="text-muted-foreground">商品编码</span><div className="font-mono text-foreground mt-0.5">{sku.code}</div></div>
           <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5">{app ? <Link to={`/entitlement/app/detail/${app.id}`} className="text-primary hover:underline">{app.name}</Link> : "—"}</div></div>
           <div><span className="text-muted-foreground">价格</span><div className={`font-medium mt-0.5 ${sku.price > 0 ? "text-foreground" : "text-muted-foreground"}`}>{sku.price > 0 ? `¥${sku.price}` : "¥0"}</div></div>
           <div><span className="text-muted-foreground">计费周期</span><div className="text-foreground mt-0.5">{BILLING_CYCLES.find((b) => b.value === sku.billingCycle)?.label}</div></div>
+          <div><span className="text-muted-foreground">关联规则</span><div className="text-primary font-medium mt-0.5">{rules.length}条</div></div>
           <div><span className="text-muted-foreground">创建时间</span><div className="text-foreground mt-0.5">{sku.createdAt}</div></div>
         </div>
-        {sku.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t">{sku.description}</p>}
+        {sku.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t leading-relaxed">{sku.description}</p>}
       </div>
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
