@@ -258,6 +258,37 @@ export const productData: Product[] = [
   { id: "prod40", name: "国际版基础包",          code: "PROD_INTL_BASIC",      appId: "app2", ruleIds: ["rule70", "rule71", "rule73"],          exchangeType: "paid",   limitPerUser: 0, status: "active", description: "国际版基础权益封装", createdAt: "2026-03-12" },
   { id: "prod41", name: "国际版旗舰包",          code: "PROD_INTL_PRO",        appId: "app2", ruleIds: ["rule70", "rule71", "rule72", "rule73"], exchangeType: "paid",   limitPerUser: 0, status: "active", description: "国际版旗舰权益封装（含海外素材库）", createdAt: "2026-03-12" },
   { id: "prod42", name: "海外素材库·体验",       code: "PROD_INTL_MAT_TRIAL",  appId: "app2", ruleIds: ["rule72"],                              exchangeType: "free",   limitPerUser: 1, status: "active", description: "新用户海外素材库7天体验", createdAt: "2026-03-12" },
+
+  /* ── 国内3D工具 · 付费售卖型权益产品（场景化命名） ── */
+  { id: "prod50", name: "新锐设计师月卡",            code: "PROD_DESIGNER_STARTER_M", appId: "app1", ruleIds: ["rule2", "rule4", "rule9", "rule25"],            exchangeType: "paid", limitPerUser: 0, status: "active", description: "面向独立设计师/小工作室：AI 300次/日 + 4K 2次/日 + 2D导出 + 200MB存储", createdAt: "2026-03-15" },
+  { id: "prod51", name: "高效出图·加速包",            code: "PROD_RENDER_BOOST",       appId: "app1", ruleIds: ["rule5", "rule6", "rule22"],                     exchangeType: "paid", limitPerUser: 0, status: "active", description: "聚焦渲染产能：4K 4次/日 + 8K 1次/日 + 去水印", createdAt: "2026-03-15" },
+  { id: "prod52", name: "全景营销·季卡权益",          code: "PROD_PANORAMA_QUARTER",   appId: "app1", ruleIds: ["rule8", "rule10"],                              exchangeType: "paid", limitPerUser: 0, status: "active", description: "门店/营销场景：全景图10次/日 + 2D无限导出", createdAt: "2026-03-15" },
+  { id: "prod53", name: "全屋方案·素材通行证",        code: "PROD_WHOLE_HOUSE_PASS",   appId: "app1", ruleIds: ["rule11", "rule12", "rule13", "rule14", "rule18"], exchangeType: "paid", limitPerUser: 0, status: "active", description: "全屋模型 + 贴图 + 软装 + 产品 + 精选套餐 全部解锁", createdAt: "2026-03-15" },
+  { id: "prod54", name: "灯光与外景·进阶包",          code: "PROD_LIGHTING_OUTDOOR",   appId: "app1", ruleIds: ["rule15", "rule16", "rule17"],                   exchangeType: "paid", limitPerUser: 0, status: "active", description: "高端样板间必备：灯光库 + 外景库 + 装饰画库", createdAt: "2026-03-15" },
+  { id: "prod55", name: "团队协作·效率套件",          code: "PROD_TEAM_EFFICIENCY",    appId: "app1", ruleIds: ["rule19", "rule20", "rule21", "rule24"],         exchangeType: "paid", limitPerUser: 0, status: "active", description: "批量导入 + 批量替换 + 人视图 + 大文件上传", createdAt: "2026-03-15" },
+  { id: "prod56", name: "实时渲染·专业版",            code: "PROD_REALTIME_PRO",       appId: "app1", ruleIds: ["rule23", "rule24"],                             exchangeType: "paid", limitPerUser: 0, status: "active", description: "实时渲染 + 大文件上传，提案现场出图", createdAt: "2026-03-15" },
+  { id: "prod57", name: "云空间·扩容4GB",             code: "PROD_STORAGE_4GB",        appId: "app1", ruleIds: ["rule26"],                                       exchangeType: "paid", limitPerUser: 0, status: "active", description: "云存储扩容至4GB", createdAt: "2026-03-15" },
+  { id: "prod58", name: "云空间·扩容10GB",            code: "PROD_STORAGE_10GB",       appId: "app1", ruleIds: ["rule27"],                                       exchangeType: "paid", limitPerUser: 0, status: "active", description: "云存储扩容至10GB，适合大型项目", createdAt: "2026-03-15" },
+  { id: "prod59", name: "AI日额·豪华日卡",            code: "PROD_AI_500_DAY",         appId: "app1", ruleIds: ["rule3"],                                        exchangeType: "paid", limitPerUser: 0, status: "active", description: "AI设计 500次/日，重度创作日选", createdAt: "2026-03-15" },
+  { id: "prod60", name: "8K渲染·尊享日卡",            code: "PROD_8K_DAILY",           appId: "app1", ruleIds: ["rule6"],                                        exchangeType: "paid", limitPerUser: 0, status: "active", description: "8K 1次/日，提案级品质", createdAt: "2026-03-15" },
+  { id: "prod61", name: "提案神器·全能旗舰",          code: "PROD_PRESENT_FLAGSHIP",   appId: "app1", ruleIds: ["rule3", "rule5", "rule6", "rule10", "rule22", "rule23", "rule26"], exchangeType: "paid", limitPerUser: 0, status: "active", description: "AI 500/日 + 4K/8K + 实时渲染 + 去水印 + 4GB存储", createdAt: "2026-03-15" },
+
+  /* ── AI设计家 · 付费售卖型 ── */
+  { id: "prod70", name: "AI方案·标准月卡",            code: "PROD_AI_PLAN_STD_M",      appId: "app4", ruleIds: ["rule40"],            exchangeType: "paid", limitPerUser: 0, status: "active", description: "每月100次AI方案生成", createdAt: "2026-03-15" },
+  { id: "prod71", name: "AI方案+风格·进阶月卡",       code: "PROD_AI_PLAN_STYLE_M",    appId: "app4", ruleIds: ["rule40", "rule41"],  exchangeType: "paid", limitPerUser: 0, status: "active", description: "AI方案 + AI风格迁移联合月卡", createdAt: "2026-03-15" },
+  { id: "prod72", name: "AI风格迁移·单品月卡",        code: "PROD_AI_STYLE_M",         appId: "app4", ruleIds: ["rule41"],            exchangeType: "paid", limitPerUser: 0, status: "active", description: "每月50次AI风格迁移", createdAt: "2026-03-15" },
+
+  /* ── 智能导购 · 付费售卖型 ── */
+  { id: "prod80", name: "导购推荐·入门月卡",          code: "PROD_GUIDE_STARTER_M",    appId: "app3", ruleIds: ["rule50"],            exchangeType: "paid", limitPerUser: 0, status: "active", description: "每月500次导购推荐", createdAt: "2026-03-15" },
+  { id: "prod81", name: "导购+客户画像·旗舰月卡",     code: "PROD_GUIDE_FULL_M",       appId: "app3", ruleIds: ["rule50", "rule51"],  exchangeType: "paid", limitPerUser: 0, status: "active", description: "导购推荐 + 客户画像完整版", createdAt: "2026-03-15" },
+
+  /* ── 精准客资 · 付费售卖型 ── */
+  { id: "prod90", name: "客资·百条月卡",              code: "PROD_LEADS_100_M",        appId: "app5", ruleIds: ["rule60"],            exchangeType: "paid", limitPerUser: 0, status: "active", description: "每月100条精准客资线索", createdAt: "2026-03-15" },
+
+  /* ── 国际3D工具 · 付费售卖型 ── */
+  { id: "prod100", name: "International · Starter",   code: "PROD_INTL_STARTER",       appId: "app2", ruleIds: ["rule70", "rule73"],                       exchangeType: "paid", limitPerUser: 0, status: "active", description: "海外个人用户入门版：AI 200/日 + 全景5/日", createdAt: "2026-03-15" },
+  { id: "prod101", name: "International · Studio",    code: "PROD_INTL_STUDIO",        appId: "app2", ruleIds: ["rule70", "rule71", "rule73"],             exchangeType: "paid", limitPerUser: 0, status: "active", description: "海外工作室套餐：AI + 4K + 全景", createdAt: "2026-03-15" },
+  { id: "prod102", name: "Global Material Library",   code: "PROD_INTL_MAT_FULL",      appId: "app2", ruleIds: ["rule72"],                                  exchangeType: "paid", limitPerUser: 0, status: "active", description: "海外风格素材库完整访问权", createdAt: "2026-03-15" },
 ];
 
 /* ── SKU (商品) ── */
