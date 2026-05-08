@@ -261,7 +261,7 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
               <div className="flex items-center justify-between">
                 <Label className="text-[13px]">订单商品 ({items.length})</Label>
                 <Button type="button" variant="outline" size="sm" className="h-7 text-[12px]" onClick={() => setPickerOpen(true)}>
-                  选择商品/套餐
+                  选择权益产品/商品/套餐
                 </Button>
               </div>
 
@@ -280,12 +280,19 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                   {items.map((item, idx) => {
                     const itemApp = item.type === "sku"
                       ? appData.find((a) => a.id === skuData.find((s) => s.id === item.itemId)?.appId)
+                      : item.type === "product"
+                      ? appData.find((a) => a.id === productData.find((p) => p.id === item.itemId)?.appId)
                       : appData.find((a) => a.id === bundleData.find((b) => b.id === item.itemId)?.appId);
+                    const typeBadge = item.type === "bundle"
+                      ? { label: "套餐", cls: "bg-accent text-accent-foreground" }
+                      : item.type === "product"
+                      ? { label: "权益产品", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" }
+                      : { label: "SKU", cls: "bg-primary/10 text-primary" };
                     return (
                       <div key={idx} className="flex items-center justify-between px-3 py-2 text-[13px]">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${item.type === "bundle" ? "bg-accent text-accent-foreground" : "bg-primary/10 text-primary"}`}>
-                            {item.type === "bundle" ? "套餐" : "SKU"}
+                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${typeBadge.cls}`}>
+                            {typeBadge.label}
                           </span>
                           <span className="font-medium truncate">{item.itemName}</span>
                           {itemApp && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">{itemApp.name}</span>}
