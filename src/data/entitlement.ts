@@ -218,21 +218,21 @@ export const productData: Product[] = [
   { id: "prod3",  name: "4K渲染单次·兑换",      code: "PROD_4K_CREDIT",       appId: "app1", ruleIds: ["rule28"],          exchangeType: "credit",         creditPrice: 300,  limitPerUser: 0, status: "active", description: "300积分兑换1次4K渲染", createdAt: "2026-03-12" },
   { id: "prod4",  name: "8K渲染单次·兑换",      code: "PROD_8K_CREDIT",       appId: "app1", ruleIds: ["rule29"],          exchangeType: "credit",         creditPrice: 800,  limitPerUser: 0, status: "active", description: "800积分兑换1次8K渲染", createdAt: "2026-03-12" },
   // 系统赠送
-  { id: "prod5",  name: "新人大礼包",            code: "PROD_NEWBIE_GIFT",     appId: "app1", ruleIds: ["rule1", "rule25", "rule30"], exchangeType: "system_grant", limitPerUser: 1, status: "active", description: "新用户注册自动发放：AI100次/日 + 200MB存储 + 8K体验1次", createdAt: "2026-03-12" },
-  { id: "prod6",  name: "签到日礼包",            code: "PROD_DAILY_CHECKIN",   appId: "app1", ruleIds: ["rule31"],          exchangeType: "system_grant",   limitPerUser: 0, status: "active", description: "每日签到赠送100次AI额度", createdAt: "2026-03-12" },
+  { id: "prod5",  name: "新人大礼包",            code: "PROD_NEWBIE_GIFT",     appId: "app1", ruleIds: ["rule1", "rule25", "rule30"], exchangeType: "free", limitPerUser: 1, status: "active", description: "新用户注册自动发放：AI100次/日 + 200MB存储 + 8K体验1次", createdAt: "2026-03-12" },
+  { id: "prod6",  name: "签到日礼包",            code: "PROD_DAILY_CHECKIN",   appId: "app1", ruleIds: ["rule31"],          exchangeType: "free",   limitPerUser: 0, status: "active", description: "每日签到赠送100次AI额度", createdAt: "2026-03-12" },
   // 内部发放
-  { id: "prod7",  name: "运营补偿包",            code: "PROD_COMPENSATION",    appId: "app1", ruleIds: ["rule32", "rule28", "rule29"], exchangeType: "internal_grant", limitPerUser: 0, status: "active", description: "故障补偿/客诉处理专用补偿包", createdAt: "2026-03-12" },
-  { id: "prod8",  name: "VIP试用包·30天",       code: "PROD_VIP_TRIAL",       appId: "app1", ruleIds: ["rule3", "rule5", "rule10"], exchangeType: "internal_grant", limitPerUser: 1, status: "active", description: "市场BD专用，发放VIP试用资格", createdAt: "2026-03-12" },
+  { id: "prod7",  name: "运营补偿包",            code: "PROD_COMPENSATION",    appId: "app1", ruleIds: ["rule32", "rule28", "rule29"], exchangeType: "free", limitPerUser: 0, status: "active", description: "故障补偿/客诉处理专用补偿包", createdAt: "2026-03-12" },
+  { id: "prod8",  name: "VIP试用包·30天",       code: "PROD_VIP_TRIAL",       appId: "app1", ruleIds: ["rule3", "rule5", "rule10"], exchangeType: "free", limitPerUser: 1, status: "active", description: "市场BD专用，发放VIP试用资格", createdAt: "2026-03-12" },
   // 售卖型（SKU 封装）
-  { id: "prod9",  name: "免费版权益包",          code: "PROD_FREE_PACK",       appId: "app1", ruleIds: ["rule1", "rule25", "rule7"], exchangeType: "sku_only", limitPerUser: 0, status: "active", description: "免费版基础权益封装", createdAt: "2026-03-12" },
-  { id: "prod10", name: "基础会员权益包",        code: "PROD_BASIC_PACK",      appId: "app1", ruleIds: ["rule2", "rule4", "rule9", "rule11", "rule12", "rule13", "rule14", "rule25"], exchangeType: "sku_only", limitPerUser: 0, status: "active", description: "基础会员权益封装", createdAt: "2026-03-12" },
-  { id: "prod11", name: "旗舰会员权益包",        code: "PROD_PRO_PACK",        appId: "app1", ruleIds: ["rule3", "rule5", "rule6", "rule8", "rule10", "rule15", "rule16", "rule17", "rule18", "rule19", "rule20", "rule21", "rule22", "rule23", "rule24", "rule26"], exchangeType: "sku_only", limitPerUser: 0, status: "active", description: "旗舰会员全能力封装", createdAt: "2026-03-12" },
+  { id: "prod9",  name: "免费版权益包",          code: "PROD_FREE_PACK",       appId: "app1", ruleIds: ["rule1", "rule25", "rule7"], exchangeType: "paid", limitPerUser: 0, status: "active", description: "免费版基础权益封装", createdAt: "2026-03-12" },
+  { id: "prod10", name: "基础会员权益包",        code: "PROD_BASIC_PACK",      appId: "app1", ruleIds: ["rule2", "rule4", "rule9", "rule11", "rule12", "rule13", "rule14", "rule25"], exchangeType: "paid", limitPerUser: 0, status: "active", description: "基础会员权益封装", createdAt: "2026-03-12" },
+  { id: "prod11", name: "旗舰会员权益包",        code: "PROD_PRO_PACK",        appId: "app1", ruleIds: ["rule3", "rule5", "rule6", "rule8", "rule10", "rule15", "rule16", "rule17", "rule18", "rule19", "rule20", "rule21", "rule22", "rule23", "rule24", "rule26"], exchangeType: "paid", limitPerUser: 0, status: "active", description: "旗舰会员全能力封装", createdAt: "2026-03-12" },
   // AI设计家
-  { id: "prod20", name: "AI方案月度包",          code: "PROD_AI_PLAN_M",       appId: "app4", ruleIds: ["rule40"],          exchangeType: "sku_only",       limitPerUser: 0, status: "active", description: "AI方案100次/月封装", createdAt: "2026-03-12" },
+  { id: "prod20", name: "AI方案月度包",          code: "PROD_AI_PLAN_M",       appId: "app4", ruleIds: ["rule40"],          exchangeType: "paid",       limitPerUser: 0, status: "active", description: "AI方案100次/月封装", createdAt: "2026-03-12" },
   { id: "prod21", name: "AI风格月度包",          code: "PROD_AI_STYLE_M",      appId: "app4", ruleIds: ["rule41"],          exchangeType: "credit",         creditPrice: 4990, limitPerUser: 2, status: "active", description: "4990积分兑换AI风格50次/月", createdAt: "2026-03-12" },
   // 智能导购
-  { id: "prod30", name: "导购标准权益包",        code: "PROD_GUIDE_STD",       appId: "app3", ruleIds: ["rule50"],          exchangeType: "sku_only",       limitPerUser: 0, status: "active", description: "导购推荐500次/月封装", createdAt: "2026-03-12" },
-  { id: "prod31", name: "客户画像试用",          code: "PROD_GUIDE_PROFILE_TRIAL", appId: "app3", ruleIds: ["rule51"],      exchangeType: "system_grant",   limitPerUser: 1, status: "active", description: "新企业入驻试用客户画像", createdAt: "2026-03-12" },
+  { id: "prod30", name: "导购标准权益包",        code: "PROD_GUIDE_STD",       appId: "app3", ruleIds: ["rule50"],          exchangeType: "paid",       limitPerUser: 0, status: "active", description: "导购推荐500次/月封装", createdAt: "2026-03-12" },
+  { id: "prod31", name: "客户画像试用",          code: "PROD_GUIDE_PROFILE_TRIAL", appId: "app3", ruleIds: ["rule51"],      exchangeType: "free",   limitPerUser: 1, status: "active", description: "新企业入驻试用客户画像", createdAt: "2026-03-12" },
 ];
 
 /* ── SKU (商品) ── */
