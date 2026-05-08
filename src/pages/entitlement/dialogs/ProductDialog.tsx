@@ -240,9 +240,14 @@ export function ProductDialog({ open, onClose, onSave, initial }: { open: boolea
             <textarea className="filter-input w-full min-h-[50px] resize-y" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </div>
         </div>
+        {touched && errors.length > 0 && (
+          <div className="px-5 py-2 bg-destructive/5 border-t border-destructive/20 flex items-center gap-2 text-[12px] text-destructive">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" /> 请完善：{errors.join("、")}
+          </div>
+        )}
         <div className="flex gap-3 px-5 py-4 border-t">
           <button className="btn-secondary flex-1" onClick={onClose}>取消</button>
-          <button className="btn-primary flex-1" disabled={!form.name.trim() || !form.code.trim() || form.ruleIds.length === 0 || (form.exchangeType === "credit" && form.creditPrice <= 0)} onClick={() => onSave(form)}>{isEdit ? "保存" : "创建"}</button>
+          <button className="btn-primary flex-1" onClick={handleSubmit}>{isEdit ? "保存" : "创建"}</button>
         </div>
       </div>
 
