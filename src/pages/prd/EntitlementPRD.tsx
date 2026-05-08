@@ -3,7 +3,7 @@ import {
   FileText, Layers, Database, GitBranch, Activity, Cpu, Workflow,
   Boxes, ShieldCheck, Zap, Target, Radio, Users, BarChart3, Network,
   Server, Cloud, Lock, Gauge, Rocket, BookOpen, Hash, Code2, ListTree,
-  Sparkles, Package, Wallet, ShoppingCart, Tag, CircleDot,
+  Sparkles, Package, Wallet, ShoppingCart, Tag as TagIcon, CircleDot,
 } from "lucide-react";
 
 /* ──────────────────────────────────────────────
