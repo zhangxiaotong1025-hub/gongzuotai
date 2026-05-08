@@ -44,16 +44,23 @@ export default function AppDetail() {
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-start justify-between mb-4">
-          <div><h2 className="text-[16px] font-semibold text-foreground">{app.name}</h2><p className="text-[13px] text-muted-foreground mt-0.5">{app.description}</p></div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><LayoutGrid className="h-5 w-5 text-primary" /></div>
+            <div>
+              <h2 className="text-[16px] font-semibold text-foreground">{app.name}</h2>
+              <code className="text-[12px] text-muted-foreground font-mono">{app.code}</code>
+            </div>
+          </div>
           <span className={STATUS_MAP[app.status].className}>{STATUS_MAP[app.status].label}</span>
         </div>
         <div className="grid grid-cols-5 gap-4 text-[13px]">
-          <div><span className="text-muted-foreground">应用编码</span><div className="font-mono text-foreground mt-0.5">{app.code}</div></div>
           <div><span className="text-muted-foreground">能力</span><div className="text-primary font-medium mt-0.5">{caps.length}个</div></div>
           <div><span className="text-muted-foreground">规则</span><div className="text-primary font-medium mt-0.5">{rules.length}条</div></div>
           <div><span className="text-muted-foreground">商品SKU</span><div className="text-primary font-medium mt-0.5">{skus.length}个</div></div>
           <div><span className="text-muted-foreground">套餐</span><div className="text-primary font-medium mt-0.5">{bundles.length}个</div></div>
+          <div><span className="text-muted-foreground">创建时间</span><div className="text-foreground mt-0.5">{(app as any).createdAt || "—"}</div></div>
         </div>
+        {app.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t leading-relaxed">{app.description}</p>}
       </div>
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
