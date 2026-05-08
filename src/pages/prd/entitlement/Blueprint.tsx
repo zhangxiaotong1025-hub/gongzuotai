@@ -6,7 +6,7 @@ type Key = "APP" | "CAP" | "RUL" | "PRD" | "SKU" | "ORD" | "ACC" | "EVT";
 const NODES: Record<Key, { label: string; layer: string; role: string; inputs: string[]; outputs: string[]; forbidden: string }> = {
   APP: { label: "应用 App", layer: "L1 边界层", role: "权益隔离的最大边界，多租户切片的根",
     inputs: ["接入登记（域名 + 业务 API 列表）"], outputs: ["AppCreated 事件", "RLS tenant key"],
-    forbidden: "禁止跨 App 共享额度账目；禁止用 App 表达"功能开关"" },
+    forbidden: "禁止跨 App 共享额度账目；禁止用 App 表达「功能开关」" },
   CAP: { label: "能力 Capability", layer: "L2 技术层", role: "能力点 + API 绑定 + 数据类型 + 消耗系数",
     inputs: ["业务 API 路径", "数据类型 COUNTER/BOOLEAN/STORAGE/DURATION"], outputs: ["可被规则引用的能力句柄"],
     forbidden: "禁止把业务流程写在能力里；禁止持有客户状态" },
