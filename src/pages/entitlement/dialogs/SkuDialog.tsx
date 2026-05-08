@@ -204,7 +204,6 @@ function ProductPickerDialog({ open, onClose, onConfirm, appId, selectedIds }: {
     </div>
   );
 }
-}
 
 /* ── 主弹窗：商品 SKU 创建/编辑 ── */
 export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; onClose: () => void; onSave: (d: Record<string, unknown>) => void; initial?: Sku | null }) {
