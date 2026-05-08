@@ -94,11 +94,17 @@ export default function OrderList() {
       const items = (row as EntitlementOrder).items;
       return <span className="text-[12px]">{items.map((i) => i.itemName).join("、")}</span>;
     }},
-    { key: "totalAmount", title: "订单金额", minWidth: 100, align: "right" as const, render: (v: number) => (
-      <span className={`font-medium ${v > 0 ? "text-destructive" : "text-muted-foreground"}`}>
-        ¥{v > 0 ? v.toFixed(2) : "0.00"}
-      </span>
-    )},
+    { key: "totalAmount", title: "订单金额", minWidth: 110, align: "right" as const, render: (v: number, row) => {
+      const credit = (row as EntitlementOrder).creditAmount;
+      if (credit && credit > 0) {
+        return <span className="font-medium text-amber-600 dark:text-amber-400">{credit.toLocaleString()} 积分</span>;
+      }
+      return (
+        <span className={`font-medium ${v > 0 ? "text-destructive" : "text-muted-foreground"}`}>
+          ¥{v > 0 ? v.toFixed(2) : "0.00"}
+        </span>
+      );
+    }},
     { key: "auditStatus", title: "审核状态", minWidth: 100, render: (v: string) => {
       const cfg = AUDIT_STATUS.find((s) => s.value === v);
       return <span className={cfg?.className || ""}>{cfg?.label}</span>;

@@ -215,7 +215,17 @@ export default function OrderDetail() {
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
         <h3 className="text-[14px] font-semibold text-foreground mb-4">支付信息</h3>
         <div className="grid grid-cols-4 gap-x-8 gap-y-3 text-[13px]">
-          <div><span className="text-muted-foreground">订单金额</span><div className={`font-semibold mt-0.5 text-[16px] ${order.totalAmount > 0 ? "text-destructive" : "text-muted-foreground"}`}>¥{order.totalAmount.toFixed(2)}</div></div>
+          <div>
+            <span className="text-muted-foreground">订单金额</span>
+            {order.creditAmount && order.creditAmount > 0 ? (
+              <div className="font-semibold mt-0.5 text-[16px] text-amber-600 dark:text-amber-400">
+                {order.creditAmount.toLocaleString()} <span className="text-[12px] font-normal">积分</span>
+                <span className="ml-2 text-[11px] text-muted-foreground font-normal">（现金 ¥0.00）</span>
+              </div>
+            ) : (
+              <div className={`font-semibold mt-0.5 text-[16px] ${order.totalAmount > 0 ? "text-destructive" : "text-muted-foreground"}`}>¥{order.totalAmount.toFixed(2)}</div>
+            )}
+          </div>
           <div><span className="text-muted-foreground">支付状态</span><div className="mt-0.5"><span className={payCfg?.className || ""}>{payCfg?.label}</span></div></div>
           {order.paidAt && <div><span className="text-muted-foreground">支付时间</span><div className="text-foreground mt-0.5">{order.paidAt}</div></div>}
           {order.expireAt && <div><span className="text-muted-foreground">到期时间</span><div className="text-foreground mt-0.5">{order.expireAt}</div></div>}

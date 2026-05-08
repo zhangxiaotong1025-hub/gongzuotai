@@ -483,7 +483,10 @@ export interface EntitlementOrder {
   /** 关联企业ID（enterprise_grant 类型时有值） */
   linkedEnterpriseId?: string;
   items: OrderItem[];
+  /** 订单金额（现金，单位：元）。积分兑换订单为 0，使用 creditAmount 字段记录 */
   totalAmount: number;
+  /** 积分金额（仅积分兑换订单使用，单位：积分）。与 totalAmount 互斥，用于消除 ¥0 歧义 */
+  creditAmount?: number;
   paymentStatus: PaymentStatus;
   orderStatus: OrderStatus;
   paidAt?: string;
@@ -827,7 +830,7 @@ export const orderData: EntitlementOrder[] = [
   {
     // 积分兑换订单 — 直接以"权益产品"为下单单元（无SKU）
     id: "ord19", orderNo: "ORD202603260001", customerType: "C", customerId: "user2", customerName: "李四",
-    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "active",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 0, creditAmount: 990, paymentStatus: "no_payment", orderStatus: "active",
     paidAt: "2026-03-26 11:00:05", remark: "积分兑换 990积分 → AI设计100次", createdAt: "2026-03-26 11:00:00",
     items: [{ type: "product", itemId: "prod1", itemName: "AI积分100次·兑换包", quantity: 1, unitPrice: 0 }],
     statusHistory: [
