@@ -4,6 +4,7 @@ import { appData, capabilityData, ruleData, skuData, bundleData, STATUS_MAP, DAT
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { AppDialog } from "./dialogs/AppDialog";
 import { toast } from "sonner";
+import { LayoutGrid } from "lucide-react";
 
 export default function AppDetail() {
   const { id } = useParams();
