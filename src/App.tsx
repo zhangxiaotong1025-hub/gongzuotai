@@ -161,6 +161,7 @@ function ProtectedRoutes() {
         <Route path="/dashboard" element={<PlaceholderPage title="数据看版" />} />
         <Route path="/agent" element={<AgentCommandCenter />} />
         <Route path="/agent/leads" element={<LeadsOperation />} />
+        <Route path="/prd/entitlement" element={<EntitlementPRD />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AdminLayout>
