@@ -254,6 +254,10 @@ export const productData: Product[] = [
   // 智能导购
   { id: "prod30", name: "导购标准权益包",        code: "PROD_GUIDE_STD",       appId: "app3", ruleIds: ["rule50"],          exchangeType: "paid",       limitPerUser: 0, status: "active", description: "导购推荐500次/月封装", createdAt: "2026-03-12" },
   { id: "prod31", name: "客户画像试用",          code: "PROD_GUIDE_PROFILE_TRIAL", appId: "app3", ruleIds: ["rule51"],      exchangeType: "free",   limitPerUser: 1, status: "active", description: "新企业入驻试用客户画像", createdAt: "2026-03-12" },
+  // 国际3D工具产品
+  { id: "prod40", name: "国际版基础包",          code: "PROD_INTL_BASIC",      appId: "app2", ruleIds: ["rule70", "rule71", "rule73"],          exchangeType: "paid",   limitPerUser: 0, status: "active", description: "国际版基础权益封装", createdAt: "2026-03-12" },
+  { id: "prod41", name: "国际版旗舰包",          code: "PROD_INTL_PRO",        appId: "app2", ruleIds: ["rule70", "rule71", "rule72", "rule73"], exchangeType: "paid",   limitPerUser: 0, status: "active", description: "国际版旗舰权益封装（含海外素材库）", createdAt: "2026-03-12" },
+  { id: "prod42", name: "海外素材库·体验",       code: "PROD_INTL_MAT_TRIAL",  appId: "app2", ruleIds: ["rule72"],                              exchangeType: "free",   limitPerUser: 1, status: "active", description: "新用户海外素材库7天体验", createdAt: "2026-03-12" },
 ];
 
 /* ── SKU (商品) ── */
