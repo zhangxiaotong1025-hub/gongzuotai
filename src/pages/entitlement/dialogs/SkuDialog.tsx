@@ -1,9 +1,11 @@
 import { useMemo, useState, useEffect } from "react";
-import { Plus, X, Check, Search, ChevronRight, AlertCircle, Sparkles, Package, Tag, Coins, Shield } from "lucide-react";
+import { Plus, X, Check, ChevronRight, AlertCircle, Sparkles, Package, Tag, Coins, Inbox } from "lucide-react";
 import { toast } from "sonner";
+import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
+import { Pagination } from "@/components/admin/Pagination";
 import {
   appData, capabilityData, BILLING_CYCLES,
-  productData, getProductsByApp, getCapability, getRule, getApp,
+  productData, skuData, getProductsByApp, getCapability, getRule, getApp,
   type Sku, type BillingCycle, type Product, type EntitlementRule,
 } from "@/data/entitlement";
 
@@ -13,50 +15,75 @@ function ProductPickerDialog({ open, onClose, onConfirm, appId, selectedIds }: {
   appId: string; selectedIds: string[];
 }) {
   const [localIds, setLocalIds] = useState<string[]>(selectedIds);
-  const [search, setSearch] = useState("");
-  const [capFilter, setCapFilter] = useState<string>("all");
-  const [limitFilter, setLimitFilter] = useState<"all" | "unlimited" | "limited">("all");
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [view, setView] = useState<"all" | "selected">("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  useEffect(() => { if (open) { setLocalIds(selectedIds); setSearch(""); setCapFilter("all"); setLimitFilter("all"); } }, [open, selectedIds]);
+  useEffect(() => {
+    if (open) { setLocalIds(selectedIds); setFilters({}); setView("all"); setPage(1); }
+  }, [open, selectedIds]);
 
-  if (!open) return null;
-
-  // 仅展示当前应用下「付费售卖 + 启用中」的权益产品
-  const allProducts = getProductsByApp(appId).filter((p) => p.exchangeType === "paid" && p.status === "active");
-
-  // 推导每个产品涉及的能力ID集合
-  const productCapMap = new Map<string, string[]>();
-  for (const p of allProducts) {
-    const caps = new Set<string>();
-    for (const rid of p.ruleIds) {
-      const r = getRule(rid); if (r) caps.add(r.capabilityId);
-    }
-    productCapMap.set(p.id, [...caps]);
-  }
-
-  // 当前应用下涉及的能力清单（用于筛选）
-  const involvedCaps = capabilityData.filter((c) =>
-    allProducts.some((p) => productCapMap.get(p.id)?.includes(c.id))
+  const allProducts = useMemo(
+    () => getProductsByApp(appId).filter((p) => p.exchangeType === "paid" && p.status === "active"),
+    [appId]
   );
 
-  const filtered = allProducts.filter((p) => {
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      if (!p.name.toLowerCase().includes(q) && !p.code.toLowerCase().includes(q)) return false;
+  const productMeta = useMemo(() => {
+    const map = new Map<string, { capIds: string[]; skuCount: number }>();
+    for (const p of allProducts) {
+      const caps = new Set<string>();
+      for (const rid of p.ruleIds) { const r = getRule(rid); if (r) caps.add(r.capabilityId); }
+      const skuCount = skuData.filter((s) => (s.productIds || []).includes(p.id)).length;
+      map.set(p.id, { capIds: [...caps], skuCount });
     }
-    if (capFilter !== "all" && !productCapMap.get(p.id)?.includes(capFilter)) return false;
-    if (limitFilter === "unlimited" && (p.limitPerUser ?? 0) > 0) return false;
-    if (limitFilter === "limited" && (p.limitPerUser ?? 0) === 0) return false;
-    return true;
-  });
+    return map;
+  }, [allProducts]);
 
+  const involvedCaps = useMemo(
+    () => capabilityData.filter((c) => allProducts.some((p) => productMeta.get(p.id)?.capIds.includes(c.id))),
+    [allProducts, productMeta]
+  );
+
+  const filterFields: FilterField[] = [
+    { key: "keyword", label: "产品名称/编码", type: "input", placeholder: "请输入关键字", width: 220 },
+    { key: "capId",   label: "所属能力",     type: "select", options: involvedCaps.map((c) => ({ label: c.name, value: c.id })), width: 180 },
+    { key: "usage",   label: "关联状态",     type: "select", options: [
+      { label: "已被其它商品引用", value: "used" },
+      { label: "尚未被引用",       value: "unused" },
+    ], width: 180 },
+  ];
+
+  const filtered = useMemo(() => {
+    const base = view === "selected" ? allProducts.filter((p) => localIds.includes(p.id)) : allProducts;
+    return base.filter((p) => {
+      const meta = productMeta.get(p.id);
+      if (filters.keyword?.trim()) {
+        const q = filters.keyword.toLowerCase();
+        if (!p.name.toLowerCase().includes(q) && !p.code.toLowerCase().includes(q)) return false;
+      }
+      if (filters.capId && !meta?.capIds.includes(filters.capId)) return false;
+      if (filters.usage === "used" && (meta?.skuCount ?? 0) === 0) return false;
+      if (filters.usage === "unused" && (meta?.skuCount ?? 0) > 0) return false;
+      return true;
+    });
+  }, [allProducts, view, localIds, filters, productMeta]);
+
+  const pagedList = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const allSelectedOnPage = pagedList.length > 0 && pagedList.every((p) => localIds.includes(p.id));
+
+  const togglePage = () => {
+    const ids = pagedList.map((p) => p.id);
+    setLocalIds((prev) => allSelectedOnPage ? prev.filter((id) => !ids.includes(id)) : [...new Set([...prev, ...ids])]);
+  };
   const toggle = (id: string) => setLocalIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-[860px] h-[78vh] rounded-xl border bg-card flex flex-col animate-in fade-in-0 zoom-in-95 duration-200 overflow-hidden" style={{ boxShadow: "var(--shadow-lg)" }}>
-        {/* Header */}
+      <div className="relative w-full max-w-[960px] h-[82vh] rounded-xl border bg-card flex flex-col animate-in fade-in-0 zoom-in-95 duration-200 overflow-hidden" style={{ boxShadow: "var(--shadow-lg)" }}>
         <div className="border-b bg-muted/40 px-6 py-4 flex items-start justify-between shrink-0">
           <div>
             <div className="flex items-center gap-2">
@@ -65,90 +92,108 @@ function ProductPickerDialog({ open, onClose, onConfirm, appId, selectedIds }: {
               <span className="badge-active">付费售卖</span>
             </div>
             <p className="mt-1 text-[12px] text-muted-foreground">
-              已选 <span className="text-primary font-medium">{localIds.length}</span> 个产品 · 当前应用「付费售卖」类型权益产品共 {allProducts.length} 个
+              当前应用「付费售卖」启用产品共 {allProducts.length} 个 · 已选 <span className="text-primary font-medium">{localIds.length}</span> 个
               <span className="ml-2 text-muted-foreground/70">（积分兑换、免费发放产品不会出现在此处）</span>
             </p>
           </div>
           <button onClick={onClose} className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><X className="h-4 w-4" /></button>
         </div>
 
-        {/* Filter Bar */}
-        <div className="px-6 py-3 border-b bg-card space-y-2.5 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="relative flex-1 max-w-[320px]">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <input className="filter-input w-full pl-8" placeholder="搜索产品名称或编码…" value={search} onChange={(e) => setSearch(e.target.value)} />
-            </div>
-            <div className="flex items-center gap-1.5 text-[12px]">
-              <span className="text-muted-foreground">限领：</span>
-              {[{ k: "all", l: "全部" }, { k: "unlimited", l: "不限" }, { k: "limited", l: "有限" }].map((o) => (
-                <button key={o.k} onClick={() => setLimitFilter(o.k as typeof limitFilter)} className={`px-2.5 py-1 rounded-md transition-colors ${limitFilter === o.k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{o.l}</button>
-              ))}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[12px] text-muted-foreground mr-1">能力：</span>
-            <button onClick={() => setCapFilter("all")} className={`px-2.5 py-1 rounded-md text-[12px] transition-colors ${capFilter === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>全部</button>
-            {involvedCaps.map((c) => (
-              <button key={c.id} onClick={() => setCapFilter(c.id)} className={`px-2.5 py-1 rounded-md text-[12px] transition-colors ${capFilter === c.id ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{c.name}</button>
+        <div className="px-6 pt-2 border-b bg-card shrink-0 space-y-3 pb-3">
+          <div className="flex items-center gap-1 border-b -mx-6 px-6">
+            {[{ k: "all", l: `全部 (${allProducts.length})` }, { k: "selected", l: `已选 (${localIds.length})` }].map((t) => (
+              <button key={t.k} onClick={() => { setView(t.k as typeof view); setPage(1); }}
+                className={`px-3 py-2 text-[13px] -mb-px border-b-2 transition-colors ${view === t.k ? "border-primary text-primary font-medium" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+                {t.l}
+              </button>
             ))}
           </div>
+          <FilterBar
+            fields={filterFields}
+            values={filters}
+            onChange={(k, v) => { setFilters((p) => ({ ...p, [k]: v })); setPage(1); }}
+            onSearch={() => {}}
+            onReset={() => { setFilters({}); setPage(1); }}
+            maxVisible={3}
+          />
         </div>
 
-        {/* List */}
-        <div className="flex-1 overflow-y-auto px-6 py-3 space-y-2 bg-muted/20">
-          {filtered.length === 0 && (
-            <div className="text-center py-16 text-[13px] text-muted-foreground">
-              {allProducts.length === 0 ? "当前应用下暂无「付费售卖」类型的启用权益产品，请先创建" : "没有匹配的产品"}
-            </div>
-          )}
-          {filtered.map((p) => {
-            const selected = localIds.includes(p.id);
-            const ruleNames = p.ruleIds.map((rid) => getRule(rid)?.name).filter(Boolean) as string[];
-            const caps = productCapMap.get(p.id) || [];
-            return (
-              <div
-                key={p.id}
-                onClick={() => toggle(p.id)}
-                className={`flex items-start gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all border bg-card ${selected ? "ring-1 ring-primary/40 border-primary/30 bg-primary/5" : "hover:border-primary/20 hover:bg-card"}`}
-              >
-                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 ${selected ? "bg-primary border-primary" : "border-border"}`}>
-                  {selected && <Check className="h-3 w-3 text-primary-foreground" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-[13px] font-medium truncate ${selected ? "text-primary" : "text-foreground"}`}>{p.name}</span>
-                    <code className="text-[11px] text-muted-foreground font-mono px-1.5 py-0.5 rounded bg-muted">{p.code}</code>
-                    {(p.limitPerUser ?? 0) > 0 ? (
-                      <span className="badge-warning"><Shield className="h-2.5 w-2.5 mr-1" />限领{p.limitPerUser}</span>
-                    ) : (
-                      <span className="text-[11px] text-muted-foreground">不限领</span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-[12px] text-muted-foreground line-clamp-1">{p.description}</p>
-                  <div className="mt-1.5 flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
-                    <span>能力 <span className="text-foreground font-medium">{caps.length}</span></span>
-                    <span className="text-muted-foreground/40">·</span>
-                    <span>规则 <span className="text-foreground font-medium">{p.ruleIds.length}</span></span>
-                    {ruleNames.length > 0 && (
-                      <>
-                        <span className="text-muted-foreground/40">·</span>
-                        <span className="truncate max-w-[420px]" title={ruleNames.join("、")}>{ruleNames.slice(0, 3).join("、")}{ruleNames.length > 3 ? ` 等${ruleNames.length}条` : ""}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="flex-1 overflow-auto bg-muted/10">
+          <table className="w-full text-[13px]">
+            <thead className="sticky top-0 z-10 bg-muted/60 backdrop-blur border-b">
+              <tr className="text-left text-muted-foreground">
+                <th className="py-2.5 pl-6 pr-2 w-10">
+                  <button onClick={togglePage} className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${allSelectedOnPage ? "bg-primary border-primary" : "border-border hover:border-primary/60"}`}>
+                    {allSelectedOnPage && <Check className="h-3 w-3 text-primary-foreground" />}
+                  </button>
+                </th>
+                <th className="py-2.5 px-2 font-medium">产品名称 / 编码</th>
+                <th className="py-2.5 px-2 font-medium w-[180px]">能力</th>
+                <th className="py-2.5 px-2 font-medium w-[80px] text-right">规则数</th>
+                <th className="py-2.5 px-2 font-medium w-[110px] text-right">已被引用</th>
+                <th className="py-2.5 px-2 pr-6 font-medium">描述</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pagedList.length === 0 && (
+                <tr><td colSpan={6} className="py-20 text-center">
+                  <Inbox className="h-7 w-7 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-[13px] text-muted-foreground">
+                    {allProducts.length === 0 ? "当前应用下暂无「付费售卖」启用产品，请先创建" : view === "selected" ? "尚未选择任何产品" : "没有匹配的产品"}
+                  </p>
+                </td></tr>
+              )}
+              {pagedList.map((p) => {
+                const selected = localIds.includes(p.id);
+                const meta = productMeta.get(p.id);
+                const capNames = (meta?.capIds || []).map((cid) => getCapability(cid)?.name).filter(Boolean) as string[];
+                return (
+                  <tr key={p.id} onClick={() => toggle(p.id)}
+                    className={`border-b cursor-pointer transition-colors ${selected ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/40"}`}>
+                    <td className="py-2.5 pl-6 pr-2">
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center ${selected ? "bg-primary border-primary" : "border-border"}`}>
+                        {selected && <Check className="h-3 w-3 text-primary-foreground" />}
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-2 min-w-[220px]">
+                      <div className={`font-medium truncate ${selected ? "text-primary" : "text-foreground"}`}>{p.name}</div>
+                      <code className="text-[11px] text-muted-foreground font-mono">{p.code}</code>
+                    </td>
+                    <td className="py-2.5 px-2">
+                      <div className="flex flex-wrap gap-1">
+                        {capNames.slice(0, 2).map((n) => <span key={n} className="badge-info">{n}</span>)}
+                        {capNames.length > 2 && <span className="text-[11px] text-muted-foreground" title={capNames.join("、")}>+{capNames.length - 2}</span>}
+                        {capNames.length === 0 && <span className="text-[11px] text-muted-foreground">—</span>}
+                      </div>
+                    </td>
+                    <td className="py-2.5 px-2 text-right text-foreground font-medium">{p.ruleIds.length}</td>
+                    <td className="py-2.5 px-2 text-right">
+                      {(meta?.skuCount ?? 0) > 0
+                        ? <span className="text-foreground">{meta!.skuCount} 个 SKU</span>
+                        : <span className="text-muted-foreground">未引用</span>}
+                    </td>
+                    <td className="py-2.5 px-2 pr-6 text-muted-foreground max-w-[260px]">
+                      <div className="truncate" title={p.description}>{p.description || "—"}</div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
-        {/* Footer */}
+        {filtered.length > 0 && (
+          <div className="border-t shrink-0 bg-card">
+            <Pagination current={page} total={filtered.length} pageSize={pageSize}
+              onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} />
+          </div>
+        )}
+
         <div className="border-t px-6 py-3 flex items-center justify-between shrink-0 bg-card">
           <div className="text-[12px] text-muted-foreground">
             {localIds.length > 0
-              ? <button className="text-destructive hover:underline" onClick={() => setLocalIds([])}>清空选择</button>
-              : <span>勾选多个权益产品打包到当前商品中（规则将自动合并）</span>}
+              ? <button className="text-destructive hover:underline" onClick={() => setLocalIds([])}>清空已选</button>
+              : <span>勾选多个权益产品打包到当前商品中，规则将自动按能力维度去重合并</span>}
           </div>
           <div className="flex gap-3">
             <button className="btn-secondary" onClick={onClose}>取消</button>
