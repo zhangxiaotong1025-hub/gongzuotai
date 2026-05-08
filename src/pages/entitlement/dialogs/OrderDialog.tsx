@@ -341,7 +341,7 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
   existingItems: OrderItem[];
   onConfirm: (items: OrderItem[]) => void;
 }) {
-  const [tab, setTab] = useState<"sku" | "bundle">("sku");
+  const [tab, setTab] = useState<"product" | "sku" | "bundle">("product");
   const [search, setSearch] = useState("");
   const [appFilter, setAppFilter] = useState<string>("all");
   const [localItems, setLocalItems] = useState<OrderItem[]>([]);
@@ -354,6 +354,11 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
     }
   }, [open, existingItems]);
 
+  const filteredProducts = productData.filter((p) =>
+    p.status === "active" &&
+    (appFilter === "all" || p.appId === appFilter) &&
+    (!search || p.name.includes(search) || p.code.includes(search))
+  );
   const filteredSkus = skuData.filter((s) =>
     s.salesStatus === "on_sale" &&
     (appFilter === "all" || s.appId === appFilter) &&
@@ -365,6 +370,11 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
     (!search || b.name.includes(search) || b.code.includes(search))
   );
 
+  const productsByApp = appData.filter((a) => appFilter === "all" || a.id === appFilter).map((app) => ({
+    app,
+    products: filteredProducts.filter((p) => p.appId === app.id),
+  })).filter((g) => g.products.length > 0);
+
   const skusByApp = appData.filter((a) => appFilter === "all" || a.id === appFilter).map((app) => ({
     app,
     skus: filteredSkus.filter((s) => s.appId === app.id),
@@ -375,14 +385,15 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
     bundles: filteredBundles.filter((b) => b.appId === app.id),
   })).filter((g) => g.bundles.length > 0);
 
-  const isSelected = (type: "sku" | "bundle", id: string) => localItems.some((i) => i.type === type && i.itemId === id);
+  const isSelected = (type: "product" | "sku" | "bundle", id: string) => localItems.some((i) => i.type === type && i.itemId === id);
 
-  const toggleItem = (type: "sku" | "bundle", item: Sku | Bundle) => {
+  const toggleItem = (type: "product" | "sku" | "bundle", item: Product | Sku | Bundle) => {
     const id = item.id;
     if (isSelected(type, id)) {
       setLocalItems((prev) => prev.filter((i) => !(i.type === type && i.itemId === id)));
     } else {
-      setLocalItems((prev) => [...prev, { type, itemId: id, itemName: item.name, quantity: 1, unitPrice: item.price }]);
+      const price = type === "product" ? 0 : (item as Sku | Bundle).price;
+      setLocalItems((prev) => [...prev, { type, itemId: id, itemName: item.name, quantity: 1, unitPrice: price }]);
     }
   };
 
