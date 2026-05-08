@@ -358,6 +358,18 @@ export const bundleData: Bundle[] = [
     id: "bun6", name: "导购+客资套装", code: "BUN_GUIDE_LEADS", appId: "app3", appName: "智能导购", price: 349, originalPrice: 398, billingCycle: "monthly", status: "on_sale", sortOrder: 1, description: "智能导购+精准客资联合套装", createdAt: "2026-03-12",
     items: [{ skuId: "sku31", skuName: "导购高级版", quantity: 1 }, { skuId: "sku40", skuName: "客资基础包", quantity: 1 }],
   },
+  {
+    id: "bun7", name: "国际版旗舰", code: "BUN_INTL_PRO", appId: "app2", appName: "国际3D工具", price: 49.9, billingCycle: "monthly", status: "on_sale", sortOrder: 1, description: "国际版旗舰套餐", createdAt: "2026-03-12",
+    items: [{ skuId: "sku51", skuName: "国际版旗舰", quantity: 1 }],
+  },
+  {
+    id: "bun8", name: "全球设计组合", code: "BUN_GLOBAL_DESIGN", appId: "app1", appName: "国内3D工具", price: 388, originalPrice: 498, billingCycle: "monthly", status: "on_sale", sortOrder: 5, description: "国内+国际+AI设计家三联套装", createdAt: "2026-03-12",
+    items: [
+      { skuId: "sku8",  skuName: "旗舰会员权益",     quantity: 1 },
+      { skuId: "sku51", skuName: "国际版旗舰",       quantity: 1 },
+      { skuId: "sku21", skuName: "AI设计家专业版",   quantity: 1 },
+    ],
+  },
 ];
 
 /* ══════════════════════════════════════════════════
