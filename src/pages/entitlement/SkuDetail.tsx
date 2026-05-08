@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { skuData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getCapability, getApp, getRule } from "@/data/entitlement";
+import { skuData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getCapability, getApp, getRule, getProductsBySkuId, getRulesByProduct } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { SkuDialog } from "./dialogs/SkuDialog";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ export default function SkuDetail() {
 
   if (!sku) return <div className="p-10 text-center text-muted-foreground">商品不存在</div>;
 
+  const products = getProductsBySkuId(sku.id);
   const rules = (sku.ruleIds || []).map((rid) => getRule(rid)).filter(Boolean);
   const app = getApp(sku.appId);
   const bundles = bundleData.filter((b) => b.items.some((i) => i.skuId === sku.id));
@@ -58,38 +59,34 @@ export default function SkuDetail() {
           <div><span className="text-muted-foreground">所属应用</span><div className="mt-0.5">{app ? <Link to={`/entitlement/app/detail/${app.id}`} className="text-primary hover:underline">{app.name}</Link> : "—"}</div></div>
           <div><span className="text-muted-foreground">价格</span><div className={`font-medium mt-0.5 ${sku.price > 0 ? "text-foreground" : "text-muted-foreground"}`}>{sku.price > 0 ? `¥${sku.price}` : "¥0"}</div></div>
           <div><span className="text-muted-foreground">计费周期</span><div className="text-foreground mt-0.5">{BILLING_CYCLES.find((b) => b.value === sku.billingCycle)?.label}</div></div>
-          <div><span className="text-muted-foreground">关联规则</span><div className="text-primary font-medium mt-0.5">{rules.length}条</div></div>
+          <div><span className="text-muted-foreground">关联权益产品</span><div className="text-primary font-medium mt-0.5">{products.length}个</div></div>
           <div><span className="text-muted-foreground">创建时间</span><div className="text-foreground mt-0.5">{sku.createdAt}</div></div>
         </div>
         {sku.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t leading-relaxed">{sku.description}</p>}
       </div>
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益规则 ({rules.length})</h3>
+        <h3 className="text-[14px] font-semibold text-foreground mb-3">关联权益产品 ({products.length})</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead><tr className="border-b text-muted-foreground">
-              <th className="text-left py-2 font-medium">规则名称</th>
-              <th className="text-left py-2 font-medium">能力</th>
-              <th className="text-right py-2 font-medium">额度</th>
-              <th className="text-left py-2 font-medium">周期</th>
-              <th className="text-left py-2 font-medium">发放方式</th>
-              <th className="text-left py-2 font-medium">累积</th>
-              <th className="text-left py-2 font-medium">过期策略</th>
+              <th className="text-left py-2 font-medium">产品名称</th>
+              <th className="text-left py-2 font-medium">产品编码</th>
+              <th className="text-left py-2 font-medium">能力覆盖</th>
+              <th className="text-right py-2 font-medium">底层规则</th>
+              <th className="text-left py-2 font-medium">说明</th>
             </tr></thead>
             <tbody>
-              {rules.map((r) => {
-                if (!r) return null;
-                const cap = getCapability(r.capabilityId);
+              {products.map((p) => {
+                const productRules = getRulesByProduct(p.id);
+                const capNames = [...new Set(productRules.map((r) => getCapability(r.capabilityId)?.name).filter(Boolean))] as string[];
                 return (
-                  <tr key={r.id} className="border-b border-border/40 hover:bg-muted/30">
-                    <td className="py-2"><Link to={`/entitlement/rule/detail/${r.id}`} className="text-primary hover:underline font-medium">{r.name}</Link></td>
-                    <td className="py-2">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-muted-foreground hover:text-primary">{cap.name}</Link> : "—"}</td>
-                    <td className="py-2 text-right font-medium">{r.quota.toLocaleString()} {cap?.unit || ""}</td>
-                    <td className="py-2 text-muted-foreground">{PERIOD_TYPES.find((p) => p.value === r.periodType)?.label}{r.periodValue > 0 ? `·${r.periodValue}` : ""}</td>
-                    <td className="py-2 text-muted-foreground">{GRANT_TYPES.find((g) => g.value === r.grantType)?.label}</td>
-                    <td className="py-2">{r.isCumulative ? <span className="text-primary font-medium">是</span> : <span className="text-muted-foreground">否</span>}</td>
-                    <td className="py-2 text-muted-foreground">{EXPIRE_POLICIES.find((e) => e.value === r.expirePolicy)?.label}</td>
+                  <tr key={p.id} className="border-b border-border/40 hover:bg-muted/30">
+                    <td className="py-2"><Link to={`/entitlement/product/detail/${p.id}`} className="text-primary hover:underline font-medium">{p.name}</Link></td>
+                    <td className="py-2"><code className="text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">{p.code}</code></td>
+                    <td className="py-2"><div className="flex flex-wrap gap-1">{capNames.map((name) => <span key={name} className="badge-info">{name}</span>)}</div></td>
+                    <td className="py-2 text-right text-primary font-medium">{productRules.length}条</td>
+                    <td className="py-2 text-muted-foreground max-w-[320px]"><div className="truncate" title={p.description}>{p.description || "—"}</div></td>
                   </tr>
                 );
               })}
