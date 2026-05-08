@@ -99,7 +99,7 @@ export function ProductDialog({ open, onClose, onSave, initial }: { open: boolea
     name: initial?.name || "", code: initial?.code || "",
     appId: initial?.appId || appData[0]?.id,
     ruleIds: initial?.ruleIds || [] as string[],
-    exchangeType: (initial?.exchangeType || "sku_only") as ExchangeType,
+    exchangeType: (initial?.exchangeType || "paid") as ExchangeType,
     creditPrice: initial?.creditPrice ?? 0,
     limitPerUser: initial?.limitPerUser ?? 0,
     description: initial?.description || "",
@@ -150,13 +150,16 @@ export function ProductDialog({ open, onClose, onSave, initial }: { open: boolea
 
           <div className="space-y-1.5">
             <label className="text-[13px] text-muted-foreground">交易方式 <span className="text-destructive">*</span></label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {EXCHANGE_TYPES.map((t) => (
                 <div key={t.value} onClick={() => setForm({ ...form, exchangeType: t.value })} className={`px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${form.exchangeType === t.value ? "border-primary bg-primary/5" : "border-border hover:border-border/80"}`}>
                   <div className={`text-[13px] font-medium ${form.exchangeType === t.value ? "text-primary" : "text-foreground"}`}>{t.label}</div>
                   <div className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{t.desc}</div>
                 </div>
               ))}
+            </div>
+            <div className="mt-2 px-3 py-2 rounded-md bg-muted/40 text-[11px] text-muted-foreground leading-relaxed">
+              💡 交易方式定义"用户通过何种对价获得该权益"。<span className="text-foreground">内部发放属于触发渠道</span>，不在此处配置——具备权限的运营人员可将<span className="text-foreground">任意交易方式</span>的产品直接授予用户/企业。
             </div>
           </div>
 

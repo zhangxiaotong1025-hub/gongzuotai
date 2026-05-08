@@ -23,7 +23,7 @@ export default function ProductDetail() {
   const prev = idx > 0 ? productData[idx - 1] : null;
   const next = idx < productData.length - 1 ? productData[idx + 1] : null;
 
-  const ExIcon = product.exchangeType === "credit" ? Coins : product.exchangeType === "internal_grant" ? Gift : product.exchangeType === "system_grant" ? Sparkles : Package;
+  const ExIcon = product.exchangeType === "credit" ? Coins : product.exchangeType === "free" ? Gift : Package;
 
   return (
     <div className="space-y-5 pb-6">
