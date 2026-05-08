@@ -197,9 +197,9 @@ export default function OrderDetail() {
               {resolvedItems.map((item, idx) => (
                 <tr key={idx} className="border-b border-border/40 hover:bg-muted/30">
                   <td className="py-2.5">
-                    <Link to={item.type === "bundle" ? `/entitlement/package/detail/${item.itemId}` : `/entitlement/sku/detail/${item.itemId}`} className="text-primary hover:underline font-medium">{item.itemName}</Link>
+                    <Link to={item.type === "bundle" ? `/entitlement/package/detail/${item.itemId}` : item.type === "product" ? `/entitlement/product/detail/${item.itemId}` : `/entitlement/sku/detail/${item.itemId}`} className="text-primary hover:underline font-medium">{item.itemName}</Link>
                   </td>
-                  <td className="py-2.5"><span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${item.type === "bundle" ? "bg-accent text-accent-foreground" : "bg-primary/10 text-primary"}`}>{item.type === "bundle" ? "商品套餐" : "商品SKU"}</span></td>
+                  <td className="py-2.5"><span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${item.type === "bundle" ? "bg-accent text-accent-foreground" : item.type === "product" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-primary/10 text-primary"}`}>{item.type === "bundle" ? "商品套餐" : item.type === "product" ? "权益产品" : "商品SKU"}</span></td>
                   <td className="py-2.5 text-muted-foreground">{item.appName}</td>
                   <td className="py-2.5 text-right">{item.unitPrice > 0 ? `¥${item.unitPrice.toFixed(2)}` : "¥0.00"}</td>
                   <td className="py-2.5 text-right">{item.quantity}</td>
