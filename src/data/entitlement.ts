@@ -460,10 +460,12 @@ export function getOrderAppIds(order: EntitlementOrder): string[] {
     if (item.type === "sku") {
       const sku = skuData.find((s) => s.id === item.itemId);
       if (sku) appIds.add(sku.appId);
+    } else if (item.type === "product") {
+      const product = productData.find((p) => p.id === item.itemId);
+      if (product) appIds.add(product.appId);
     } else {
       const bundle = bundleData.find((b) => b.id === item.itemId);
       if (bundle) appIds.add(bundle.appId);
-      // 套餐中的SKU可能跨应用
       if (bundle) {
         for (const bi of bundle.items) {
           const sku = skuData.find((s) => s.id === bi.skuId);
