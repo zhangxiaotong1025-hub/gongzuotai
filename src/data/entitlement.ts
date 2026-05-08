@@ -180,6 +180,60 @@ export const ruleData: EntitlementRule[] = [
   { id: "rule60", name: "线索100条/月",    code: "RULE_LEADS_100_M",    capabilityId: "cap50", quota: 100,  periodType: "MONTH", periodValue: 1, grantType: "MONTHLY_GRANT", isCumulative: false, expirePolicy: "CLEAR_ON_EXPIRE", description: "每月100条客资线索", status: "active", createdAt: "2026-03-12" },
 ];
 
+/* ── Product (权益产品) ──
+   交易性质的最小单元：一个产品打包 N 条规则，可通过积分兑换 / 内部发放 / 系统赠送 / 商品SKU 售卖
+   规则 ↔ 产品：多对多
+*/
+export type ExchangeType = "credit" | "internal_grant" | "system_grant" | "sku_only";
+
+export interface Product {
+  id: string;
+  name: string;
+  code: string;
+  appId: string;
+  ruleIds: string[];
+  /** 交易方式：积分兑换 / 内部发放 / 系统赠送 / 仅供SKU封装售卖 */
+  exchangeType: ExchangeType;
+  /** 积分价格（exchangeType = credit 时使用） */
+  creditPrice?: number;
+  /** 限领数量（0 表示不限） */
+  limitPerUser?: number;
+  status: "active" | "inactive";
+  description: string;
+  createdAt: string;
+}
+
+export const EXCHANGE_TYPES: { value: ExchangeType; label: string; className: string; desc: string }[] = [
+  { value: "credit",         label: "积分兑换",   className: "badge-info",    desc: "用户使用积分兑换该权益产品" },
+  { value: "internal_grant", label: "内部发放",   className: "badge-warning", desc: "管理员手动发放给企业或用户" },
+  { value: "system_grant",   label: "系统赠送",   className: "badge-muted",   desc: "活动/任务/注册等场景系统自动下发" },
+  { value: "sku_only",       label: "仅供售卖",   className: "badge-active",  desc: "不直接发放，仅作为商品SKU的权益载体" },
+];
+
+export const productData: Product[] = [
+  // 国内3D工具 - 积分兑换型
+  { id: "prod1",  name: "AI积分100次·兑换包",   code: "PROD_AI_100_CREDIT",   appId: "app1", ruleIds: ["rule31"],          exchangeType: "credit",         creditPrice: 990,  limitPerUser: 5, status: "active", description: "990积分兑换100次AI额度", createdAt: "2026-03-12" },
+  { id: "prod2",  name: "AI积分200次·兑换包",   code: "PROD_AI_200_CREDIT",   appId: "app1", ruleIds: ["rule32"],          exchangeType: "credit",         creditPrice: 1900, limitPerUser: 3, status: "active", description: "1900积分兑换200次AI额度", createdAt: "2026-03-12" },
+  { id: "prod3",  name: "4K渲染单次·兑换",      code: "PROD_4K_CREDIT",       appId: "app1", ruleIds: ["rule28"],          exchangeType: "credit",         creditPrice: 300,  limitPerUser: 0, status: "active", description: "300积分兑换1次4K渲染", createdAt: "2026-03-12" },
+  { id: "prod4",  name: "8K渲染单次·兑换",      code: "PROD_8K_CREDIT",       appId: "app1", ruleIds: ["rule29"],          exchangeType: "credit",         creditPrice: 800,  limitPerUser: 0, status: "active", description: "800积分兑换1次8K渲染", createdAt: "2026-03-12" },
+  // 系统赠送
+  { id: "prod5",  name: "新人大礼包",            code: "PROD_NEWBIE_GIFT",     appId: "app1", ruleIds: ["rule1", "rule25", "rule30"], exchangeType: "system_grant", limitPerUser: 1, status: "active", description: "新用户注册自动发放：AI100次/日 + 200MB存储 + 8K体验1次", createdAt: "2026-03-12" },
+  { id: "prod6",  name: "签到日礼包",            code: "PROD_DAILY_CHECKIN",   appId: "app1", ruleIds: ["rule31"],          exchangeType: "system_grant",   limitPerUser: 0, status: "active", description: "每日签到赠送100次AI额度", createdAt: "2026-03-12" },
+  // 内部发放
+  { id: "prod7",  name: "运营补偿包",            code: "PROD_COMPENSATION",    appId: "app1", ruleIds: ["rule32", "rule28", "rule29"], exchangeType: "internal_grant", limitPerUser: 0, status: "active", description: "故障补偿/客诉处理专用补偿包", createdAt: "2026-03-12" },
+  { id: "prod8",  name: "VIP试用包·30天",       code: "PROD_VIP_TRIAL",       appId: "app1", ruleIds: ["rule3", "rule5", "rule10"], exchangeType: "internal_grant", limitPerUser: 1, status: "active", description: "市场BD专用，发放VIP试用资格", createdAt: "2026-03-12" },
+  // 售卖型（SKU 封装）
+  { id: "prod9",  name: "免费版权益包",          code: "PROD_FREE_PACK",       appId: "app1", ruleIds: ["rule1", "rule25", "rule7"], exchangeType: "sku_only", limitPerUser: 0, status: "active", description: "免费版基础权益封装", createdAt: "2026-03-12" },
+  { id: "prod10", name: "基础会员权益包",        code: "PROD_BASIC_PACK",      appId: "app1", ruleIds: ["rule2", "rule4", "rule9", "rule11", "rule12", "rule13", "rule14", "rule25"], exchangeType: "sku_only", limitPerUser: 0, status: "active", description: "基础会员权益封装", createdAt: "2026-03-12" },
+  { id: "prod11", name: "旗舰会员权益包",        code: "PROD_PRO_PACK",        appId: "app1", ruleIds: ["rule3", "rule5", "rule6", "rule8", "rule10", "rule15", "rule16", "rule17", "rule18", "rule19", "rule20", "rule21", "rule22", "rule23", "rule24", "rule26"], exchangeType: "sku_only", limitPerUser: 0, status: "active", description: "旗舰会员全能力封装", createdAt: "2026-03-12" },
+  // AI设计家
+  { id: "prod20", name: "AI方案月度包",          code: "PROD_AI_PLAN_M",       appId: "app4", ruleIds: ["rule40"],          exchangeType: "sku_only",       limitPerUser: 0, status: "active", description: "AI方案100次/月封装", createdAt: "2026-03-12" },
+  { id: "prod21", name: "AI风格月度包",          code: "PROD_AI_STYLE_M",      appId: "app4", ruleIds: ["rule41"],          exchangeType: "credit",         creditPrice: 4990, limitPerUser: 2, status: "active", description: "4990积分兑换AI风格50次/月", createdAt: "2026-03-12" },
+  // 智能导购
+  { id: "prod30", name: "导购标准权益包",        code: "PROD_GUIDE_STD",       appId: "app3", ruleIds: ["rule50"],          exchangeType: "sku_only",       limitPerUser: 0, status: "active", description: "导购推荐500次/月封装", createdAt: "2026-03-12" },
+  { id: "prod31", name: "客户画像试用",          code: "PROD_GUIDE_PROFILE_TRIAL", appId: "app3", ruleIds: ["rule51"],      exchangeType: "system_grant",   limitPerUser: 1, status: "active", description: "新企业入驻试用客户画像", createdAt: "2026-03-12" },
+];
+
 /* ── SKU (商品) ── */
 export type BillingCycle = "once" | "monthly" | "yearly";
 
@@ -1028,3 +1082,12 @@ export const getOrder = (id: string) => orderData.find((o) => o.id === id);
 export const getAccount = (id: string) => accountData.find((a) => a.id === id);
 /** 根据应用ID筛选订单（只要订单中有任一商品属于该应用即匹配） */
 export const getOrdersByApp = (appId: string) => orderData.filter((o) => getOrderAppIds(o).includes(appId));
+
+/* ── Product helpers ── */
+export const getProduct = (id: string) => productData.find((p) => p.id === id);
+export const getProductsByApp = (appId: string) => productData.filter((p) => p.appId === appId);
+export const getProductsByRule = (ruleId: string) => productData.filter((p) => p.ruleIds.includes(ruleId));
+export const getRulesByProduct = (productId: string) => {
+  const p = getProduct(productId);
+  return p ? p.ruleIds.map((rid) => getRule(rid)).filter(Boolean) as EntitlementRule[] : [];
+};

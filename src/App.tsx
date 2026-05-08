@@ -30,6 +30,8 @@ import RuleList from "./pages/entitlement/RuleList";
 import RuleDetail from "./pages/entitlement/RuleDetail";
 import SkuList from "./pages/entitlement/SkuList";
 import SkuDetail from "./pages/entitlement/SkuDetail";
+import EntitlementProductList from "./pages/entitlement/ProductList";
+import EntitlementProductDetail from "./pages/entitlement/ProductDetail";
 import PackageList from "./pages/entitlement/PackageList";
 import PackageDetail from "./pages/entitlement/PackageDetail";
 import OrderList from "./pages/entitlement/OrderList";
@@ -108,6 +110,8 @@ function ProtectedRoutes() {
         <Route path="/entitlement/capability/detail/:id" element={<CapabilityDetail />} />
         <Route path="/entitlement/rule" element={<RuleList />} />
         <Route path="/entitlement/rule/detail/:id" element={<RuleDetail />} />
+        <Route path="/entitlement/product" element={<EntitlementProductList />} />
+        <Route path="/entitlement/product/detail/:id" element={<EntitlementProductDetail />} />
         <Route path="/entitlement/sku" element={<SkuList />} />
         <Route path="/entitlement/sku/detail/:id" element={<SkuDetail />} />
         <Route path="/entitlement/package" element={<PackageList />} />
