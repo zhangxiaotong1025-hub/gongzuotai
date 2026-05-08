@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { skuData, bundleData, STATUS_MAP, BILLING_CYCLES, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getCapability, getApp, getRule, getProductsBySkuId, getRulesByProduct } from "@/data/entitlement";
+import { skuData, bundleData, STATUS_MAP, BILLING_CYCLES, getCapability, getApp, getProductsBySkuId, getRulesByProduct } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { SkuDialog } from "./dialogs/SkuDialog";
 import { toast } from "sonner";
@@ -17,7 +17,6 @@ export default function SkuDetail() {
   if (!sku) return <div className="p-10 text-center text-muted-foreground">商品不存在</div>;
 
   const products = getProductsBySkuId(sku.id);
-  const rules = (sku.ruleIds || []).map((rid) => getRule(rid)).filter(Boolean);
   const app = getApp(sku.appId);
   const bundles = bundleData.filter((b) => b.items.some((i) => i.skuId === sku.id));
   const prevSku = skuIndex > 0 ? skuData[skuIndex - 1] : null;
