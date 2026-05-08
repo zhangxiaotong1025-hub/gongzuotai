@@ -483,7 +483,10 @@ export interface EntitlementOrder {
   /** 关联企业ID（enterprise_grant 类型时有值） */
   linkedEnterpriseId?: string;
   items: OrderItem[];
+  /** 订单金额（现金，单位：元）。积分兑换订单为 0，使用 creditAmount 字段记录 */
   totalAmount: number;
+  /** 积分金额（仅积分兑换订单使用，单位：积分）。与 totalAmount 互斥，用于消除 ¥0 歧义 */
+  creditAmount?: number;
   paymentStatus: PaymentStatus;
   orderStatus: OrderStatus;
   paidAt?: string;
