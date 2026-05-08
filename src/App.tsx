@@ -40,6 +40,7 @@ import AccountList from "./pages/entitlement/AccountList";
 import AccountDetail from "./pages/entitlement/AccountDetail";
 import EntitlementDashboard from "./pages/entitlement/Dashboard";
 import PlaceholderPage from "./pages/PlaceholderPage";
+import EntitlementPRD from "./pages/prd/EntitlementPRD";
 import BrandList from "./pages/brand/BrandList";
 import BrandDetail from "./pages/brand/BrandDetail";
 import BrandCreate from "./pages/brand/BrandCreate";
@@ -160,6 +161,7 @@ function ProtectedRoutes() {
         <Route path="/dashboard" element={<PlaceholderPage title="数据看版" />} />
         <Route path="/agent" element={<AgentCommandCenter />} />
         <Route path="/agent/leads" element={<LeadsOperation />} />
+        <Route path="/prd/entitlement" element={<EntitlementPRD />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AdminLayout>
