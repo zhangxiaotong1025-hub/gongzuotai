@@ -824,9 +824,60 @@ export const orderData: EntitlementOrder[] = [
       { status: "suspended",     label: "权益暂停", time: "2026-03-22 09:00:00", remark: "企业合规检查，临时暂停权益使用" },
     ],
   },
+  {
+    // 积分兑换订单 — 直接以"权益产品"为下单单元（无SKU）
+    id: "ord19", orderNo: "ORD202603260001", customerType: "C", customerId: "user2", customerName: "李四",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 0, paymentStatus: "no_payment", orderStatus: "active",
+    paidAt: "2026-03-26 11:00:05", remark: "积分兑换 990积分 → AI设计100次", createdAt: "2026-03-26 11:00:00",
+    items: [{ type: "product", itemId: "prod1", itemName: "AI积分100次·兑换包", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建",     time: "2026-03-26 11:00:00", remark: "用户在积分商城下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-26 11:00:01" },
+      { status: "credit_paid",   label: "积分扣减完成", time: "2026-03-26 11:00:05", remark: "扣减 990 积分（余额 5240→4250）" },
+      { status: "granted",       label: "权益生效",     time: "2026-03-26 11:00:06", remark: "AI设计100次已入账" },
+    ],
+  },
+  {
+    // 国际版购买
+    id: "ord20", orderNo: "ORD202603270001", customerType: "B", customerId: "cust10", customerName: "北京金隅装饰工程有限公司",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 49.9, paymentStatus: "paid", orderStatus: "active",
+    paidAt: "2026-03-27 09:30:00", remark: "国际版旗舰月卡", createdAt: "2026-03-27 09:25:00",
+    items: [{ type: "bundle", itemId: "bun7", itemName: "国际版旗舰", quantity: 1, unitPrice: 49.9 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建",     time: "2026-03-27 09:25:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-27 09:25:01" },
+      { status: "paid",          label: "支付完成",     time: "2026-03-27 09:30:00", remark: "微信支付" },
+      { status: "granted",       label: "权益生效",     time: "2026-03-27 09:30:05", remark: "国际版旗舰已生效" },
+    ],
+  },
+  {
+    // 跨3应用大套餐
+    id: "ord21", orderNo: "ORD202603280001", customerType: "B", customerId: "cust11", customerName: "上海东易日盛装饰有限公司",
+    orderType: "user_purchase", auditStatus: "auto_approved", totalAmount: 388, paymentStatus: "paid", orderStatus: "active",
+    paidAt: "2026-03-28 14:30:00", expireAt: "2026-04-28", remark: "全球设计组合月卡", createdAt: "2026-03-28 14:25:00",
+    items: [{ type: "bundle", itemId: "bun8", itemName: "全球设计组合", quantity: 1, unitPrice: 388 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建",     time: "2026-03-28 14:25:00", remark: "用户下单" },
+      { status: "auto_approved", label: "自动审核通过", time: "2026-03-28 14:25:01" },
+      { status: "paid",          label: "支付完成",     time: "2026-03-28 14:30:00", remark: "对公转账" },
+      { status: "granted",       label: "权益生效",     time: "2026-03-28 14:30:05", remark: "国内3D+国际3D+AI设计家 三应用权益已发放" },
+    ],
+  },
+  {
+    // 内部发放：以「权益产品」为发放单元（运营补偿包）
+    id: "ord22", orderNo: "ORD202603290001", customerType: "C", customerId: "user1", customerName: "张三",
+    orderType: "internal_grant", auditStatus: "approved", auditBy: "客服主管·赵敏", auditAt: "2026-03-29 10:15:00",
+    totalAmount: 0, paymentStatus: "no_payment", orderStatus: "active",
+    remark: "渲染失败补偿（工单 #20583）", createdAt: "2026-03-29 10:00:00",
+    items: [{ type: "product", itemId: "prod7", itemName: "运营补偿包", quantity: 1, unitPrice: 0 }],
+    statusHistory: [
+      { status: "created",       label: "订单创建",     time: "2026-03-29 10:00:00", remark: "客服·林敏 创建补偿单" },
+      { status: "pending_audit", label: "提交审核",     time: "2026-03-29 10:00:01" },
+      { status: "approved",      label: "审核通过",     time: "2026-03-29 10:15:00", remark: "客服主管·赵敏 审核通过" },
+      { status: "granted",       label: "权益生效",     time: "2026-03-29 10:15:05", remark: "AI200次 + 4K1次 + 8K1次 已入账" },
+    ],
+  },
 ];
-
-/* ── AllocationRecord (分配记录 — 订单维度的权益分配) ── */
 export interface AllocationRecord {
   id: string;
   orderId: string;
