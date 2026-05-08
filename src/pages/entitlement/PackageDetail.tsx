@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { bundleData, skuData, STATUS_MAP, BILLING_CYCLES, getCapability, getRulesBySkuId } from "@/data/entitlement";
+import { bundleData, skuData, STATUS_MAP, BILLING_CYCLES, getProductsBySkuId } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { BundleDialog } from "./dialogs/BundleDialog";
 import { toast } from "sonner";
@@ -22,8 +22,8 @@ export default function PackageDetail() {
 
   const enrichedItems = bundle.items.map((item) => {
     const sku = skuData.find((s) => s.id === item.skuId);
-    const rules = sku ? getRulesBySkuId(sku.id) : [];
-    return { ...item, sku, rules };
+    const products = sku ? getProductsBySkuId(sku.id) : [];
+    return { ...item, sku, products };
   });
 
   const handleEdit = () => { setDialogInitial(bundle); setDialogOpen(true); };
@@ -75,21 +75,21 @@ export default function PackageDetail() {
             <thead><tr className="border-b text-muted-foreground">
               <th className="text-left py-2 font-medium">商品名称</th>
               <th className="text-center py-2 font-medium">数量</th>
-              <th className="text-left py-2 font-medium">包含规则</th>
+              <th className="text-left py-2 font-medium">关联权益产品</th>
               <th className="text-right py-2 font-medium">单价</th>
               <th className="text-left py-2 font-medium">操作</th>
             </tr></thead>
             <tbody>
-              {enrichedItems.map(({ skuId, skuName, quantity, sku, rules }) => (
+              {enrichedItems.map(({ skuId, skuName, quantity, sku, products }) => (
                 <tr key={skuId} className="border-b border-border/40 hover:bg-muted/30">
                   <td className="py-2 font-medium text-foreground">{skuName}</td>
                   <td className="py-2 text-center">{quantity > 1 ? <span className="text-primary font-medium">×{quantity}</span> : "1"}</td>
                   <td className="py-2">
                     <div className="flex flex-wrap gap-1">
-                      {rules.map((r) => (
-                        <Link key={r.id} to={`/entitlement/rule/detail/${r.id}`} className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-muted text-muted-foreground hover:text-primary">{r.name}</Link>
+                      {products.map((p) => (
+                        <Link key={p.id} to={`/entitlement/product/detail/${p.id}`} className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-muted text-muted-foreground hover:text-primary">{p.name}</Link>
                       ))}
-                      {rules.length === 0 && <span className="text-muted-foreground">—</span>}
+                      {products.length === 0 && <span className="text-muted-foreground">—</span>}
                     </div>
                   </td>
                   <td className="py-2 text-right">{sku && sku.price > 0 ? `¥${sku.price}` : "—"}</td>
