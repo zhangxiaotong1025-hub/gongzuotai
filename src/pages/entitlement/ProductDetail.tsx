@@ -18,7 +18,7 @@ export default function ProductDetail() {
 
   const rules = getRulesByProduct(product.id);
   const app = getApp(product.appId);
-  const linkedSkus = skuData.filter((s) => (s as any).productId === product.id || s.ruleIds.some((rid) => product.ruleIds.includes(rid)));
+  const linkedSkus = skuData.filter((s) => (s.productIds || []).includes(product.id));
   const exType = EXCHANGE_TYPES.find((e) => e.value === product.exchangeType);
   const prev = idx > 0 ? productData[idx - 1] : null;
   const next = idx < productData.length - 1 ? productData[idx + 1] : null;
