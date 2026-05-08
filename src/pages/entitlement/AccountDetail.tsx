@@ -466,7 +466,7 @@ export default function AccountDetail() {
                   <tr key={order.id} className="border-b border-border/40 hover:bg-muted/30">
                     <td className="py-2"><Link to={`/entitlement/order/detail/${order.id}`} className="text-primary hover:underline font-mono text-[12px]">{order.orderNo}</Link></td>
                     <td className="py-2">{order.items.map((i) => i.itemName).join("、")}</td>
-                    <td className="py-2 text-right font-medium">{order.totalAmount > 0 ? `¥${order.totalAmount}` : "¥0"}</td>
+                    <td className="py-2 text-right font-medium">{order.creditAmount && order.creditAmount > 0 ? <span className="text-amber-600 dark:text-amber-400">{order.creditAmount.toLocaleString()} 积分</span> : (order.totalAmount > 0 ? `¥${order.totalAmount}` : <span className="text-muted-foreground">¥0</span>)}</td>
                     <td className="py-2"><span className={`text-[12px] font-medium ${typeCfg?.className || ""}`}>{typeCfg?.label}</span></td>
                     <td className="py-2"><span className={statusCfg?.className}>{statusCfg?.label}</span></td>
                     <td className="py-2 text-muted-foreground">{order.createdAt}</td>
