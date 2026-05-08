@@ -110,8 +110,8 @@ function ProtectedRoutes() {
         <Route path="/entitlement/capability/detail/:id" element={<CapabilityDetail />} />
         <Route path="/entitlement/rule" element={<RuleList />} />
         <Route path="/entitlement/rule/detail/:id" element={<RuleDetail />} />
-        <Route path="/entitlement/product" element={<ProductList />} />
-        <Route path="/entitlement/product/detail/:id" element={<ProductDetail />} />
+        <Route path="/entitlement/product" element={<EntitlementProductList />} />
+        <Route path="/entitlement/product/detail/:id" element={<EntitlementProductDetail />} />
         <Route path="/entitlement/sku" element={<SkuList />} />
         <Route path="/entitlement/sku/detail/:id" element={<SkuDetail />} />
         <Route path="/entitlement/package" element={<PackageList />} />
