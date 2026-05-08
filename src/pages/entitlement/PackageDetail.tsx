@@ -4,6 +4,7 @@ import { bundleData, skuData, STATUS_MAP, BILLING_CYCLES, getCapability, getRule
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { BundleDialog } from "./dialogs/BundleDialog";
 import { toast } from "sonner";
+import { Layers } from "lucide-react";
 
 export default function PackageDetail() {
   const { id } = useParams();
