@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ruleData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp } from "@/data/entitlement";
+import { ruleData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp, deriveRulePolicy } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { RuleDialog } from "./dialogs/RuleDialog";
 import { toast } from "sonner";
@@ -52,12 +52,10 @@ export default function RuleDetail() {
           <div><span className="text-muted-foreground">关联能力</span><div className="mt-0.5">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-primary hover:underline">{cap.name}</Link> : "—"}</div></div>
           <div><span className="text-muted-foreground">数据类型</span><div className="text-foreground mt-0.5">{cap ? `${DATA_TYPES.find((t) => t.value === cap.dataType)?.label.split("（")[0]} · ${cap.unit}` : "—"}</div></div>
         </div>
-        <div className="grid grid-cols-6 gap-4 text-[13px] mt-4 pt-4 border-t">
+        <div className="grid grid-cols-4 gap-4 text-[13px] mt-4 pt-4 border-t">
           <div><span className="text-muted-foreground">额度</span><div className="text-foreground font-medium mt-0.5">{rule.quota.toLocaleString()} {cap?.unit}</div></div>
           <div><span className="text-muted-foreground">周期</span><div className="text-foreground mt-0.5">{PERIOD_TYPES.find((p) => p.value === rule.periodType)?.label}{rule.periodValue > 0 ? ` · ${rule.periodValue}` : ""}</div></div>
-          <div><span className="text-muted-foreground">发放方式</span><div className="text-foreground mt-0.5">{GRANT_TYPES.find((g) => g.value === rule.grantType)?.label}</div></div>
-          <div><span className="text-muted-foreground">是否累积</span><div className={`mt-0.5 font-medium ${rule.isCumulative ? "text-primary" : "text-muted-foreground"}`}>{rule.isCumulative ? "是" : "否"}</div></div>
-          <div><span className="text-muted-foreground">过期策略</span><div className="text-foreground mt-0.5">{EXPIRE_POLICIES.find((e) => e.value === rule.expirePolicy)?.label}</div></div>
+          <div className="col-span-2"><span className="text-muted-foreground">发放策略</span><div className="text-foreground mt-0.5">{deriveRulePolicy(rule.periodType).label}<span className="ml-2 text-[11px] text-muted-foreground/70">（系统统一行为）</span></div></div>
           <div><span className="text-muted-foreground">引用SKU</span><div className={`font-medium mt-0.5 ${skus.length > 0 ? "text-primary" : "text-muted-foreground"}`}>{skus.length}</div></div>
         </div>
         {rule.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t">{rule.description}</p>}

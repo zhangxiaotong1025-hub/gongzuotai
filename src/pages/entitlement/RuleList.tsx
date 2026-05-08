@@ -6,13 +6,13 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download } from "lucide-react";
-import { ruleData as initialData, capabilityData, appData, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, STATUS_MAP, type EntitlementRule, getCapability, getSkusByRule } from "@/data/entitlement";
+import { ruleData as initialData, capabilityData, appData, PERIOD_TYPES, STATUS_MAP, type EntitlementRule, getCapability, getSkusByRule, deriveRulePolicy } from "@/data/entitlement";
 import { RuleDialog } from "./dialogs/RuleDialog";
 
 const filterFields: FilterField[] = [
   { key: "name", label: "规则名称/编码", type: "input", placeholder: "请输入", width: 200 },
   { key: "capabilityId", label: "关联能力", type: "select", options: capabilityData.map((c) => ({ label: c.name, value: c.id })), width: 140 },
-  { key: "grantType", label: "发放方式", type: "select", options: GRANT_TYPES.map((g) => ({ label: g.label, value: g.value })), width: 120 },
+  { key: "periodType", label: "周期类型", type: "select", options: PERIOD_TYPES.map((p) => ({ label: p.label, value: p.value })), width: 120 },
   { key: "status", label: "状态", type: "select", options: [{ label: "启用", value: "active" }, { label: "停用", value: "inactive" }], width: 100 },
 ];
 
@@ -46,9 +46,7 @@ export default function RuleList() {
     { key: "capabilityId", title: "关联能力", minWidth: 100, render: (v: string) => { const cap = getCapability(v); return cap ? <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-muted/80" onClick={() => navigate(`/entitlement/capability/detail/${v}`)}>{cap.name}</button> : <span>—</span>; } },
     { key: "quota", title: "额度", minWidth: 80, align: "right" as const, render: (v: number, row) => { const cap = getCapability((row as EntitlementRule).capabilityId); return <span className="font-medium text-foreground">{v.toLocaleString()}{cap ? ` ${cap.unit}` : ""}</span>; } },
     { key: "periodType", title: "周期", minWidth: 60, render: (v: string) => <span>{PERIOD_TYPES.find((p) => p.value === v)?.label || v}</span> },
-    { key: "grantType", title: "发放方式", minWidth: 80, render: (v: string) => <span className="text-[12px] text-muted-foreground">{GRANT_TYPES.find((g) => g.value === v)?.label}</span> },
-    { key: "isCumulative", title: "累积", minWidth: 50, align: "center" as const, render: (v: boolean) => v ? <span className="text-primary font-medium">是</span> : <span className="text-muted-foreground">否</span> },
-    { key: "expirePolicy", title: "过期策略", minWidth: 80, render: (v: string) => <span className="text-[12px] text-muted-foreground">{EXPIRE_POLICIES.find((e) => e.value === v)?.label}</span> },
+    { key: "id", title: "发放策略", minWidth: 140, render: (_v, row) => { const p = deriveRulePolicy((row as EntitlementRule).periodType); return <span className="text-[12px] text-muted-foreground">{p.label}</span>; } },
     { key: "id", title: "引用SKU", minWidth: 70, align: "center" as const, render: (_v, row) => { const count = getSkusByRule((row as EntitlementRule).id).length; return <span className={count > 0 ? "text-primary font-medium" : "text-muted-foreground"}>{count}</span>; } },
     { key: "status", title: "状态", minWidth: 80, render: (v: string) => { const cfg = STATUS_MAP[v]; return <span className={cfg.className}>{cfg.label}</span>; } },
   ];

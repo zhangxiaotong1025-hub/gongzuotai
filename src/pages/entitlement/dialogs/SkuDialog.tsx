@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Plus, X, Check, Search, ChevronRight, Trash2 } from "lucide-react";
-import { appData, capabilityData, BILLING_CYCLES, type Sku, type BillingCycle, type EntitlementRule, getCapability, getRulesByApp, getRule } from "@/data/entitlement";
+import { useMemo, useState } from "react";
+import { Plus, X, Check, Search, ChevronRight, AlertCircle, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { appData, capabilityData, BILLING_CYCLES, type Sku, type BillingCycle, type EntitlementRule, getCapability, getRulesByApp, getRule, getApp } from "@/data/entitlement";
 
 /* ── 二级弹窗：规则选择器 ── */
 function RulePickerDialog({ open, onClose, onConfirm, appId, selectedIds }: {
@@ -151,7 +152,26 @@ export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; o
     sortOrder: initial?.sortOrder ?? 1, description: initial?.description || "",
   });
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [touched, setTouched] = useState(false);
   const isEdit = Boolean(initial);
+  const app = getApp(form.appId);
+  const suggestedCode = useMemo(() => {
+    if (!app || isEdit || !form.name.trim()) return "";
+    return `SKU_${app.code}_${Date.now().toString().slice(-4)}`;
+  }, [app, form.name, isEdit]);
+
+  const errors: string[] = [];
+  if (!form.name.trim()) errors.push("商品名称");
+  if (!form.code.trim()) errors.push("商品编码");
+  if (form.ruleIds.length === 0) errors.push("关联权益规则");
+  if (form.price < 0) errors.push("价格不能为负");
+
+  const handleSubmit = () => {
+    setTouched(true);
+    if (errors.length > 0) { toast.error(`请完善：${errors.join("、")}`); return; }
+    onSave(form);
+  };
+
   if (!open) return null;
 
   const selectedRules = form.ruleIds.map((rid) => getRule(rid)).filter(Boolean) as EntitlementRule[];
@@ -183,11 +203,18 @@ export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; o
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-[13px] text-muted-foreground">商品名称 <span className="text-destructive">*</span></label>
-              <input className="filter-input w-full" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <input className={`filter-input w-full ${touched && !form.name.trim() ? "ring-1 ring-destructive/50" : ""}`} placeholder="如：标准版年卡" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[13px] text-muted-foreground">商品编码 <span className="text-destructive">*</span></label>
-              <input className="filter-input w-full font-mono" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} disabled={isEdit} />
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] text-muted-foreground">商品编码 <span className="text-destructive">*</span></label>
+                {suggestedCode && form.code !== suggestedCode && !isEdit && (
+                  <button type="button" onClick={() => setForm({ ...form, code: suggestedCode })} className="inline-flex items-center gap-0.5 text-[11px] text-primary hover:underline">
+                    <Sparkles className="h-3 w-3" />使用建议
+                  </button>
+                )}
+              </div>
+              <input className={`filter-input w-full font-mono ${touched && !form.code.trim() ? "ring-1 ring-destructive/50" : ""}`} placeholder={suggestedCode || "SKU_开头"} value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} disabled={isEdit} />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -208,7 +235,7 @@ export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; o
             </div>
 
             {form.ruleIds.length === 0 ? (
-              <div className="border border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all" onClick={() => setPickerOpen(true)}>
+              <div className={`border border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all ${touched && form.ruleIds.length === 0 ? "border-destructive/50 bg-destructive/5" : ""}`} onClick={() => setPickerOpen(true)}>
                 <p className="text-[13px] text-muted-foreground">点击选择权益规则</p>
                 <p className="text-[11px] text-muted-foreground/60 mt-1">支持按能力分组筛选、搜索、批量勾选</p>
               </div>
@@ -253,9 +280,14 @@ export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; o
             <textarea className="filter-input w-full min-h-[50px] resize-y" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </div>
         </div>
+        {touched && errors.length > 0 && (
+          <div className="px-5 py-2 bg-destructive/5 border-t border-destructive/20 flex items-center gap-2 text-[12px] text-destructive">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" /> 请完善：{errors.join("、")}
+          </div>
+        )}
         <div className="flex gap-3 px-5 py-4 border-t">
           <button className="btn-secondary flex-1" onClick={onClose}>取消</button>
-          <button className="btn-primary flex-1" disabled={!form.name.trim() || !form.code.trim() || form.ruleIds.length === 0} onClick={() => onSave(form)}>{isEdit ? "保存" : "创建"}</button>
+          <button className="btn-primary flex-1" onClick={handleSubmit}>{isEdit ? "保存" : "创建"}</button>
         </div>
       </div>
 
