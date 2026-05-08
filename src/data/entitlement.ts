@@ -1082,3 +1082,12 @@ export const getOrder = (id: string) => orderData.find((o) => o.id === id);
 export const getAccount = (id: string) => accountData.find((a) => a.id === id);
 /** 根据应用ID筛选订单（只要订单中有任一商品属于该应用即匹配） */
 export const getOrdersByApp = (appId: string) => orderData.filter((o) => getOrderAppIds(o).includes(appId));
+
+/* ── Product helpers ── */
+export const getProduct = (id: string) => productData.find((p) => p.id === id);
+export const getProductsByApp = (appId: string) => productData.filter((p) => p.appId === appId);
+export const getProductsByRule = (ruleId: string) => productData.filter((p) => p.ruleIds.includes(ruleId));
+export const getRulesByProduct = (productId: string) => {
+  const p = getProduct(productId);
+  return p ? p.ruleIds.map((rid) => getRule(rid)).filter(Boolean) as EntitlementRule[] : [];
+};
