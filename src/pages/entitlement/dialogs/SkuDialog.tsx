@@ -129,7 +129,7 @@ function ProductPickerDialog({ open, onClose, onConfirm, appId, selectedIds }: {
                 </th>
                 <th className="py-2.5 px-2 font-medium">产品名称 / 编码</th>
                 <th className="py-2.5 px-2 font-medium w-[180px]">能力</th>
-                <th className="py-2.5 px-2 font-medium w-[80px] text-right">规则数</th>
+                <th className="py-2.5 px-2 font-medium w-[90px] text-right">底层规则</th>
                 <th className="py-2.5 px-2 font-medium w-[110px] text-right">已被引用</th>
                 <th className="py-2.5 px-2 pr-6 font-medium">描述</th>
               </tr>
@@ -192,8 +192,8 @@ function ProductPickerDialog({ open, onClose, onConfirm, appId, selectedIds }: {
         <div className="border-t px-6 py-3 flex items-center justify-between shrink-0 bg-card">
           <div className="text-[12px] text-muted-foreground">
             {localIds.length > 0
-              ? <button className="text-destructive hover:underline" onClick={() => setLocalIds([])}>清空已选</button>
-              : <span>勾选多个权益产品打包到当前商品中，规则将自动按能力维度去重合并</span>}
+                ? <button className="text-destructive hover:underline" onClick={() => setLocalIds([])}>清空已选</button>
+              : <span>勾选多个权益产品打包到当前商品中，系统将自动生成底层权益发放明细</span>}
           </div>
           <div className="flex gap-3">
             <button className="btn-secondary" onClick={onClose}>取消</button>
@@ -334,7 +334,7 @@ export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; o
               <div className={`border border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all ${touched && form.productIds.length === 0 ? "border-destructive/50 bg-destructive/5" : ""}`} onClick={() => setPickerOpen(true)}>
                 <Package className="h-6 w-6 text-muted-foreground/40 mx-auto mb-2" />
                 <p className="text-[13px] text-foreground">点击选择权益产品</p>
-                <p className="text-[11px] text-muted-foreground mt-1">支持按「能力 / 限领 / 关键字」多维筛选，仅展示当前应用「付费售卖」启用产品</p>
+                <p className="text-[11px] text-muted-foreground mt-1">支持按「能力 / 关联状态 / 关键字」多维筛选，仅展示当前应用「付费售卖」启用产品</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -346,7 +346,7 @@ export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; o
                         <span className="text-[13px] font-medium text-foreground truncate">{p.name}</span>
                         <code className="text-[11px] text-muted-foreground font-mono px-1.5 py-0.5 rounded bg-muted">{p.code}</code>
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{p.ruleIds.length} 条规则{(p.limitPerUser ?? 0) > 0 ? ` · 限领${p.limitPerUser}` : ""}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">底层权益明细 {p.ruleIds.length} 条</p>
                     </div>
                     <button onClick={() => removeProduct(p.id)} className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"><X className="h-3.5 w-3.5" /></button>
                   </div>
@@ -357,7 +357,7 @@ export function SkuDialog({ open, onClose, onSave, initial }: { open: boolean; o
                   <div className="rounded-lg border bg-muted/30 px-3.5 py-2.5">
                     <div className="flex items-center gap-2 mb-1.5">
                       <Sparkles className="h-3 w-3 text-primary" />
-                      <span className="text-[12px] font-medium text-foreground">自动汇总权益规则</span>
+                      <span className="text-[12px] font-medium text-foreground">自动汇总底层权益明细</span>
                       <span className="text-[11px] text-muted-foreground">共 {derivedRuleIds.length} 条 · 系统按能力维度去重合并</span>
                     </div>
                     <div className="space-y-1">
