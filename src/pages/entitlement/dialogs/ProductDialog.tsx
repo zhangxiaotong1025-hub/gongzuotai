@@ -106,7 +106,26 @@ export function ProductDialog({ open, onClose, onSave, initial }: { open: boolea
     description: initial?.description || "",
   });
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [touched, setTouched] = useState(false);
   const isEdit = Boolean(initial);
+  const app = getApp(form.appId);
+  const suggestedCode = useMemo(() => {
+    if (!app || isEdit || !form.name.trim()) return "";
+    return `PROD_${app.code}_${form.exchangeType.toUpperCase()}`;
+  }, [app, form.name, form.exchangeType, isEdit]);
+
+  const errors: string[] = [];
+  if (!form.name.trim()) errors.push("产品名称");
+  if (!form.code.trim()) errors.push("产品编码");
+  if (form.ruleIds.length === 0) errors.push("关联权益规则");
+  if (form.exchangeType === "credit" && form.creditPrice <= 0) errors.push("所需积分需大于 0");
+
+  const handleSubmit = () => {
+    setTouched(true);
+    if (errors.length > 0) { toast.error(`请完善：${errors.join("、")}`); return; }
+    onSave(form);
+  };
+
   if (!open) return null;
 
   const selectedRules = form.ruleIds.map((rid) => getRule(rid)).filter(Boolean) as EntitlementRule[];
