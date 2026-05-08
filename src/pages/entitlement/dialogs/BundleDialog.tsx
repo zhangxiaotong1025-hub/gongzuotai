@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { X, Check } from "lucide-react";
 import { appData, skuData, getSkusByApp, BILLING_CYCLES, type Bundle, type BillingCycle } from "@/data/entitlement";
+import { getProductsBySkuId } from "@/data/entitlement";
 
 export function BundleDialog({ open, onClose, onSave, initial }: { open: boolean; onClose: () => void; onSave: (d: any) => void; initial?: Bundle | null }) {
   const [form, setForm] = useState({
