@@ -272,6 +272,11 @@ export const productData: Product[] = [
   { id: "prod59", name: "AI日额·豪华日卡",            code: "PROD_AI_500_DAY",         appId: "app1", ruleIds: ["rule3"],                                        exchangeType: "paid", limitPerUser: 0, status: "active", description: "AI设计 500次/日，重度创作日选", createdAt: "2026-03-15" },
   { id: "prod60", name: "8K渲染·尊享日卡",            code: "PROD_8K_DAILY",           appId: "app1", ruleIds: ["rule6"],                                        exchangeType: "paid", limitPerUser: 0, status: "active", description: "8K 1次/日，提案级品质", createdAt: "2026-03-15" },
   { id: "prod61", name: "提案神器·全能旗舰",          code: "PROD_PRESENT_FLAGSHIP",   appId: "app1", ruleIds: ["rule3", "rule5", "rule6", "rule10", "rule22", "rule23", "rule26"], exchangeType: "paid", limitPerUser: 0, status: "active", description: "AI 500/日 + 4K/8K + 实时渲染 + 去水印 + 4GB存储", createdAt: "2026-03-15" },
+  { id: "prod62", name: "4K效果图·单次购买",          code: "PROD_4K_RENDER_ONCE",     appId: "app1", ruleIds: ["rule28"],                                       exchangeType: "paid", limitPerUser: 0, status: "active", description: "面向临时补量：购买后获得 1 次 4K 普通图渲染额度", createdAt: "2026-03-15" },
+  { id: "prod63", name: "8K效果图·单次购买",          code: "PROD_8K_RENDER_ONCE",     appId: "app1", ruleIds: ["rule29"],                                       exchangeType: "paid", limitPerUser: 0, status: "active", description: "提案级大图输出：购买后获得 1 次 8K 普通图渲染额度", createdAt: "2026-03-15" },
+  { id: "prod64", name: "AI设计点数·100次加油包",     code: "PROD_AI_100_PAID",        appId: "app1", ruleIds: ["rule31"],                                       exchangeType: "paid", limitPerUser: 0, status: "active", description: "AI 设计点数 100 次，一次性到账，可用于日常补量", createdAt: "2026-03-15" },
+  { id: "prod65", name: "AI设计点数·200次加油包",     code: "PROD_AI_200_PAID",        appId: "app1", ruleIds: ["rule32"],                                       exchangeType: "paid", limitPerUser: 0, status: "active", description: "AI 设计点数 200 次，一次性到账，适合连续出方案", createdAt: "2026-03-15" },
+  { id: "prod66", name: "AI设计点数·2000次团队包",    code: "PROD_AI_2000_PAID",       appId: "app1", ruleIds: ["rule33"],                                       exchangeType: "paid", limitPerUser: 0, status: "active", description: "团队高频使用的 AI 点数大包，购买后一次性发放 2000 次", createdAt: "2026-03-15" },
 
   /* ── AI设计家 · 付费售卖型 ── */
   { id: "prod70", name: "AI方案·标准月卡",            code: "PROD_AI_PLAN_STD_M",      appId: "app4", ruleIds: ["rule40"],            exchangeType: "paid", limitPerUser: 0, status: "active", description: "每月100次AI方案生成", createdAt: "2026-03-15" },
@@ -319,26 +324,26 @@ export const BILLING_CYCLES: { value: BillingCycle; label: string }[] = [
 
 export const skuData: Sku[] = [
   // 国内3D - 单次充值
-  { id: "sku1",  name: "4K普通图",         code: "SKU_4K_SINGLE",    appId: "app1", productIds: ["prod3"],         ruleIds: ["rule28"],          price: 3,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 1,  description: "单次4K渲染",    createdAt: "2026-03-12" },
-  { id: "sku2",  name: "8K普通图",         code: "SKU_8K_SINGLE",    appId: "app1", productIds: ["prod4"],         ruleIds: ["rule29"],          price: 8,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 2,  description: "单次8K渲染",    createdAt: "2026-03-12" },
-  { id: "sku3",  name: "AI积分100·基础包", code: "SKU_AI_100",       appId: "app1", productIds: ["prod1"],         ruleIds: ["rule31"],          price: 9.9,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 3,  description: "100次AI积分",   createdAt: "2026-03-12" },
-  { id: "sku4",  name: "AI积分200·专业包", code: "SKU_AI_200",       appId: "app1", productIds: ["prod2"],         ruleIds: ["rule32"],          price: 19.9,  billingCycle: "once",    salesStatus: "on_sale", sortOrder: 4,  description: "200次AI积分",   createdAt: "2026-03-12" },
-  { id: "sku5",  name: "AI积分2000·高级包",code: "SKU_AI_2000",      appId: "app1", productIds: [],                ruleIds: ["rule33"],          price: 169,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 5,  description: "2000次AI积分",  createdAt: "2026-03-12" },
+  { id: "sku1",  name: "4K普通图",         code: "SKU_4K_SINGLE",    appId: "app1", productIds: ["prod62"],        ruleIds: ["rule28"],          price: 3,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 1,  description: "单次4K渲染",    createdAt: "2026-03-12" },
+  { id: "sku2",  name: "8K普通图",         code: "SKU_8K_SINGLE",    appId: "app1", productIds: ["prod63"],        ruleIds: ["rule29"],          price: 8,     billingCycle: "once",    salesStatus: "on_sale", sortOrder: 2,  description: "单次8K渲染",    createdAt: "2026-03-12" },
+  { id: "sku3",  name: "AI积分100·基础包", code: "SKU_AI_100",       appId: "app1", productIds: ["prod64"],        ruleIds: ["rule31"],          price: 9.9,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 3,  description: "100次AI积分",   createdAt: "2026-03-12" },
+  { id: "sku4",  name: "AI积分200·专业包", code: "SKU_AI_200",       appId: "app1", productIds: ["prod65"],        ruleIds: ["rule32"],          price: 19.9,  billingCycle: "once",    salesStatus: "on_sale", sortOrder: 4,  description: "200次AI积分",   createdAt: "2026-03-12" },
+  { id: "sku5",  name: "AI积分2000·高级包",code: "SKU_AI_2000",      appId: "app1", productIds: ["prod66"],        ruleIds: ["rule33"],          price: 169,   billingCycle: "once",    salesStatus: "on_sale", sortOrder: 5,  description: "2000次AI积分",  createdAt: "2026-03-12" },
   // 国内3D - 会员
   { id: "sku6",  name: "免费版权益",       code: "SKU_FREE",         appId: "app1", productIds: ["prod9"],         ruleIds: ["rule1", "rule25", "rule7"], price: 0, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 10, description: "免费版基础权益", createdAt: "2026-03-12" },
   { id: "sku7",  name: "基础会员权益",     code: "SKU_BASIC",        appId: "app1", productIds: ["prod10"],        ruleIds: ["rule2", "rule4", "rule9", "rule11", "rule12", "rule13", "rule14", "rule25"], price: 9.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 11, description: "基础会员权益包", createdAt: "2026-03-12" },
   { id: "sku8",  name: "旗舰会员权益",     code: "SKU_PRO",          appId: "app1", productIds: ["prod11"],        ruleIds: ["rule3", "rule5", "rule6", "rule8", "rule10", "rule11", "rule12", "rule13", "rule14", "rule15", "rule16", "rule17", "rule18", "rule19", "rule20", "rule21", "rule22", "rule23", "rule24", "rule26"], price: 150, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 12, description: "旗舰会员全能力", createdAt: "2026-03-12" },
   // AI设计家
-  { id: "sku20", name: "AI设计家基础版",   code: "SKU_AI_BASIC",     appId: "app4", productIds: ["prod20"],        ruleIds: ["rule40"],          price: 29.9,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "AI方案100次/月", createdAt: "2026-03-12" },
-  { id: "sku21", name: "AI设计家专业版",   code: "SKU_AI_PRO",       appId: "app4", productIds: ["prod20", "prod21"], ruleIds: ["rule40", "rule41"], price: 59.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "AI方案+风格迁移", createdAt: "2026-03-12" },
+  { id: "sku20", name: "AI设计家基础版",   code: "SKU_AI_BASIC",     appId: "app4", productIds: ["prod70"],        ruleIds: ["rule40"],          price: 29.9,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "AI方案100次/月", createdAt: "2026-03-12" },
+  { id: "sku21", name: "AI设计家专业版",   code: "SKU_AI_PRO",       appId: "app4", productIds: ["prod71"],        ruleIds: ["rule40", "rule41"], price: 59.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "AI方案+风格迁移", createdAt: "2026-03-12" },
   // 智能导购
-  { id: "sku30", name: "导购标准版",       code: "SKU_GUIDE_STD",    appId: "app3", productIds: ["prod30"],        ruleIds: ["rule50"],          price: 99,    billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "导购推荐500次/月", createdAt: "2026-03-12" },
-  { id: "sku31", name: "导购高级版",       code: "SKU_GUIDE_PRO",    appId: "app3", productIds: ["prod30", "prod31"], ruleIds: ["rule50", "rule51"], price: 199, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "导购+客户画像", createdAt: "2026-03-12" },
+  { id: "sku30", name: "导购标准版",       code: "SKU_GUIDE_STD",    appId: "app3", productIds: ["prod80"],        ruleIds: ["rule50"],          price: 99,    billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "导购推荐500次/月", createdAt: "2026-03-12" },
+  { id: "sku31", name: "导购高级版",       code: "SKU_GUIDE_PRO",    appId: "app3", productIds: ["prod81"],        ruleIds: ["rule50", "rule51"], price: 199, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2,  description: "导购+客户画像", createdAt: "2026-03-12" },
   // 精准客资
-  { id: "sku40", name: "客资基础包",       code: "SKU_LEADS_100",    appId: "app5", productIds: [],                ruleIds: ["rule60"],          price: 199,   billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "每月100条线索", createdAt: "2026-03-12" },
+  { id: "sku40", name: "客资基础包",       code: "SKU_LEADS_100",    appId: "app5", productIds: ["prod90"],        ruleIds: ["rule60"],          price: 199,   billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1,  description: "每月100条线索", createdAt: "2026-03-12" },
   // 国际3D工具
-  { id: "sku50", name: "国际版基础",       code: "SKU_INTL_BASIC",   appId: "app2", productIds: ["prod40"],        ruleIds: ["rule70", "rule71", "rule73"],         price: 19.9,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1, description: "国际版基础月卡",  createdAt: "2026-03-12" },
-  { id: "sku51", name: "国际版旗舰",       code: "SKU_INTL_PRO",     appId: "app2", productIds: ["prod41"],        ruleIds: ["rule70", "rule71", "rule72", "rule73"], price: 49.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2, description: "国际版旗舰月卡（含海外素材库）", createdAt: "2026-03-12" },
+  { id: "sku50", name: "国际版基础",       code: "SKU_INTL_BASIC",   appId: "app2", productIds: ["prod100"],       ruleIds: ["rule70", "rule73"],                   price: 19.9,  billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 1, description: "国际版基础月卡",  createdAt: "2026-03-12" },
+  { id: "sku51", name: "国际版旗舰",       code: "SKU_INTL_PRO",     appId: "app2", productIds: ["prod101", "prod102"], ruleIds: ["rule70", "rule71", "rule72", "rule73"], price: 49.9, billingCycle: "monthly", salesStatus: "on_sale", sortOrder: 2, description: "国际版旗舰月卡（含海外素材库）", createdAt: "2026-03-12" },
 ];
 
 /* ── Bundle (套餐) ── */
@@ -1219,6 +1224,10 @@ export const getOrdersByApp = (appId: string) => orderData.filter((o) => getOrde
 export const getProduct = (id: string) => productData.find((p) => p.id === id);
 export const getProductsByApp = (appId: string) => productData.filter((p) => p.appId === appId);
 export const getProductsByRule = (ruleId: string) => productData.filter((p) => p.ruleIds.includes(ruleId));
+export const getProductsBySkuId = (skuId: string) => {
+  const sku = skuData.find((s) => s.id === skuId);
+  return sku ? (sku.productIds || []).map((pid) => getProduct(pid)).filter(Boolean) as Product[] : [];
+};
 export const getRulesByProduct = (productId: string) => {
   const p = getProduct(productId);
   return p ? p.ruleIds.map((rid) => getRule(rid)).filter(Boolean) as EntitlementRule[] : [];
