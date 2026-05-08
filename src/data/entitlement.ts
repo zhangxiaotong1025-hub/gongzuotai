@@ -83,6 +83,11 @@ export const capabilityData: Capability[] = [
   { id: "cap19", name: "实时渲染",       code: "FEATURE_REALTIME_RENDER", appId: "app1", dataType: "BOOLEAN", unit: "布尔", apiPath: "/api/feature/realtime-render", consumePerUse: 1, description: "实时渲染功能",        status: "active", createdAt: "2026-03-12" },
   { id: "cap20", name: "大文件上传",     code: "FEATURE_LARGE_FILE",    appId: "app1", dataType: "BOOLEAN",  unit: "布尔", apiPath: "/api/feature/large-file",     consumePerUse: 1, description: "大文件上传功能",       status: "active", createdAt: "2026-03-12" },
   { id: "cap21", name: "云存储",         code: "FEATURE_CLOUD_STORAGE", appId: "app1", dataType: "STORAGE",  unit: "MB",  apiPath: "/api/feature/storage",        consumePerUse: 1, description: "云端文件存储",         status: "active", createdAt: "2026-03-12" },
+  // 国际3D工具
+  { id: "cap22", name: "AI设计·国际",     code: "INTL_AI_DESIGN",        appId: "app2", dataType: "COUNTER",  unit: "次",  apiPath: "/intl/api/ai/design",         consumePerUse: 1, description: "国际版AI设计能力",     status: "active", createdAt: "2026-03-12" },
+  { id: "cap23", name: "4K渲染·国际",     code: "INTL_RENDER_4K",        appId: "app2", dataType: "COUNTER",  unit: "次",  apiPath: "/intl/api/render/4k",         consumePerUse: 1, description: "国际版4K渲染",         status: "active", createdAt: "2026-03-12" },
+  { id: "cap24", name: "全景导出·国际",   code: "INTL_EXPORT_PANORAMA",  appId: "app2", dataType: "COUNTER",  unit: "次",  apiPath: "/intl/api/export/panorama",   consumePerUse: 1, description: "国际版全景图导出",     status: "active", createdAt: "2026-03-12" },
+  { id: "cap25", name: "海外素材库",     code: "INTL_MATERIAL_LIB",     appId: "app2", dataType: "BOOLEAN",  unit: "布尔", apiPath: "/intl/api/material/lib",      consumePerUse: 1, description: "海外风格素材库访问",   status: "active", createdAt: "2026-03-12" },
   // AI设计家
   { id: "cap30", name: "AI方案生成",     code: "AI_PLAN_GEN",           appId: "app4", dataType: "COUNTER",  unit: "次",  apiPath: "/api/ai/plan",               consumePerUse: 1, description: "AI方案自动生成",       status: "active", createdAt: "2026-03-12" },
   { id: "cap31", name: "AI风格迁移",     code: "AI_STYLE_TRANSFER",     appId: "app4", dataType: "COUNTER",  unit: "次",  apiPath: "/api/ai/style-transfer",     consumePerUse: 1, description: "AI风格迁移能力",       status: "active", createdAt: "2026-03-12" },
