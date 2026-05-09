@@ -149,7 +149,7 @@ export default function DataModel() {
         meta={<span>SDS-2026.05 · v1</span>}
       />
 
-      <section>
+      <section id="dm-er" className="scroll-mt-4">
         <H icon={Database}>领域 ER · 13 张核心表</H>
         <Mermaid
           caption="蓝=配置侧 · 绿=履约侧 · 紫=集成侧"
@@ -178,12 +178,12 @@ export default function DataModel() {
         />
       </section>
 
-      <section>
+      <section id="dm-ddl" className="scroll-mt-4">
         <H icon={Database}>核心 DDL（节选）</H>
         <pre className="rounded-xl border bg-muted/30 p-4 text-[11.5px] font-mono leading-relaxed overflow-x-auto whitespace-pre">{DDL}</pre>
       </section>
 
-      <section>
+      <section id="dm-asset" className="scroll-mt-4">
         <H icon={Layers}>数据资产 4 层 · ODS → DWD → DWS → ADS</H>
         <Mermaid
           caption="贴源 → 明细 → 汇总 → 应用，画像与 BI 只能消费 ADS"
@@ -197,7 +197,7 @@ export default function DataModel() {
         />
       </section>
 
-      <section>
+      <section id="dm-portrait" className="scroll-mt-4">
         <H icon={Users}>客户画像 · 特征工程管道</H>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <DesignCard code="F1" title="基础特征 · 静态档案" tone="primary">
@@ -222,7 +222,7 @@ export default function DataModel() {
         </div>
       </section>
 
-      <section>
+      <section id="dm-rls" className="scroll-mt-4">
         <H icon={BarChart3}>RLS 与多租户隔离</H>
         <div className="rounded-xl border bg-amber-50/60 border-amber-200 p-4 text-[12.5px] text-foreground/85 space-y-1.5">
           <p>• 所有 <code className="font-mono text-primary">enterprise_id</code> 列表强制 RLS，租户上下文写入 <code className="font-mono text-primary">app.enterprise_id</code> session 变量</p>
