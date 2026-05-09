@@ -147,7 +147,7 @@ export default function Contract() {
           <DesignCard code="CACHE" title="Redis 7 · Lua" tone="warning">原子扣减 + 限流 + 滑动窗口</DesignCard>
           <DesignCard code="OLAP" title="ClickHouse" tone="success">usage_log 高吞吐写入 + 实时分析</DesignCard>
           <DesignCard code="MQ" title="Kafka + Schema Registry" tone="primary">Outbox 至少一次投递，下游解耦</DesignCard>
-          <DesignCard code="OBS" title="OpenTelemetry · Loki · Tempo" tone="muted">trace_id 贯穿订单 → 发放 → 消耗</DesignCard>
+          <DesignCard code="OBS" title="OpenTelemetry · Loki · Tempo" tone="secondary">trace_id 贯穿订单 → 发放 → 消耗</DesignCard>
           <DesignCard code="CDC" title="Debezium" tone="accent">PG → Kafka → CH 数仓同步</DesignCard>
           <DesignCard code="SEC" title="OAuth2 + JWT · enterprise_id claim" tone="warning">RLS session var 注入</DesignCard>
         </div>
