@@ -11,7 +11,7 @@ export default function Delivery() {
         meta={<span>SDS-2026.05 · v1</span>}
       />
 
-      <section>
+      <section id="dl-stone" className="scroll-mt-4">
         <H icon={ShieldCheck}>三基石 · 上线前必须就位</H>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           <DesignCard code="OBS" title="基石一 · 可观测" tone="primary">
@@ -32,7 +32,7 @@ export default function Delivery() {
         </div>
       </section>
 
-      <section>
+      <section id="dl-gantt" className="scroll-mt-4">
         <H icon={Rocket}>里程碑 · 12 周交付</H>
         <Mermaid
           caption="M0 立项 → M4 全量切换"
@@ -57,7 +57,7 @@ export default function Delivery() {
         />
       </section>
 
-      <section>
+      <section id="dl-rollout" className="scroll-mt-4">
         <H icon={Target}>灰度策略 · 按企业 + 双写对比</H>
         <Mermaid
           caption="新旧链路双写 30 天，账户差异 = 0 才允许下线旧链路"
@@ -87,7 +87,7 @@ export default function Delivery() {
         </div>
       </section>
 
-      <section>
+      <section id="dl-raci" className="scroll-mt-4">
         <H icon={Users}>组织协作 · RACI</H>
         <div className="overflow-hidden rounded-xl border">
           <table className="w-full text-[12.5px]">
@@ -115,7 +115,7 @@ export default function Delivery() {
         <p className="text-[11.5px] text-muted-foreground mt-2">R=负责执行 · A=最终责任 · C=咨询 · I=知会</p>
       </section>
 
-      <section>
+      <section id="dl-ga" className="scroll-mt-4">
         <H icon={ShieldCheck}>验收清单 · GA 必过项</H>
         <div className="rounded-xl border bg-emerald-50/60 border-emerald-200 p-4">
           <ul className="text-[12.5px] space-y-1.5 text-foreground/85 list-disc pl-5">

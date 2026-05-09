@@ -70,7 +70,7 @@ export default function Contract() {
         meta={<span>SDS-2026.05 · v1</span>}
       />
 
-      <section>
+      <section id="ct-http" className="scroll-mt-4">
         <H icon={Code2}>HTTP API · 关键写接口样例</H>
         <div className="grid grid-cols-1 gap-3">
           <div className="rounded-xl border bg-card p-4" style={{ boxShadow: "var(--shadow-xs)" }}>
@@ -84,7 +84,7 @@ export default function Contract() {
         </div>
       </section>
 
-      <section>
+      <section id="ct-event" className="scroll-mt-4">
         <H icon={Radio}>领域事件 · Avro Schema · Topic 规划</H>
         <Mermaid
           caption="Outbox → Relay → Kafka → 下游消费者各自维护 offset"
@@ -115,7 +115,7 @@ export default function Contract() {
         </div>
       </section>
 
-      <section>
+      <section id="ct-slo" className="scroll-mt-4">
         <H icon={ShieldCheck}>SLO / SLI · 工程承诺</H>
         <div className="overflow-hidden rounded-xl border">
           <table className="w-full text-[12.5px]">
@@ -139,7 +139,7 @@ export default function Contract() {
         </div>
       </section>
 
-      <section>
+      <section id="ct-stack" className="scroll-mt-4">
         <H icon={Cpu}>技术栈 · 选型理由（一句话）</H>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <DesignCard code="API" title="Spring Boot 3 · Java 21" tone="primary">虚拟线程承接高并发同步路径，团队栈对齐</DesignCard>

@@ -11,7 +11,7 @@ export default function Runtime() {
         meta={<span>SDS-2026.05 · v1</span>}
       />
 
-      <section>
+      <section id="rt-3d" className="scroll-mt-4">
         <H icon={GitBranch}>三维订单状态机 · 互不耦合 · 各自演进</H>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-4">
           <DesignCard code="D1" title="维度一 · 审核 auditStatus" tone="primary">
@@ -69,7 +69,7 @@ export default function Runtime() {
         />
       </section>
 
-      <section>
+      <section id="rt-sop" className="scroll-mt-4">
         <H icon={Workflow}>主链路 SOP · 5 条端到端流程</H>
         <Mermaid
           caption="SOP-1 用户付费购买 SKU"
@@ -156,7 +156,7 @@ export default function Runtime() {
         />
       </section>
 
-      <section>
+      <section id="rt-cc" className="scroll-mt-4">
         <H icon={Repeat}>幂等 · 并发 · 一致性</H>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <DesignCard code="IDEM" title="幂等三件套" tone="primary">
@@ -179,7 +179,7 @@ export default function Runtime() {
         </div>
       </section>
 
-      <section>
+      <section id="rt-fail" className="scroll-mt-4">
         <H icon={ShieldAlert}>异常与回滚</H>
         <div className="rounded-xl border bg-amber-50/60 border-amber-200 p-4">
           <ul className="text-[12.5px] space-y-1.5 text-foreground/85 list-disc pl-5">
