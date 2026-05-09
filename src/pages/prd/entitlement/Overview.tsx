@@ -1,12 +1,7 @@
-import { Link } from "react-router-dom";
 import { Mermaid, DesignCard, PrdPageHeader, H } from "@/components/prd/Mermaid";
-import { TABS } from "./Layout";
-import {
-  Layers, AlertTriangle, Sparkles, Target, ArrowRight, Workflow, Boxes,
-} from "lucide-react";
+import { Layers, AlertTriangle, Sparkles, Target, Workflow } from "lucide-react";
 
 export default function Overview() {
-  const subDocs = TABS.slice(1);
   return (
     <div className="space-y-6">
       <PrdPageHeader
