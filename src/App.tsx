@@ -167,14 +167,8 @@ function ProtectedRoutes() {
         <Route path="/dashboard" element={<PlaceholderPage title="数据看版" />} />
         <Route path="/agent" element={<AgentCommandCenter />} />
         <Route path="/agent/leads" element={<LeadsOperation />} />
-        <Route path="/prd/entitlement" element={<EntitlementPRDLayout />}>
-          <Route index element={<EntitlementPRDOverview />} />
-          <Route path="blueprint" element={<EntitlementPRDBlueprint />} />
-          <Route path="runtime" element={<EntitlementPRDRuntime />} />
-          <Route path="data" element={<EntitlementPRDDataModel />} />
-          <Route path="contract" element={<EntitlementPRDContract />} />
-          <Route path="delivery" element={<EntitlementPRDDelivery />} />
-        </Route>
+        <Route path="/prd/entitlement" element={<EntitlementPRDLayout />} />
+        <Route path="/prd/entitlement/*" element={<Navigate to="/prd/entitlement" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AdminLayout>
