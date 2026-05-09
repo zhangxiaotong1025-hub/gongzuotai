@@ -11,8 +11,7 @@ export default function Overview() {
         meta={<span>SDS-2026.05 · v1 · Released</span>}
       />
 
-      {/* 0. 一句话定调 */}
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <section id="ov-why" className="scroll-mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <DesignCard code="WHY" title="为什么现在要做" tone="primary">
           5 个应用、30+ 能力、70+ 规则、14 个 SKU 已铺开。再不收口，<b className="text-foreground">每加一个新能力，要改 4 张表 + 5 段代码 + 1 张对账模板</b>，研发吞吐 50% 都用在维护性工作上。
         </DesignCard>
@@ -24,8 +23,7 @@ export default function Overview() {
         </DesignCard>
       </section>
 
-      {/* 1. 概念校准 · 8 层链路是什么 */}
-      <section>
+      <section id="ov-chain" className="scroll-mt-4">
         <H icon={Layers}>第 1 章 · 概念校准 · 8 层链路是什么</H>
         <p className="text-[12.5px] text-muted-foreground mb-3">
           先把术语钉死。一笔权益从「定义」到「消耗」走 8 层，每一层职责单一、向下不可越级。
@@ -69,8 +67,7 @@ export default function Overview() {
         />
       </section>
 
-      {/* 2. 现状痛点 */}
-      <section>
+      <section id="ov-pain" className="scroll-mt-4">
         <H icon={AlertTriangle}>第 2 章 · 现状的 5 个结构性痛点</H>
         <p className="text-[12.5px] text-muted-foreground mb-3">
           这些不是哪个业务做错了，而是<b className="text-foreground">"按 SKU 维度直挂规则"的旧模型本身的扩展上限</b>。
@@ -94,8 +91,7 @@ export default function Overview() {
         </div>
       </section>
 
-      {/* 3. 目标蓝图 */}
-      <section>
+      <section id="ov-target" className="scroll-mt-4">
         <H icon={Target}>第 3 章 · 目标蓝图 · 三件事讲清楚 v1</H>
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
           <DesignCard code="A · 配置可拼装" title="能力 → 规则 → 产品 → 商品 全 N:M" tone="primary">
@@ -110,8 +106,7 @@ export default function Overview() {
         </div>
       </section>
 
-      {/* 4. AI 外呼比喻 → 这里换成"双视角"比喻 */}
-      <section>
+      <section id="ov-metaphor" className="scroll-mt-4">
         <H icon={Workflow}>第 4 章 · 用一个比喻讲明白 · 配置侧像菜单、履约侧像后厨</H>
         <div className="rounded-xl border bg-card p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
           <p className="text-[12.5px] leading-relaxed text-foreground/90">
@@ -133,39 +128,8 @@ export default function Overview() {
         </div>
       </section>
 
-      {/* 5. 子文档 */}
-      <section>
-        <H icon={Boxes}>第 5 章 · 子文档导航</H>
-        <p className="text-[12.5px] text-muted-foreground mb-3">本 PRD 共 6 册分卷，按职能切分。点击进入查看具体设计。</p>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {subDocs.map(t => {
-            const Icon = t.icon;
-            return (
-              <Link
-                key={t.to}
-                to={t.to}
-                className="group flex items-center justify-between rounded-xl border bg-card p-4 transition hover:border-primary/60 hover:shadow"
-                style={{ boxShadow: "var(--shadow-xs)" }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-medium text-foreground">{t.label}</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">点击进入 →</div>
-                  </div>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 6. 数据规模 */}
-      <section>
-        <H icon={Sparkles}>第 6 章 · 已铺开的规模（截至 2026-05）</H>
+      <section id="ov-scale" className="scroll-mt-4">
+        <H icon={Sparkles}>第 5 章 · 已铺开的规模（截至 2026-05）</H>
         <div className="grid grid-cols-4 md:grid-cols-8 gap-2.5">
           {[
             { l: "应用", v: 5 }, { l: "能力", v: 30 }, { l: "规则", v: 70 }, { l: "权益产品", v: 30 },
