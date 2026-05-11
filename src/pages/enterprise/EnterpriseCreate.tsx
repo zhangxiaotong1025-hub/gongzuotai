@@ -273,7 +273,7 @@ export default function EnterpriseCreate() {
       }
       const newConfigs = prev.productConfigs[key]
         ? prev.productConfigs
-        : { ...prev.productConfigs, [key]: { packageRows: [], productRows: [], accountCount: 30 } };
+        : { ...prev.productConfigs, [key]: { packageRows: [], productRows: [], accountCount: 30, dateRange: "2026-01-01 ~ 2028-12-31" } };
       return { ...prev, enabledProducts: [...enabled, key], productConfigs: newConfigs };
     });
   };
