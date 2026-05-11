@@ -599,6 +599,7 @@ function StepBenefits({
   removeRow,
   updateRow,
   updateProductAccountCount,
+  updateProductDateRange,
 }: {
   form: Record<string, any>;
   update: (k: string, v: unknown) => void;
@@ -607,6 +608,7 @@ function StepBenefits({
   removeRow: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
   updateRow: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => void;
   updateProductAccountCount: (productKey: string, count: number) => void;
+  updateProductDateRange: (productKey: string, range: string) => void;
 }) {
   return (
     <div className="p-6">
