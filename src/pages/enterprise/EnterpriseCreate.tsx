@@ -268,27 +268,27 @@ export default function EnterpriseCreate() {
       if (enabled.includes(key)) {
         return { ...prev, enabledProducts: enabled.filter((k) => k !== key) };
       }
-      const newConfigs = prev.productConfigs[key]
+      const newConfigs: Record<string, ProductConfig> = prev.productConfigs[key]
         ? prev.productConfigs
-        : { ...prev.productConfigs, [key]: { packageRows: [], productRows: [], accountCount: 30 } };
+        : { ...prev.productConfigs, [key]: { productRows: [], accountCount: 30, dateRange: "2026-01-01 ~ 2028-12-31" } };
       return { ...prev, enabledProducts: [...enabled, key], productConfigs: newConfigs };
     });
   };
 
-  const addRow = (productKey: string, typeKey: "packageRows" | "productRows", name?: string) => {
+  const addRow = (productKey: string, name?: string) => {
     setForm((prev) => {
-      const cfg = prev.productConfigs[productKey] || { packageRows: [], productRows: [] };
+      const cfg: ProductConfig = prev.productConfigs[productKey] || { productRows: [], dateRange: "2026-01-01 ~ 2028-12-31" };
       return {
         ...prev,
         productConfigs: {
           ...prev.productConfigs,
-          [productKey]: { ...cfg, [typeKey]: [...cfg[typeKey], createRow(name)] },
+          [productKey]: { ...cfg, productRows: [...cfg.productRows, createRow(name)] },
         },
       };
     });
   };
 
-  const removeRow = (productKey: string, typeKey: "packageRows" | "productRows", rowId: string) => {
+  const removeRow = (productKey: string, rowId: string) => {
     setForm((prev) => {
       const cfg = prev.productConfigs[productKey];
       if (!cfg) return prev;
@@ -296,13 +296,13 @@ export default function EnterpriseCreate() {
         ...prev,
         productConfigs: {
           ...prev.productConfigs,
-          [productKey]: { ...cfg, [typeKey]: cfg[typeKey].filter((r) => r.id !== rowId) },
+          [productKey]: { ...cfg, productRows: cfg.productRows.filter((r) => r.id !== rowId) },
         },
       };
     });
   };
 
-  const updateRow = (productKey: string, typeKey: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => {
+  const updateRow = (productKey: string, rowId: string, field: string, value: unknown) => {
     setForm((prev) => {
       const cfg = prev.productConfigs[productKey];
       if (!cfg) return prev;
@@ -312,7 +312,7 @@ export default function EnterpriseCreate() {
           ...prev.productConfigs,
           [productKey]: {
             ...cfg,
-            [typeKey]: cfg[typeKey].map((r) => (r.id === rowId ? { ...r, [field]: value } : r)),
+            productRows: cfg.productRows.map((r) => (r.id === rowId ? { ...r, [field]: value } : r)),
           },
         },
       };
@@ -321,12 +321,25 @@ export default function EnterpriseCreate() {
 
   const updateProductAccountCount = (productKey: string, count: number) => {
     setForm((prev) => {
-      const cfg = prev.productConfigs[productKey] || { packageRows: [], productRows: [] };
+      const cfg: ProductConfig = prev.productConfigs[productKey] || { productRows: [], dateRange: "2026-01-01 ~ 2028-12-31" };
       return {
         ...prev,
         productConfigs: {
           ...prev.productConfigs,
           [productKey]: { ...cfg, accountCount: count },
+        },
+      };
+    });
+  };
+
+  const updateProductDateRange = (productKey: string, dateRange: string) => {
+    setForm((prev) => {
+      const cfg: ProductConfig = prev.productConfigs[productKey] || { productRows: [], dateRange: "2026-01-01 ~ 2028-12-31" };
+      return {
+        ...prev,
+        productConfigs: {
+          ...prev.productConfigs,
+          [productKey]: { ...cfg, dateRange },
         },
       };
     });
