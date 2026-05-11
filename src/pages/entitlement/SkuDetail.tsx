@@ -62,6 +62,10 @@ export default function SkuDetail() {
           <div><span className="text-muted-foreground">创建时间</span><div className="text-foreground mt-0.5">{sku.createdAt}</div></div>
         </div>
         {sku.description && <p className="text-[13px] text-muted-foreground mt-4 pt-4 border-t leading-relaxed">{sku.description}</p>}
+        <div className="mt-4 pt-4 border-t flex items-start gap-2 text-[12px] text-muted-foreground">
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-primary/10 text-primary shrink-0">人员维度</span>
+          <span>人员授权按此「单个权益商品」独立配置使用周期与计量，与套餐内其他商品互不影响。</span>
+        </div>
       </div>
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
