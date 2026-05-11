@@ -164,6 +164,7 @@ interface ProductConfig {
   packageRows: BenefitRow[];
   productRows: BenefitRow[];
   accountCount?: number;
+  dateRange?: string;
 }
 
 const createRow = (name?: string): BenefitRow => ({
