@@ -237,6 +237,7 @@ export default function EnterpriseCreate() {
     productConfigs: {
       domestic3d: {
         accountCount: 30,
+        dateRange: "2026-01-01 ~ 2028-12-31",
         packageRows: [
           createRow("3D工具渲染权益套餐"),
           createRow("3D工具设计权益套餐"),
@@ -247,6 +248,7 @@ export default function EnterpriseCreate() {
       },
       smartGuide: {
         accountCount: 30,
+        dateRange: "2026-01-01 ~ 2028-12-31",
         packageRows: [
           createRow("智能导购权益套餐"),
           createRow("导购数据权益套餐"),
