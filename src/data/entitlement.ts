@@ -111,9 +111,9 @@ export type ExpirePolicy = "CLEAR_ON_EXPIRE" | "NEVER_EXPIRE";
 export type QuotaScope = "enterprise" | "user";
 
 export const QUOTA_SCOPES: { value: QuotaScope; label: string; shortLabel: string; className: string; desc: string }[] = [
-  { value: "enterprise", label: "企业池", shortLabel: "企业", className: "bg-violet-500/10 text-violet-600 border-violet-500/30",
+  { value: "enterprise", label: "企业池", shortLabel: "企业池", className: "bg-violet-500/10 text-violet-600 border-violet-500/30",
     desc: "企业共享一份额度，消耗只汇总到企业账，不计入员工个人画像（适合采购型/共享型资源，如云存储、批量导入、许可证类）" },
-  { value: "user",       label: "个人池", shortLabel: "个人", className: "bg-primary/10 text-primary border-primary/30",
+  { value: "user",       label: "个人池", shortLabel: "个人池", className: "bg-primary/10 text-primary border-primary/30",
     desc: "每名员工/自然人独立一份额度，消耗写个人账，参与个人画像与能效分析（适合创作型/调用型资源，如 AI 设计、渲染、导出）" },
 ];
 
