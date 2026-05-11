@@ -335,6 +335,19 @@ export default function EnterpriseCreate() {
     });
   };
 
+  const updateProductDateRange = (productKey: string, range: string) => {
+    setForm((prev) => {
+      const cfg = prev.productConfigs[productKey] || { packageRows: [], productRows: [] };
+      return {
+        ...prev,
+        productConfigs: {
+          ...prev.productConfigs,
+          [productKey]: { ...cfg, dateRange: range },
+        },
+      };
+    });
+  };
+
   const addOwnedBrand = () => {
     update("ownedBrands", [
       ...form.ownedBrands,
