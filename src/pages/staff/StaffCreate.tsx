@@ -32,23 +32,41 @@ interface BenefitPkg {
   dateRange: string;
 }
 
-const BENEFIT_CATALOG: Record<string, { name: string; desc: string; tone: BenefitTone }[]> = {
+/** 权益目录（人员维度按「单个权益商品」配置；套餐为聚合项，选中后自动拆分为商品） */
+interface BenefitItem {
+  name: string;
+  desc: string;
+  tone: BenefitTone;
+  kind: "sku" | "bundle";
+  /** 套餐拆分出的子商品（仅 kind=bundle 时使用） */
+  expandsTo?: { name: string; desc: string; tone: BenefitTone }[];
+}
+
+const BENEFIT_CATALOG: Record<string, BenefitItem[]> = {
   domestic3d: [
-    { name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" },
-    { name: "3D工具设计权益包", desc: "含户型绘制、方案设计、模型库", tone: "teal" },
-    { name: "VR漫游权益包", desc: "含VR全景漫游、场景切换", tone: "violet" },
+    { name: "3D工具渲染商品", desc: "含高清渲染、全景图、施工图", tone: "blue", kind: "sku" },
+    { name: "3D工具设计商品", desc: "含户型绘制、方案设计、模型库", tone: "teal", kind: "sku" },
+    { name: "VR漫游商品", desc: "含VR全景漫游、场景切换", tone: "violet", kind: "sku" },
+    {
+      name: "3D工具全能套餐", desc: "渲染 + 设计 + VR 一站式（拆分为商品配置）", tone: "blue", kind: "bundle",
+      expandsTo: [
+        { name: "3D工具渲染商品", desc: "含高清渲染、全景图、施工图", tone: "blue" },
+        { name: "3D工具设计商品", desc: "含户型绘制、方案设计、模型库", tone: "teal" },
+        { name: "VR漫游商品", desc: "含VR全景漫游、场景切换", tone: "violet" },
+      ],
+    },
   ],
   international3d: [
-    { name: "国际版渲染权益包", desc: "含8K渲染、HDR输出", tone: "blue" },
-    { name: "国际版设计权益包", desc: "含全球模型库、多语言支持", tone: "teal" },
+    { name: "国际版渲染商品", desc: "含8K渲染、HDR输出", tone: "blue", kind: "sku" },
+    { name: "国际版设计商品", desc: "含全球模型库、多语言支持", tone: "teal", kind: "sku" },
   ],
   smartGuide: [
-    { name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "teal" },
-    { name: "导购数据权益包", desc: "含客户画像、行为分析", tone: "blue" },
+    { name: "智能导购商品", desc: "含AI推荐、商品匹配", tone: "teal", kind: "sku" },
+    { name: "导购数据商品", desc: "含客户画像、行为分析", tone: "blue", kind: "sku" },
   ],
   customerData: [
-    { name: "精准客资权益包", desc: "含线索分配、客户管理", tone: "rose" },
-    { name: "客资分析权益包", desc: "含转化分析、ROI报表", tone: "amber" },
+    { name: "精准客资商品", desc: "含线索分配、客户管理", tone: "rose", kind: "sku" },
+    { name: "客资分析商品", desc: "含转化分析、ROI报表", tone: "amber", kind: "sku" },
   ],
 };
 
