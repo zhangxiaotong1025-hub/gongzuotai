@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { X, Sparkles, AlertCircle } from "lucide-react";
+import { X, Sparkles, AlertCircle, Building2, User } from "lucide-react";
 import { toast } from "sonner";
-import { appData, capabilityData, DATA_TYPES, PERIOD_TYPES, type EntitlementRule, type PeriodType, getCapability, getCapabilitiesByApp, deriveRulePolicy } from "@/data/entitlement";
+import { appData, capabilityData, DATA_TYPES, PERIOD_TYPES, QUOTA_SCOPES, type EntitlementRule, type PeriodType, type QuotaScope, getCapability, getCapabilitiesByApp, deriveRulePolicy, getRuleScope } from "@/data/entitlement";
 
 export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; onClose: () => void; onSave: (d: any) => void; initial?: EntitlementRule | null }) {
   const initCap = initial ? getCapability(initial.capabilityId) : null;
@@ -12,6 +12,8 @@ export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; 
     quota: initial?.quota ?? 100,
     periodType: (initial?.periodType || "DAY") as PeriodType,
     periodValue: initial?.periodValue ?? 1,
+    quotaScope: (initial?.quotaScope || (initial ? getRuleScope(initial) : "user")) as QuotaScope,
+    perUserCap: initial?.perUserCap ?? 0,
     description: initial?.description || "",
   });
   const [touched, setTouched] = useState(false);
@@ -21,6 +23,10 @@ export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; 
   const availableCaps = getCapabilitiesByApp(form.appId).filter((c) => c.status === "active");
   const selectedCap = capabilityData.find((c) => c.id === form.capabilityId);
   const policy = deriveRulePolicy(form.periodType);
+  /** 由能力 dataType 给出的建议归属（仅作引导，不强制） */
+  const suggestedScope: QuotaScope | null = selectedCap
+    ? (selectedCap.dataType === "BOOLEAN" || selectedCap.dataType === "STORAGE" ? "enterprise" : "user")
+    : null;
 
   // Auto-suggest code based on capability + quota + period
   const suggestedCode = useMemo(() => {
