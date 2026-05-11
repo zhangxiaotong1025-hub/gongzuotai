@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { productData, skuData, EXCHANGE_TYPES, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getCapability, getApp, getRulesByProduct } from "@/data/entitlement";
+import { RuleScopeBadge } from "@/components/entitlement/QuotaScopeBadge";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { ProductDialog } from "./dialogs/ProductDialog";
 import { toast } from "sonner";
