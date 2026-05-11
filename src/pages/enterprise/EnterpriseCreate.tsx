@@ -746,17 +746,16 @@ function BenefitListSection({
         </div>
       ) : (
         <div className="border border-border/70 rounded-xl overflow-hidden bg-card">
-          <div className="grid grid-cols-[minmax(220px,1fr)_120px_84px_minmax(240px,1fr)_36px] bg-muted/35 border-b border-border/60 text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
+          <div className="grid grid-cols-[minmax(220px,1fr)_120px_84px_36px] bg-muted/35 border-b border-border/60 text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
             <div className="px-4 py-3">名称</div>
             <div className="px-4 py-3">应用方式</div>
             <div className="px-4 py-3">人数</div>
-            <div className="px-4 py-3">授权时间</div>
             <div />
           </div>
           {rows.map((row) => {
             const toneVar = getToneVar(row.packageName);
             return (
-              <div key={row.id} className="grid grid-cols-[minmax(220px,1fr)_120px_84px_minmax(240px,1fr)_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors group">
+              <div key={row.id} className="grid grid-cols-[minmax(220px,1fr)_120px_84px_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors group">
                 <div className="px-4 py-3">
                   <span className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap" style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}>
                     <Package className="h-3 w-3 shrink-0" />
@@ -764,23 +763,20 @@ function BenefitListSection({
                   </span>
                 </div>
                 <div className="px-3 py-3">
-                  <select className="filter-select h-9 w-full px-2 text-[13px]" value={row.applyMode} onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}>
+                  <select className="filter-select h-9 w-full px-2 text-[13px]" value={row.applyMode} onChange={(e) => onUpdate(productKey, row.id, "applyMode", e.target.value)}>
                     <option value="指定人员">指定人员</option>
                     <option value="全部人员">全部人员</option>
                   </select>
                 </div>
                 <div className="px-3 py-3">
                   {row.applyMode === "指定人员" ? (
-                    <input className="filter-input h-9 w-full px-2 text-center" type="number" value={row.applyCount} onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))} />
+                    <input className="filter-input h-9 w-full px-2 text-center" type="number" value={row.applyCount} onChange={(e) => onUpdate(productKey, row.id, "applyCount", Number(e.target.value))} />
                   ) : (
                     <span className="text-[13px] text-muted-foreground">全员</span>
                   )}
                 </div>
-                <div className="px-4 py-3">
-                  <DateRangePicker value={row.dateRange} onChange={(val) => onUpdate(productKey, type, row.id, "dateRange", val)} />
-                </div>
                 <div className="px-2 py-3 flex justify-center">
-                  <button onClick={() => onRemove(productKey, type, row.id)} className="w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
+                  <button onClick={() => onRemove(productKey, row.id)} className="w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
