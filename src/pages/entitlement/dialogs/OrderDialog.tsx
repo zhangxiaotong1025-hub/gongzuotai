@@ -107,7 +107,7 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
   return (
     <>
       <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-        <DialogContent className="max-w-[600px] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-[860px] max-h-[88vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{initial ? "编辑订单" : "创建内部订单"}</DialogTitle>
           </DialogHeader>
