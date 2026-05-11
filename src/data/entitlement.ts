@@ -459,6 +459,12 @@ export interface OrderItem {
   itemName: string;
   quantity: number;
   unitPrice: number;
+  /** B端企业内部发放时使用：应用方式 */
+  applyMode?: "指定人员" | "全部人员";
+  /** 指定人员时的人数 */
+  applyCount?: number;
+  /** 授权时间区间，格式 "YYYY-MM-DD ~ YYYY-MM-DD"；上限受企业 expireDate 约束 */
+  dateRange?: string;
 }
 
 export type CustomerType = "B" | "C";
