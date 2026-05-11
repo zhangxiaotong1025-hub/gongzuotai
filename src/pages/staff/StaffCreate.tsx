@@ -280,10 +280,10 @@ function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
   );
 }
 
-/* ── Benefit Row Card (person-level: only date range, no mode/quota) ── */
-function BenefitRowCard({ pkg, onUpdate, onRemove }: {
+/* ── Benefit Row Card (person-level: read-only, period inherits from enterprise product) ── */
+function BenefitRowCard({ pkg, onRemove }: {
   pkg: BenefitPkg;
-  onUpdate: (field: string, value: unknown) => void;
+  onUpdate?: (field: string, value: unknown) => void;
   onRemove: () => void;
 }) {
   const cssVar = VARIANT_VARS[pkg.tone];
