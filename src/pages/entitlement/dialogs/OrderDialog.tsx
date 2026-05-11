@@ -104,6 +104,22 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
   });
   const selectedApps = appData.filter((a) => selectedAppIds.has(a.id));
 
+  // app-level dateRange derived from items (first item per app)
+  const appDateRange = useMemo(() => {
+    const map: Record<string, string> = {};
+    items.forEach((it) => {
+      const aId = it.type === "sku" ? skuData.find((s) => s.id === it.itemId)?.appId
+        : it.type === "product" ? productData.find((p) => p.id === it.itemId)?.appId
+        : bundleData.find((b) => b.id === it.itemId)?.appId;
+      if (aId && !map[aId] && it.dateRange) map[aId] = it.dateRange;
+    });
+    return map;
+  }, [items]);
+
+  const updateAppDateRange = (_appId: string, range: string, indices: number[]) => {
+    setItems((prev) => prev.map((it, i) => (indices.includes(i) ? { ...it, dateRange: range } : it)));
+  };
+
   // Auto-clip dateRange when enterprise changes
   useEffect(() => {
     if (!isBOrder || !enterpriseExpireDate) return;
