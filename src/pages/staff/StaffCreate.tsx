@@ -528,7 +528,7 @@ export default function StaffCreate() {
                     className="flex items-center gap-1.5 text-[12px] text-primary/70 hover:text-primary transition-colors"
                     onClick={() => setShowBenefitPicker(!showBenefitPicker)}
                   >
-                    <Plus className="h-3.5 w-3.5" /> 添加权益包
+                    <Plus className="h-3.5 w-3.5" /> 添加权益商品
                   </button>
                   {showBenefitPicker && (
                     <div
