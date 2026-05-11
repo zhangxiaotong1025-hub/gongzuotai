@@ -315,16 +315,13 @@ function BenefitRowCard({ pkg, onUpdate, onRemove }: {
         </div>
       </div>
 
-      {/* Body — only usage period for person-level */}
+      {/* Body — person-level: usage period inherits from enterprise product config */}
       {expanded && (
-        <div className="px-4 py-4 space-y-3 border-t" style={{ borderColor: `hsl(var(${cssVar}) / 0.1)` }}>
-          <div className="text-[12px] text-muted-foreground">{pkg.desc}</div>
-          <div className="space-y-1.5">
-            <label className="text-[12px] text-muted-foreground font-medium">使用周期</label>
-            <DateRangePicker
-              value={pkg.dateRange}
-              onChange={(v) => onUpdate("dateRange", v)}
-            />
+        <div className="px-4 py-4 space-y-2 border-t" style={{ borderColor: `hsl(var(${cssVar}) / 0.1)` }}>
+          <div className="text-[12px] text-muted-foreground leading-relaxed">{pkg.desc}</div>
+          <div className="text-[11px] text-muted-foreground/80 flex items-center gap-1.5 pt-1">
+            <Info className="h-3 w-3 shrink-0 opacity-60" />
+            使用周期跟随该产品在企业侧的统一配置，无需单独设置
           </div>
         </div>
       )}
