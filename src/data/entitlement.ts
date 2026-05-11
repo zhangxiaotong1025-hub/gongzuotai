@@ -103,6 +103,20 @@ export type PeriodType = "DAY" | "MONTH" | "YEAR" | "PERMANENT";
 export type GrantType = "DAILY_REFRESH" | "MONTHLY_GRANT" | "ONE_TIME";
 export type ExpirePolicy = "CLEAR_ON_EXPIRE" | "NEVER_EXPIRE";
 
+/** 性质定义 · 额度归属维度
+ *  - enterprise：企业池。整个企业共享一份额度，消耗只汇总到企业账，不计入员工个人画像
+ *  - user：个人池。每名员工/自然人独立一份额度，消耗写个人账，参与个人画像与能效分析
+ *  备注：消耗日志 usage_log 始终记录 actor_user_id 用于审计/溯源，与额度归属解耦
+ */
+export type QuotaScope = "enterprise" | "user";
+
+export const QUOTA_SCOPES: { value: QuotaScope; label: string; shortLabel: string; className: string; desc: string }[] = [
+  { value: "enterprise", label: "企业池", shortLabel: "企业", className: "bg-violet-500/10 text-violet-600 border-violet-500/30",
+    desc: "企业共享一份额度，消耗只汇总到企业账，不计入员工个人画像（适合采购型/共享型资源，如云存储、批量导入、许可证类）" },
+  { value: "user",       label: "个人池", shortLabel: "个人", className: "bg-primary/10 text-primary border-primary/30",
+    desc: "每名员工/自然人独立一份额度，消耗写个人账，参与个人画像与能效分析（适合创作型/调用型资源，如 AI 设计、渲染、导出）" },
+];
+
 export interface EntitlementRule {
   id: string;
   name: string;
@@ -111,6 +125,10 @@ export interface EntitlementRule {
   quota: number;
   periodType: PeriodType;
   periodValue: number;
+  /** 性质 · 额度归属（建议必填，缺省由能力数据类型派生） */
+  quotaScope?: QuotaScope;
+  /** 仅当 quotaScope=enterprise 时生效，单人单周期消耗上限；0/未填表示不限制 */
+  perUserCap?: number;
   /** @deprecated 由 periodType 自动派生：PERMANENT→ONE_TIME，DAY→DAILY_REFRESH，其余→MONTHLY_GRANT */
   grantType?: GrantType;
   /** @deprecated 平台统一不累积，剩余到期回收 */
@@ -128,6 +146,16 @@ export function deriveRulePolicy(periodType: PeriodType): { grantType: GrantType
   if (periodType === "DAY")       return { grantType: "DAILY_REFRESH", expirePolicy: "CLEAR_ON_EXPIRE", label: "每日刷新 · 到期清零" };
   if (periodType === "MONTH")     return { grantType: "MONTHLY_GRANT", expirePolicy: "CLEAR_ON_EXPIRE", label: "每月发放 · 到期清零" };
   return { grantType: "MONTHLY_GRANT", expirePolicy: "CLEAR_ON_EXPIRE", label: "每年发放 · 到期清零" };
+}
+
+/** 取规则的额度归属：显式 quotaScope 优先；否则由能力 dataType 派生
+ *  BOOLEAN / STORAGE → 企业池；COUNTER / DURATION → 个人池
+ */
+export function getRuleScope(rule: { quotaScope?: QuotaScope; capabilityId: string }): QuotaScope {
+  if (rule.quotaScope) return rule.quotaScope;
+  const cap = capabilityData.find(c => c.id === rule.capabilityId);
+  if (!cap) return "user";
+  return cap.dataType === "BOOLEAN" || cap.dataType === "STORAGE" ? "enterprise" : "user";
 }
 
 export const PERIOD_TYPES: { value: PeriodType; label: string }[] = [
