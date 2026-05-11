@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { productData, skuData, EXCHANGE_TYPES, STATUS_MAP, PERIOD_TYPES, GRANT_TYPES, EXPIRE_POLICIES, getCapability, getApp, getRulesByProduct } from "@/data/entitlement";
+import { RuleScopeBadge } from "@/components/entitlement/QuotaScopeBadge";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { ProductDialog } from "./dialogs/ProductDialog";
 import { toast } from "sonner";
@@ -89,7 +90,7 @@ export default function ProductDetail() {
                 const cap = getCapability(r.capabilityId);
                 return (
                   <tr key={r.id} className="border-b border-border/40 hover:bg-muted/30">
-                    <td className="py-2"><Link to={`/entitlement/rule/detail/${r.id}`} className="text-primary hover:underline font-medium">{r.name}</Link></td>
+                    <td className="py-2"><div className="flex items-center gap-2"><Link to={`/entitlement/rule/detail/${r.id}`} className="text-primary hover:underline font-medium">{r.name}</Link><RuleScopeBadge rule={r} short /></div></td>
                     <td className="py-2">{cap ? <Link to={`/entitlement/capability/detail/${cap.id}`} className="text-muted-foreground hover:text-primary">{cap.name}</Link> : "—"}</td>
                     <td className="py-2 text-right font-medium">{r.quota.toLocaleString()} {cap?.unit || ""}</td>
                     <td className="py-2 text-muted-foreground">{PERIOD_TYPES.find((p) => p.value === r.periodType)?.label}{r.periodValue > 0 ? `·${r.periodValue}` : ""}</td>

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ruleData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp, deriveRulePolicy } from "@/data/entitlement";
+import { ruleData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp, deriveRulePolicy, getRuleScope, QUOTA_SCOPES } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { RuleDialog } from "./dialogs/RuleDialog";
+import { RuleScopeBadge } from "@/components/entitlement/QuotaScopeBadge";
 import { toast } from "sonner";
 import { Scale } from "lucide-react";
 
@@ -47,7 +48,10 @@ export default function RuleDetail() {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Scale className="h-5 w-5 text-primary" /></div>
             <div>
-              <h2 className="text-[16px] font-semibold text-foreground">{rule.name}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-[16px] font-semibold text-foreground">{rule.name}</h2>
+                <RuleScopeBadge rule={rule} />
+              </div>
               <code className="text-[12px] text-muted-foreground font-mono">{rule.code}</code>
             </div>
           </div>

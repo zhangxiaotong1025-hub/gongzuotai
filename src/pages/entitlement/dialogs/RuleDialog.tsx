@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { X, Sparkles, AlertCircle } from "lucide-react";
+import { X, Sparkles, AlertCircle, Building2, User } from "lucide-react";
 import { toast } from "sonner";
-import { appData, capabilityData, DATA_TYPES, PERIOD_TYPES, type EntitlementRule, type PeriodType, getCapability, getCapabilitiesByApp, deriveRulePolicy } from "@/data/entitlement";
+import { appData, capabilityData, DATA_TYPES, PERIOD_TYPES, QUOTA_SCOPES, type EntitlementRule, type PeriodType, type QuotaScope, getCapability, getCapabilitiesByApp, deriveRulePolicy, getRuleScope } from "@/data/entitlement";
 
 export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; onClose: () => void; onSave: (d: any) => void; initial?: EntitlementRule | null }) {
   const initCap = initial ? getCapability(initial.capabilityId) : null;
@@ -12,6 +12,8 @@ export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; 
     quota: initial?.quota ?? 100,
     periodType: (initial?.periodType || "DAY") as PeriodType,
     periodValue: initial?.periodValue ?? 1,
+    quotaScope: (initial?.quotaScope || (initial ? getRuleScope(initial) : "user")) as QuotaScope,
+    perUserCap: initial?.perUserCap ?? 0,
     description: initial?.description || "",
   });
   const [touched, setTouched] = useState(false);
@@ -21,6 +23,10 @@ export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; 
   const availableCaps = getCapabilitiesByApp(form.appId).filter((c) => c.status === "active");
   const selectedCap = capabilityData.find((c) => c.id === form.capabilityId);
   const policy = deriveRulePolicy(form.periodType);
+  /** 由能力 dataType 给出的建议归属（仅作引导，不强制） */
+  const suggestedScope: QuotaScope | null = selectedCap
+    ? (selectedCap.dataType === "BOOLEAN" || selectedCap.dataType === "STORAGE" ? "enterprise" : "user")
+    : null;
 
   // Auto-suggest code based on capability + quota + period
   const suggestedCode = useMemo(() => {
@@ -34,11 +40,13 @@ export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; 
   if (!form.code.trim()) errors.push("规则编码");
   if (!form.capabilityId) errors.push("关联能力");
   if (form.quota <= 0) errors.push("额度数量需大于 0");
+  if (!form.quotaScope) errors.push("额度归属维度");
 
   const handleSubmit = () => {
     setTouched(true);
     if (errors.length > 0) { toast.error(`请完善：${errors.join("、")}`); return; }
-    onSave({ ...form, ...policy, isCumulative: false });
+    const perUserCap = form.quotaScope === "enterprise" ? form.perUserCap : 0;
+    onSave({ ...form, perUserCap, ...policy, isCumulative: false });
   };
 
   return (
@@ -104,7 +112,44 @@ export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; 
             )}
           </div>
 
-          {/* Section 3: 额度与周期 */}
+          {/* Section 3: 性质定义 · 额度归属维度 */}
+          <div className="space-y-3 pt-2 border-t">
+            <div className="flex items-center justify-between">
+              <div className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">性质定义 · 额度归属</div>
+              {suggestedScope && suggestedScope !== form.quotaScope && (
+                <button type="button" onClick={() => setForm({ ...form, quotaScope: suggestedScope })} className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline">
+                  <Sparkles className="h-3 w-3" />按能力建议：{QUOTA_SCOPES.find(s => s.value === suggestedScope)?.label}
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {QUOTA_SCOPES.map((s) => {
+                const active = form.quotaScope === s.value;
+                const Icon = s.value === "enterprise" ? Building2 : User;
+                return (
+                  <button type="button" key={s.value} onClick={() => setForm({ ...form, quotaScope: s.value })}
+                    className={`text-left px-3 py-2.5 rounded-lg border transition-all ${active ? "border-primary bg-primary/5" : "border-border hover:border-border/80"}`}>
+                    <div className="flex items-center gap-2">
+                      <Icon className={`h-3.5 w-3.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className={`text-[13px] font-medium ${active ? "text-primary" : "text-foreground"}`}>{s.label}</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-1 leading-snug">{s.desc}</div>
+                  </button>
+                );
+              })}
+            </div>
+            {form.quotaScope === "enterprise" && (
+              <div className="grid grid-cols-2 gap-4 px-3 py-3 rounded-lg bg-muted/40">
+                <div className="space-y-1.5">
+                  <label className="text-[13px] text-muted-foreground">单人单周期上限（0=不限）</label>
+                  <input type="number" min={0} className="filter-input w-full" value={form.perUserCap} onChange={(e) => setForm({ ...form, perUserCap: Number(e.target.value) })} />
+                  <p className="text-[11px] text-muted-foreground/70">企业池可选的"反挤兑"上限，超过则该员工本周期内不可再消耗</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Section 4: 额度与周期 */}
           <div className="space-y-3 pt-2 border-t">
             <div className="text-[12px] font-medium text-muted-foreground uppercase tracking-wide">额度与周期</div>
             <div className="grid grid-cols-3 gap-4">

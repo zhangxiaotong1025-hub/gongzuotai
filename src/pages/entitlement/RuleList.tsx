@@ -6,12 +6,14 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download } from "lucide-react";
-import { ruleData as initialData, capabilityData, appData, PERIOD_TYPES, STATUS_MAP, type EntitlementRule, getCapability, getSkusByRule, deriveRulePolicy } from "@/data/entitlement";
+import { ruleData as initialData, capabilityData, appData, PERIOD_TYPES, QUOTA_SCOPES, STATUS_MAP, type EntitlementRule, getCapability, getSkusByRule, deriveRulePolicy, getRuleScope } from "@/data/entitlement";
 import { RuleDialog } from "./dialogs/RuleDialog";
+import { RuleScopeBadge } from "@/components/entitlement/QuotaScopeBadge";
 
 const filterFields: FilterField[] = [
   { key: "name", label: "规则名称/编码", type: "input", placeholder: "请输入", width: 200 },
   { key: "capabilityId", label: "关联能力", type: "select", options: capabilityData.map((c) => ({ label: c.name, value: c.id })), width: 140 },
+  { key: "quotaScope", label: "性质", type: "select", options: QUOTA_SCOPES.map((s) => ({ label: s.label, value: s.value })), width: 110 },
   { key: "periodType", label: "周期类型", type: "select", options: PERIOD_TYPES.map((p) => ({ label: p.label, value: p.value })), width: 120 },
   { key: "status", label: "状态", type: "select", options: [{ label: "启用", value: "active" }, { label: "停用", value: "inactive" }], width: 100 },
 ];
@@ -44,6 +46,7 @@ export default function RuleList() {
   const columns: TableColumn<EntitlementRule>[] = [
     { key: "name", title: "规则名称", minWidth: 160, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/rule/detail/${(row as EntitlementRule).id}`)}>{v}</button> },
     { key: "capabilityId", title: "关联能力", minWidth: 100, render: (v: string) => { const cap = getCapability(v); return cap ? <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-muted/80" onClick={() => navigate(`/entitlement/capability/detail/${v}`)}>{cap.name}</button> : <span>—</span>; } },
+    { key: "quotaScope", title: "性质", minWidth: 90, render: (_v, row) => <RuleScopeBadge rule={row as EntitlementRule} /> },
     { key: "quota", title: "额度", minWidth: 80, align: "right" as const, render: (v: number, row) => { const cap = getCapability((row as EntitlementRule).capabilityId); return <span className="font-medium text-foreground">{v.toLocaleString()}{cap ? ` ${cap.unit}` : ""}</span>; } },
     { key: "periodType", title: "周期", minWidth: 60, render: (v: string) => <span>{PERIOD_TYPES.find((p) => p.value === v)?.label || v}</span> },
     { key: "id", title: "发放策略", minWidth: 140, render: (_v, row) => { const p = deriveRulePolicy((row as EntitlementRule).periodType); return <span className="text-[12px] text-muted-foreground">{p.label}</span>; } },
