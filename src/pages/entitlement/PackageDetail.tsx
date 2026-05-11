@@ -69,7 +69,10 @@ export default function PackageDetail() {
       </div>
 
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <h3 className="text-[14px] font-semibold text-foreground mb-3">套餐明细 ({enrichedItems.length})</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-[14px] font-semibold text-foreground">套餐明细 ({enrichedItems.length})</h3>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">人员授权时按下列商品维度拆分逐项配置</span>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead><tr className="border-b text-muted-foreground">
