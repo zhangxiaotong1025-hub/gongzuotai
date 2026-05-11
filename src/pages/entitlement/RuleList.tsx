@@ -6,12 +6,14 @@ import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { toast } from "sonner";
 import { Plus, Download } from "lucide-react";
-import { ruleData as initialData, capabilityData, appData, PERIOD_TYPES, STATUS_MAP, type EntitlementRule, getCapability, getSkusByRule, deriveRulePolicy } from "@/data/entitlement";
+import { ruleData as initialData, capabilityData, appData, PERIOD_TYPES, QUOTA_SCOPES, STATUS_MAP, type EntitlementRule, getCapability, getSkusByRule, deriveRulePolicy, getRuleScope } from "@/data/entitlement";
 import { RuleDialog } from "./dialogs/RuleDialog";
+import { RuleScopeBadge } from "@/components/entitlement/QuotaScopeBadge";
 
 const filterFields: FilterField[] = [
   { key: "name", label: "规则名称/编码", type: "input", placeholder: "请输入", width: 200 },
   { key: "capabilityId", label: "关联能力", type: "select", options: capabilityData.map((c) => ({ label: c.name, value: c.id })), width: 140 },
+  { key: "quotaScope", label: "性质", type: "select", options: QUOTA_SCOPES.map((s) => ({ label: s.label, value: s.value })), width: 110 },
   { key: "periodType", label: "周期类型", type: "select", options: PERIOD_TYPES.map((p) => ({ label: p.label, value: p.value })), width: 120 },
   { key: "status", label: "状态", type: "select", options: [{ label: "启用", value: "active" }, { label: "停用", value: "inactive" }], width: 100 },
 ];
