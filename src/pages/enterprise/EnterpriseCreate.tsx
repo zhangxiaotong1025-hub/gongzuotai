@@ -235,21 +235,22 @@ export default function EnterpriseCreate() {
     productConfigs: {
       domestic3d: {
         accountCount: 30,
-        packageRows: [
-          createRow("3D工具渲染权益包"),
-          createRow("3D工具设计权益包"),
-          createRow("VR漫游权益包"),
-          createRow("施工图权益包"),
+        dateRange: "2026-01-01 ~ 2028-12-31",
+        productRows: [
+          createRow("3D工具渲染权益商品"),
+          createRow("3D工具设计权益商品"),
+          createRow("VR漫游权益商品"),
+          createRow("施工图权益商品"),
+          createRow("AI生图权益商品"),
         ],
-        productRows: [createRow("AI生图权益包")],
       },
       smartGuide: {
         accountCount: 30,
-        packageRows: [
-          createRow("智能导购权益包"),
-          createRow("导购数据权益包"),
+        dateRange: "2026-01-01 ~ 2028-12-31",
+        productRows: [
+          createRow("智能导购权益商品"),
+          createRow("导购数据权益商品"),
         ],
-        productRows: [],
       },
     } as Record<string, ProductConfig>,
     maxSubCompanies: 30,
