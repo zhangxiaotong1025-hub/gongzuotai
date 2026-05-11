@@ -28,11 +28,11 @@ const MOCK = {
   remark: "上海XXXX股份有限公司详细地址上海市陆家嘴中心8LXXX号",
   enabledProducts: ["国内3D工具", "国际3D工具", "精准客资"],
   benefits: [
-    { name: "3D工具渲染权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "blue" },
-    { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "teal" },
-    { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "rose" },
-    { name: "VR漫游权益包", date: "2025.2.23—2028.2.23", used: 8, total: 30, variant: "violet" },
-    { name: "AI生图权益包", date: "2025.2.23—2028.2.23", used: 25, total: 30, variant: "amber" },
+    { name: "3D工具渲染商品", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "blue" },
+    { name: "智能导购商品", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "teal" },
+    { name: "精准客资商品", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "rose" },
+    { name: "VR漫游商品", date: "2025.2.23—2028.2.23", used: 8, total: 30, variant: "violet" },
+    { name: "AI生图商品", date: "2025.2.23—2028.2.23", used: 25, total: 30, variant: "amber" },
   ],
 };
 
@@ -179,9 +179,12 @@ export default function StaffDetail() {
             </div>
           } />
           <div className="flex items-start gap-3">
-            <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-1">权益包：</span>
-            <div className="flex gap-3 flex-wrap">
-              {d.benefits.map((pkg, i) => <BenefitCard key={i} pkg={pkg} />)}
+            <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-1">权益商品：</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11.5px] text-muted-foreground/80 mb-2">按单个权益商品维度配置与计量；套餐已按商品维度拆分展示。</div>
+              <div className="flex gap-3 flex-wrap">
+                {d.benefits.map((pkg, i) => <BenefitCard key={i} pkg={pkg} />)}
+              </div>
             </div>
           </div>
         </div>

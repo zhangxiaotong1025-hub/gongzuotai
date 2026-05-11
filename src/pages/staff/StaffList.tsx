@@ -54,19 +54,19 @@ const initialOrgTree: OrgNode[] = [
 /* ── Product Tabs & Benefit Data ── */
 const PRODUCT_TABS = ["全部", "国内3D工具", "国际3D工具", "智能导购", "精准客资"];
 const PRODUCT_KEY_MAP: Record<string, string[]> = {
-  "国内3D工具": ["3D工具渲染权益包", "3D工具设计权益包"],
-  "国际3D工具": ["国际版渲染权益包"],
-  "智能导购": ["智能导购权益包"],
-  "精准客资": ["精准客资权益包"],
+  "国内3D工具": ["3D工具渲染权益商品", "3D工具设计权益商品"],
+  "国际3D工具": ["国际版渲染权益商品"],
+  "智能导购": ["智能导购权益商品"],
+  "精准客资": ["精准客资权益商品"],
 };
 
 interface BenefitSummary { name: string; date: string; used: number; total: number; variant: string; product: string; }
 const BENEFIT_SUMMARIES: BenefitSummary[] = [
-  { name: "3D工具渲染权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "blue", product: "国内3D工具" },
-  { name: "3D工具设计权益包", date: "2025.2.23—2028.2.23", used: 12, total: 30, variant: "teal", product: "国内3D工具" },
-  { name: "国际版渲染权益包", date: "2025.2.23—2028.2.23", used: 5, total: 20, variant: "violet", product: "国际3D工具" },
-  { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "rose", product: "智能导购" },
-  { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 18, total: 30, variant: "amber", product: "精准客资" },
+  { name: "3D工具渲染权益商品", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "blue", product: "国内3D工具" },
+  { name: "3D工具设计权益商品", date: "2025.2.23—2028.2.23", used: 12, total: 30, variant: "teal", product: "国内3D工具" },
+  { name: "国际版渲染权益商品", date: "2025.2.23—2028.2.23", used: 5, total: 20, variant: "violet", product: "国际3D工具" },
+  { name: "智能导购权益商品", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "rose", product: "智能导购" },
+  { name: "精准客资权益商品", date: "2025.2.23—2028.2.23", used: 18, total: 30, variant: "amber", product: "精准客资" },
 ];
 
 const VARIANT_VARS: Record<string, string> = {
@@ -79,12 +79,12 @@ type BenefitTone = "blue" | "teal" | "violet" | "amber" | "rose";
 interface BenefitPkg { id: string; name: string; desc: string; tone: BenefitTone; dateRange: string; }
 const BENEFIT_CATALOG: Record<string, { name: string; desc: string; tone: BenefitTone }[]> = {
   domestic3d: [
-    { name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" },
-    { name: "3D工具设计权益包", desc: "含户型绘制、方案设计、模型库", tone: "teal" },
+    { name: "3D工具渲染权益商品", desc: "含高清渲染、全景图、施工图", tone: "blue" },
+    { name: "3D工具设计权益商品", desc: "含户型绘制、方案设计、模型库", tone: "teal" },
   ],
-  international3d: [{ name: "国际版渲染权益包", desc: "含8K渲染、HDR输出", tone: "violet" }],
-  smartGuide: [{ name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "rose" }],
-  customerData: [{ name: "精准客资权益包", desc: "含线索分配、客户管理", tone: "amber" }],
+  international3d: [{ name: "国际版渲染权益商品", desc: "含8K渲染、HDR输出", tone: "violet" }],
+  smartGuide: [{ name: "智能导购权益商品", desc: "含AI推荐、商品匹配", tone: "rose" }],
+  customerData: [{ name: "精准客资权益商品", desc: "含线索分配、客户管理", tone: "amber" }],
 };
 const ALL_PRODUCT_KEYS = ["domestic3d", "international3d", "smartGuide", "customerData"];
 
@@ -231,7 +231,7 @@ function DateRangePicker({ value, onChange }: { value: string; onChange: (v: str
 /* ── Benefit Config Dialog ── */
 function BenefitConfigDialog({ open, onClose, staffName }: { open: boolean; onClose: () => void; staffName: string }) {
   const [benefits, setBenefits] = useState<BenefitPkg[]>([
-    { id: "b1", name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue", dateRange: "2025-02-23 ~ 2028-02-23" },
+    { id: "b1", name: "3D工具渲染权益商品", desc: "含高清渲染、全景图、施工图", tone: "blue", dateRange: "2025-02-23 ~ 2028-02-23" },
   ]);
   
 
@@ -255,13 +255,13 @@ function BenefitConfigDialog({ open, onClose, staffName }: { open: boolean; onCl
         <div className="border-b px-5 py-4 shrink-0" style={{ background: "hsl(var(--muted) / 0.3)" }}>
           <DialogHeader>
             <DialogTitle className="text-[15px] font-semibold">权益设置 — {staffName}</DialogTitle>
-            <DialogDescription className="text-[13px] text-muted-foreground">点击权益包卡片添加，下方配置使用周期</DialogDescription>
+            <DialogDescription className="text-[13px] text-muted-foreground">点击权益商品卡片添加，下方配置使用周期</DialogDescription>
           </DialogHeader>
         </div>
 
         {/* Available — horizontal card row like staff list */}
         <div className="px-5 pt-4 pb-2 shrink-0">
-          <div className="text-[12px] font-medium text-muted-foreground mb-2">可选权益包</div>
+          <div className="text-[12px] font-medium text-muted-foreground mb-2">可选权益商品</div>
           <div className="flex gap-3 overflow-x-auto pb-1">
             {allCatalog.map((item, i) => {
               const already = benefits.find((b) => b.name === item.name);
@@ -317,7 +317,7 @@ function BenefitConfigDialog({ open, onClose, staffName }: { open: boolean; onCl
               </div>
             </div>
           ) : (
-            <div className="text-[13px] text-muted-foreground text-center py-8">点击上方权益包卡片添加</div>
+            <div className="text-[13px] text-muted-foreground text-center py-8">点击上方权益商品卡片添加</div>
           )}
         </div>
 
@@ -581,7 +581,7 @@ export default function StaffList() {
           <div className="overflow-x-auto px-5 pb-4 pt-2">
             <div className="flex gap-3">
               {visibleBenefits.length > 0 ? visibleBenefits.map((pkg, i) => <MiniBenefitCard key={i} pkg={pkg} />) : (
-                <div className="text-[13px] text-muted-foreground py-3">该产品下暂无权益包</div>
+                <div className="text-[13px] text-muted-foreground py-3">该产品下暂无权益商品</div>
               )}
             </div>
           </div>

@@ -99,7 +99,10 @@ export default function RuleDetail() {
 
       {/* Referenced SKUs */}
       <div className="bg-card rounded-xl border p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-        <h3 className="text-[14px] font-semibold text-foreground mb-3">引用此规则的商品 ({skus.length})</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-[14px] font-semibold text-foreground">引用此规则的商品 ({skus.length})</h3>
+          <span className="text-[11px] text-muted-foreground">人员授权按下列「商品」维度逐项发放此规则</span>
+        </div>
         <div className="space-y-2">
           {skus.map((s) => (
             <Link key={s.id} to={`/entitlement/sku/detail/${s.id}`} className="flex items-center justify-between px-4 py-3 rounded-lg border hover:border-primary/40 hover:bg-primary/5 transition-all">

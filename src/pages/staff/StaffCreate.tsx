@@ -32,23 +32,41 @@ interface BenefitPkg {
   dateRange: string;
 }
 
-const BENEFIT_CATALOG: Record<string, { name: string; desc: string; tone: BenefitTone }[]> = {
+/** 权益目录（人员维度按「单个权益商品」配置；套餐为聚合项，选中后自动拆分为商品） */
+interface BenefitItem {
+  name: string;
+  desc: string;
+  tone: BenefitTone;
+  kind: "sku" | "bundle";
+  /** 套餐拆分出的子商品（仅 kind=bundle 时使用） */
+  expandsTo?: { name: string; desc: string; tone: BenefitTone }[];
+}
+
+const BENEFIT_CATALOG: Record<string, BenefitItem[]> = {
   domestic3d: [
-    { name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" },
-    { name: "3D工具设计权益包", desc: "含户型绘制、方案设计、模型库", tone: "teal" },
-    { name: "VR漫游权益包", desc: "含VR全景漫游、场景切换", tone: "violet" },
+    { name: "3D工具渲染商品", desc: "含高清渲染、全景图、施工图", tone: "blue", kind: "sku" },
+    { name: "3D工具设计商品", desc: "含户型绘制、方案设计、模型库", tone: "teal", kind: "sku" },
+    { name: "VR漫游商品", desc: "含VR全景漫游、场景切换", tone: "violet", kind: "sku" },
+    {
+      name: "3D工具全能套餐", desc: "渲染 + 设计 + VR 一站式（拆分为商品配置）", tone: "blue", kind: "bundle",
+      expandsTo: [
+        { name: "3D工具渲染商品", desc: "含高清渲染、全景图、施工图", tone: "blue" },
+        { name: "3D工具设计商品", desc: "含户型绘制、方案设计、模型库", tone: "teal" },
+        { name: "VR漫游商品", desc: "含VR全景漫游、场景切换", tone: "violet" },
+      ],
+    },
   ],
   international3d: [
-    { name: "国际版渲染权益包", desc: "含8K渲染、HDR输出", tone: "blue" },
-    { name: "国际版设计权益包", desc: "含全球模型库、多语言支持", tone: "teal" },
+    { name: "国际版渲染商品", desc: "含8K渲染、HDR输出", tone: "blue", kind: "sku" },
+    { name: "国际版设计商品", desc: "含全球模型库、多语言支持", tone: "teal", kind: "sku" },
   ],
   smartGuide: [
-    { name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "teal" },
-    { name: "导购数据权益包", desc: "含客户画像、行为分析", tone: "blue" },
+    { name: "智能导购商品", desc: "含AI推荐、商品匹配", tone: "teal", kind: "sku" },
+    { name: "导购数据商品", desc: "含客户画像、行为分析", tone: "blue", kind: "sku" },
   ],
   customerData: [
-    { name: "精准客资权益包", desc: "含线索分配、客户管理", tone: "rose" },
-    { name: "客资分析权益包", desc: "含转化分析、ROI报表", tone: "amber" },
+    { name: "精准客资商品", desc: "含线索分配、客户管理", tone: "rose", kind: "sku" },
+    { name: "客资分析商品", desc: "含转化分析、ROI报表", tone: "amber", kind: "sku" },
   ],
 };
 
@@ -348,8 +366,8 @@ export default function StaffCreate() {
     enabledProducts: ["domestic3d", "smartGuide"] as string[],
     roles: isEdit ? ["设计师", "企业管理员"] : [] as string[],
     benefits: isEdit ? [
-      { id: "b1", name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
-      { id: "b2", name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "teal" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
+      { id: "b1", name: "3D工具渲染商品", desc: "含高清渲染、全景图、施工图", tone: "blue" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
+      { id: "b2", name: "智能导购商品", desc: "含AI推荐、商品匹配", tone: "teal" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
     ] : [] as BenefitPkg[],
     status: "active" as "active" | "inactive",
     remark: "",
@@ -368,7 +386,7 @@ export default function StaffCreate() {
   };
 
   const availableBenefits = useMemo(() => {
-    const all: { name: string; desc: string; tone: BenefitTone; productKey: string }[] = [];
+    const all: (BenefitItem & { productKey: string })[] = [];
     form.enabledProducts.forEach((pk) => {
       (BENEFIT_CATALOG[pk] || []).forEach((b) => {
         all.push({ ...b, productKey: pk });
@@ -377,15 +395,31 @@ export default function StaffCreate() {
     return all;
   }, [form.enabledProducts]);
 
-  const addBenefit = (item: typeof availableBenefits[0]) => {
-    if (form.benefits.find((b) => b.name === item.name)) return;
-    update("benefits", [...form.benefits, {
-      id: `b-${Date.now()}`,
-      name: item.name,
-      desc: item.desc,
-      tone: item.tone,
-      dateRange: "2026-01-01 ~ 2028-12-31",
-    }]);
+  const addBenefit = (item: BenefitItem) => {
+    // 套餐拆分为商品后逐项加入；商品直接加入
+    const toAdd = item.kind === "bundle" && item.expandsTo
+      ? item.expandsTo
+      : [{ name: item.name, desc: item.desc, tone: item.tone }];
+    const additions: BenefitPkg[] = [];
+    toAdd.forEach((it, idx) => {
+      if (form.benefits.find((b) => b.name === it.name)) return;
+      if (additions.find((a) => a.name === it.name)) return;
+      additions.push({
+        id: `b-${Date.now()}-${idx}`,
+        name: it.name,
+        desc: it.desc,
+        tone: it.tone,
+        dateRange: "2026-01-01 ~ 2028-12-31",
+      });
+    });
+    if (additions.length === 0) {
+      toast.info("所选项目已全部添加");
+      return;
+    }
+    if (item.kind === "bundle") {
+      toast.success(`已按商品维度拆分加入 ${additions.length} 项`);
+    }
+    update("benefits", [...form.benefits, ...additions]);
   };
 
   const removeBenefit = (id: string) => update("benefits", form.benefits.filter((b) => b.id !== id));
@@ -514,9 +548,16 @@ export default function StaffCreate() {
               </div>
             </FormRow>
 
-            {/* Benefits — person level: only usage period */}
+            {/* Benefits — person level: only usage period, single-SKU granularity */}
             <FormRow label="权益配置">
               <div className="space-y-3">
+                <div className="rounded-lg border border-primary/15 bg-primary/[0.03] px-3 py-2 flex items-start gap-2">
+                  <Info className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                  <div className="text-[12px] leading-relaxed text-muted-foreground">
+                    人员维度按 <span className="text-foreground font-medium">单个权益商品</span> 进行配置；若选择套餐，系统将自动按其包含的商品逐项拆分到下方列表。
+                  </div>
+                </div>
+
                 {form.benefits.map((pkg) => (
                   <BenefitRowCard
                     key={pkg.id}
@@ -531,18 +572,19 @@ export default function StaffCreate() {
                     className="flex items-center gap-1.5 text-[12px] text-primary/70 hover:text-primary transition-colors"
                     onClick={() => setShowBenefitPicker(!showBenefitPicker)}
                   >
-                    <Plus className="h-3.5 w-3.5" /> 添加权益包
+                    <Plus className="h-3.5 w-3.5" /> 添加权益商品
                   </button>
                   {showBenefitPicker && (
                     <div
-                      className="absolute left-0 top-full mt-2 z-50 w-[320px] rounded-xl border bg-popover py-1 max-h-[280px] overflow-y-auto"
+                      className="absolute left-0 top-full mt-2 z-50 w-[340px] rounded-xl border bg-popover py-1 max-h-[320px] overflow-y-auto"
                       style={{ boxShadow: "var(--shadow-lg)" }}
                     >
                       {availableBenefits.length === 0 && (
                         <div className="px-4 py-3 text-[12px] text-muted-foreground">请先开启产品</div>
                       )}
                       {availableBenefits.map((item, i) => {
-                        const already = form.benefits.find((b) => b.name === item.name);
+                        const isBundle = item.kind === "bundle";
+                        const already = !isBundle && form.benefits.find((b) => b.name === item.name);
                         const cssVar = VARIANT_VARS[item.tone];
                         return (
                           <button
@@ -556,8 +598,15 @@ export default function StaffCreate() {
                           >
                             <div className="w-1 h-5 rounded-full shrink-0" style={{ background: `hsl(var(${cssVar}))` }} />
                             <div className="flex-1 min-w-0">
-                              <div className="text-[13px] font-medium text-foreground">{item.name}</div>
-                              <div className="text-[11px] text-muted-foreground">{item.desc}</div>
+                              <div className="flex items-center gap-1.5">
+                                <div className="text-[13px] font-medium text-foreground truncate">{item.name}</div>
+                                {isBundle && (
+                                  <span className="inline-flex items-center px-1.5 py-[1px] rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                                    套餐·拆分
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-muted-foreground truncate">{item.desc}</div>
                             </div>
                             {already && <span className="text-[11px] text-muted-foreground">已添加</span>}
                           </button>
