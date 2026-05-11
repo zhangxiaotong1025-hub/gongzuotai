@@ -710,22 +710,18 @@ function StepBenefits({
 function BenefitListSection({
   label,
   productKey,
-  type,
   rows,
   catalog,
-  onAdd,
   onRemove,
   onUpdate,
   onAddWithName,
 }: {
   label: string;
   productKey: string;
-  type: "packageRows" | "productRows";
   rows: BenefitRow[];
   catalog: { name: string; desc: string; tone: BenefitTone }[];
-  onAdd: (productKey: string, type: "packageRows" | "productRows") => void;
-  onRemove: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
-  onUpdate: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => void;
+  onRemove: (productKey: string, rowId: string) => void;
+  onUpdate: (productKey: string, rowId: string, field: string, value: unknown) => void;
   onAddWithName: (name: string) => void;
 }) {
   const [showPicker, setShowPicker] = useState(false);
@@ -733,7 +729,6 @@ function BenefitListSection({
   const filtered = catalog.filter((c) => c.name.includes(search));
 
   const getToneVar = (name: string) => BENEFIT_TONE_VARS[catalog.find((c) => c.name === name)?.tone || "blue"];
-  void onAdd;
 
   return (
     <div className="space-y-3">
