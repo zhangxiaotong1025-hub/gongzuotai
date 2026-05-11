@@ -657,3 +657,43 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
     </Dialog>
   );
 }
+
+/* ── 受企业有效期约束的日期区间选择器 ── */
+function ConstrainedDateRangePicker({ value, maxDate, onChange }: { value: string; maxDate: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const max = new Date(maxDate);
+  const [startStr, endStr] = (value || "").split("~").map((s) => s.trim());
+  const start = startStr ? new Date(startStr) : undefined;
+  const end = endStr ? new Date(endStr) : undefined;
+  const display = start && end ? `${format(start, "yyyy-MM-dd")} ~ ${format(end, "yyyy-MM-dd")}` : "";
+
+  const handleSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (!range?.from) return;
+    let to = range.to || range.from;
+    if (to > max) to = max;
+    onChange(`${format(range.from, "yyyy-MM-dd")} ~ ${format(to, "yyyy-MM-dd")}`);
+    if (range.to) setOpen(false);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className={cn("h-8 w-full justify-start rounded-md border-input bg-card px-2 text-left text-[12px] font-normal shadow-none hover:bg-muted/40", !display && "text-muted-foreground")}>
+          <CalendarIcon className="mr-1.5 h-3 w-3 opacity-50 shrink-0" />
+          {display || <span>选择时间段</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto rounded-xl p-0" align="start">
+        <div className="px-3 pt-3 text-[11px] text-muted-foreground">不可超出企业有效期 <span className="font-mono text-foreground">{maxDate}</span></div>
+        <Calendar
+          mode="range"
+          selected={start && end ? { from: start, to: end } : start ? { from: start, to: undefined } : undefined}
+          onSelect={handleSelect as never}
+          disabled={(d: Date) => d > max}
+          numberOfMonths={2}
+          className="p-3 pointer-events-auto"
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
