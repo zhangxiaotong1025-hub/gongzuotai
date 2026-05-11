@@ -71,48 +71,47 @@ export default function EntitlementPRDLayout() {
   const goto = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <div className="flex gap-5">
-      {/* Left sticky TOC · 仅锚点跳转 */}
-      <aside className="w-[240px] shrink-0 hidden lg:block">
+    <div className="flex gap-8">
+      {/* Left sticky TOC · 紧凑、仅锚点跳转 */}
+      <aside className="w-[176px] shrink-0 hidden lg:block">
         <div className="sticky top-2">
-          <div className="rounded-xl border bg-card p-3" style={{ boxShadow: "var(--shadow-xs)" }}>
-            <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground px-1.5 mb-2">
-              ◢ Table of Contents
+          <div className="px-1">
+            <div className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-muted-foreground/80 mb-3 pl-2">
+              Contents
             </div>
-            <nav className="max-h-[calc(100vh-100px)] overflow-y-auto pr-1">
+            <nav className="max-h-[calc(100vh-80px)] overflow-y-auto pr-1">
               {TOC.map(sec => {
-                const Icon = sec.icon;
                 const secActive = active === sec.id || sec.children.some(c => c.id === active);
                 return (
-                  <div key={sec.id} className="mb-2">
+                  <div key={sec.id} className="mb-1.5">
                     <button
                       onClick={() => goto(sec.id)}
-                      className={`w-full text-left px-2 py-1.5 rounded-md text-[12.5px] flex items-center gap-2 transition border-l-2 ${
+                      className={`w-full text-left pl-2 pr-1 py-1 text-[11.5px] flex items-center transition border-l-2 ${
                         secActive
-                          ? "bg-primary/10 text-primary font-medium border-primary"
-                          : "text-foreground/80 hover:bg-muted/50 border-transparent"
+                          ? "text-primary font-medium border-primary"
+                          : "text-foreground/70 hover:text-foreground border-transparent"
                       }`}
                     >
-                      <Icon className="h-3.5 w-3.5 shrink-0" />
                       <span className="truncate">{sec.label}</span>
                     </button>
-                    <div className="ml-5 mt-0.5 border-l border-border/60">
-                      {sec.children.map(c => {
-                        const on = active === c.id;
-                        return (
-                          <button
-                            key={c.id}
-                            onClick={() => goto(c.id)}
-                            className={`w-full text-left pl-3 pr-2 py-1 text-[11.5px] flex items-center gap-1.5 transition ${
-                              on ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"
-                            }`}
-                          >
-                            <span className={`w-1 h-1 rounded-full ${on ? "bg-primary" : "bg-border"}`} />
-                            <span className="truncate">{c.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {secActive && (
+                      <div className="ml-2 border-l border-border/60">
+                        {sec.children.map(c => {
+                          const on = active === c.id;
+                          return (
+                            <button
+                              key={c.id}
+                              onClick={() => goto(c.id)}
+                              className={`w-full text-left pl-2.5 pr-1 py-[3px] text-[10.5px] truncate transition ${
+                                on ? "text-primary" : "text-muted-foreground/80 hover:text-foreground"
+                              }`}
+                            >
+                              {c.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -121,8 +120,8 @@ export default function EntitlementPRDLayout() {
         </div>
       </aside>
 
-      {/* Right · 全量平铺 */}
-      <main className="flex-1 min-w-0 space-y-12">
+      {/* Right · 全量平铺，章节间距加大 */}
+      <main className="flex-1 min-w-0 space-y-20 max-w-[1080px]">
         <section id="overview"  className="scroll-mt-4"><Overview /></section>
         <section id="blueprint" className="scroll-mt-4"><Blueprint /></section>
         <section id="runtime"   className="scroll-mt-4"><Runtime /></section>
