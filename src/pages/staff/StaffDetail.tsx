@@ -179,9 +179,12 @@ export default function StaffDetail() {
             </div>
           } />
           <div className="flex items-start gap-3">
-            <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-1">权益包：</span>
-            <div className="flex gap-3 flex-wrap">
-              {d.benefits.map((pkg, i) => <BenefitCard key={i} pkg={pkg} />)}
+            <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-1">权益商品：</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11.5px] text-muted-foreground/80 mb-2">按单个权益商品维度配置与计量；套餐已按商品维度拆分展示。</div>
+              <div className="flex gap-3 flex-wrap">
+                {d.benefits.map((pkg, i) => <BenefitCard key={i} pkg={pkg} />)}
+              </div>
             </div>
           </div>
         </div>
