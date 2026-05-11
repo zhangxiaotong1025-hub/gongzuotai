@@ -548,9 +548,16 @@ export default function StaffCreate() {
               </div>
             </FormRow>
 
-            {/* Benefits — person level: only usage period */}
+            {/* Benefits — person level: only usage period, single-SKU granularity */}
             <FormRow label="权益配置">
               <div className="space-y-3">
+                <div className="rounded-lg border border-primary/15 bg-primary/[0.03] px-3 py-2 flex items-start gap-2">
+                  <Info className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                  <div className="text-[12px] leading-relaxed text-muted-foreground">
+                    人员维度按 <span className="text-foreground font-medium">单个权益商品</span> 进行配置；若选择套餐，系统将自动按其包含的商品逐项拆分到下方列表。
+                  </div>
+                </div>
+
                 {form.benefits.map((pkg) => (
                   <BenefitRowCard
                     key={pkg.id}
@@ -565,18 +572,19 @@ export default function StaffCreate() {
                     className="flex items-center gap-1.5 text-[12px] text-primary/70 hover:text-primary transition-colors"
                     onClick={() => setShowBenefitPicker(!showBenefitPicker)}
                   >
-                    <Plus className="h-3.5 w-3.5" /> 添加权益包
+                    <Plus className="h-3.5 w-3.5" /> 添加权益商品
                   </button>
                   {showBenefitPicker && (
                     <div
-                      className="absolute left-0 top-full mt-2 z-50 w-[320px] rounded-xl border bg-popover py-1 max-h-[280px] overflow-y-auto"
+                      className="absolute left-0 top-full mt-2 z-50 w-[340px] rounded-xl border bg-popover py-1 max-h-[320px] overflow-y-auto"
                       style={{ boxShadow: "var(--shadow-lg)" }}
                     >
                       {availableBenefits.length === 0 && (
                         <div className="px-4 py-3 text-[12px] text-muted-foreground">请先开启产品</div>
                       )}
                       {availableBenefits.map((item, i) => {
-                        const already = form.benefits.find((b) => b.name === item.name);
+                        const isBundle = item.kind === "bundle";
+                        const already = !isBundle && form.benefits.find((b) => b.name === item.name);
                         const cssVar = VARIANT_VARS[item.tone];
                         return (
                           <button
@@ -590,8 +598,15 @@ export default function StaffCreate() {
                           >
                             <div className="w-1 h-5 rounded-full shrink-0" style={{ background: `hsl(var(${cssVar}))` }} />
                             <div className="flex-1 min-w-0">
-                              <div className="text-[13px] font-medium text-foreground">{item.name}</div>
-                              <div className="text-[11px] text-muted-foreground">{item.desc}</div>
+                              <div className="flex items-center gap-1.5">
+                                <div className="text-[13px] font-medium text-foreground truncate">{item.name}</div>
+                                {isBundle && (
+                                  <span className="inline-flex items-center px-1.5 py-[1px] rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                                    套餐·拆分
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-muted-foreground truncate">{item.desc}</div>
                             </div>
                             {already && <span className="text-[11px] text-muted-foreground">已添加</span>}
                           </button>
