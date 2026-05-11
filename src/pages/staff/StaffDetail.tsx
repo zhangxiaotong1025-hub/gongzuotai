@@ -28,11 +28,11 @@ const MOCK = {
   remark: "上海XXXX股份有限公司详细地址上海市陆家嘴中心8LXXX号",
   enabledProducts: ["国内3D工具", "国际3D工具", "精准客资"],
   benefits: [
-    { name: "3D工具渲染权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "blue" },
-    { name: "智能导购权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "teal" },
-    { name: "精准客资权益包", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "rose" },
-    { name: "VR漫游权益包", date: "2025.2.23—2028.2.23", used: 8, total: 30, variant: "violet" },
-    { name: "AI生图权益包", date: "2025.2.23—2028.2.23", used: 25, total: 30, variant: "amber" },
+    { name: "3D工具渲染商品", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "blue" },
+    { name: "智能导购商品", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "teal" },
+    { name: "精准客资商品", date: "2025.2.23—2028.2.23", used: 20, total: 30, variant: "rose" },
+    { name: "VR漫游商品", date: "2025.2.23—2028.2.23", used: 8, total: 30, variant: "violet" },
+    { name: "AI生图商品", date: "2025.2.23—2028.2.23", used: 25, total: 30, variant: "amber" },
   ],
 };
 
