@@ -81,27 +81,27 @@ const BENEFIT_TONE_VARS: Record<BenefitTone, string> = {
 
 const BENEFIT_CATALOG: Record<string, { name: string; desc: string; tone: BenefitTone }[]> = {
   domestic3d: [
-    { name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" },
-    { name: "3D工具设计权益包", desc: "含户型绘制、方案设计、模型库", tone: "teal" },
-    { name: "VR漫游权益包", desc: "含VR全景漫游、场景切换", tone: "violet" },
-    { name: "施工图权益包", desc: "含CAD导出、水电布局图", tone: "amber" },
-    { name: "AI生图权益包", desc: "含AI渲染、风格迁移", tone: "rose" },
+    { name: "3D工具渲染权益套餐", desc: "含高清渲染、全景图、施工图", tone: "blue" },
+    { name: "3D工具设计权益套餐", desc: "含户型绘制、方案设计、模型库", tone: "teal" },
+    { name: "VR漫游权益套餐", desc: "含VR全景漫游、场景切换", tone: "violet" },
+    { name: "施工图权益套餐", desc: "含CAD导出、水电布局图", tone: "amber" },
+    { name: "AI生图权益套餐", desc: "含AI渲染、风格迁移", tone: "rose" },
   ],
   international3d: [
-    { name: "国际版渲染权益包", desc: "含8K渲染、HDR输出", tone: "blue" },
-    { name: "国际版设计权益包", desc: "含全球模型库、多语言支持", tone: "teal" },
-    { name: "国际版VR权益包", desc: "含VR漫游、AR预览", tone: "violet" },
+    { name: "国际版渲染权益套餐", desc: "含8K渲染、HDR输出", tone: "blue" },
+    { name: "国际版设计权益套餐", desc: "含全球模型库、多语言支持", tone: "teal" },
+    { name: "国际版VR权益套餐", desc: "含VR漫游、AR预览", tone: "violet" },
   ],
   smartGuide: [
-    { name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "teal" },
-    { name: "导购数据权益包", desc: "含客户画像、行为分析", tone: "blue" },
+    { name: "智能导购权益套餐", desc: "含AI推荐、商品匹配", tone: "teal" },
+    { name: "导购数据权益套餐", desc: "含客户画像、行为分析", tone: "blue" },
   ],
   customerData: [
-    { name: "精准客资权益包", desc: "含线索分配、客户管理", tone: "rose" },
-    { name: "客资分析权益包", desc: "含转化分析、ROI报表", tone: "amber" },
+    { name: "精准客资权益套餐", desc: "含线索分配、客户管理", tone: "rose" },
+    { name: "客资分析权益套餐", desc: "含转化分析、ROI报表", tone: "amber" },
   ],
-  smartPhoto: [{ name: "智能翻拍权益包", desc: "含AI抠图、场景替换", tone: "violet" }],
-  live: [{ name: "直播权益包", desc: "含直播推流、互动工具", tone: "teal" }],
+  smartPhoto: [{ name: "智能翻拍权益套餐", desc: "含AI抠图、场景替换", tone: "violet" }],
+  live: [{ name: "直播权益套餐", desc: "含直播推流、互动工具", tone: "teal" }],
 };
 
 function DateRangePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -168,7 +168,7 @@ interface ProductConfig {
 
 const createRow = (name?: string): BenefitRow => ({
   id: crypto.randomUUID(),
-  packageName: name || "权益包",
+  packageName: name || "权益套餐",
   applyMode: "指定人员",
   applyCount: 10,
   dateRange: "2026-01-01 ~ 2028-12-31",
@@ -237,18 +237,18 @@ export default function EnterpriseCreate() {
       domestic3d: {
         accountCount: 30,
         packageRows: [
-          createRow("3D工具渲染权益包"),
-          createRow("3D工具设计权益包"),
-          createRow("VR漫游权益包"),
-          createRow("施工图权益包"),
+          createRow("3D工具渲染权益套餐"),
+          createRow("3D工具设计权益套餐"),
+          createRow("VR漫游权益套餐"),
+          createRow("施工图权益套餐"),
         ],
-        productRows: [createRow("AI生图权益包")],
+        productRows: [createRow("AI生图权益套餐")],
       },
       smartGuide: {
         accountCount: 30,
         packageRows: [
-          createRow("智能导购权益包"),
-          createRow("导购数据权益包"),
+          createRow("智能导购权益套餐"),
+          createRow("导购数据权益套餐"),
         ],
         productRows: [],
       },
@@ -637,7 +637,7 @@ function StepBenefits({
               <div className="flex items-center justify-between border-b border-border/60 bg-muted/25 px-5 py-4">
                 <div>
                   <div className="text-[14px] font-semibold text-foreground">{product.label}</div>
-                  <div className="text-[12px] text-muted-foreground mt-1">统一配置人数、权益包与权益商品</div>
+                  <div className="text-[12px] text-muted-foreground mt-1">统一配置人数、权益套餐与权益商品</div>
                 </div>
                 <span className="rounded-full bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary">
                   已配置 {cfg.packageRows.length + cfg.productRows.length} 项
@@ -651,7 +651,7 @@ function StepBenefits({
                   </div>
                 </FormRow>
                 <BenefitListSection
-                  label="权益包"
+                  label="权益套餐"
                   productKey={pKey}
                   type="packageRows"
                   rows={cfg.packageRows}
