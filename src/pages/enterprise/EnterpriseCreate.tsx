@@ -669,6 +669,11 @@ function StepBenefits({
                     <span className="text-[12px] text-muted-foreground">人</span>
                   </div>
                 </FormRow>
+                <FormRow label="授权时间" wide>
+                  <div className="w-[280px]">
+                    <DateRangePicker value={cfg.dateRange || "2026-01-01 ~ 2028-12-31"} onChange={(val) => updateProductDateRange(pKey, val)} />
+                  </div>
+                </FormRow>
                 <BenefitListSection
                   label="权益套餐"
                   productKey={pKey}
