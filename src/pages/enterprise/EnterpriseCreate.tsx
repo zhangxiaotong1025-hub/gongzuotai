@@ -596,19 +596,21 @@ function StepBenefits({
   removeRow,
   updateRow,
   updateProductAccountCount,
+  updateProductDateRange,
 }: {
   form: Record<string, any>;
   update: (k: string, v: unknown) => void;
   toggleProduct: (key: string) => void;
-  addRow: (productKey: string, type: "packageRows" | "productRows", name?: string) => void;
-  removeRow: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
-  updateRow: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => void;
+  addRow: (productKey: string, name?: string) => void;
+  removeRow: (productKey: string, rowId: string) => void;
+  updateRow: (productKey: string, rowId: string, field: string, value: unknown) => void;
   updateProductAccountCount: (productKey: string, count: number) => void;
+  updateProductDateRange: (productKey: string, dateRange: string) => void;
 }) {
   return (
     <div className="p-6">
       <div className="space-y-6">
-        <SectionTitle title="权益配置" description="同一产品块、同一列表、同一字段高度，避免编辑页视觉跳动。" />
+        <SectionTitle title="权益配置" description="时间周期按产品维度统一设置；所有权益按「权益商品」粒度逐项配置，套餐请拆分为多个商品。" />
 
         <SectionCard>
           <FormRow label="开通产品" wide>
@@ -644,47 +646,39 @@ function StepBenefits({
         {form.enabledProducts.map((pKey: string) => {
           const product = AVAILABLE_PRODUCTS.find((p) => p.key === pKey);
           if (!product) return null;
-          const cfg = form.productConfigs[pKey] || { packageRows: [], productRows: [], accountCount: 30 };
+          const cfg: ProductConfig = form.productConfigs[pKey] || { productRows: [], accountCount: 30, dateRange: "2026-01-01 ~ 2028-12-31" };
           const catalog = BENEFIT_CATALOG[pKey] || [];
           return (
             <div key={pKey} className="rounded-2xl border border-border/70 overflow-hidden bg-card" style={{ boxShadow: "var(--shadow-xs)" }}>
               <div className="flex items-center justify-between border-b border-border/60 bg-muted/25 px-5 py-4">
                 <div>
                   <div className="text-[14px] font-semibold text-foreground">{product.label}</div>
-                  <div className="text-[12px] text-muted-foreground mt-1">统一配置人数、权益包与权益商品</div>
+                  <div className="text-[12px] text-muted-foreground mt-1">该产品下所有权益商品共享同一使用周期</div>
                 </div>
                 <span className="rounded-full bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary">
-                  已配置 {cfg.packageRows.length + cfg.productRows.length} 项
+                  已配置 {cfg.productRows.length} 项
                 </span>
               </div>
               <div className="p-5 space-y-5">
-                <FormRow label="产品人数" wide>
-                  <div className="flex items-center gap-2">
-                    <input className="filter-input w-32" type="number" value={cfg.accountCount || 30} onChange={(e) => updateProductAccountCount(pKey, Number(e.target.value))} />
-                    <span className="text-[12px] text-muted-foreground">人</span>
-                  </div>
-                </FormRow>
-                <BenefitListSection
-                  label="权益包"
-                  productKey={pKey}
-                  type="packageRows"
-                  rows={cfg.packageRows}
-                  catalog={catalog}
-                  onAdd={addRow}
-                  onRemove={removeRow}
-                  onUpdate={updateRow}
-                  onAddWithName={(name) => addRow(pKey, "packageRows", name)}
-                />
+                <div className="grid grid-cols-2 gap-5">
+                  <FormRow label="产品人数" wide>
+                    <div className="flex items-center gap-2">
+                      <input className="filter-input w-32" type="number" value={cfg.accountCount || 30} onChange={(e) => updateProductAccountCount(pKey, Number(e.target.value))} />
+                      <span className="text-[12px] text-muted-foreground">人</span>
+                    </div>
+                  </FormRow>
+                  <FormRow label="使用周期" wide>
+                    <DateRangePicker value={cfg.dateRange} onChange={(val) => updateProductDateRange(pKey, val)} />
+                  </FormRow>
+                </div>
                 <BenefitListSection
                   label="权益商品"
                   productKey={pKey}
-                  type="productRows"
                   rows={cfg.productRows}
                   catalog={catalog}
-                  onAdd={addRow}
                   onRemove={removeRow}
                   onUpdate={updateRow}
-                  onAddWithName={(name) => addRow(pKey, "productRows", name)}
+                  onAddWithName={(name) => addRow(pKey, name)}
                 />
               </div>
             </div>
