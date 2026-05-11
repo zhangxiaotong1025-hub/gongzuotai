@@ -104,6 +104,22 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
   });
   const selectedApps = appData.filter((a) => selectedAppIds.has(a.id));
 
+  // app-level dateRange derived from items (first item per app)
+  const appDateRange = useMemo(() => {
+    const map: Record<string, string> = {};
+    items.forEach((it) => {
+      const aId = it.type === "sku" ? skuData.find((s) => s.id === it.itemId)?.appId
+        : it.type === "product" ? productData.find((p) => p.id === it.itemId)?.appId
+        : bundleData.find((b) => b.id === it.itemId)?.appId;
+      if (aId && !map[aId] && it.dateRange) map[aId] = it.dateRange;
+    });
+    return map;
+  }, [items]);
+
+  const updateAppDateRange = (_appId: string, range: string, indices: number[]) => {
+    setItems((prev) => prev.map((it, i) => (indices.includes(i) ? { ...it, dateRange: range } : it)));
+  };
+
   // Auto-clip dateRange when enterprise changes
   useEffect(() => {
     if (!isBOrder || !enterpriseExpireDate) return;
@@ -336,20 +352,26 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                     if (groupItems.length === 0) return null;
                     return (
                       <div key={app.id} className="rounded-xl border border-border/70 overflow-hidden bg-card">
-                        <div className="flex items-center justify-between border-b border-border/60 bg-muted/30 px-4 py-2.5">
+                        <div className="flex items-center justify-between border-b border-border/60 bg-muted/30 px-4 py-2.5 gap-3">
                           <div className="flex items-center gap-2">
                             <span className="text-[13px] font-semibold text-foreground">{app.name}</span>
                             <span className="text-[11px] text-muted-foreground">{groupItems.length} 项权益</span>
                           </div>
-                          <span className="rounded-full bg-primary/5 px-2 py-0.5 text-[11px] font-medium text-primary">
-                            授权至 {enterpriseExpireDate}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-muted-foreground">授权时间</span>
+                            <div className="w-[260px]">
+                              <ConstrainedDateRangePicker
+                                value={appDateRange[app.id] || `2026-01-01 ~ ${enterpriseExpireDate}`}
+                                maxDate={enterpriseExpireDate!}
+                                onChange={(v) => updateAppDateRange(app.id, v, groupItems.map((g) => g.idx))}
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div className="grid grid-cols-[minmax(220px,1fr)_110px_72px_minmax(220px,1.1fr)_84px_32px] bg-muted/20 border-b border-border/50 text-[11px] font-medium text-muted-foreground">
+                        <div className="grid grid-cols-[minmax(260px,1fr)_140px_100px_100px_36px] bg-muted/20 border-b border-border/50 text-[11px] font-medium text-muted-foreground">
                           <div className="px-3 py-2">名称</div>
                           <div className="px-2 py-2">应用方式</div>
                           <div className="px-2 py-2 text-center">人数</div>
-                          <div className="px-3 py-2">授权时间</div>
                           <div className="px-2 py-2 text-right">单价</div>
                           <div />
                         </div>
@@ -360,7 +382,7 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                             ? { label: "权益产品", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" }
                             : { label: "SKU", cls: "bg-primary/10 text-primary" };
                           return (
-                            <div key={idx} className="grid grid-cols-[minmax(220px,1fr)_110px_72px_minmax(220px,1.1fr)_84px_32px] items-center border-b border-border/40 last:border-b-0 hover:bg-muted/15 transition-colors group">
+                            <div key={idx} className="grid grid-cols-[minmax(260px,1fr)_140px_100px_100px_36px] items-center border-b border-border/40 last:border-b-0 hover:bg-muted/15 transition-colors group">
                               <div className="px-3 py-2.5 flex items-center gap-2 min-w-0">
                                 <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${typeBadge.cls}`}>{typeBadge.label}</span>
                                 <span className="text-[13px] font-medium truncate">{it.itemName}</span>
@@ -386,13 +408,6 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                                     onChange={(e) => updateItem(idx, "applyCount", Number(e.target.value))}
                                   />
                                 )}
-                              </div>
-                              <div className="px-3 py-2">
-                                <ConstrainedDateRangePicker
-                                  value={it.dateRange || `2026-01-01 ~ ${enterpriseExpireDate}`}
-                                  maxDate={enterpriseExpireDate!}
-                                  onChange={(v) => updateItem(idx, "dateRange", v)}
-                                />
                               </div>
                               <div className="px-2 py-2 text-right text-[12px] font-medium">{it.unitPrice > 0 ? `¥${it.unitPrice}` : "¥0"}</div>
                               <div className="px-1 py-2 flex justify-center">

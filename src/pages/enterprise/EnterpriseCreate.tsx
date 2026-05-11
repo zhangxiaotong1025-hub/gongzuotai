@@ -164,6 +164,7 @@ interface ProductConfig {
   packageRows: BenefitRow[];
   productRows: BenefitRow[];
   accountCount?: number;
+  dateRange?: string;
 }
 
 const createRow = (name?: string): BenefitRow => ({
@@ -236,6 +237,7 @@ export default function EnterpriseCreate() {
     productConfigs: {
       domestic3d: {
         accountCount: 30,
+        dateRange: "2026-01-01 ~ 2028-12-31",
         packageRows: [
           createRow("3D工具渲染权益套餐"),
           createRow("3D工具设计权益套餐"),
@@ -246,6 +248,7 @@ export default function EnterpriseCreate() {
       },
       smartGuide: {
         accountCount: 30,
+        dateRange: "2026-01-01 ~ 2028-12-31",
         packageRows: [
           createRow("智能导购权益套餐"),
           createRow("导购数据权益套餐"),
@@ -270,7 +273,7 @@ export default function EnterpriseCreate() {
       }
       const newConfigs = prev.productConfigs[key]
         ? prev.productConfigs
-        : { ...prev.productConfigs, [key]: { packageRows: [], productRows: [], accountCount: 30 } };
+        : { ...prev.productConfigs, [key]: { packageRows: [], productRows: [], accountCount: 30, dateRange: "2026-01-01 ~ 2028-12-31" } };
       return { ...prev, enabledProducts: [...enabled, key], productConfigs: newConfigs };
     });
   };
@@ -327,6 +330,19 @@ export default function EnterpriseCreate() {
         productConfigs: {
           ...prev.productConfigs,
           [productKey]: { ...cfg, accountCount: count },
+        },
+      };
+    });
+  };
+
+  const updateProductDateRange = (productKey: string, range: string) => {
+    setForm((prev) => {
+      const cfg = prev.productConfigs[productKey] || { packageRows: [], productRows: [] };
+      return {
+        ...prev,
+        productConfigs: {
+          ...prev.productConfigs,
+          [productKey]: { ...cfg, dateRange: range },
         },
       };
     });
@@ -423,6 +439,7 @@ export default function EnterpriseCreate() {
             removeRow={removeRow}
             updateRow={updateRow}
             updateProductAccountCount={updateProductAccountCount}
+            updateProductDateRange={updateProductDateRange}
           />
         )}
         {currentStepKey === "config" && (
@@ -582,6 +599,7 @@ function StepBenefits({
   removeRow,
   updateRow,
   updateProductAccountCount,
+  updateProductDateRange,
 }: {
   form: Record<string, any>;
   update: (k: string, v: unknown) => void;
@@ -590,6 +608,7 @@ function StepBenefits({
   removeRow: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
   updateRow: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => void;
   updateProductAccountCount: (productKey: string, count: number) => void;
+  updateProductDateRange: (productKey: string, range: string) => void;
 }) {
   return (
     <div className="p-6">
@@ -648,6 +667,11 @@ function StepBenefits({
                   <div className="flex items-center gap-2">
                     <input className="filter-input w-32" type="number" value={cfg.accountCount || 30} onChange={(e) => updateProductAccountCount(pKey, Number(e.target.value))} />
                     <span className="text-[12px] text-muted-foreground">人</span>
+                  </div>
+                </FormRow>
+                <FormRow label="授权时间" wide>
+                  <div className="w-[280px]">
+                    <DateRangePicker value={cfg.dateRange || "2026-01-01 ~ 2028-12-31"} onChange={(val) => updateProductDateRange(pKey, val)} />
                   </div>
                 </FormRow>
                 <BenefitListSection
@@ -743,17 +767,16 @@ function BenefitListSection({
         </div>
       ) : (
         <div className="border border-border/70 rounded-xl overflow-hidden bg-card">
-          <div className="grid grid-cols-[minmax(220px,1fr)_120px_84px_minmax(240px,1fr)_36px] bg-muted/35 border-b border-border/60 text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
+          <div className="grid grid-cols-[minmax(260px,1fr)_160px_120px_36px] bg-muted/35 border-b border-border/60 text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
             <div className="px-4 py-3">名称</div>
             <div className="px-4 py-3">应用方式</div>
             <div className="px-4 py-3">人数</div>
-            <div className="px-4 py-3">授权时间</div>
             <div />
           </div>
           {rows.map((row) => {
             const toneVar = getToneVar(row.packageName);
             return (
-              <div key={row.id} className="grid grid-cols-[minmax(220px,1fr)_120px_84px_minmax(240px,1fr)_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors group">
+              <div key={row.id} className="grid grid-cols-[minmax(260px,1fr)_160px_120px_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors group">
                 <div className="px-4 py-3">
                   <span className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap" style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}>
                     <Package className="h-3 w-3 shrink-0" />
@@ -772,9 +795,6 @@ function BenefitListSection({
                   ) : (
                     <span className="text-[13px] text-muted-foreground">全员</span>
                   )}
-                </div>
-                <div className="px-4 py-3">
-                  <DateRangePicker value={row.dateRange} onChange={(val) => onUpdate(productKey, type, row.id, "dateRange", val)} />
                 </div>
                 <div className="px-2 py-3 flex justify-center">
                   <button onClick={() => onRemove(productKey, type, row.id)} className="w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
