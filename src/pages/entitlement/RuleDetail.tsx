@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ruleData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp, deriveRulePolicy } from "@/data/entitlement";
+import { ruleData, skuData, bundleData, STATUS_MAP, PERIOD_TYPES, BILLING_CYCLES, DATA_TYPES, getCapability, getApp, deriveRulePolicy, getRuleScope, QUOTA_SCOPES } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { RuleDialog } from "./dialogs/RuleDialog";
+import { RuleScopeBadge } from "@/components/entitlement/QuotaScopeBadge";
 import { toast } from "sonner";
 import { Scale } from "lucide-react";
 
