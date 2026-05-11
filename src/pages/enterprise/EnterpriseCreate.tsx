@@ -439,6 +439,7 @@ export default function EnterpriseCreate() {
             removeRow={removeRow}
             updateRow={updateRow}
             updateProductAccountCount={updateProductAccountCount}
+            updateProductDateRange={updateProductDateRange}
           />
         )}
         {currentStepKey === "config" && (
