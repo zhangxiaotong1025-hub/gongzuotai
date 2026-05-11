@@ -5,7 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Search, Package, Layers, Building2, User, Sparkles } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { X, Search, Package, Layers, Building2, User, Sparkles, CalendarIcon, AlertTriangle } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { appData, skuData, bundleData, productData, EXCHANGE_TYPES, ORDER_TYPES, BILLING_CYCLES, CUSTOMER_TYPES, bEnterpriseData, cUserData, type EntitlementOrder, type OrderItem, type Sku, type Bundle, type Product, type CustomerType } from "@/data/entitlement";
 
 interface OrderDialogProps {
