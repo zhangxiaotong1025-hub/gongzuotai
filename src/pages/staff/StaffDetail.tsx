@@ -179,7 +179,7 @@ export default function StaffDetail() {
             </div>
           } />
           <div className="flex items-start gap-3">
-            <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-1">权益商品：</span>
+            <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-1">权益包：</span>
             <div className="flex gap-3 flex-wrap">
               {d.benefits.map((pkg, i) => <BenefitCard key={i} pkg={pkg} />)}
             </div>

@@ -280,10 +280,10 @@ function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
   );
 }
 
-/* ── Benefit Row Card (person-level: read-only, period inherits from enterprise product) ── */
-function BenefitRowCard({ pkg, onRemove }: {
+/* ── Benefit Row Card (person-level: only date range, no mode/quota) ── */
+function BenefitRowCard({ pkg, onUpdate, onRemove }: {
   pkg: BenefitPkg;
-  onUpdate?: (field: string, value: unknown) => void;
+  onUpdate: (field: string, value: unknown) => void;
   onRemove: () => void;
 }) {
   const cssVar = VARIANT_VARS[pkg.tone];
@@ -315,13 +315,16 @@ function BenefitRowCard({ pkg, onRemove }: {
         </div>
       </div>
 
-      {/* Body — person-level: usage period inherits from enterprise product config */}
+      {/* Body — only usage period for person-level */}
       {expanded && (
-        <div className="px-4 py-4 space-y-2 border-t" style={{ borderColor: `hsl(var(${cssVar}) / 0.1)` }}>
-          <div className="text-[12px] text-muted-foreground leading-relaxed">{pkg.desc}</div>
-          <div className="text-[11px] text-muted-foreground/80 flex items-center gap-1.5 pt-1">
-            <Info className="h-3 w-3 shrink-0 opacity-60" />
-            使用周期跟随该产品在企业侧的统一配置，无需单独设置
+        <div className="px-4 py-4 space-y-3 border-t" style={{ borderColor: `hsl(var(${cssVar}) / 0.1)` }}>
+          <div className="text-[12px] text-muted-foreground">{pkg.desc}</div>
+          <div className="space-y-1.5">
+            <label className="text-[12px] text-muted-foreground font-medium">使用周期</label>
+            <DateRangePicker
+              value={pkg.dateRange}
+              onChange={(v) => onUpdate("dateRange", v)}
+            />
           </div>
         </div>
       )}
@@ -528,7 +531,7 @@ export default function StaffCreate() {
                     className="flex items-center gap-1.5 text-[12px] text-primary/70 hover:text-primary transition-colors"
                     onClick={() => setShowBenefitPicker(!showBenefitPicker)}
                   >
-                    <Plus className="h-3.5 w-3.5" /> 添加权益商品
+                    <Plus className="h-3.5 w-3.5" /> 添加权益包
                   </button>
                   {showBenefitPicker && (
                     <div
