@@ -76,6 +76,17 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
 
   const totalAmount = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
   const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
+  const updateItem = (idx: number, field: keyof OrderItem, value: unknown) => {
+    setItems((prev) => prev.map((it, i) => i === idx ? { ...it, [field]: value } : it));
+  };
+
+  // Selected B-enterprise + its expire date (constrains entitlement usage time)
+  const selectedEnterprise = useMemo(() => {
+    if (customerType !== "B" || !customerId) return null;
+    return bEnterpriseData.find((e) => e.id === customerId) || null;
+  }, [customerType, customerId]);
+  const enterpriseExpireDate = selectedEnterprise?.expireDate;
+  const isBOrder = customerType === "B" && !!selectedEnterprise;
 
   // Derive apps from selected items
   const selectedAppIds = new Set<string>();
@@ -92,6 +103,23 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
     }
   });
   const selectedApps = appData.filter((a) => selectedAppIds.has(a.id));
+
+  // Auto-clip dateRange when enterprise changes
+  useEffect(() => {
+    if (!isBOrder || !enterpriseExpireDate) return;
+    setItems((prev) => prev.map((it) => {
+      const dr = it.dateRange || `2026-01-01 ~ ${enterpriseExpireDate}`;
+      const [s, e] = dr.split("~").map((x) => x.trim());
+      const clampedEnd = e && e > enterpriseExpireDate ? enterpriseExpireDate : (e || enterpriseExpireDate);
+      return {
+        ...it,
+        applyMode: it.applyMode || "指定人员",
+        applyCount: it.applyCount ?? 10,
+        dateRange: `${s} ~ ${clampedEnd}`,
+      };
+    }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerId, isBOrder, enterpriseExpireDate]);
 
   const handleSubmit = () => {
     if (!customerId) return;
