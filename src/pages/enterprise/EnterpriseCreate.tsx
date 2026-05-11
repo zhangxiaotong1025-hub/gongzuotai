@@ -157,21 +157,20 @@ interface BenefitRow {
   packageName: string;
   applyMode: "指定人员" | "全部人员";
   applyCount: number;
-  dateRange: string;
 }
 
 interface ProductConfig {
-  packageRows: BenefitRow[];
   productRows: BenefitRow[];
   accountCount?: number;
+  /** 产品维度统一使用周期，所有权益商品共享 */
+  dateRange: string;
 }
 
 const createRow = (name?: string): BenefitRow => ({
   id: crypto.randomUUID(),
-  packageName: name || "权益包",
+  packageName: name || "权益商品",
   applyMode: "指定人员",
   applyCount: 10,
-  dateRange: "2026-01-01 ~ 2028-12-31",
 });
 
 interface OwnedBrand {
