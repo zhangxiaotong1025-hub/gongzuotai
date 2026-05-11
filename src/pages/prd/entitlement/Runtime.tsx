@@ -3,7 +3,7 @@ import { Activity, GitBranch, Workflow, ShieldAlert, Repeat } from "lucide-react
 
 export default function Runtime() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PrdPageHeader
         eyebrow="PRD · ENTITLEMENT · RUNTIME · v1"
         title="运行时与状态机 · 三维订单 + 主链路 SOP"

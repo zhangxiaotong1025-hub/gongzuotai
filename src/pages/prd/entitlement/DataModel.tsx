@@ -141,7 +141,7 @@ CREATE INDEX idx_outbox_unpub ON outbox_event(id) WHERE published_at IS NULL;`;
 
 export default function DataModel() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PrdPageHeader
         eyebrow="PRD · ENTITLEMENT · DATA · v1"
         title="数据模型 · ER + DDL + 资产分层 + 客户画像"

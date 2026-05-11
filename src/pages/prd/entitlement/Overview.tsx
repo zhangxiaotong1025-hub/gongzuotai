@@ -3,7 +3,7 @@ import { Layers, AlertTriangle, Sparkles, Target, Workflow } from "lucide-react"
 
 export default function Overview() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PrdPageHeader
         eyebrow="PRD · ENTITLEMENT · v1"
         title="权益管理系统 · 一套模型贯通 8 层链路"

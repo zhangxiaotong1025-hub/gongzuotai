@@ -41,8 +41,7 @@ export function Mermaid({ chart, caption }: { chart: string; caption?: string })
   }, [chart]);
 
   return (
-    <div className="relative overflow-hidden rounded-xl border bg-card p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+    <div className="relative rounded-lg border bg-card p-6">
       <button
         type="button"
         onClick={() => { setZoom(1); setOpen(true); }}
@@ -56,8 +55,8 @@ export function Mermaid({ chart, caption }: { chart: string; caption?: string })
       />
       {err && <pre className="font-mono text-[11px] text-destructive whitespace-pre-wrap">{err}</pre>}
       {caption && (
-        <div className="mt-3 border-t pt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          ◢ {caption}
+        <div className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80">
+          Fig · {caption}
         </div>
       )}
 
@@ -86,19 +85,19 @@ export function Mermaid({ chart, caption }: { chart: string; caption?: string })
   );
 }
 
-/** 叙事卡 · WHY / WHAT / HOW / GAIN */
+/** 叙事卡 · 简洁版：去重影、去色块，仅保留左侧色条 */
 export function DesignCard({
   code, title, children, tone = "primary",
 }: {
   code?: string; title: string; children: React.ReactNode;
   tone?: "primary" | "secondary" | "accent" | "warning" | "success";
 }) {
-  const ringMap: Record<string, string> = {
-    primary:   "border-primary/30",
-    secondary: "border-border",
-    accent:    "border-violet-400/30",
-    warning:   "border-amber-400/30",
-    success:   "border-emerald-400/30",
+  const barMap: Record<string, string> = {
+    primary:   "bg-primary",
+    secondary: "bg-muted-foreground/40",
+    accent:    "bg-violet-500",
+    warning:   "bg-amber-500",
+    success:   "bg-emerald-500",
   };
   const textMap: Record<string, string> = {
     primary:   "text-primary",
@@ -108,34 +107,31 @@ export function DesignCard({
     success:   "text-emerald-500",
   };
   return (
-    <div className={`relative rounded-xl border bg-card p-5 ${ringMap[tone]}`} style={{ boxShadow: "var(--shadow-xs)" }}>
-      <div className="flex items-center gap-3">
-        {code && <span className={`font-mono text-[10px] tracking-widest ${textMap[tone]}`}>{code}</span>}
-        <div className="text-[14px] font-semibold text-foreground">{title}</div>
+    <div className="relative rounded-lg border bg-card pl-5 pr-5 py-5">
+      <span className={`absolute left-0 top-4 bottom-4 w-[3px] rounded-r ${barMap[tone]}`} />
+      <div className="flex items-baseline gap-2.5">
+        {code && <span className={`font-mono text-[9.5px] tracking-[0.16em] uppercase ${textMap[tone]}`}>{code}</span>}
+        <div className="text-[13.5px] font-semibold text-foreground">{title}</div>
       </div>
-      <div className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">{children}</div>
+      <div className="mt-2.5 text-[12.5px] leading-[1.75] text-foreground/75">{children}</div>
     </div>
   );
 }
 
-/** Page header · eyebrow + title + subtitle + meta */
+/** Page header · 减弱渐变与色块，回归正统 PRD 卷首 */
 export function PrdPageHeader({
   eyebrow, title, subtitle, meta,
 }: { eyebrow: string; title: React.ReactNode; subtitle?: React.ReactNode; meta?: React.ReactNode }) {
   return (
-    <header className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/8 via-card to-card p-6">
-      <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full bg-primary/15 blur-3xl" />
-      <div className="absolute -left-8 -bottom-8 w-40 h-40 rounded-full bg-primary/10 blur-3xl" />
-      <div className="relative">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-primary/80">{eyebrow}</span>
-          {meta && <span className="font-mono text-[10.5px] uppercase tracking-widest text-muted-foreground">{meta}</span>}
-        </div>
-        <h1 className="mt-2 text-[22px] md:text-[26px] font-bold leading-tight bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-          {title}
-        </h1>
-        {subtitle && <p className="mt-2 max-w-4xl text-[13px] text-muted-foreground leading-relaxed">{subtitle}</p>}
+    <header className="border-b pb-6">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary/80">{eyebrow}</span>
+        {meta && <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{meta}</span>}
       </div>
+      <h1 className="mt-3 text-[24px] md:text-[28px] font-semibold leading-[1.25] text-foreground tracking-tight">
+        {title}
+      </h1>
+      {subtitle && <p className="mt-3 max-w-[68ch] text-[13px] text-muted-foreground leading-[1.8]">{subtitle}</p>}
     </header>
   );
 }
@@ -166,11 +162,11 @@ export function TriBox({
   );
 }
 
-/** Section H */
-export function H({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
+/** Section H · 更克制的章节标题 */
+export function H({ icon: Icon, children }: { icon?: React.ElementType; children: React.ReactNode }) {
   return (
-    <h2 className="mb-3 text-[16px] font-semibold text-foreground flex items-center gap-2">
-      <Icon className="h-4 w-4 text-primary" />
+    <h2 className="mb-5 pb-2 border-b text-[15.5px] font-semibold text-foreground tracking-tight flex items-center gap-2">
+      {Icon && <Icon className="h-3.5 w-3.5 text-primary" />}
       {children}
     </h2>
   );

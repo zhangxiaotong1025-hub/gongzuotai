@@ -62,7 +62,7 @@ const GRANTED_AVRO = `{
 
 export default function Contract() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PrdPageHeader
         eyebrow="PRD · ENTITLEMENT · CONTRACT · v1"
         title="API · 领域事件 · SLO 契约"
