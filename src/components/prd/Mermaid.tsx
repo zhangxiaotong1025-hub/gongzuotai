@@ -41,8 +41,7 @@ export function Mermaid({ chart, caption }: { chart: string; caption?: string })
   }, [chart]);
 
   return (
-    <div className="relative overflow-hidden rounded-xl border bg-card p-5" style={{ boxShadow: "var(--shadow-xs)" }}>
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+    <div className="relative rounded-lg border bg-card p-6">
       <button
         type="button"
         onClick={() => { setZoom(1); setOpen(true); }}
@@ -56,8 +55,8 @@ export function Mermaid({ chart, caption }: { chart: string; caption?: string })
       />
       {err && <pre className="font-mono text-[11px] text-destructive whitespace-pre-wrap">{err}</pre>}
       {caption && (
-        <div className="mt-3 border-t pt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          ◢ {caption}
+        <div className="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/80">
+          Fig · {caption}
         </div>
       )}
 
