@@ -436,7 +436,7 @@ export default function EnterpriseDetail() {
             <SubTitle title="3D工具权益" />
             <div className="mb-5">
               <div className="flex items-start gap-3">
-                <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-1">权益包：</span>
+                <span className="text-[13px] text-muted-foreground whitespace-nowrap shrink-0 w-[100px] text-right pt-1">权益商品：</span>
                 <div className="flex gap-3 flex-wrap">
                   {d.benefitPackages.map((pkg, i) => <BenefitCard key={i} pkg={pkg} />)}
                 </div>

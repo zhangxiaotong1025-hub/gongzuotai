@@ -157,21 +157,20 @@ interface BenefitRow {
   packageName: string;
   applyMode: "指定人员" | "全部人员";
   applyCount: number;
-  dateRange: string;
 }
 
 interface ProductConfig {
-  packageRows: BenefitRow[];
   productRows: BenefitRow[];
   accountCount?: number;
+  /** 产品维度统一使用周期，所有权益商品共享 */
+  dateRange: string;
 }
 
 const createRow = (name?: string): BenefitRow => ({
   id: crypto.randomUUID(),
-  packageName: name || "权益包",
+  packageName: name || "权益商品",
   applyMode: "指定人员",
   applyCount: 10,
-  dateRange: "2026-01-01 ~ 2028-12-31",
 });
 
 interface OwnedBrand {
@@ -236,21 +235,22 @@ export default function EnterpriseCreate() {
     productConfigs: {
       domestic3d: {
         accountCount: 30,
-        packageRows: [
-          createRow("3D工具渲染权益包"),
-          createRow("3D工具设计权益包"),
-          createRow("VR漫游权益包"),
-          createRow("施工图权益包"),
+        dateRange: "2026-01-01 ~ 2028-12-31",
+        productRows: [
+          createRow("3D工具渲染权益商品"),
+          createRow("3D工具设计权益商品"),
+          createRow("VR漫游权益商品"),
+          createRow("施工图权益商品"),
+          createRow("AI生图权益商品"),
         ],
-        productRows: [createRow("AI生图权益包")],
       },
       smartGuide: {
         accountCount: 30,
-        packageRows: [
-          createRow("智能导购权益包"),
-          createRow("导购数据权益包"),
+        dateRange: "2026-01-01 ~ 2028-12-31",
+        productRows: [
+          createRow("智能导购权益商品"),
+          createRow("导购数据权益商品"),
         ],
-        productRows: [],
       },
     } as Record<string, ProductConfig>,
     maxSubCompanies: 30,
@@ -268,27 +268,27 @@ export default function EnterpriseCreate() {
       if (enabled.includes(key)) {
         return { ...prev, enabledProducts: enabled.filter((k) => k !== key) };
       }
-      const newConfigs = prev.productConfigs[key]
+      const newConfigs: Record<string, ProductConfig> = prev.productConfigs[key]
         ? prev.productConfigs
-        : { ...prev.productConfigs, [key]: { packageRows: [], productRows: [], accountCount: 30 } };
+        : { ...prev.productConfigs, [key]: { productRows: [], accountCount: 30, dateRange: "2026-01-01 ~ 2028-12-31" } };
       return { ...prev, enabledProducts: [...enabled, key], productConfigs: newConfigs };
     });
   };
 
-  const addRow = (productKey: string, typeKey: "packageRows" | "productRows", name?: string) => {
+  const addRow = (productKey: string, name?: string) => {
     setForm((prev) => {
-      const cfg = prev.productConfigs[productKey] || { packageRows: [], productRows: [] };
+      const cfg: ProductConfig = prev.productConfigs[productKey] || { productRows: [], dateRange: "2026-01-01 ~ 2028-12-31" };
       return {
         ...prev,
         productConfigs: {
           ...prev.productConfigs,
-          [productKey]: { ...cfg, [typeKey]: [...cfg[typeKey], createRow(name)] },
+          [productKey]: { ...cfg, productRows: [...cfg.productRows, createRow(name)] },
         },
       };
     });
   };
 
-  const removeRow = (productKey: string, typeKey: "packageRows" | "productRows", rowId: string) => {
+  const removeRow = (productKey: string, rowId: string) => {
     setForm((prev) => {
       const cfg = prev.productConfigs[productKey];
       if (!cfg) return prev;
@@ -296,13 +296,13 @@ export default function EnterpriseCreate() {
         ...prev,
         productConfigs: {
           ...prev.productConfigs,
-          [productKey]: { ...cfg, [typeKey]: cfg[typeKey].filter((r) => r.id !== rowId) },
+          [productKey]: { ...cfg, productRows: cfg.productRows.filter((r) => r.id !== rowId) },
         },
       };
     });
   };
 
-  const updateRow = (productKey: string, typeKey: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => {
+  const updateRow = (productKey: string, rowId: string, field: string, value: unknown) => {
     setForm((prev) => {
       const cfg = prev.productConfigs[productKey];
       if (!cfg) return prev;
@@ -312,7 +312,7 @@ export default function EnterpriseCreate() {
           ...prev.productConfigs,
           [productKey]: {
             ...cfg,
-            [typeKey]: cfg[typeKey].map((r) => (r.id === rowId ? { ...r, [field]: value } : r)),
+            productRows: cfg.productRows.map((r) => (r.id === rowId ? { ...r, [field]: value } : r)),
           },
         },
       };
@@ -321,12 +321,25 @@ export default function EnterpriseCreate() {
 
   const updateProductAccountCount = (productKey: string, count: number) => {
     setForm((prev) => {
-      const cfg = prev.productConfigs[productKey] || { packageRows: [], productRows: [] };
+      const cfg: ProductConfig = prev.productConfigs[productKey] || { productRows: [], dateRange: "2026-01-01 ~ 2028-12-31" };
       return {
         ...prev,
         productConfigs: {
           ...prev.productConfigs,
           [productKey]: { ...cfg, accountCount: count },
+        },
+      };
+    });
+  };
+
+  const updateProductDateRange = (productKey: string, dateRange: string) => {
+    setForm((prev) => {
+      const cfg: ProductConfig = prev.productConfigs[productKey] || { productRows: [], dateRange: "2026-01-01 ~ 2028-12-31" };
+      return {
+        ...prev,
+        productConfigs: {
+          ...prev.productConfigs,
+          [productKey]: { ...cfg, dateRange },
         },
       };
     });
@@ -423,6 +436,7 @@ export default function EnterpriseCreate() {
             removeRow={removeRow}
             updateRow={updateRow}
             updateProductAccountCount={updateProductAccountCount}
+            updateProductDateRange={updateProductDateRange}
           />
         )}
         {currentStepKey === "config" && (
@@ -582,19 +596,21 @@ function StepBenefits({
   removeRow,
   updateRow,
   updateProductAccountCount,
+  updateProductDateRange,
 }: {
   form: Record<string, any>;
   update: (k: string, v: unknown) => void;
   toggleProduct: (key: string) => void;
-  addRow: (productKey: string, type: "packageRows" | "productRows", name?: string) => void;
-  removeRow: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
-  updateRow: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => void;
+  addRow: (productKey: string, name?: string) => void;
+  removeRow: (productKey: string, rowId: string) => void;
+  updateRow: (productKey: string, rowId: string, field: string, value: unknown) => void;
   updateProductAccountCount: (productKey: string, count: number) => void;
+  updateProductDateRange: (productKey: string, dateRange: string) => void;
 }) {
   return (
     <div className="p-6">
       <div className="space-y-6">
-        <SectionTitle title="权益配置" description="同一产品块、同一列表、同一字段高度，避免编辑页视觉跳动。" />
+        <SectionTitle title="权益配置" description="时间周期按产品维度统一设置；所有权益按「权益商品」粒度逐项配置，套餐请拆分为多个商品。" />
 
         <SectionCard>
           <FormRow label="开通产品" wide>
@@ -630,47 +646,39 @@ function StepBenefits({
         {form.enabledProducts.map((pKey: string) => {
           const product = AVAILABLE_PRODUCTS.find((p) => p.key === pKey);
           if (!product) return null;
-          const cfg = form.productConfigs[pKey] || { packageRows: [], productRows: [], accountCount: 30 };
+          const cfg: ProductConfig = form.productConfigs[pKey] || { productRows: [], accountCount: 30, dateRange: "2026-01-01 ~ 2028-12-31" };
           const catalog = BENEFIT_CATALOG[pKey] || [];
           return (
             <div key={pKey} className="rounded-2xl border border-border/70 overflow-hidden bg-card" style={{ boxShadow: "var(--shadow-xs)" }}>
               <div className="flex items-center justify-between border-b border-border/60 bg-muted/25 px-5 py-4">
                 <div>
                   <div className="text-[14px] font-semibold text-foreground">{product.label}</div>
-                  <div className="text-[12px] text-muted-foreground mt-1">统一配置人数、权益包与权益商品</div>
+                  <div className="text-[12px] text-muted-foreground mt-1">该产品下所有权益商品共享同一使用周期</div>
                 </div>
                 <span className="rounded-full bg-primary/5 px-2.5 py-1 text-[11px] font-medium text-primary">
-                  已配置 {cfg.packageRows.length + cfg.productRows.length} 项
+                  已配置 {cfg.productRows.length} 项
                 </span>
               </div>
               <div className="p-5 space-y-5">
-                <FormRow label="产品人数" wide>
-                  <div className="flex items-center gap-2">
-                    <input className="filter-input w-32" type="number" value={cfg.accountCount || 30} onChange={(e) => updateProductAccountCount(pKey, Number(e.target.value))} />
-                    <span className="text-[12px] text-muted-foreground">人</span>
-                  </div>
-                </FormRow>
-                <BenefitListSection
-                  label="权益包"
-                  productKey={pKey}
-                  type="packageRows"
-                  rows={cfg.packageRows}
-                  catalog={catalog}
-                  onAdd={addRow}
-                  onRemove={removeRow}
-                  onUpdate={updateRow}
-                  onAddWithName={(name) => addRow(pKey, "packageRows", name)}
-                />
+                <div className="grid grid-cols-2 gap-5">
+                  <FormRow label="产品人数" wide>
+                    <div className="flex items-center gap-2">
+                      <input className="filter-input w-32" type="number" value={cfg.accountCount || 30} onChange={(e) => updateProductAccountCount(pKey, Number(e.target.value))} />
+                      <span className="text-[12px] text-muted-foreground">人</span>
+                    </div>
+                  </FormRow>
+                  <FormRow label="使用周期" wide>
+                    <DateRangePicker value={cfg.dateRange} onChange={(val) => updateProductDateRange(pKey, val)} />
+                  </FormRow>
+                </div>
                 <BenefitListSection
                   label="权益商品"
                   productKey={pKey}
-                  type="productRows"
                   rows={cfg.productRows}
                   catalog={catalog}
-                  onAdd={addRow}
                   onRemove={removeRow}
                   onUpdate={updateRow}
-                  onAddWithName={(name) => addRow(pKey, "productRows", name)}
+                  onAddWithName={(name) => addRow(pKey, name)}
                 />
               </div>
             </div>
@@ -702,22 +710,18 @@ function StepBenefits({
 function BenefitListSection({
   label,
   productKey,
-  type,
   rows,
   catalog,
-  onAdd,
   onRemove,
   onUpdate,
   onAddWithName,
 }: {
   label: string;
   productKey: string;
-  type: "packageRows" | "productRows";
   rows: BenefitRow[];
   catalog: { name: string; desc: string; tone: BenefitTone }[];
-  onAdd: (productKey: string, type: "packageRows" | "productRows") => void;
-  onRemove: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
-  onUpdate: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => void;
+  onRemove: (productKey: string, rowId: string) => void;
+  onUpdate: (productKey: string, rowId: string, field: string, value: unknown) => void;
   onAddWithName: (name: string) => void;
 }) {
   const [showPicker, setShowPicker] = useState(false);
@@ -725,7 +729,6 @@ function BenefitListSection({
   const filtered = catalog.filter((c) => c.name.includes(search));
 
   const getToneVar = (name: string) => BENEFIT_TONE_VARS[catalog.find((c) => c.name === name)?.tone || "blue"];
-  void onAdd;
 
   return (
     <div className="space-y-3">
@@ -743,17 +746,16 @@ function BenefitListSection({
         </div>
       ) : (
         <div className="border border-border/70 rounded-xl overflow-hidden bg-card">
-          <div className="grid grid-cols-[minmax(220px,1fr)_120px_84px_minmax(240px,1fr)_36px] bg-muted/35 border-b border-border/60 text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
+          <div className="grid grid-cols-[minmax(220px,1fr)_120px_84px_36px] bg-muted/35 border-b border-border/60 text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
             <div className="px-4 py-3">名称</div>
             <div className="px-4 py-3">应用方式</div>
             <div className="px-4 py-3">人数</div>
-            <div className="px-4 py-3">授权时间</div>
             <div />
           </div>
           {rows.map((row) => {
             const toneVar = getToneVar(row.packageName);
             return (
-              <div key={row.id} className="grid grid-cols-[minmax(220px,1fr)_120px_84px_minmax(240px,1fr)_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors group">
+              <div key={row.id} className="grid grid-cols-[minmax(220px,1fr)_120px_84px_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors group">
                 <div className="px-4 py-3">
                   <span className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap" style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}>
                     <Package className="h-3 w-3 shrink-0" />
@@ -761,23 +763,20 @@ function BenefitListSection({
                   </span>
                 </div>
                 <div className="px-3 py-3">
-                  <select className="filter-select h-9 w-full px-2 text-[13px]" value={row.applyMode} onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}>
+                  <select className="filter-select h-9 w-full px-2 text-[13px]" value={row.applyMode} onChange={(e) => onUpdate(productKey, row.id, "applyMode", e.target.value)}>
                     <option value="指定人员">指定人员</option>
                     <option value="全部人员">全部人员</option>
                   </select>
                 </div>
                 <div className="px-3 py-3">
                   {row.applyMode === "指定人员" ? (
-                    <input className="filter-input h-9 w-full px-2 text-center" type="number" value={row.applyCount} onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))} />
+                    <input className="filter-input h-9 w-full px-2 text-center" type="number" value={row.applyCount} onChange={(e) => onUpdate(productKey, row.id, "applyCount", Number(e.target.value))} />
                   ) : (
                     <span className="text-[13px] text-muted-foreground">全员</span>
                   )}
                 </div>
-                <div className="px-4 py-3">
-                  <DateRangePicker value={row.dateRange} onChange={(val) => onUpdate(productKey, type, row.id, "dateRange", val)} />
-                </div>
                 <div className="px-2 py-3 flex justify-center">
-                  <button onClick={() => onRemove(productKey, type, row.id)} className="w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
+                  <button onClick={() => onRemove(productKey, row.id)} className="w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
