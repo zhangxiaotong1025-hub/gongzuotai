@@ -32,7 +32,7 @@ const NODES: Node[] = [
 
 export default function Blueprint() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PrdPageHeader
         eyebrow="PRD · ENTITLEMENT · BLUEPRINT · v1"
         title="系统蓝图 · 5 层架构 + 双视角 + 四种交易模式"

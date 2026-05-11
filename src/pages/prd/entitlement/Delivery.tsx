@@ -3,7 +3,7 @@ import { Rocket, Target, ShieldCheck, Users } from "lucide-react";
 
 export default function Delivery() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <PrdPageHeader
         eyebrow="PRD · ENTITLEMENT · DELIVERY · v1"
         title="落地三基石 + 里程碑 + 灰度方案"
