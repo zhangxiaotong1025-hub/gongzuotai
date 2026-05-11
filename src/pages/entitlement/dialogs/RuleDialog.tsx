@@ -40,11 +40,13 @@ export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; 
   if (!form.code.trim()) errors.push("规则编码");
   if (!form.capabilityId) errors.push("关联能力");
   if (form.quota <= 0) errors.push("额度数量需大于 0");
+  if (!form.quotaScope) errors.push("额度归属维度");
 
   const handleSubmit = () => {
     setTouched(true);
     if (errors.length > 0) { toast.error(`请完善：${errors.join("、")}`); return; }
-    onSave({ ...form, ...policy, isCumulative: false });
+    const perUserCap = form.quotaScope === "enterprise" ? form.perUserCap : 0;
+    onSave({ ...form, perUserCap, ...policy, isCumulative: false });
   };
 
   return (
