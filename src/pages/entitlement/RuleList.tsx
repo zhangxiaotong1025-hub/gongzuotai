@@ -46,6 +46,7 @@ export default function RuleList() {
   const columns: TableColumn<EntitlementRule>[] = [
     { key: "name", title: "规则名称", minWidth: 160, render: (v, row) => <button className="text-foreground font-medium hover:text-primary transition-colors" onClick={() => navigate(`/entitlement/rule/detail/${(row as EntitlementRule).id}`)}>{v}</button> },
     { key: "capabilityId", title: "关联能力", minWidth: 100, render: (v: string) => { const cap = getCapability(v); return cap ? <button className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground hover:bg-muted/80" onClick={() => navigate(`/entitlement/capability/detail/${v}`)}>{cap.name}</button> : <span>—</span>; } },
+    { key: "quotaScope", title: "性质", minWidth: 90, render: (_v, row) => <RuleScopeBadge rule={row as EntitlementRule} /> },
     { key: "quota", title: "额度", minWidth: 80, align: "right" as const, render: (v: number, row) => { const cap = getCapability((row as EntitlementRule).capabilityId); return <span className="font-medium text-foreground">{v.toLocaleString()}{cap ? ` ${cap.unit}` : ""}</span>; } },
     { key: "periodType", title: "周期", minWidth: 60, render: (v: string) => <span>{PERIOD_TYPES.find((p) => p.value === v)?.label || v}</span> },
     { key: "id", title: "发放策略", minWidth: 140, render: (_v, row) => { const p = deriveRulePolicy((row as EntitlementRule).periodType); return <span className="text-[12px] text-muted-foreground">{p.label}</span>; } },
