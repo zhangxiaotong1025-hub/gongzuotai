@@ -366,8 +366,8 @@ export default function StaffCreate() {
     enabledProducts: ["domestic3d", "smartGuide"] as string[],
     roles: isEdit ? ["设计师", "企业管理员"] : [] as string[],
     benefits: isEdit ? [
-      { id: "b1", name: "3D工具渲染权益包", desc: "含高清渲染、全景图、施工图", tone: "blue" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
-      { id: "b2", name: "智能导购权益包", desc: "含AI推荐、商品匹配", tone: "teal" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
+      { id: "b1", name: "3D工具渲染商品", desc: "含高清渲染、全景图、施工图", tone: "blue" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
+      { id: "b2", name: "智能导购商品", desc: "含AI推荐、商品匹配", tone: "teal" as BenefitTone, dateRange: "2025-02-23 ~ 2028-02-23" },
     ] : [] as BenefitPkg[],
     status: "active" as "active" | "inactive",
     remark: "",
@@ -386,7 +386,7 @@ export default function StaffCreate() {
   };
 
   const availableBenefits = useMemo(() => {
-    const all: { name: string; desc: string; tone: BenefitTone; productKey: string }[] = [];
+    const all: (BenefitItem & { productKey: string })[] = [];
     form.enabledProducts.forEach((pk) => {
       (BENEFIT_CATALOG[pk] || []).forEach((b) => {
         all.push({ ...b, productKey: pk });
@@ -395,15 +395,31 @@ export default function StaffCreate() {
     return all;
   }, [form.enabledProducts]);
 
-  const addBenefit = (item: typeof availableBenefits[0]) => {
-    if (form.benefits.find((b) => b.name === item.name)) return;
-    update("benefits", [...form.benefits, {
-      id: `b-${Date.now()}`,
-      name: item.name,
-      desc: item.desc,
-      tone: item.tone,
-      dateRange: "2026-01-01 ~ 2028-12-31",
-    }]);
+  const addBenefit = (item: BenefitItem) => {
+    // 套餐拆分为商品后逐项加入；商品直接加入
+    const toAdd = item.kind === "bundle" && item.expandsTo
+      ? item.expandsTo
+      : [{ name: item.name, desc: item.desc, tone: item.tone }];
+    const additions: BenefitPkg[] = [];
+    toAdd.forEach((it, idx) => {
+      if (form.benefits.find((b) => b.name === it.name)) return;
+      if (additions.find((a) => a.name === it.name)) return;
+      additions.push({
+        id: `b-${Date.now()}-${idx}`,
+        name: it.name,
+        desc: it.desc,
+        tone: it.tone,
+        dateRange: "2026-01-01 ~ 2028-12-31",
+      });
+    });
+    if (additions.length === 0) {
+      toast.info("所选项目已全部添加");
+      return;
+    }
+    if (item.kind === "bundle") {
+      toast.success(`已按商品维度拆分加入 ${additions.length} 项`);
+    }
+    update("benefits", [...form.benefits, ...additions]);
   };
 
   const removeBenefit = (id: string) => update("benefits", form.benefits.filter((b) => b.id !== id));
