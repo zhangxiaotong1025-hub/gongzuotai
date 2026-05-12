@@ -420,20 +420,9 @@ export default function EnterpriseList() {
     <div className="space-y-4">
       <PageHeader
         title="企业管理"
-        subtitle={`共 ${totalItems} 个企业 · 当前视角：${perspective === "platform" ? "平台后台" : "企业后台"}`}
+        subtitle={`共 ${totalItems} 个企业`}
         actions={
           <>
-            <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 text-xs">
-              {(["platform", "enterprise"] as Perspective[]).map((p) => (
-                <button
-                  key={p}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${perspective === p ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                  onClick={() => setPerspective(p)}
-                >
-                  {p === "platform" ? "平台后台" : "企业后台"}
-                </button>
-              ))}
-            </div>
             <button className="btn-secondary">
               <Download className="h-4 w-4" />
               导出
