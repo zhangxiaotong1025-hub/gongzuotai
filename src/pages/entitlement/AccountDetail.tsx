@@ -302,7 +302,7 @@ export default function AccountDetail() {
             <h3 className="text-[14px] font-semibold text-foreground">权益分配记录</h3>
             <p className="text-[12px] text-muted-foreground mt-0.5">（按商品/套餐维度分配，点击查看每条记录包含的权益明细和实例）</p>
           </div>
-          <button className="btn-primary" onClick={() => setDialogOpen(true)}>
+          <button className="btn-primary" onClick={() => navigate(`/entitlement/order/create?customerType=${acc.customerType}&customerId=${acc.customerId}&customerName=${encodeURIComponent(acc.customerName)}`)}>
             <Plus className="h-4 w-4" /> 分配权益
           </button>
         </div>
