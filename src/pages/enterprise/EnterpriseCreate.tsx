@@ -969,46 +969,18 @@ function UnifiedBenefitSection({
   const [showPicker, setShowPicker] = useState(false);
   const [bundleDetail, setBundleDetail] = useState<Bundle | null>(null);
 
-  // Build mixed catalog: bundles from BENEFIT_CATALOG + skus extracted from those bundles' items
   const items: CatalogItem[] = useMemo(() => {
-    const bundleItems: CatalogItem[] = catalog.map((c) => {
-      const bundle = bundleData.find((b) => b.name === c.name);
-      return {
-        id: `bundle:${c.name}`,
-        name: c.name,
-        desc: c.desc,
-        tone: c.tone,
-        kind: "bundle",
-        group: productLabel,
-        meta: bundle ? (
-          <div className="text-right">
-            <div className="text-[12px] font-medium text-foreground">{bundle.price > 0 ? `¥${bundle.price}` : "免费"}</div>
-            <div className="text-[10px] text-muted-foreground">{bundle.items.length} 项商品</div>
-          </div>
-        ) : null,
-      };
-    });
-    const skuIds = new Set<string>();
-    catalog.forEach((c) => {
-      const bundle = bundleData.find((b) => b.name === c.name);
-      bundle?.items.forEach((it) => skuIds.add(it.skuId));
-    });
-    const skuItems: CatalogItem[] = Array.from(skuIds).map((id, idx) => {
-      const sku = skuData.find((s) => s.id === id);
-      if (!sku) return null;
-      const tone: BenefitTone = (["blue", "teal", "violet", "amber", "rose"] as BenefitTone[])[idx % 5];
-      return {
-        id: `sku:${sku.name}`,
-        name: sku.name,
-        desc: sku.description,
-        tone,
-        kind: "sku",
-        group: productLabel,
-        meta: <span className="text-[11px] text-muted-foreground">¥{sku.price ?? 0}</span>,
-      };
-    }).filter(Boolean) as CatalogItem[];
-    return [...bundleItems, ...skuItems];
-  }, [catalog, productLabel]);
+    const fromOrderCatalog = buildEntitlementCatalog(productKey, productLabel);
+    if (fromOrderCatalog.length > 0) return fromOrderCatalog;
+    return catalog.map((item) => ({
+      id: `bundle:${item.name}`,
+      name: item.name,
+      desc: item.desc,
+      tone: item.tone,
+      kind: "bundle",
+      group: productLabel,
+    }));
+  }, [catalog, productKey, productLabel]);
 
   const allRows = useMemo(
     () => [
@@ -1026,7 +998,7 @@ function UnifiedBenefitSection({
     [packageRows, productRows],
   );
 
-  const getToneVar = (name: string) => BENEFIT_TONE_VARS[catalog.find((c) => c.name === name)?.tone || "blue"];
+  const getToneVar = (name: string) => BENEFIT_TONE_VARS[(items.find((item) => item.name === name)?.tone as BenefitTone | undefined) || catalog.find((c) => c.name === name)?.tone || "blue"];
 
   return (
     <div className="space-y-3">
