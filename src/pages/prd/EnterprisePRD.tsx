@@ -339,13 +339,17 @@ function Runtime() {
 
           <Card>
             <H4>逆向流 B · 业务停用 → 启用</H4>
-            <Pre>{`仅 Level≥1 且 audit=approved 的企业可停用
+            <Pre>{`所有真实企业（Level 0/1/2）均可停用，仅虚拟「平台根」无此入口
 business: active → disabled
   · 不影响审核状态、不影响所有权
   · 不级联到子企业（避免误伤）
   · 已发放权益保留但暂停消耗（quota.frozen=true）
   · 在用人员不可登录该企业作用域（其他企业身份仍可用）
-启用回滚：disabled → active，恢复 quota.frozen=false，发送 enterprise.reactivated`}</Pre>
+触发来源：
+  · 人工：企业管理员 / 平台代操作（按角色权限）
+  · 自动：expire_at ≤ now() 定时任务 → AuditRecord(action=auto_disable)
+启用回滚：disabled → active，恢复 quota.frozen=false，发送 enterprise.reactivated
+  · 若由到期自动停用，需先续期（订单驱动）使 expire_at > now() 方可启用`}</Pre>
           </Card>
 
           <Card>
