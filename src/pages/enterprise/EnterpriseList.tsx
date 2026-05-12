@@ -70,8 +70,14 @@ function generateEnterprise(id: string, depth = 0, parentType?: string): Enterpr
   const childCount = hasChildren ? Math.floor(Math.random() * 3) + 1 : 0;
   const allowedTypes = depth === 0 ? TYPES : (parentType ? (SUB_TYPE_MAP[parentType] || TYPES) : TYPES);
   const type = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
-  const auditRand = Math.random();
-  const auditStatus: AuditStatus = auditRand > 0.7 ? "pending" : auditRand > 0.15 ? "approved" : "rejected";
+  // 仅总部企业(depth===0)进入审核流程；子企业由总部直接创建，自动通过
+  let auditStatus: AuditStatus;
+  if (depth === 0) {
+    const auditRand = Math.random();
+    auditStatus = auditRand > 0.7 ? "pending" : auditRand > 0.15 ? "approved" : "rejected";
+  } else {
+    auditStatus = "approved";
+  }
   return {
     id,
     name: ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)],
@@ -162,7 +168,9 @@ const columns: TableColumn<Enterprise>[] = [
     title: "审核状态",
     minWidth: 90,
     render: (v: AuditStatus, row) => {
-      if ((row as Enterprise)._root) return <span className="text-xs text-muted-foreground">—</span>;
+      const r = row as Enterprise;
+      // root 与子企业(非总部)不进入审核
+      if (r._root || (r._level || 0) > 0) return <span className="text-xs text-muted-foreground">—</span>;
       const cfg = AUDIT_STATUS_MAP[v];
       return <span className={cfg.className}>{cfg.label}</span>;
     },
@@ -389,12 +397,18 @@ export default function EnterpriseList() {
     {
       label: "审核",
       onClick: (r) => setAuditTarget(r),
-      visible: (r) => !r._root && r.auditStatus === "pending",
+      // 仅平台后台可审核，且仅总部企业(level 0、非 root)需要审核
+      visible: (r) => perspective === "platform" && !r._root && (r._level || 0) === 0 && r.auditStatus === "pending",
     },
     {
       label: "停用",
       onClick: handleToggleStatus,
-      visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "active" && !r.frozen,
+      // 平台后台：可对已通过审核的总部企业停用；企业后台：可对自家子企业停用
+      visible: (r) => {
+        if (r._root || r.frozen || r.auditStatus !== "approved" || r.status !== "active") return false;
+        const level = r._level || 0;
+        return perspective === "platform" ? level === 0 : level >= 0; // 企业视角下，列表中除 root 外都是子企业
+      },
       danger: true,
       confirm: {
         title: "确认停用该企业？",
@@ -405,7 +419,11 @@ export default function EnterpriseList() {
     {
       label: "启用",
       onClick: handleEnableClick,
-      visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "inactive" && !r.frozen,
+      visible: (r) => {
+        if (r._root || r.frozen || r.auditStatus !== "approved" || r.status !== "inactive") return false;
+        const level = r._level || 0;
+        return perspective === "platform" ? level === 0 : level >= 0;
+      },
     },
     // 当前企业(root)：平台支持 查看+设置管理员；企业还支持 新建子企业+增购权益
     { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
