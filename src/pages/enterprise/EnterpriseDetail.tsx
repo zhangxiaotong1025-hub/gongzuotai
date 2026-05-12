@@ -414,8 +414,8 @@ export default function EnterpriseDetail() {
         {/* ── 权益配置 ── */}
         <SectionHeader title="权益配置" icon={Package} action={
           <button className="text-[12px] text-primary/80 hover:text-primary transition-colors font-medium"
-            onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}&step=product`)}>
-            编辑权益
+            onClick={() => navigate(`/entitlement/order/create?customerType=B&customerId=${id}&customerName=${encodeURIComponent(d.name)}`)}>
+            增购权益
           </button>
         } />
         <div className="px-6 py-5 space-y-7">
