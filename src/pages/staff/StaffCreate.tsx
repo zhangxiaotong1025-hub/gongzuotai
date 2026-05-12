@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
+import { BenefitPickerDialog, type CatalogItem } from "@/components/entitlement/BenefitPickerDialog";
 
 /* ── Constants ── */
 const PRODUCTS = [
