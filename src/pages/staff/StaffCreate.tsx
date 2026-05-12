@@ -298,54 +298,35 @@ function OrgTreeDropdown({ nodes, selectedIds, onToggle, depth }: {
   );
 }
 
-/* ── Benefit Row Card (person-level: only date range, no mode/quota) ── */
+/* ── Benefit Row (row-style aligned with EnterpriseCreate's BenefitListSection) ── */
 function BenefitRowCard({ pkg, onUpdate, onRemove }: {
   pkg: BenefitPkg;
   onUpdate: (field: string, value: unknown) => void;
   onRemove: () => void;
 }) {
   const cssVar = VARIANT_VARS[pkg.tone];
-  const [expanded, setExpanded] = useState(true);
-
   return (
-    <div
-      className="rounded-xl border overflow-hidden transition-all"
-      style={{ borderColor: `hsl(var(${cssVar}) / 0.15)` }}
-    >
-      {/* Header */}
-      <div
-        className="flex items-center justify-between px-4 py-3 cursor-pointer"
-        style={{ background: `hsl(var(${cssVar}) / 0.03)` }}
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-1 h-4 rounded-full" style={{ background: `hsl(var(${cssVar}))` }} />
-          <span className="text-[13px] font-semibold" style={{ color: `hsl(var(${cssVar}))` }}>{pkg.name}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            className="p-1 rounded hover:bg-muted/60 transition-colors"
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          >
-            <X className="h-3.5 w-3.5 text-muted-foreground" />
-          </button>
-          {expanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
-        </div>
+    <div className="grid grid-cols-[minmax(220px,1fr)_260px_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors">
+      <div className="px-4 py-3">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap"
+          style={{ background: `hsl(var(${cssVar}) / 0.08)`, color: `hsl(var(${cssVar}))` }}
+          title={pkg.desc}
+        >
+          <Package className="h-3 w-3 shrink-0" />
+          {pkg.name}
+        </span>
       </div>
-
-      {/* Body — only usage period for person-level */}
-      {expanded && (
-        <div className="px-4 py-4 space-y-3 border-t" style={{ borderColor: `hsl(var(${cssVar}) / 0.1)` }}>
-          <div className="text-[12px] text-muted-foreground">{pkg.desc}</div>
-          <div className="space-y-1.5">
-            <label className="text-[12px] text-muted-foreground font-medium">使用周期</label>
-            <DateRangePicker
-              value={pkg.dateRange}
-              onChange={(v) => onUpdate("dateRange", v)}
-            />
-          </div>
-        </div>
-      )}
+      <div className="px-3 py-2">
+        <DateRangePicker value={pkg.dateRange} onChange={(v) => onUpdate("dateRange", v)} />
+      </div>
+      <button
+        className="justify-self-center p-1 rounded hover:bg-muted/60 transition-colors"
+        onClick={onRemove}
+        title="移除"
+      >
+        <X className="h-3.5 w-3.5 text-muted-foreground" />
+      </button>
     </div>
   );
 }
