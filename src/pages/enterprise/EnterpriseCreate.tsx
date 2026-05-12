@@ -682,6 +682,7 @@ function StepBenefits({
           if (!product) return null;
           const cfg = form.productConfigs[pKey] || { packageRows: [], productRows: [], accountCount: 30 };
           const catalog = BENEFIT_CATALOG[pKey] || [];
+          const expireMax = form.expireDate ? new Date(form.expireDate) : undefined;
           return (
             <div key={pKey} className="rounded-2xl border border-border/70 overflow-hidden bg-card" style={{ boxShadow: "var(--shadow-xs)" }}>
               <div className="flex items-center justify-between border-b border-border/60 bg-muted/25 px-5 py-4">
@@ -701,8 +702,14 @@ function StepBenefits({
                   </div>
                 </FormRow>
                 <FormRow label="授权时间" wide>
-                  <div className="w-[280px]">
-                    <DateRangePicker value={cfg.dateRange || "2026-01-01 ~ 2028-12-31"} onChange={(val) => updateProductDateRange(pKey, val)} />
+                  <div className="space-y-1.5">
+                    <div className="w-[280px]">
+                      <DateRangePicker value={cfg.dateRange || "2026-01-01 ~ 2028-12-31"} onChange={(val) => updateProductDateRange(pKey, val)} maxDate={expireMax} />
+                    </div>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Info className="h-3 w-3 shrink-0" />
+                      <span>授权时间不可超出企业到期时间{form.expireDate ? `（${form.expireDate}）` : ""}</span>
+                    </div>
                   </div>
                 </FormRow>
                 <BenefitListSection
@@ -745,7 +752,9 @@ function StepBenefits({
               <ToggleSwitch checked={form.autoGrantSub} onChange={() => update("autoGrantSub", !form.autoGrantSub)} />
             </FormRow>
             <FormRow label="到期时间" wide>
-              <input className="filter-input w-48" type="date" value={form.expireDate} onChange={(e) => update("expireDate", e.target.value)} />
+              <div className="w-[280px]">
+                <SingleDatePicker value={form.expireDate} onChange={(v) => update("expireDate", v)} placeholder="选择企业到期时间" />
+              </div>
             </FormRow>
           </div>
         </SectionCard>
