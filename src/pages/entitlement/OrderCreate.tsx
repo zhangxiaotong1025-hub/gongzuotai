@@ -148,20 +148,26 @@ export default function OrderCreate() {
         <div className="p-6">
           <div className="max-w-[860px] mx-auto space-y-5">
             <FormRow label="账户类型" required>
-              <div className="flex gap-1 bg-muted rounded-lg p-0.5 max-w-[420px]">
-                {CUSTOMER_TYPES.map((t) => (
-                  <button
-                    key={t.value}
-                    type="button"
-                    onClick={() => handleChangeCustomerType(t.value)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[12px] font-medium rounded-md transition-colors ${
-                      customerType === t.value ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {t.value === "B" ? <Building2 className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
-                    {t.label}
-                  </button>
-                ))}
+              <div className="inline-grid grid-cols-2 gap-2 max-w-[420px]">
+                {CUSTOMER_TYPES.map((t) => {
+                  const active = customerType === t.value;
+                  const Icon = t.value === "B" ? Building2 : User;
+                  return (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => handleChangeCustomerType(t.value)}
+                      className={`flex items-center justify-center gap-1.5 px-5 py-2.5 text-[13px] font-medium rounded-lg border-2 transition-all ${
+                        active
+                          ? "border-primary bg-primary/10 text-primary shadow-sm"
+                          : "border-border bg-background text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {t.label}
+                    </button>
+                  );
+                })}
               </div>
             </FormRow>
 
