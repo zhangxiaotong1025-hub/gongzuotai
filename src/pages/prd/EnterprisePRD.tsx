@@ -133,7 +133,8 @@ export default function EnterprisePRD() {
         <EditFlow />
         <Delivery />
         <E2EFlow />
-        <div className="text-center text-[12px] text-muted-foreground py-8 border-t">— 企业管理 PRD · v1.1 · 端到端版 · 变更走 PR 评审 —</div>
+        <DataLifecycleAtlas />
+        <div className="text-center text-[12px] text-muted-foreground py-8 border-t">— 企业管理 PRD · v1.2 · 数据生命周期图谱 · 变更走 PR 评审 —</div>
       </main>
     </div>
   );
