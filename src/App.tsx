@@ -119,6 +119,7 @@ function ProtectedRoutes() {
         <Route path="/entitlement/package" element={<PackageList />} />
         <Route path="/entitlement/package/detail/:id" element={<PackageDetail />} />
         <Route path="/entitlement/order" element={<OrderList />} />
+        <Route path="/entitlement/order/create" element={<OrderCreate />} />
         <Route path="/entitlement/order/detail/:id" element={<OrderDetail />} />
         <Route path="/entitlement/account" element={<AccountList />} />
         <Route path="/entitlement/account/detail/:id" element={<AccountDetail />} />
