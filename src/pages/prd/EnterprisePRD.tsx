@@ -9,6 +9,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { Card, H2, H3, H4, KV, Pre, Stat, Table, Tag, Code, SeqLine } from "./entitlement/parts";
+import { Mermaid } from "@/components/prd/Mermaid";
 
 /* ──────────────────────────────────────────────
    企业管理 PRD · 单页平铺
