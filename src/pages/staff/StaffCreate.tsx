@@ -537,7 +537,7 @@ export default function StaffCreate() {
                   <div className="border border-border/70 rounded-xl overflow-hidden bg-card">
                     <div className="grid grid-cols-[minmax(220px,1fr)_260px_36px] bg-muted/35 border-b border-border/60 text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
                       <div className="px-4 py-3">权益商品</div>
-                      <div className="px-4 py-3">使用周期</div>
+                      <div className="px-4 py-3 flex items-center gap-1" title="使用周期同企业权益配置，不支持单独编辑">使用周期<Info className="h-3 w-3 opacity-60" /></div>
                       <div />
                     </div>
                     {form.benefits.map((pkg) => (
