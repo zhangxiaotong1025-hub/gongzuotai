@@ -378,32 +378,38 @@ export default function StaffCreate() {
     return all;
   }, [form.enabledProducts]);
 
-  const addBenefit = (item: BenefitItem) => {
-    // 套餐拆分为商品后逐项加入；商品直接加入
-    const toAdd = item.kind === "bundle" && item.expandsTo
-      ? item.expandsTo
-      : [{ name: item.name, desc: item.desc, tone: item.tone }];
+  const addBenefits = (items: BenefitItem[]) => {
     const additions: BenefitPkg[] = [];
-    toAdd.forEach((it, idx) => {
-      if (form.benefits.find((b) => b.name === it.name)) return;
-      if (additions.find((a) => a.name === it.name)) return;
-      additions.push({
-        id: `b-${Date.now()}-${idx}`,
-        name: it.name,
-        desc: it.desc,
-        tone: it.tone,
-        dateRange: "2026-01-01 ~ 2028-12-31",
+    let bundleSplitCount = 0;
+    items.forEach((item) => {
+      const toAdd = item.kind === "bundle" && item.expandsTo
+        ? item.expandsTo
+        : [{ name: item.name, desc: item.desc, tone: item.tone }];
+      toAdd.forEach((it, idx) => {
+        if (form.benefits.find((b) => b.name === it.name)) return;
+        if (additions.find((a) => a.name === it.name)) return;
+        additions.push({
+          id: `b-${Date.now()}-${additions.length}-${idx}`,
+          name: it.name,
+          desc: it.desc,
+          tone: it.tone,
+          dateRange: "2026-01-01 ~ 2028-12-31",
+        });
+        if (item.kind === "bundle") bundleSplitCount += 1;
       });
     });
     if (additions.length === 0) {
       toast.info("所选项目已全部添加");
       return;
     }
-    if (item.kind === "bundle") {
-      toast.success(`已按商品维度拆分加入 ${additions.length} 项`);
+    if (bundleSplitCount > 0) {
+      toast.success(`已加入 ${additions.length} 项（含套餐拆分 ${bundleSplitCount} 项）`);
+    } else {
+      toast.success(`已加入 ${additions.length} 项`);
     }
     update("benefits", [...form.benefits, ...additions]);
   };
+  const addBenefit = (item: BenefitItem) => addBenefits([item]);
 
   const removeBenefit = (id: string) => update("benefits", form.benefits.filter((b) => b.id !== id));
 
@@ -583,10 +589,10 @@ export default function StaffCreate() {
                     options: PRODUCTS.filter((p) => form.enabledProducts.includes(p.key)).map((p) => ({ label: p.label, value: p.label })),
                   }}
                   onConfirm={(selected) => {
-                    selected.forEach((s) => {
-                      const original = availableBenefits.find((b) => b.name === s.id);
-                      if (original) addBenefit(original);
-                    });
+                    const originals = selected
+                      .map((s) => availableBenefits.find((b) => b.name === s.id))
+                      .filter((b): b is (BenefitItem & { productKey: string }) => !!b);
+                    if (originals.length) addBenefits(originals);
                   }}
                 />
               </div>
