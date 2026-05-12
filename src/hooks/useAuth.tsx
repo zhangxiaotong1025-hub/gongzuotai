@@ -7,12 +7,15 @@ export interface Enterprise {
   logo?: string;
 }
 
+export type Perspective = "platform" | "enterprise";
+
 export interface AuthUser {
   id: string;
   name: string;
   phone: string;
   avatar?: string;
   role: string;
+  perspective: Perspective; // 由登录账号决定：平台后台 / 企业后台
   enterprises: Enterprise[];
   currentEnterprise: Enterprise | null;
 }
@@ -31,23 +34,28 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 // Mock data
+const PLATFORM_ENTERPRISE: Enterprise = { id: "ent-platform", name: "居然设计家平台", type: "平台" };
 const MOCK_ENTERPRISES: Enterprise[] = [
   { id: "ent-1", name: "居然设计家总部", type: "品牌商" },
   { id: "ent-2", name: "居然之家北四环店", type: "卖场" },
   { id: "ent-3", name: "居然之家丽泽店", type: "门店" },
 ];
 
-const MOCK_USER: AuthUser = {
+/** Mock 演示账号：
+ *  - 平台管理员：13800138000 / 密码 admin123 / 验证码 1234
+ *  - 企业管理员：13900139000 / 密码 admin123 / 验证码 1234
+ */
+const PLATFORM_ADMIN_PHONE = "13800138000";
+const ENTERPRISE_ADMIN_PHONE = "13900139000";
+
+const MOCK_USER_BASE = {
   id: "user-1",
   name: "程女士",
-  phone: "13800138000",
-  role: "超级管理员",
-  enterprises: MOCK_ENTERPRISES,
-  currentEnterprise: null,
+  avatar: undefined as string | undefined,
 };
 
-// Phones that trigger multi-enterprise selection
-const MULTI_ENTERPRISE_PHONES = ["13800138000", "13900139000"];
+// Phones that trigger multi-enterprise selection（企业管理员可能归属多家企业）
+const MULTI_ENTERPRISE_PHONES = [ENTERPRISE_ADMIN_PHONE];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => {
