@@ -36,6 +36,7 @@ import PackageList from "./pages/entitlement/PackageList";
 import PackageDetail from "./pages/entitlement/PackageDetail";
 import OrderList from "./pages/entitlement/OrderList";
 import OrderDetail from "./pages/entitlement/OrderDetail";
+import OrderCreate from "./pages/entitlement/OrderCreate";
 import AccountList from "./pages/entitlement/AccountList";
 import AccountDetail from "./pages/entitlement/AccountDetail";
 import EntitlementDashboard from "./pages/entitlement/Dashboard";
