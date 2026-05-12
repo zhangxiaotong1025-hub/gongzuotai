@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, Enterprise } from "@/hooks/useAuth";
-import { Phone, Lock, MessageSquare, KeyRound, ChevronRight, Building2, Eye, EyeOff, Info } from "lucide-react";
+import { Phone, Lock, MessageSquare, KeyRound, ChevronRight, Building2, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
