@@ -139,14 +139,16 @@ function Overview() {
       </div>
 
       <div id="ov-axiom">
-        <H3>5 条不可违反的公理</H3>
+        <H3>6 条不可违反的公理</H3>
         <div className="grid grid-cols-1 gap-2.5">
           {[
+            { k: "公理 0 · 平台即上帝视角", v: "平台后台（perspective=platform）拥有全部能力 —— 可代任意企业创建子企业 / 人员 / 商品 / 模型资产 / 调整组织树。安全边界不由「能不能点」收口，而由「权限管理」的角色 × 策略 × 数据范围三层兜底。企业后台（perspective=enterprise）只能在自己企业子树内操作。" },
             { k: "公理 1 · 状态三维解耦", v: "审核状态（pending/approved/rejected）、业务状态（active/disabled）、所有权状态（normal/frozen）相互独立，禁止用单一 status 字段表达。" },
-            { k: "公理 2 · 总部不可停用", v: "Level=0 的根企业（HQ）禁止被「停用 / 删除」，仅支持「冻结」（由审计或合规触发）。停用只针对 Level≥1 的子企业。" },
-            { k: "公理 3 · 编辑不创订单", v: "企业编辑页面禁止修改权益数量、套餐、到期时间。所有权益变更（增购、续期、回收、赠送）必须通过权益订单，留下 sourceOrderId 溯源。" },
-            { k: "公理 4 · 退出而非删除", v: "企业、人员均不支持物理删除。退出（exit）即解除归属 + 软冻结历史数据，保证审计与对账可追溯。" },
-            { k: "公理 5 · 级联冻结，不级联停用", v: "冻结父企业 → 子企业级联冻结；停用父企业不级联停用子企业（业务停用是商务行为，需逐个确认）。" },
+            { k: "公理 2 · 所有真实企业均可停用", v: "停用入口对 Level 0/1/2 全部开放（仅虚拟「平台根节点」除外），由角色权限决定谁能按；总部停用属高危操作，需二次确认 + 审计留痕。" },
+            { k: "公理 3 · 到期即自动停用", v: "expire_at ≤ now() 由定时任务把 business_status 自动置 disabled，权益账户 quota.frozen=true；续期成功后由订单事件回写为 active。该流程不经过人工，但会写 AuditRecord(action=auto_disable)。" },
+            { k: "公理 4 · 编辑不创订单", v: "企业编辑页面禁止修改权益数量、套餐、到期时间。所有权益变更（增购、续期、回收、赠送）必须通过权益订单，留下 sourceOrderId 溯源。" },
+            { k: "公理 5 · 退出而非删除", v: "企业、人员均不支持物理删除。退出（exit）即解除归属 + 软冻结历史数据，保证审计与对账可追溯。" },
+            { k: "公理 6 · 级联冻结，不级联停用", v: "冻结父企业 → 子企业级联冻结；停用父企业不级联停用子企业（业务停用是商务行为，需逐个确认）。" },
           ].map((it, i) => (
             <div key={i} className="flex gap-3 border rounded-lg px-3.5 py-2.5 bg-muted/15">
               <div className="text-[12px] font-semibold text-primary w-[160px] shrink-0">{it.k}</div>
@@ -162,11 +164,12 @@ function Overview() {
           headers={["术语", "定义", "易混淆点"]}
           rows={[
             ["企业（Enterprise）", "平台租户主体，持有唯一 enterprise_id", "≠ 品牌（Brand），一个企业可代理多个品牌"],
-            ["总部（HQ）", "Level=0 的根企业，由平台审核准入", "总部不可被停用，仅可冻结"],
-            ["子企业（Child）", "Level=1，由 HQ 创建", "权益可独立配置或继承"],
+            ["总部（HQ）", "Level=0 的根企业，由平台审核准入", "可停用、可冻结，停用属高危操作"],
+            ["子企业（Child）", "Level=1，由 HQ 或平台代建", "权益可独立配置或继承"],
             ["末级企业（Grandchild）", "Level=2，最大层级，不可再建子级", "支持停用，不支持再创建下级"],
+            ["视角 perspective", "platform（平台） / enterprise（企业）", "平台视角全权代操作；企业视角受限于自身子树"],
             ["审核状态", "pending / approved / rejected", "驳回（rejected）后允许再次提交审核"],
-            ["业务状态", "active / disabled", "由企业管理员或平台手动切换"],
+            ["业务状态", "active / disabled", "手动切换 或 到期自动 disable"],
             ["所有权状态", "normal / frozen", "由审计、合规或上级冻结触发，级联生效"],
             ["归属（Ownership）", "人员 / 客户 / 订单与企业之间的多对一关系", "迁移会触发权益重算与审计记录"],
           ]}
@@ -262,11 +265,12 @@ function Blueprint() {
       <div id="bp-rule">
         <H3>架构层级约束</H3>
         <Pre>{`R1  企业 Level ∈ {0,1,2}，最深 3 层
-R2  Level=0 仅由平台创建；Level=1 由 HQ 创建；Level=2 由 Level≤1 创建
+R2  Level=0 仅平台创建；Level=1 由 HQ 或平台代建；Level=2 由 Level≤1 或平台代建
 R3  子企业的 type ∈ SUB_TYPE_MAP[parent.type]
 R4  子企业的到期时间 ≤ 父企业到期时间（trigger 校验）
-R5  人员（Staff）必须挂载到某个具体企业节点（不能挂在「平台」上）
-R6  企业 enterprise_id 一经创建不可变更；归属迁移走 ownership_event 记录`}</Pre>
+R5  人员（Staff）必须挂载到某个具体企业节点（不能挂在「平台根」上）；平台后台操作人员需先选定一个企业作用域
+R6  企业 enterprise_id 一经创建不可变更；归属迁移走 ownership_event 记录
+R7  平台视角对以上规则有「越权读 + 代操作写」能力，但仍受 R1–R6 业务规则约束（不能绕过 Level/Type/到期校验）`}</Pre>
       </div>
     </section>
   );
@@ -336,13 +340,17 @@ function Runtime() {
 
           <Card>
             <H4>逆向流 B · 业务停用 → 启用</H4>
-            <Pre>{`仅 Level≥1 且 audit=approved 的企业可停用
+            <Pre>{`所有真实企业（Level 0/1/2）均可停用，仅虚拟「平台根」无此入口
 business: active → disabled
   · 不影响审核状态、不影响所有权
   · 不级联到子企业（避免误伤）
   · 已发放权益保留但暂停消耗（quota.frozen=true）
   · 在用人员不可登录该企业作用域（其他企业身份仍可用）
-启用回滚：disabled → active，恢复 quota.frozen=false，发送 enterprise.reactivated`}</Pre>
+触发来源：
+  · 人工：企业管理员 / 平台代操作（按角色权限）
+  · 自动：expire_at ≤ now() 定时任务 → AuditRecord(action=auto_disable)
+启用回滚：disabled → active，恢复 quota.frozen=false，发送 enterprise.reactivated
+  · 若由到期自动停用，需先续期（订单驱动）使 expire_at > now() 方可启用`}</Pre>
           </Card>
 
           <Card>
@@ -380,10 +388,11 @@ business: active → disabled
           headers={["操作", "Level0 HQ", "Level1 子", "Level2 末级", "前置条件"]}
           cols={[undefined, "100px", "100px", "100px", undefined]}
           rows={[
-            ["审核 / 再审核", <Tag tone="info">✓</Tag>, <Tag tone="muted">—</Tag>, <Tag tone="muted">—</Tag>, "audit ∈ {pending,rejected}"],
-            ["停用 / 启用", <Tag tone="danger">禁止</Tag>, <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, "audit=approved & ownership=normal"],
+            ["审核 / 再审核", <Tag tone="info">✓</Tag>, <Tag tone="muted">—</Tag>, <Tag tone="muted">—</Tag>, "audit ∈ {pending,rejected}；仅平台视角"],
+            ["停用 / 启用", <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, "audit=approved & ownership=normal；总部停用需二次确认"],
+            ["到期自动停用", <Tag tone="warning">系统</Tag>, <Tag tone="warning">系统</Tag>, <Tag tone="warning">系统</Tag>, "expire_at ≤ now() 由定时任务触发"],
             ["冻结 / 解冻", <Tag tone="warning">✓</Tag>, <Tag tone="muted">级联</Tag>, <Tag tone="muted">级联</Tag>, "平台审计/合规角色"],
-            ["创建子企业", <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, <Tag tone="danger">禁止</Tag>, "level < 2 & ownership=normal"],
+            ["创建子企业", <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, <Tag tone="danger">禁止</Tag>, "level < 2 & ownership=normal；平台可代任意企业创建"],
             ["编辑权益配置", <Tag tone="warning">只读</Tag>, <Tag tone="warning">只读</Tag>, <Tag tone="warning">只读</Tag>, "编辑模式锁定，走订单调整"],
           ]}
         />
