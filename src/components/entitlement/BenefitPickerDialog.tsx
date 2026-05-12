@@ -119,39 +119,51 @@ export function BenefitPickerDialog({
         </DialogHeader>
 
         {/* Filters */}
-        <div className="flex items-center gap-2 pb-3 border-b flex-wrap">
-          {showKindTabs && kinds.length > 1 && (
-            <div className="flex gap-1 bg-muted rounded-lg p-0.5 shrink-0">
-              <button
-                onClick={() => setKindVal("all")}
-                className={cn("px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors",
-                  kindVal === "all" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
-              >全部</button>
-              {kinds.map((k) => {
-                const Icon = KIND_META[k].icon;
-                return (
-                  <button key={k} onClick={() => setKindVal(k)}
-                    className={cn("px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors inline-flex items-center gap-1",
-                      kindVal === k ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-                    <Icon className="h-3.5 w-3.5" />{KIND_META[k].label}
-                  </button>
-                );
-              })}
+        <div className="space-y-2 pb-3 border-b">
+          <div className="flex items-center gap-2 flex-wrap">
+            {showKindTabs && kinds.length > 1 && (
+              <div className="flex gap-1 bg-muted rounded-lg p-0.5 shrink-0">
+                <button
+                  onClick={() => setKindVal("all")}
+                  className={cn("px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors",
+                    kindVal === "all" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                >全部</button>
+                {kinds.map((k) => {
+                  const Icon = KIND_META[k].icon;
+                  return (
+                    <button key={k} onClick={() => setKindVal(k)}
+                      className={cn("px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors inline-flex items-center gap-1",
+                        kindVal === k ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                      <Icon className="h-3.5 w-3.5" />{KIND_META[k].label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="搜索名称 / 描述" className="pl-8 h-8 text-[13px]" />
             </div>
-          )}
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="搜索名称 / 描述" className="pl-8 h-8 text-[13px]" />
+            {multiple && (
+              <span className="text-[12px] text-muted-foreground whitespace-nowrap">已选 {selectedCount} 项</span>
+            )}
           </div>
-          {multiple && (
-            <span className="text-[12px] text-muted-foreground whitespace-nowrap">已选 {selectedCount} 项</span>
-          )}
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="搜索名称 / 描述" className="pl-8 h-8 text-[13px]" />
-          </div>
-          {multiple && (
-            <span className="text-[12px] text-muted-foreground whitespace-nowrap">已选 {selectedCount} 项</span>
+          {groupFilter && groupFilter.options.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] text-muted-foreground shrink-0 mr-1">{groupFilter.label || "应用"}：</span>
+              <button
+                onClick={() => setGroupVal("all")}
+                className={cn("px-2.5 py-1 text-[12px] rounded-full border transition-colors",
+                  groupVal === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30")}
+              >全部</button>
+              {groupFilter.options.map((o) => (
+                <button key={o.value} onClick={() => setGroupVal(o.value)}
+                  className={cn("px-2.5 py-1 text-[12px] rounded-full border transition-colors",
+                    groupVal === o.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30")}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
