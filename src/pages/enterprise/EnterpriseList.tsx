@@ -259,10 +259,14 @@ function unfreezeChildren(children?: Enterprise[]): Enterprise[] | undefined {
   }));
 }
 
+type Perspective = "platform" | "enterprise";
+
 export default function EnterpriseList() {
   const navigate = useNavigate();
   const [data, setData] = useState<Enterprise[]>(initialData);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(["ENT001"]));
+  // Mock: 默认平台后台视角，可切换到企业后台
+  const [perspective, setPerspective] = useState<Perspective>("platform");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(["ROOT_CURRENT", "ENT001"]));
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -271,6 +275,43 @@ export default function EnterpriseList() {
   const [subParent, setSubParent] = useState<Enterprise | null>(null);
   const [auditTarget, setAuditTarget] = useState<Enterprise | null>(null);
   const totalItems = 1200;
+
+  // 构造一行"当前最高层级企业"作为列表第一条
+  const displayData = useMemo<Enterprise[]>(() => {
+    if (perspective === "platform") {
+      const root: Enterprise = {
+        id: "ROOT_CURRENT",
+        name: "居然设计家平台",
+        type: "平台",
+        status: "active",
+        auditStatus: "approved",
+        products: PRODUCTS,
+        subsidiaries: data.length,
+        staff: data.reduce((sum, e) => sum + e.staff, 0),
+        createdAt: "2020-01-01 00:00",
+        creator: "系统",
+        updatedAt: "—",
+        note: "平台总控企业，不可编辑",
+        _root: true,
+        _level: 0,
+        children: data,
+      };
+      return [root];
+    }
+    // 企业后台视角：取第一家企业作为"当前企业"，其下级作为同级树
+    const [current, ...rest] = data;
+    if (!current) return [];
+    const root: Enterprise = {
+      ...current,
+      _root: true,
+      _level: 0,
+      note: current.note || "当前登录企业，不可编辑",
+      children: current.children,
+    };
+    // rest 不显示（属于其他企业，企业视角不可见）
+    void rest;
+    return [root];
+  }, [data, perspective]);
 
   const toggleExpand = useCallback((id: string) => {
     setExpanded((prev) => {
