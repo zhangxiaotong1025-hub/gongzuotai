@@ -6,6 +6,7 @@ import {
   Database,
   GitBranch,
   Rocket,
+  Workflow,
 } from "lucide-react";
 import { Card, H2, H3, H4, KV, Pre, Stat, Table, Tag, Code, SeqLine } from "./entitlement/parts";
 
