@@ -456,195 +456,110 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
   );
 }
 
-/* ── 二级弹窗：跨应用商品/套餐选择器 ── */
+/* ── 二级弹窗：跨应用商品/套餐选择器（基于共享 BenefitPickerDialog） ── */
 export function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
   open: boolean;
   onClose: () => void;
   existingItems: OrderItem[];
   onConfirm: (items: OrderItem[]) => void;
 }) {
-  const [tab, setTab] = useState<"product" | "sku" | "bundle">("product");
-  const [search, setSearch] = useState("");
-  const [appFilter, setAppFilter] = useState<string>("all");
-  const [localItems, setLocalItems] = useState<OrderItem[]>([]);
+  // 构造统一 catalog：跨 product/sku/bundle，按 app 分组
+  const catalog = useMemo(() => {
+    const items: import("@/components/entitlement/BenefitPickerDialog").CatalogItem[] = [];
+    const toneOf = (seed: string): "blue" | "teal" | "violet" | "amber" | "rose" => {
+      const arr = ["blue", "teal", "violet", "amber", "rose"] as const;
+      let h = 0;
+      for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+      return arr[Math.abs(h) % arr.length];
+    };
+    productData.filter((p) => p.status === "active").forEach((p) => {
+      const app = appData.find((a) => a.id === p.appId);
+      const ex = EXCHANGE_TYPES.find((e) => e.value === p.exchangeType);
+      items.push({
+        id: `product:${p.id}`,
+        name: p.name,
+        desc: `${p.code} · ${p.ruleIds.length} 条规则`,
+        tone: toneOf(p.id),
+        kind: "product",
+        group: app?.name || "—",
+        meta: (
+          <div className="flex items-center gap-1.5">
+            {ex && <span className={`${ex.className} shrink-0`}>{ex.label}</span>}
+            {p.exchangeType === "credit" && p.creditPrice ? (
+              <span className="text-[11px] text-muted-foreground">{p.creditPrice}积分</span>
+            ) : null}
+          </div>
+        ),
+      });
+    });
+    skuData.filter((s) => s.salesStatus === "on_sale").forEach((s) => {
+      const app = appData.find((a) => a.id === s.appId);
+      const cyc = BILLING_CYCLES.find((b) => b.value === s.billingCycle)?.label;
+      items.push({
+        id: `sku:${s.id}`,
+        name: s.name,
+        desc: s.code,
+        tone: toneOf(s.id),
+        kind: "sku",
+        group: app?.name || "—",
+        meta: (
+          <div className="text-right">
+            <div className="text-[12px] font-medium">{s.price > 0 ? `¥${s.price}` : "免费"}</div>
+            {cyc && <div className="text-[10px] text-muted-foreground">{cyc}</div>}
+          </div>
+        ),
+      });
+    });
+    bundleData.filter((b) => b.status === "on_sale").forEach((b) => {
+      const app = appData.find((a) => a.id === b.appId);
+      items.push({
+        id: `bundle:${b.id}`,
+        name: b.name,
+        desc: `${b.items.length} 个商品 · ${b.code}`,
+        tone: toneOf(b.id),
+        kind: "bundle",
+        group: app?.name || "—",
+        meta: (
+          <div className="text-right">
+            <div className="text-[12px] font-medium">{b.price > 0 ? `¥${b.price}` : "免费"}</div>
+            {b.originalPrice && <div className="text-[10px] text-muted-foreground line-through">¥{b.originalPrice}</div>}
+          </div>
+        ),
+      });
+    });
+    return items;
+  }, []);
 
-  useEffect(() => {
-    if (open) {
-      setLocalItems([...existingItems]);
-      setSearch("");
-      setAppFilter("all");
-    }
-  }, [open, existingItems]);
-
-  const filteredProducts = productData.filter((p) =>
-    p.status === "active" &&
-    (appFilter === "all" || p.appId === appFilter) &&
-    (!search || p.name.includes(search) || p.code.includes(search))
-  );
-  const filteredSkus = skuData.filter((s) =>
-    s.salesStatus === "on_sale" &&
-    (appFilter === "all" || s.appId === appFilter) &&
-    (!search || s.name.includes(search) || s.code.includes(search))
-  );
-  const filteredBundles = bundleData.filter((b) =>
-    b.status === "on_sale" &&
-    (appFilter === "all" || b.appId === appFilter) &&
-    (!search || b.name.includes(search) || b.code.includes(search))
-  );
-
-  const productsByApp = appData.filter((a) => appFilter === "all" || a.id === appFilter).map((app) => ({
-    app,
-    products: filteredProducts.filter((p) => p.appId === app.id),
-  })).filter((g) => g.products.length > 0);
-
-  const skusByApp = appData.filter((a) => appFilter === "all" || a.id === appFilter).map((app) => ({
-    app,
-    skus: filteredSkus.filter((s) => s.appId === app.id),
-  })).filter((g) => g.skus.length > 0);
-
-  const bundlesByApp = appData.filter((a) => appFilter === "all" || a.id === appFilter).map((app) => ({
-    app,
-    bundles: filteredBundles.filter((b) => b.appId === app.id),
-  })).filter((g) => g.bundles.length > 0);
-
-  const isSelected = (type: "product" | "sku" | "bundle", id: string) => localItems.some((i) => i.type === type && i.itemId === id);
-
-  const toggleItem = (type: "product" | "sku" | "bundle", item: Product | Sku | Bundle) => {
-    const id = item.id;
-    if (isSelected(type, id)) {
-      setLocalItems((prev) => prev.filter((i) => !(i.type === type && i.itemId === id)));
-    } else {
-      const price = type === "product" ? 0 : (item as Sku | Bundle).price;
-      setLocalItems((prev) => [...prev, { type, itemId: id, itemName: item.name, quantity: 1, unitPrice: price }]);
-    }
-  };
+  // 现有项目转 id 集合（保留已选时由 confirm 合并）
+  const existingIds = existingItems.map((it) => `${it.type}:${it.itemId}`);
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-[750px] max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle>选择权益产品 / 商品 / 套餐（支持跨应用）</DialogTitle>
-        </DialogHeader>
-
-        <div className="flex items-center gap-3 pb-3 border-b">
-          <div className="flex gap-1 bg-muted rounded-lg p-0.5 shrink-0">
-            <button onClick={() => setTab("product")} className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors ${tab === "product" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-              <Sparkles className="h-3.5 w-3.5 inline mr-1" />权益产品
-            </button>
-            <button onClick={() => setTab("sku")} className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors ${tab === "sku" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-              <Package className="h-3.5 w-3.5 inline mr-1" />商品SKU
-            </button>
-            <button onClick={() => setTab("bundle")} className={`px-3 py-1.5 text-[12px] font-medium rounded-md transition-colors ${tab === "bundle" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-              <Layers className="h-3.5 w-3.5 inline mr-1" />套餐
-            </button>
-          </div>
-          <Select value={appFilter} onValueChange={setAppFilter}>
-            <SelectTrigger className="h-8 w-[130px] text-[12px]"><SelectValue placeholder="全部应用" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部应用</SelectItem>
-              {appData.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="搜索名称或编码" className="pl-8 h-8 text-[13px]" />
-          </div>
-          <span className="text-[12px] text-muted-foreground whitespace-nowrap">已选 {localItems.length} 项</span>
-        </div>
-
-        <div className="flex-1 overflow-y-auto min-h-[300px] py-2">
-          {tab === "product" ? (
-            <div className="space-y-3">
-              {productsByApp.map(({ app, products }) => (
-                <div key={app.id}>
-                  <div className="flex items-center gap-2 mb-1.5 px-2">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary font-medium">{app.name}</span>
-                    <span className="text-[11px] text-muted-foreground">{products.length}个产品</span>
-                  </div>
-                  <div className="space-y-0.5">
-                    {products.map((product) => {
-                      const ex = EXCHANGE_TYPES.find((e) => e.value === product.exchangeType);
-                      return (
-                        <label key={product.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${isSelected("product", product.id) ? "bg-primary/5 border border-primary/20" : "hover:bg-muted/60 border border-transparent"}`}>
-                          <Checkbox checked={isSelected("product", product.id)} onCheckedChange={() => toggleItem("product", product)} />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[13px] font-medium text-foreground">{product.name}</div>
-                            <div className="text-[11px] text-muted-foreground font-mono">{product.code} · {product.ruleIds.length}条规则</div>
-                          </div>
-                          {ex && <span className={`${ex.className} shrink-0`}>{ex.label}</span>}
-                          {product.exchangeType === "credit" && product.creditPrice ? (
-                            <span className="text-[12px] text-muted-foreground shrink-0">{product.creditPrice}积分</span>
-                          ) : null}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-              {productsByApp.length === 0 && <div className="text-center text-[13px] text-muted-foreground py-8">暂无符合条件的权益产品</div>}
-              <div className="px-3 py-2 mx-2 mt-2 rounded-md bg-muted/40 text-[11px] text-muted-foreground leading-relaxed">
-                💡 内部发放订单可直接选择权益产品下发，单价记为 ¥0；商务签约/线下收款场景请选 SKU 或套餐
-              </div>
-            </div>
-          ) : tab === "sku" ? (
-            <div className="space-y-3">
-              {skusByApp.map(({ app, skus }) => (
-                <div key={app.id}>
-                  <div className="flex items-center gap-2 mb-1.5 px-2">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary font-medium">{app.name}</span>
-                    <span className="text-[11px] text-muted-foreground">{skus.length}个商品</span>
-                  </div>
-                  <div className="space-y-0.5">
-                    {skus.map((sku) => (
-                      <label key={sku.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${isSelected("sku", sku.id) ? "bg-primary/5 border border-primary/20" : "hover:bg-muted/60 border border-transparent"}`}>
-                        <Checkbox checked={isSelected("sku", sku.id)} onCheckedChange={() => toggleItem("sku", sku)} />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[13px] font-medium text-foreground">{sku.name}</div>
-                          <div className="text-[11px] text-muted-foreground font-mono">{sku.code}</div>
-                        </div>
-                        <span className="text-[13px] font-medium shrink-0">{sku.price > 0 ? `¥${sku.price}` : "免费"}</span>
-                        <span className="text-[11px] text-muted-foreground shrink-0">{BILLING_CYCLES.find((b) => b.value === sku.billingCycle)?.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              {skusByApp.length === 0 && <div className="text-center text-[13px] text-muted-foreground py-8">暂无符合条件的商品</div>}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {bundlesByApp.map(({ app, bundles }) => (
-                <div key={app.id}>
-                  <div className="flex items-center gap-2 mb-1.5 px-2">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary font-medium">{app.name}</span>
-                    <span className="text-[11px] text-muted-foreground">{bundles.length}个套餐</span>
-                  </div>
-                  <div className="space-y-0.5">
-                    {bundles.map((bundle) => (
-                      <label key={bundle.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${isSelected("bundle", bundle.id) ? "bg-primary/5 border border-primary/20" : "hover:bg-muted/60 border border-transparent"}`}>
-                        <Checkbox checked={isSelected("bundle", bundle.id)} onCheckedChange={() => toggleItem("bundle", bundle)} />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[13px] font-medium text-foreground">{bundle.name}</div>
-                          <div className="text-[11px] text-muted-foreground">{bundle.items.length}个商品 · {bundle.code}</div>
-                        </div>
-                        <span className="text-[13px] font-medium shrink-0">{bundle.price > 0 ? `¥${bundle.price}` : "免费"}</span>
-                        {bundle.originalPrice && <span className="text-[11px] text-muted-foreground line-through shrink-0">¥{bundle.originalPrice}</span>}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              {bundlesByApp.length === 0 && <div className="text-center text-[13px] text-muted-foreground py-8">暂无符合条件的套餐</div>}
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>取消</Button>
-          <Button onClick={() => onConfirm(localItems)}>确认选择 ({localItems.length})</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <BenefitPickerDialogLazy
+      open={open}
+      onClose={onClose}
+      title="选择权益产品 / 商品 / 套餐（支持跨应用）"
+      description="支持跨应用筛选、按类型切换、关键字搜索"
+      items={catalog}
+      existingIds={existingIds}
+      showKindTabs
+      groupFilter={{ label: "全部应用", options: appData.map((a) => ({ label: a.name, value: a.name })) }}
+      onConfirm={(selected) => {
+        const additions: OrderItem[] = selected.map((s) => {
+          const [type, rawId] = s.id.split(":");
+          if (type === "product") {
+            const p = productData.find((x) => x.id === rawId)!;
+            return { type: "product", itemId: p.id, itemName: p.name, quantity: 1, unitPrice: 0 };
+          }
+          if (type === "sku") {
+            const sk = skuData.find((x) => x.id === rawId)!;
+            return { type: "sku", itemId: sk.id, itemName: sk.name, quantity: 1, unitPrice: sk.price };
+          }
+          const bd = bundleData.find((x) => x.id === rawId)!;
+          return { type: "bundle", itemId: bd.id, itemName: bd.name, quantity: 1, unitPrice: bd.price };
+        });
+        onConfirm([...existingItems, ...additions]);
+      }}
+    />
   );
 }
 
