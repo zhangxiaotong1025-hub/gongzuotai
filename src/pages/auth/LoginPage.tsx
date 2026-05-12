@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, Enterprise } from "@/hooks/useAuth";
-import { Phone, Lock, MessageSquare, KeyRound, ChevronRight, Building2, Eye, EyeOff, Info } from "lucide-react";
+import { Phone, Lock, MessageSquare, KeyRound, ChevronRight, Building2, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -298,17 +298,7 @@ export default function LoginPage() {
             </Button>
           </div>
 
-          {/* 初始密码 + Mock 提示 */}
-          <div className="mt-6 rounded-lg border border-primary/15 bg-primary/[0.03] px-3.5 py-2.5">
-            <div className="flex items-start gap-2">
-              <Info className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
-              <div className="text-[12px] text-foreground leading-relaxed">
-                <span className="font-medium">初始密码：</span>
-                <code className="text-primary bg-primary/8 px-1.5 py-0.5 rounded mx-0.5 font-mono">Aa@123456</code>
-                <span className="text-muted-foreground">（管理员创建账号后默认密码，登录后请尽快修改）</span>
-              </div>
-            </div>
-          </div>
+
 
           <div className="mt-3 rounded-lg border border-border bg-muted/40 px-3.5 py-2.5">
             <p className="text-[11px] text-muted-foreground mb-1.5">Mock 演示账号（密码 <code className="text-foreground bg-card px-1 rounded">admin123</code> / 验证码 <code className="text-foreground bg-card px-1 rounded">1234</code>）</p>
