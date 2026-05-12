@@ -535,7 +535,7 @@ export function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
   const existingIds = existingItems.map((it) => `${it.type}:${it.itemId}`);
 
   return (
-    <BenefitPickerDialogLazy
+    <BenefitPickerDialog
       open={open}
       onClose={onClose}
       title="选择权益产品 / 商品 / 套餐（支持跨应用）"
