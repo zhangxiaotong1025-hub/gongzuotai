@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
+import { BenefitPickerDialog, type CatalogItem } from "@/components/entitlement/BenefitPickerDialog";
 
 /* ── Constants ── */
 const PRODUCTS = [
@@ -551,54 +552,42 @@ export default function StaffCreate() {
                   </div>
                 )}
 
-                <div className="relative">
+                <div>
                   <button
                     className="flex items-center gap-1.5 text-[12px] text-primary/70 hover:text-primary transition-colors"
-                    onClick={() => setShowBenefitPicker(!showBenefitPicker)}
+                    onClick={() => setShowBenefitPicker(true)}
                   >
                     <Plus className="h-3.5 w-3.5" /> 添加权益商品
                   </button>
-                  {showBenefitPicker && (
-                    <div
-                      className="absolute left-0 top-full mt-2 z-50 w-[340px] rounded-xl border bg-popover py-1 max-h-[320px] overflow-y-auto"
-                      style={{ boxShadow: "var(--shadow-lg)" }}
-                    >
-                      {availableBenefits.length === 0 && (
-                        <div className="px-4 py-3 text-[12px] text-muted-foreground">请先开启产品</div>
-                      )}
-                      {availableBenefits.map((item, i) => {
-                        const isBundle = item.kind === "bundle";
-                        const already = !isBundle && form.benefits.find((b) => b.name === item.name);
-                        const cssVar = VARIANT_VARS[item.tone];
-                        return (
-                          <button
-                            key={i}
-                            className={cn(
-                              "flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors",
-                              already ? "opacity-40 cursor-not-allowed" : "hover:bg-muted cursor-pointer"
-                            )}
-                            disabled={!!already}
-                            onClick={() => { addBenefit(item); setShowBenefitPicker(false); }}
-                          >
-                            <div className="w-1 h-5 rounded-full shrink-0" style={{ background: `hsl(var(${cssVar}))` }} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <div className="text-[13px] font-medium text-foreground truncate">{item.name}</div>
-                                {isBundle && (
-                                  <span className="inline-flex items-center px-1.5 py-[1px] rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-                                    套餐·拆分
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-[11px] text-muted-foreground truncate">{item.desc}</div>
-                            </div>
-                            {already && <span className="text-[11px] text-muted-foreground">已添加</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
+                <BenefitPickerDialog
+                  open={showBenefitPicker}
+                  onClose={() => setShowBenefitPicker(false)}
+                  title="选择权益商品"
+                  description="支持按产品筛选；选择套餐时系统将按其包含的商品逐项加入"
+                  items={availableBenefits.map((b) => ({
+                    id: b.name,
+                    name: b.name,
+                    desc: b.desc,
+                    tone: b.tone,
+                    kind: b.kind === "bundle" ? "bundle" : "sku",
+                    group: PRODUCTS.find((p) => p.key === b.productKey)?.label || b.productKey,
+                    meta: b.kind === "bundle" && b.expandsTo
+                      ? <span className="text-[11px] text-muted-foreground">{b.expandsTo.length} 项商品</span>
+                      : null,
+                  } as CatalogItem))}
+                  existingIds={form.benefits.map((b) => b.name)}
+                  groupFilter={{
+                    label: "全部产品",
+                    options: PRODUCTS.filter((p) => form.enabledProducts.includes(p.key)).map((p) => ({ label: p.label, value: p.label })),
+                  }}
+                  onConfirm={(selected) => {
+                    selected.forEach((s) => {
+                      const original = availableBenefits.find((b) => b.name === s.id);
+                      if (original) addBenefit(original);
+                    });
+                  }}
+                />
               </div>
             </FormRow>
 

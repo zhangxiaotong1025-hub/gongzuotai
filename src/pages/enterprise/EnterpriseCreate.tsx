@@ -9,6 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { bundleData, skuData, BILLING_CYCLES, getProductsBySkuId, type Bundle } from "@/data/entitlement";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BenefitPickerDialog, type CatalogItem } from "@/components/entitlement/BenefitPickerDialog";
 
 const TYPE_LABELS: Record<string, string> = {
   mall: "卖场",
@@ -866,64 +867,30 @@ function BenefitListSection({
         </div>
       )}
 
-      {showPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowPicker(false)}>
-          <div className="bg-card rounded-2xl border border-border/70 w-[560px] max-h-[520px] flex flex-col overflow-hidden" style={{ boxShadow: "var(--shadow-md)" }} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border/60 bg-muted/25">
-              <div>
-                <h4 className="text-[14px] font-semibold text-foreground">选择{label}</h4>
-                <p className="text-[12px] text-muted-foreground mt-1">同一权益仅可添加一次</p>
+      <BenefitPickerDialog
+        open={showPicker}
+        onClose={() => setShowPicker(false)}
+        title={`选择${label}`}
+        description="支持搜索筛选；同一权益仅可添加一次"
+        items={catalog.map((c) => {
+          const bundle = label === "权益套餐" ? bundleData.find((b) => b.name === c.name) : undefined;
+          return {
+            id: c.name,
+            name: c.name,
+            desc: c.desc,
+            tone: c.tone,
+            kind: label === "权益套餐" ? "bundle" : "sku",
+            meta: bundle ? (
+              <div className="text-right">
+                <div className="text-[12px] font-medium text-foreground">{bundle.price > 0 ? `¥${bundle.price}` : "免费"}</div>
+                <div className="text-[10px] text-muted-foreground">{bundle.items.length} 项商品</div>
               </div>
-              <button onClick={() => setShowPicker(false)} className="text-muted-foreground hover:text-foreground transition-colors">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="px-5 py-3 border-b border-border/60">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <input className="filter-input w-full pl-9" placeholder="搜索权益名称..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {filtered.length === 0 ? (
-                <div className="text-center py-10 text-[13px] text-muted-foreground">暂无匹配的权益</div>
-              ) : (
-                filtered.map((item) => {
-                  const alreadyAdded = rows.some((r) => r.packageName === item.name);
-                  const toneVar = BENEFIT_TONE_VARS[item.tone];
-                  return (
-                    <div
-                      key={item.name}
-                      onClick={() => {
-                        if (!alreadyAdded) {
-                          onAddWithName(item.name);
-                          setShowPicker(false);
-                          setSearch("");
-                        }
-                      }}
-                      className={cn(
-                        "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all",
-                        alreadyAdded
-                          ? "opacity-50 cursor-not-allowed bg-muted/20"
-                          : "cursor-pointer hover:border-primary/30 hover:bg-muted/20",
-                      )}
-                    >
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `hsl(${toneVar} / 0.08)` }}>
-                        <Package className="h-4 w-4" style={{ color: `hsl(${toneVar})` }} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-medium text-foreground">{item.name}</div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">{item.desc}</div>
-                      </div>
-                      {alreadyAdded && <span className="text-[11px] text-muted-foreground shrink-0">已添加</span>}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+            ) : null,
+          } as CatalogItem;
+        })}
+        existingIds={rows.map((r) => r.packageName)}
+        onConfirm={(selected) => selected.forEach((s) => onAddWithName(s.name))}
+      />
 
       <BundleDetailDialog bundle={bundleDetail} onClose={() => setBundleDetail(null)} />
     </div>
