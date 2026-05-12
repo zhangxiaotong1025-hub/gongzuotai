@@ -29,6 +29,7 @@ interface Enterprise {
   children?: Enterprise[];
   _level?: number;
   frozen?: boolean; // cascading freeze from parent
+  _root?: boolean; // synthetic top-most row representing current login context
   auditRecords?: AuditRecord[];
 }
 
