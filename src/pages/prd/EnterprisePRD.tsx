@@ -841,3 +841,191 @@ W7-W8  · 灰度上线 · 双写对比 · 一致性校验     [SRE + QA]`}</Pre>
     </section>
   );
 }
+
+/* ───────────────────────── 07 端到端业务流 ───────────────────────── */
+function E2EFlow() {
+  return (
+    <section id="e2e" className="scroll-mt-4 space-y-5">
+      <H2 icon={Workflow} num="07">端到端业务流 · 跨域全链路</H2>
+      <p className="text-[13px] text-muted-foreground max-w-[68ch] leading-[1.85]">
+        前 6 章按「领域」纵切，本章按「时间」横切。一个对象（企业 / 人员 / 应用）从被创建到退出，
+        会穿越 <Code>权限 · 菜单 · 策略 · 角色 · 企业 · 人员 · 权益</Code> 七个域，
+        每一次状态翻转都会同时引起<strong>菜单可见性、按钮可点击、数据可见行、可写入字段、可消费配额</strong>五个维度的重算。
+        这一章把这条「看不见的链路」画出来。
+      </p>
+
+      {/* ───── 7.1 企业创建全生命周期 ───── */}
+      <div id="e2e-ent" className="space-y-4">
+        <H3>7.1 企业创建全生命周期（13 个里程碑）</H3>
+        <Pre>{`┌─ 阶段 ─┬─ 里程碑 ──────────┬─ 触发者 ──┬─ 主写表 ───────────────┬─ 衍生效应（看不见的部分） ────────────────────┐
+│        │                    │           │                        │                                                  │
+│ 萌芽   │ M1 招商线索        │ 平台 BD   │ application(intent)    │ 客户域写入潜客；营销域开始追踪触点                │
+│        │ M2 资料提交        │ 申请人    │ application(submitted) │ AuditRecord 起点；上传材料进对象存储 + 病毒扫描   │
+│        │                    │           │                        │                                                  │
+│ 准入   │ M3 平台审核        │ 平台审核员│ application(approved)  │ 触发 application.approved → 创建 enterprise 行   │
+│        │ M4 企业落库        │ 系统      │ enterprise(new)        │ 自动派发 enterprise_id；RLS 立即生效              │
+│        │ M5 默认角色生成    │ 系统      │ role(super_admin)      │ 拷贝角色模板（按 type 不同）；写 role_menu        │
+│        │ M6 首任管理员绑定  │ 系统      │ staff + user_role      │ 短信下发临时密码；user.phone 必填且唯一           │
+│        │                    │           │                        │                                                  │
+│ 激活   │ M7 权益账户开户    │ 权益域    │ entitlement_account    │ 消费 enterprise.application.approved 事件         │
+│        │ M8 首单（试用/赠送）│ 平台运营 │ order(internal_grant)  │ 写入配额，account.quota 由 0 变正                 │
+│        │ M9 应用授权点亮    │ 权益域    │ account_app_binding    │ 决定 sidebar 哪些「应用入口」可见                 │
+│        │                    │           │                        │                                                  │
+│ 运营   │ M10 子企业创建     │ HQ / 平台 │ enterprise(level=1/2)  │ parent_id + SUB_TYPE_MAP 校验；继承部分权益       │
+│        │ M11 人员扩充       │ 企业管理员│ staff + user_role      │ 角色 → 菜单 → 策略 → 数据范围 四级生效            │
+│        │ M12 续费 / 加购    │ 销售     │ order(renewal/upsell)  │ 配额合并，expire_at 后推                          │
+│        │                    │           │                        │                                                  │
+│ 终态   │ M13 到期 / 退出    │ 系统/HQ  │ enterprise(disabled)   │ 见 7.6 全链路逆向流；数据保留但不可写             │
+└────────┴────────────────────┴───────────┴────────────────────────┴──────────────────────────────────────────────────┘`}</Pre>
+        <KV items={[
+          { k: "为什么 M5 在 M6 之前", v: "角色必须先存在，绑管理员时才能写 user_role；否则会出现「有人无权」的真空 5 秒。" },
+          { k: "为什么 M7 走事件而非同步", v: "权益域是独立服务，同步调用会让企业创建被权益故障拖垮；事件 + 补偿任务即可。" },
+          { k: "M8 为何必须存在", v: "无订单 = 无配额 = 应用可见但点开报「未授权」，体验崩塌。试用单是默认兜底。" },
+          { k: "M10 的隐含约束", v: "子企业不能继承「父级独有」的应用授权（例如平台代运营工具），需重新开单。" },
+        ]} />
+      </div>
+
+      {/* ───── 7.2 人员 × 应用全生命周期 ───── */}
+      <div id="e2e-staff" className="space-y-4">
+        <H3>7.2 人员 × 应用全生命周期</H3>
+        <Pre>{`            ┌────────────── 人员域 ──────────────┐   ┌───── 权益/应用域 ─────┐
+ 申请期 →   │ 邀请短信 → 注册 → 加入企业 → 待审  │   │ 等待绑定（账户预占）  │
+            └──────────┬─────────────────────────┘   └───────────┬───────────┘
+                       ▼                                          ▼
+ 入职 →     staff(active) + user_role(role_id)           account_user_binding(seat 占用 +1)
+                       │                                          │
+                       ▼                                          ▼
+ 工作 →     菜单/按钮/数据：随 role + enterprise 计算    应用内行为：受 capability_rule 约束
+                       │                                          │
+       ┌───────────────┼───────────────┐                          │
+       ▼               ▼               ▼                          ▼
+   调岗(改 role)   换企业(改 enterprise_id)   离职(staff.exit)   应用回收(seat -1)
+       │               │                       │                  │
+       ▼               ▼                       ▼                  ▼
+   重算菜单缓存   重算 RLS 行可见             冻结登录          配额释放回池`}</Pre>
+        <Table
+          headers={["阶段", "人员域写", "权限域读", "权益域写", "对前端的可视影响"]}
+          cols={["80px", undefined, undefined, undefined, undefined]}
+          rows={[
+            ["邀请", "invitation(pending)", "—", "—", "对方收到短信，本企业列表显示「待入职」"],
+            ["入职", "staff(active) + user_role", "role → menu → policy 缓存写入", "account_user_binding 占座", "侧边栏点亮；按钮按 policy 显隐"],
+            ["调岗", "user_role 更新", "失效 role 缓存，下次请求重算", "若新角色不含某应用 → 释放座位", "用户当前页若失去访问权 → 401 跳首页"],
+            ["跨企业", "staff 拷贝 + enterprise_id 切换", "切换 X-Enterprise-Id 头", "新企业账户内重新占座", "切换企业后整个 layout reload"],
+            ["离职", "staff.status = exited", "user_role 软删；登录态作废", "座位 -1，30 天后清行为数据", "登录被拒；历史数据由审计角色可见"],
+          ]}
+        />
+        <KV items={[
+          { k: "为什么人员不真删", v: "他签过的订单 / 审核 / 客户跟进记录需要保留可追溯，删除会让历史报表出现幽灵主键。" },
+          { k: "座位（seat）的语义", v: "应用授权的最小可消费单位。座位归账户所有，绑定到人；人离职解绑后座位回到账户池，由企业管理员再分配。" },
+          { k: "调岗与「越权访问历史页」", v: "前端不主动踢出；下一次 API 请求 401 时统一拦截跳首页 + Toast「权限已变更」。" },
+        ]} />
+      </div>
+
+      {/* ───── 7.3 一次请求穿透 ───── */}
+      <div id="e2e-render" className="space-y-4">
+        <H3>7.3 一次请求穿透：从「点击菜单」到「拿到数据」</H3>
+        <p className="text-[12.5px] text-muted-foreground leading-[1.85]">
+          示例：企业管理员点击侧边栏「人员管理 → 列表」。这一次点击会触达<strong>七个域</strong>，
+          任何一层失败都意味着用户看到「空 / 报错 / 越权」。
+        </p>
+        <Pre>{`Step  Domain        Action                                            Cache  Latency
+────  ──────────  ────────────────────────────────────────────────  ─────  ───────
+ 1    Auth        校验 JWT → 解出 user_id, enterprise_id, role_id    L1     ~3ms
+ 2    Permission  load_role(role_id) → menu_ids[]                    L1     ~5ms
+ 3    Permission  当前 path ∈ menu.path？否则 403                     —      ~1ms
+ 4    Permission  load_policy(menu_id, type=API) → 允许的 API 列表    L1     ~4ms
+ 5    Enterprise  load_enterprise(enterprise_id) → audit/business    L1     ~3ms
+                  ├─ audit ≠ approved   → 灰屏 + 引导补资料
+                  └─ business = disabled → 只读 + 顶部红条
+ 6    Permission  load_policy(menu_id, type=DATA) → RLS scope        L1     ~2ms
+                  scope ∈ {self, dept, enterprise, tree, all}
+ 7    Staff/Data  SELECT * FROM staff WHERE <RLS by scope>            DB    ~30ms
+ 8    Entitlement 对返回列每行 check capability_rule（如「导出按钮」）  L2    ~10ms
+ 9    Frontend    渲染：菜单高亮 + 按钮显隐 + 行数据 + 列脱敏           —      ~50ms
+                                                                    ─────────
+                                                              合计  ≈ 110ms`}</Pre>
+        <KV items={[
+          { k: "数据可见 ≠ 按钮可见", v: "第 7 步控制「能看哪些行」，第 8 步控制「这一行上哪些按钮亮」；两套策略独立存储。" },
+          { k: "为什么 audit 校验放第 5 步而不是第 1 步", v: "审核未过的企业用户仍可登录看「补资料引导页」，所以校验必须晚于菜单解析。" },
+          { k: "平台视角的差异", v: "Step 5 的 enterprise_id 来自 URL（?enterprise_id=…）而非 JWT；Step 6 的 scope 强制为 all。" },
+        ]} />
+      </div>
+
+      {/* ───── 7.4 一次写入扩散 ───── */}
+      <div id="e2e-write" className="space-y-4">
+        <H3>7.4 一次写入扩散：「停用企业」会推倒多少多米诺骨牌</H3>
+        <Pre>{`POST /enterprise/E001:business {to: disabled}
+        │
+        ▼
+ ┌──────────────────────┐
+ │ 1. 写 enterprise     │  business_status = disabled
+ │ 2. 写 AuditRecord    │  action = business_change, operator, reason
+ └──────────┬───────────┘
+            │ 发布事件 enterprise.business.changed
+            ▼
+ ┌───────────────────────────────────────────────────────────────┐
+ │ Fan-out 消费者（异步、可重试、最终一致）                       │
+ ├───────────────────────────────────────────────────────────────┤
+ │ ① 权益域   account.quota.frozen = true（不再扣减但保留余额）  │
+ │ ② 菜单域   对该企业全员菜单缓存失效（pattern: role:E001:*）    │
+ │ ③ 人员域   员工登录态打标：next-request 提示「企业已停用」     │
+ │ ④ 客户域   线索分配池剔除该企业（不再分发新线索）              │
+ │ ⑤ 营销域   暂停所有进行中的 campaign，重算 ROI 基数            │
+ │ ⑥ 子企业   按 7.6 逆向流级联（如配置了 cascade=true）          │
+ │ ⑦ BI/数仓 写入维表 SCD2，历史报表保留 disabled 前的数值        │
+ └───────────────────────────────────────────────────────────────┘`}</Pre>
+        <KV items={[
+          { k: "为什么 ②③ 不放在同一事务", v: "事务越大失败面越大；菜单缓存重建失败可重试，不该让企业停用整体回滚。" },
+          { k: "①「冻结而非清零」", v: "保留余额是为了「误操作复活」时不让客户白丢配额；30 天后才走清算。" },
+          { k: "⑦ SCD2 的意义", v: "「2024 年 Q3 北京区 GMV」必须用当时的归属，不能被今天的停用动作篡改历史。" },
+        ]} />
+      </div>
+
+      {/* ───── 7.5 缓存与失效时序 ───── */}
+      <div id="e2e-decay" className="space-y-4">
+        <H3>7.5 失效 · 重算 · 缓存时序（看不见的一致性）</H3>
+        <Table
+          headers={["缓存键", "层级", "TTL", "失效触发", "重算成本"]}
+          cols={["220px", "60px", "70px", undefined, undefined]}
+          rows={[
+            ["role:{id}:menus", "L1 Redis", "1h", "menu / role_menu 写", "低（一次 JOIN）"],
+            ["role:{id}:policies", "L1 Redis", "1h", "policy 写", "低"],
+            ["user:{id}:context", "L1 Redis", "15min", "user_role / enterprise 切换", "中（聚合 4 表）"],
+            ["enterprise:{id}:meta", "L1 Redis", "10min", "enterprise 写 / 审核流转", "低"],
+            ["account:{ent}:quota", "L2 本地", "30s", "订单写入 / 消费 webhook", "高（汇总配额 + 已用）"],
+            ["列表查询（人员/客户）", "—", "不缓存", "—", "依赖 DB 索引 + RLS 函数"],
+          ]}
+        />
+        <p className="text-[12.5px] text-muted-foreground leading-[1.85]">
+          原则：<strong>权限类强一致（写后立即清缓存）</strong>；<strong>配额类弱一致（30s 内可超用，月底走对账补偿）</strong>；
+          <strong>列表类不缓存</strong>（依赖数据库自身的索引和 RLS 函数即可）。
+        </p>
+      </div>
+
+      {/* ───── 7.6 逆向流 ───── */}
+      <div id="e2e-reverse" className="space-y-4">
+        <H3>7.6 全链路逆向流：到期 · 退出 · 冻结的差异</H3>
+        <Table
+          headers={["路径", "触发者", "可逆性", "权益处理", "人员处理", "数据可见性"]}
+          cols={["100px", undefined, "70px", undefined, undefined, undefined]}
+          rows={[
+            ["到期自动停用", "Cron（expire_at）", "可逆", "quota.frozen=true，余额保留 30 天", "登录态保留，写操作 403", "本企业可读不可写"],
+            ["主动退出（HQ申请）", "HQ → 平台审批", "不可逆", "结算未消费余额，account 关闭", "全员降级为 archived", "30 天后只对审计角色可见"],
+            ["平台冻结（合规）", "平台审计", "可逆", "quota.frozen=true，订单挂起", "登录被拒，提示「联系平台」", "对企业全员不可见，平台可见"],
+            ["合并/迁移", "平台运营 + saga", "可逆", "余额按比例迁出，原账户归档", "员工 enterprise_id 变更", "历史数据双向可读（30 天过渡）"],
+          ]}
+        />
+        <KV items={[
+          { k: "为什么主动退出比平台冻结更重", v: "前者意味着商业关系终止，结算 + 数据归档需要走法务流程；后者只是合规挂起。" },
+          { k: "「可逆」的真实含义", v: "可逆 = 状态字段反向写即可恢复；不可逆 = 已经写过结算单 / 归档了历史数据，恢复需要走「重新申请」整套 7.1 流程。" },
+          { k: "退出 vs 删除", v: "本系统不存在物理删除企业。所有「删除」语义都映射到上表中的一种。" },
+        ]} />
+
+        <div className="rounded-lg border-l-2 border-primary/60 bg-primary/5 px-4 py-3 text-[12.5px] leading-[1.85]">
+          <strong>设计哲学回扣：</strong>本章 6 个小节回答的不是「怎么做」，而是「做了之后看不见的地方会发生什么」。
+          一个合格的企业管理模块，<strong>评判标准不是创建表单字段多全，而是停用一个企业时系统能否优雅地告诉所有下游</strong>。
+        </div>
+      </div>
+    </section>
+  );
+}
