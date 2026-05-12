@@ -139,14 +139,16 @@ function Overview() {
       </div>
 
       <div id="ov-axiom">
-        <H3>5 条不可违反的公理</H3>
+        <H3>6 条不可违反的公理</H3>
         <div className="grid grid-cols-1 gap-2.5">
           {[
+            { k: "公理 0 · 平台即上帝视角", v: "平台后台（perspective=platform）拥有全部能力 —— 可代任意企业创建子企业 / 人员 / 商品 / 模型资产 / 调整组织树。安全边界不由「能不能点」收口，而由「权限管理」的角色 × 策略 × 数据范围三层兜底。企业后台（perspective=enterprise）只能在自己企业子树内操作。" },
             { k: "公理 1 · 状态三维解耦", v: "审核状态（pending/approved/rejected）、业务状态（active/disabled）、所有权状态（normal/frozen）相互独立，禁止用单一 status 字段表达。" },
-            { k: "公理 2 · 总部不可停用", v: "Level=0 的根企业（HQ）禁止被「停用 / 删除」，仅支持「冻结」（由审计或合规触发）。停用只针对 Level≥1 的子企业。" },
-            { k: "公理 3 · 编辑不创订单", v: "企业编辑页面禁止修改权益数量、套餐、到期时间。所有权益变更（增购、续期、回收、赠送）必须通过权益订单，留下 sourceOrderId 溯源。" },
-            { k: "公理 4 · 退出而非删除", v: "企业、人员均不支持物理删除。退出（exit）即解除归属 + 软冻结历史数据，保证审计与对账可追溯。" },
-            { k: "公理 5 · 级联冻结，不级联停用", v: "冻结父企业 → 子企业级联冻结；停用父企业不级联停用子企业（业务停用是商务行为，需逐个确认）。" },
+            { k: "公理 2 · 所有真实企业均可停用", v: "停用入口对 Level 0/1/2 全部开放（仅虚拟「平台根节点」除外），由角色权限决定谁能按；总部停用属高危操作，需二次确认 + 审计留痕。" },
+            { k: "公理 3 · 到期即自动停用", v: "expire_at ≤ now() 由定时任务把 business_status 自动置 disabled，权益账户 quota.frozen=true；续期成功后由订单事件回写为 active。该流程不经过人工，但会写 AuditRecord(action=auto_disable)。" },
+            { k: "公理 4 · 编辑不创订单", v: "企业编辑页面禁止修改权益数量、套餐、到期时间。所有权益变更（增购、续期、回收、赠送）必须通过权益订单，留下 sourceOrderId 溯源。" },
+            { k: "公理 5 · 退出而非删除", v: "企业、人员均不支持物理删除。退出（exit）即解除归属 + 软冻结历史数据，保证审计与对账可追溯。" },
+            { k: "公理 6 · 级联冻结，不级联停用", v: "冻结父企业 → 子企业级联冻结；停用父企业不级联停用子企业（业务停用是商务行为，需逐个确认）。" },
           ].map((it, i) => (
             <div key={i} className="flex gap-3 border rounded-lg px-3.5 py-2.5 bg-muted/15">
               <div className="text-[12px] font-semibold text-primary w-[160px] shrink-0">{it.k}</div>
