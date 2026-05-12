@@ -387,10 +387,11 @@ business: active → disabled
           headers={["操作", "Level0 HQ", "Level1 子", "Level2 末级", "前置条件"]}
           cols={[undefined, "100px", "100px", "100px", undefined]}
           rows={[
-            ["审核 / 再审核", <Tag tone="info">✓</Tag>, <Tag tone="muted">—</Tag>, <Tag tone="muted">—</Tag>, "audit ∈ {pending,rejected}"],
-            ["停用 / 启用", <Tag tone="danger">禁止</Tag>, <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, "audit=approved & ownership=normal"],
+            ["审核 / 再审核", <Tag tone="info">✓</Tag>, <Tag tone="muted">—</Tag>, <Tag tone="muted">—</Tag>, "audit ∈ {pending,rejected}；仅平台视角"],
+            ["停用 / 启用", <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, "audit=approved & ownership=normal；总部停用需二次确认"],
+            ["到期自动停用", <Tag tone="warning">系统</Tag>, <Tag tone="warning">系统</Tag>, <Tag tone="warning">系统</Tag>, "expire_at ≤ now() 由定时任务触发"],
             ["冻结 / 解冻", <Tag tone="warning">✓</Tag>, <Tag tone="muted">级联</Tag>, <Tag tone="muted">级联</Tag>, "平台审计/合规角色"],
-            ["创建子企业", <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, <Tag tone="danger">禁止</Tag>, "level < 2 & ownership=normal"],
+            ["创建子企业", <Tag tone="success">✓</Tag>, <Tag tone="success">✓</Tag>, <Tag tone="danger">禁止</Tag>, "level < 2 & ownership=normal；平台可代任意企业创建"],
             ["编辑权益配置", <Tag tone="warning">只读</Tag>, <Tag tone="warning">只读</Tag>, <Tag tone="warning">只读</Tag>, "编辑模式锁定，走订单调整"],
           ]}
         />
