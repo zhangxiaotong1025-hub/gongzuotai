@@ -294,23 +294,24 @@ export default function EnterpriseList() {
         note: "平台总控企业，不可编辑",
         _root: true,
         _level: 0,
-        children: data,
+        children: [], // 独立首条，不挂载子树
       };
-      return [root];
+      return [root, ...data];
     }
-    // 企业后台视角：取第一家企业作为"当前企业"，其下级作为同级树
+    // 企业后台视角：取第一家企业作为"当前企业"独立首条，其下级企业作为同级行展示
     const [current, ...rest] = data;
     if (!current) return [];
     const root: Enterprise = {
       ...current,
+      id: `${current.id}-current`,
       _root: true,
       _level: 0,
       note: current.note || "当前登录企业，不可编辑",
-      children: current.children,
+      children: [],
     };
-    // rest 不显示（属于其他企业，企业视角不可见）
+    const siblings: Enterprise[] = (current.children || []).map((c) => ({ ...c, _level: 0 }));
     void rest;
-    return [root];
+    return [root, ...siblings];
   }, [data, perspective]);
 
   const toggleExpand = useCallback((id: string) => {
