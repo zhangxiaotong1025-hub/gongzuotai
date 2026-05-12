@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { X, Plus, ChevronDown, ChevronUp, ChevronRight, CalendarIcon, Info, Users, Check } from "lucide-react";
+import { X, Plus, ChevronDown, ChevronUp, ChevronRight, CalendarIcon, Info, Users, Check, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
