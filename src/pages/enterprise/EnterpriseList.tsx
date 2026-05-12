@@ -404,8 +404,12 @@ export default function EnterpriseList() {
     {
       label: "审核",
       onClick: (r) => setAuditTarget(r),
-      // 仅平台后台可审核，且仅总部企业(level 0、非 root)需要审核
-      visible: (r) => perspective === "platform" && !r._root && (r._level || 0) === 0 && r.auditStatus === "pending",
+      // 仅平台后台可审核，且仅总部企业(level 0、非 root)需要审核；待审核或已驳回均可（再次审核）
+      visible: (r) =>
+        perspective === "platform" &&
+        !r._root &&
+        (r._level || 0) === 0 &&
+        (r.auditStatus === "pending" || r.auditStatus === "rejected"),
     },
     {
       label: "停用",
