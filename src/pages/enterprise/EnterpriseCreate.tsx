@@ -102,7 +102,7 @@ function buildEntitlementCatalog(productKey: string, fallbackLabel: string): Cat
       name: bundle.name,
       desc: `${bundle.code} · ${bundle.items.length} 个商品`,
       tone: getCatalogTone(bundle.id),
-      kind: "bundle",
+      kind: "bundle" as const,
       group: appName,
       meta: (
         <div className="text-right">
@@ -120,7 +120,7 @@ function buildEntitlementCatalog(productKey: string, fallbackLabel: string): Cat
         name: sku.name,
         desc: `${sku.code} · ${sku.description}`,
         tone: getCatalogTone(sku.id),
-        kind: "sku",
+        kind: "sku" as const,
         group: appName,
         meta: (
           <div className="text-right">
@@ -846,7 +846,7 @@ function UnifiedBenefitSection({
       name: item.name,
       desc: item.desc,
       tone: item.tone,
-      kind: "bundle",
+      kind: "bundle" as const,
       group: productLabel,
     }));
   }, [catalog, productKey, productLabel]);
