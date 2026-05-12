@@ -531,6 +531,10 @@ export default function StaffList() {
 
   const filteredData = useMemo(() => {
     let list = data;
+    // 平台视角：接口能力限制，必须按单个企业过滤
+    if (perspective === "platform") {
+      list = list.filter((s) => s.enterpriseId === scopeEnterpriseId);
+    }
     if (selectedOrg === "unset") list = list.filter((s) => s.orgIds.length === 0);
     else if (selectedOrg !== "all") { const ids = new Set(collectOrgIds(orgTree, selectedOrg)); list = list.filter((s) => s.orgIds.some((oid) => ids.has(oid))); }
     const seen = new Set<string>();
@@ -540,10 +544,11 @@ export default function StaffList() {
     if (filters.status) list = list.filter((s) => s.status === filters.status);
     if (filters.role) list = list.filter((s) => s.role === filters.role);
     return list;
-  }, [data, selectedOrg, orgTree, filters]);
+  }, [data, perspective, scopeEnterpriseId, selectedOrg, orgTree, filters]);
 
   const totalItems = filteredData.length;
   const selectedOrgNode = findNode(orgTree, selectedOrg);
+  const scopeEnterpriseName = PLATFORM_ENTERPRISES.find((e) => e.id === scopeEnterpriseId)?.name || "";
 
   const actions: ActionItem<StaffMember>[] = [
     { label: "查看", onClick: (r) => navigate(`/enterprise/staff/detail/${r.id}`) },
