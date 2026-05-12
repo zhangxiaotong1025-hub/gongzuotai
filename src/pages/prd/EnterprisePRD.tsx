@@ -963,31 +963,111 @@ function E2EFlow() {
 
       {/* ───── 7.4 一次写入扩散 ───── */}
       <div id="e2e-write" className="space-y-4">
-        <H3>7.4 一次写入扩散：「停用企业」会推倒多少多米诺骨牌</H3>
-        <Pre>{`POST /enterprise/E001:business {to: disabled}
-        │
-        ▼
- ┌──────────────────────┐
- │ 1. 写 enterprise     │  business_status = disabled
- │ 2. 写 AuditRecord    │  action = business_change, operator, reason
- └──────────┬───────────┘
-            │ 发布事件 enterprise.business.changed
-            ▼
- ┌───────────────────────────────────────────────────────────────┐
- │ Fan-out 消费者（异步、可重试、最终一致）                       │
- ├───────────────────────────────────────────────────────────────┤
- │ ① 权益域   account.quota.frozen = true（不再扣减但保留余额）  │
- │ ② 菜单域   对该企业全员菜单缓存失效（pattern: role:E001:*）    │
- │ ③ 人员域   员工登录态打标：next-request 提示「企业已停用」     │
- │ ④ 客户域   线索分配池剔除该企业（不再分发新线索）              │
- │ ⑤ 营销域   暂停所有进行中的 campaign，重算 ROI 基数            │
- │ ⑥ 子企业   按 7.6 逆向流级联（如配置了 cascade=true）          │
- │ ⑦ BI/数仓 写入维表 SCD2，历史报表保留 disabled 前的数值        │
- └───────────────────────────────────────────────────────────────┘`}</Pre>
+        <H3>7.4 一次写入扩散：关键写操作的事件传播图</H3>
+        <p className="text-[12.5px] text-muted-foreground leading-[1.85]">
+          下列四张图覆盖企业 / 人员域最高频、最易踩坑的写操作。<strong>实线 = 同事务必须成功</strong>，
+          <strong>虚线 = 事件总线异步 fan-out（可重试、最终一致）</strong>。事务边界故意收得很窄 ——
+          只保证「主体表 + 审计表」原子，其他域全部异步消费，避免一次停用把数仓也拖回滚。
+        </p>
+
+        <H4>① 停用企业（手动 · 后台触发）</H4>
+        <Mermaid
+          caption="POST /enterprise/{id}:business → disabled · 7 路 fan-out"
+          chart={`flowchart LR
+  A["管理员<br/>POST /enterprise/E001:business<br/>{to: disabled}"]:::trigger
+  subgraph TX["同事务（强一致）"]
+    direction TB
+    B["enterprise<br/>business_status = disabled"]
+    C["AuditRecord<br/>action=business_change<br/>operator / reason"]
+  end
+  BUS(("event bus<br/>enterprise.business.changed")):::bus
+  A --> B --> C --> BUS
+
+  BUS -.->|① 权益域| Q["account.quota.frozen=true<br/>余额保留 · 不扣减"]
+  BUS -.->|② 菜单域| M["失效 role:E001:*<br/>下次请求重算"]
+  BUS -.->|③ 人员域| U["登录态打标<br/>next-request 提示停用"]
+  BUS -.->|④ 客户域| L["线索池移除 E001<br/>停止新分发"]
+  BUS -.->|⑤ 营销域| K["暂停 campaign<br/>重算 ROI 基数"]
+  BUS -.->|⑥ 子企业| S["按 cascade 配置<br/>逆向流递归"]
+  BUS -.->|⑦ BI / 数仓| W["维表 SCD2<br/>历史报表不被篡改"]
+
+  classDef trigger fill:#fef3c7,stroke:#d97706,color:#78350f;
+  classDef bus fill:#1e293b,stroke:#0f172a,color:#fff;
+`}
+        />
+
+        <H4>② 到期自动停用（系统 · 定时任务触发）</H4>
+        <Mermaid
+          caption="cron 扫到 expire_at < now() · 与手动停用共用 fan-out 通道"
+          chart={`flowchart LR
+  T["cron @ 03:00<br/>SELECT * WHERE expire_at < now()"]:::trigger --> J["job: auto_disable<br/>批量游标"]
+  J --> B["enterprise<br/>business_status=disabled<br/>disable_reason=expired"]
+  B --> C["AuditRecord<br/>operator=SYSTEM<br/>action=auto_disable"]
+  C --> BUS(("event bus<br/>enterprise.business.changed")):::bus
+  BUS -.->|与手动停用共用消费者| FANOUT["① 权益冻结<br/>② 菜单失效<br/>③ 登录打标<br/>④ 线索剔除<br/>⑤ 营销暂停<br/>⑥ 子企业级联<br/>⑦ BI SCD2"]
+  J -.->|预警 T-7 / T-1| N["站内信 + 短信<br/>给企业管理员"]
+
+  classDef trigger fill:#fef3c7,stroke:#d97706,color:#78350f;
+  classDef bus fill:#1e293b,stroke:#0f172a,color:#fff;
+`}
+        />
+
+        <H4>③ 创建人员（后台单向写 · 含短信下发）</H4>
+        <Mermaid
+          caption="管理员代建人员 · 无申请期 · 一次性激活"
+          chart={`flowchart LR
+  A["管理员<br/>POST /staff"]:::trigger
+  subgraph TX["同事务"]
+    direction TB
+    U["user<br/>created · phone 唯一"]
+    S["staff<br/>active · enterprise_id"]
+    R["user_role<br/>角色绑定"]
+    AR["AuditRecord<br/>action=staff_create"]
+  end
+  A --> U --> S --> R --> AR
+  AR --> BUS(("event bus<br/>staff.created")):::bus
+
+  BUS -.->|短信网关| SMS["发送登录链接 + 初始密码 / 验证码"]
+  BUS -.->|权益域| SEAT["按角色含应用<br/>account_user_binding seat+1"]
+  BUS -.->|菜单域| MC["预热 user:{id}:context"]
+  BUS -.->|客户域| CR["分配可见客户范围（RLS 重算）"]
+  SMS -.->|失败回调| FB["列表标红「通知未送达」<br/>+ 重发按钮"]
+
+  classDef trigger fill:#fef3c7,stroke:#d97706,color:#78350f;
+  classDef bus fill:#1e293b,stroke:#0f172a,color:#fff;
+`}
+        />
+
+        <H4>④ 人员离职（exit · 软冻结）</H4>
+        <Mermaid
+          caption="staff.exit · 历史数据保留 · 座位回池"
+          chart={`flowchart LR
+  A["管理员<br/>POST /staff/{id}:exit"]:::trigger
+  subgraph TX["同事务"]
+    direction TB
+    S["staff.status = exited<br/>不删 user · 不删历史"]
+    UR["user_role 软删<br/>deleted_at = now()"]
+    AR["AuditRecord<br/>action=staff_exit"]
+  end
+  A --> S --> UR --> AR
+  AR --> BUS(("event bus<br/>staff.exited")):::bus
+
+  BUS -.->|登录态| TOK["JWT 黑名单<br/>下次请求 401"]
+  BUS -.->|权益域| SEAT["account_user_binding seat-1<br/>30 天后清理行为数据"]
+  BUS -.->|菜单域| MC["清除 user:{id}:context"]
+  BUS -.->|客户域| CR["其名下客户回归企业池<br/>等待重新分配"]
+  BUS -.->|审计可见| AV["历史订单 / 跟进记录<br/>仅审计角色可读"]
+
+  classDef trigger fill:#fef3c7,stroke:#d97706,color:#78350f;
+  classDef bus fill:#1e293b,stroke:#0f172a,color:#fff;
+`}
+        />
+
         <KV items={[
-          { k: "为什么 ②③ 不放在同一事务", v: "事务越大失败面越大；菜单缓存重建失败可重试，不该让企业停用整体回滚。" },
-          { k: "①「冻结而非清零」", v: "保留余额是为了「误操作复活」时不让客户白丢配额；30 天后才走清算。" },
-          { k: "⑦ SCD2 的意义", v: "「2024 年 Q3 北京区 GMV」必须用当时的归属，不能被今天的停用动作篡改历史。" },
+          { k: "为什么不把所有写入塞进一个事务", v: "事务越大失败面越大；菜单缓存重建、SMS 下发、BI 写入失败都可独立重试，不该让停用企业整体回滚。" },
+          { k: "「冻结而非清零」", v: "保留余额是为了「误操作复活」时不让客户白丢配额；30 天后才走清算结算。" },
+          { k: "SCD2（维表慢变）", v: "「2024Q3 北京区 GMV」必须用当时的归属，不能被今天的停用动作改写历史 —— 数仓维表保留版本快照。" },
+          { k: "事件总线的可靠性", v: "至少一次投递 + 消费者幂等（以 event_id + consumer 做去重表），允许重复消费、不允许丢消息。" },
         ]} />
       </div>
 
