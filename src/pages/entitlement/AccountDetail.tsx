@@ -42,6 +42,7 @@ function TrendIcon({ trend }: { trend: "up" | "down" | "stable" }) {
 
 export default function AccountDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const accIndex = accountData.findIndex((a) => a.id === id);
   const acc = accIndex >= 0 ? accountData[accIndex] : null;
 
