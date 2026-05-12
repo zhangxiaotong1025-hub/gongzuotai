@@ -1172,7 +1172,7 @@ function LifecycleCard({
             <div className="text-[10.5px] font-mono uppercase tracking-widest text-violet-500 mb-1.5">↓ 下游（谁会消费它）</div>
             <ul className="text-[11.5px] leading-[1.85] text-foreground/85 space-y-0.5">
               {downstream.map((d, i) => (
-                <li key={i}><b className="text-foreground">{d.who}</b> · <span className="text-muted-foreground">{d.how}</span></li>
+                <li key={i}><b className="text-foreground">{d.who}</b> · <span className="text-muted-foreground">{d.when}</span></li>
               ))}
             </ul>
           </div>
