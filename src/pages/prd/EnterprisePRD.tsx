@@ -888,11 +888,12 @@ function E2EFlow() {
       {/* ───── 7.2 人员 × 应用全生命周期 ───── */}
       <div id="e2e-staff" className="space-y-4">
         <H3>7.2 人员 × 应用全生命周期</H3>
-        <Callout tone="warning" title="与企业不同：人员无「申请期」">
+        <div className="rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-[12.5px] leading-[1.8] text-foreground/85">
+          <div className="mb-1 font-semibold text-amber-600">与企业不同：人员无「申请期」</div>
           人员侧没有 C 端用户自助申请加入企业的入口。<b>由后台管理员（平台超管 / 企业管理员）单向创建</b>：
           填写资料 → 系统注册账号 + 分配角色 + 直接挂载企业组织节点 → 短信告知（含登录入口与初始凭据 / 验证码）。
           人员从被创建那一刻起即 <Code>active</Code>，无 pending / 待审核态。这与企业入驻（带 audit 时间线）形成对照。
-        </Callout>
+        </div>
         <Pre>{`            ┌────────────── 人员域（管理员单向写） ──────────────┐   ┌───── 权益/应用域 ─────┐
  创建 →     │ 后台填写资料 → 注册账号 → 加入企业 → 绑定角色      │   │ 按角色含应用 → 占座   │
             └────────────────────┬────────────────────────────────┘   └───────────┬───────────┘
