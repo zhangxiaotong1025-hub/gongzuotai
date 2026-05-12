@@ -11,6 +11,7 @@ import { X, Search, Package, Layers, Building2, User, Sparkles, CalendarIcon, Al
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { appData, skuData, bundleData, productData, EXCHANGE_TYPES, ORDER_TYPES, BILLING_CYCLES, CUSTOMER_TYPES, bEnterpriseData, cUserData, type EntitlementOrder, type OrderItem, type Sku, type Bundle, type Product, type CustomerType } from "@/data/entitlement";
+import { BenefitPickerDialog } from "@/components/entitlement/BenefitPickerDialog";
 
 interface OrderDialogProps {
   open: boolean;
