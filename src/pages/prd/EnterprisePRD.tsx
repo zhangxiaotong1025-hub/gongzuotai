@@ -55,6 +55,14 @@ const TOC: { id: string; label: string; icon: React.ElementType; children: { id:
     { id: "dl-error", label: "幂等 / 异常 / SLO" },
     { id: "dl-gantt", label: "落地里程碑" },
   ]},
+  { id: "e2e", label: "07 · 端到端业务流", icon: Workflow, children: [
+    { id: "e2e-ent", label: "企业创建全生命周期" },
+    { id: "e2e-staff", label: "人员 × 应用全生命周期" },
+    { id: "e2e-render", label: "一次请求穿透：菜单 → 数据" },
+    { id: "e2e-write", label: "一次写入扩散：事件雪崩图" },
+    { id: "e2e-decay", label: "失效 · 重算 · 缓存时序" },
+    { id: "e2e-reverse", label: "全链路逆向流（退出 / 到期 / 冻结）" },
+  ]},
 ];
 
 export default function EnterprisePRD() {
