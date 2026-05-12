@@ -532,21 +532,23 @@ export default function StaffCreate() {
             {/* Benefits — person level: only usage period, single-SKU granularity */}
             <FormRow label="权益配置">
               <div className="space-y-3">
-                <div className="rounded-lg border border-primary/15 bg-primary/[0.03] px-3 py-2 flex items-start gap-2">
-                  <Info className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
-                  <div className="text-[12px] leading-relaxed text-muted-foreground">
-                    人员维度按 <span className="text-foreground font-medium">单个权益商品</span> 进行配置；若选择套餐，系统将自动按其包含的商品逐项拆分到下方列表。
+                {form.benefits.length > 0 && (
+                  <div className="border border-border/70 rounded-xl overflow-hidden bg-card">
+                    <div className="grid grid-cols-[minmax(220px,1fr)_260px_36px] bg-muted/35 border-b border-border/60 text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
+                      <div className="px-4 py-3">权益商品</div>
+                      <div className="px-4 py-3">使用周期</div>
+                      <div />
+                    </div>
+                    {form.benefits.map((pkg) => (
+                      <BenefitRowCard
+                        key={pkg.id}
+                        pkg={pkg}
+                        onUpdate={(field, value) => updateBenefit(pkg.id, field, value)}
+                        onRemove={() => removeBenefit(pkg.id)}
+                      />
+                    ))}
                   </div>
-                </div>
-
-                {form.benefits.map((pkg) => (
-                  <BenefitRowCard
-                    key={pkg.id}
-                    pkg={pkg}
-                    onUpdate={(field, value) => updateBenefit(pkg.id, field, value)}
-                    onRemove={() => removeBenefit(pkg.id)}
-                  />
-                ))}
+                )}
 
                 <div className="relative">
                   <button
