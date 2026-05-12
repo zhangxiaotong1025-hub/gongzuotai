@@ -259,13 +259,12 @@ function unfreezeChildren(children?: Enterprise[]): Enterprise[] | undefined {
   }));
 }
 
-type Perspective = "platform" | "enterprise";
+// 当前登录视角由登录账号决定，这里 mock 为平台后台
+const perspective: "platform" | "enterprise" = "platform";
 
 export default function EnterpriseList() {
   const navigate = useNavigate();
   const [data, setData] = useState<Enterprise[]>(initialData);
-  // Mock: 默认平台后台视角，可切换到企业后台
-  const [perspective, setPerspective] = useState<Perspective>("platform");
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["ROOT_CURRENT", "ENT001"]));
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
