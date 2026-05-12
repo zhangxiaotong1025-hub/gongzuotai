@@ -65,6 +65,12 @@ const TOC: { id: string; label: string; icon: React.ElementType; children: { id:
     { id: "e2e-decay", label: "失效 · 重算 · 缓存时序" },
     { id: "e2e-reverse", label: "全链路逆向流（退出 / 到期 / 冻结）" },
   ]},
+  { id: "atlas", label: "08 · 数据生命周期图谱", icon: Layers, children: [
+    { id: "atlas-dag", label: "总依赖 DAG · 一图看全" },
+    { id: "atlas-matrix", label: "数据契约 · 上下游消费矩阵" },
+    { id: "atlas-cards", label: "每个实体的状态机 + 上下游" },
+    { id: "atlas-emerge", label: "一次入驻的「数据涌现」时序" },
+  ]},
 ];
 
 export default function EnterprisePRD() {
