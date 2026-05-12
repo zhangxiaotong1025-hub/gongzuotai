@@ -7,6 +7,7 @@ import {
   GitBranch,
   Rocket,
   Workflow,
+  Layers,
 } from "lucide-react";
 import { Card, H2, H3, H4, KV, Pre, Stat, Table, Tag, Code, SeqLine } from "./entitlement/parts";
 import { Mermaid } from "@/components/prd/Mermaid";
@@ -63,6 +64,12 @@ const TOC: { id: string; label: string; icon: React.ElementType; children: { id:
     { id: "e2e-write", label: "一次写入扩散：事件雪崩图" },
     { id: "e2e-decay", label: "失效 · 重算 · 缓存时序" },
     { id: "e2e-reverse", label: "全链路逆向流（退出 / 到期 / 冻结）" },
+  ]},
+  { id: "atlas", label: "08 · 数据生命周期图谱", icon: Layers, children: [
+    { id: "atlas-dag", label: "总依赖 DAG · 一图看全" },
+    { id: "atlas-matrix", label: "数据契约 · 上下游消费矩阵" },
+    { id: "atlas-cards", label: "每个实体的状态机 + 上下游" },
+    { id: "atlas-emerge", label: "一次入驻的「数据涌现」时序" },
   ]},
 ];
 
@@ -126,7 +133,8 @@ export default function EnterprisePRD() {
         <EditFlow />
         <Delivery />
         <E2EFlow />
-        <div className="text-center text-[12px] text-muted-foreground py-8 border-t">— 企业管理 PRD · v1.1 · 端到端版 · 变更走 PR 评审 —</div>
+        <DataLifecycleAtlas />
+        <div className="text-center text-[12px] text-muted-foreground py-8 border-t">— 企业管理 PRD · v1.2 · 数据生命周期图谱 · 变更走 PR 评审 —</div>
       </main>
     </div>
   );
@@ -1114,6 +1122,481 @@ function E2EFlow() {
         <div className="rounded-lg border-l-2 border-primary/60 bg-primary/5 px-4 py-3 text-[12.5px] leading-[1.85]">
           <strong>设计哲学回扣：</strong>本章 6 个小节回答的不是「怎么做」，而是「做了之后看不见的地方会发生什么」。
           一个合格的企业管理模块，<strong>评判标准不是创建表单字段多全，而是停用一个企业时系统能否优雅地告诉所有下游</strong>。
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ───────────────────────── 08 数据生命周期图谱 ─────────────────────────
+   讲清楚每个数据实体的：状态机 / 谁能写它（上游）/ 谁会消费它（下游）/
+   它消失时谁会受伤。所有耦合都显式画出来，不留「看不见的隐式依赖」。
+*/
+
+/** 单实体生命周期卡 */
+function LifecycleCard({
+  code, name, table, owner, states, upstream, downstream, rule,
+}: {
+  code: string;
+  name: string;
+  table: string;
+  owner: string;
+  states: string;             // mermaid stateDiagram-v2
+  upstream: { who: string; when: string }[];
+  downstream: { who: string; when: string }[];
+  rule: string;
+}) {
+  return (
+    <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="flex items-baseline gap-3 border-b bg-muted/30 px-4 py-2.5">
+        <span className="font-mono text-[10px] tracking-[0.18em] text-primary">{code}</span>
+        <div className="text-[13.5px] font-semibold text-foreground">{name}</div>
+        <span className="font-mono text-[10.5px] text-muted-foreground">{table}</span>
+        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-muted-foreground">owner · {owner}</span>
+      </div>
+      <div className="grid md:grid-cols-[1.1fr_1fr] gap-0 md:divide-x">
+        <div className="p-3">
+          <div className="text-[10.5px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">状态机</div>
+          <Mermaid chart={states} />
+        </div>
+        <div className="p-4 space-y-3">
+          <div>
+            <div className="text-[10.5px] font-mono uppercase tracking-widest text-emerald-600 mb-1.5">↑ 上游（谁会写它）</div>
+            <ul className="text-[11.5px] leading-[1.85] text-foreground/85 space-y-0.5">
+              {upstream.map((u, i) => (
+                <li key={i}><b className="text-foreground">{u.who}</b> · <span className="text-muted-foreground">{u.when}</span></li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <div className="text-[10.5px] font-mono uppercase tracking-widest text-violet-500 mb-1.5">↓ 下游（谁会消费它）</div>
+            <ul className="text-[11.5px] leading-[1.85] text-foreground/85 space-y-0.5">
+              {downstream.map((d, i) => (
+                <li key={i}><b className="text-foreground">{d.who}</b> · <span className="text-muted-foreground">{d.when}</span></li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded border-l-2 border-amber-400/60 bg-amber-400/5 px-2.5 py-1.5 text-[11px] leading-[1.7] text-foreground/85">
+            <b className="text-amber-600">关键规则 · </b>{rule}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DataLifecycleAtlas() {
+  return (
+    <section id="atlas" className="scroll-mt-4 space-y-6">
+      <H2 icon={Layers} num="08">数据生命周期图谱 · Data Lifecycle Atlas</H2>
+      <p className="text-[13px] leading-7 text-foreground/85">
+        前 7 章把流程讲透了，但<b>「数据」本身的视角</b>还没正面回答：每一张表都有它独立的状态机、独立的上游写入方、独立的下游消费方。
+        本章把 11 个核心实体逐一拆开，让你能像查字典一样：<b>看见任何一张表，立即知道「谁会改它 / 改了之后谁会感知到 / 它消失时谁会断电」</b>。
+      </p>
+
+      {/* ───── 8.1 总依赖 DAG ───── */}
+      <div id="atlas-dag" className="space-y-3">
+        <H3>8.1 总依赖 DAG · 一图看全</H3>
+        <p className="text-[12.5px] text-muted-foreground leading-[1.8]">
+          自上而下分四层：<b>权限基座层 → 主体身份层 → 业务实体层 → 行为/资产层</b>。
+          箭头方向 = <b>「被依赖」方向</b>（A → B 表示 B 的可用性依赖 A 存在且有效）。
+          虚线 = 弱依赖（缺失不致命，只影响渲染）。
+        </p>
+        <Mermaid
+          caption="数据实体依赖 DAG · 4 层 11 实体"
+          chart={`flowchart TB
+  subgraph L1["① 权限基座层（系统级 · 跨企业共享）"]
+    direction LR
+    MENU["Menu 菜单<br/>menu"]:::base
+    POLICY["Policy 策略<br/>policy"]:::base
+    ROLE["Role 角色<br/>role + role_menu + role_policy"]:::base
+    APP["Application 应用<br/>app"]:::base
+    CAP["Capability 能力<br/>capability + capability_rule"]:::base
+    SKU["SKU / Package<br/>sku · bundle"]:::base
+  end
+
+  subgraph L2["② 主体身份层（多租户骨架）"]
+    direction LR
+    ENT["Enterprise 企业<br/>enterprise"]:::ent
+    BRAND["Brand 品牌<br/>brand + brand_relation"]:::ent
+    APPLY["EnterpriseApplication<br/>enterprise_application"]:::ent
+    AUDIT["AuditRecord 审计<br/>audit_record"]:::ent
+  end
+
+  subgraph L3["③ 业务实体层（人与权益）"]
+    direction LR
+    USER["User 用户<br/>user"]:::biz
+    STAFF["Staff 人员<br/>staff + user_role"]:::biz
+    ACCT["EntitlementAccount<br/>account + account_user_binding"]:::biz
+    ORDER["Order 订单<br/>order + order_item"]:::biz
+  end
+
+  subgraph L4["④ 行为/资产层（消费 & 履约）"]
+    direction LR
+    CUST["Customer / Lead<br/>customer · lead"]:::act
+    PROD["Product / Model<br/>product · spu · sku · model"]:::act
+  end
+
+  MENU --> ROLE
+  POLICY --> ROLE
+  APP --> CAP
+  CAP --> SKU
+  ROLE --> STAFF
+  SKU --> ORDER
+
+  APPLY --> ENT
+  ENT --> BRAND
+  ENT --> STAFF
+  ENT --> ACCT
+  ENT --> ORDER
+  ENT --> CUST
+  ENT --> PROD
+  ENT --> AUDIT
+  STAFF --> AUDIT
+  ORDER --> AUDIT
+
+  USER --> STAFF
+  STAFF --> ACCT
+  ORDER --> ACCT
+  ACCT --> CUST
+
+  STAFF -.->|分配| CUST
+  BRAND -.->|own/agent| PROD
+  CAP -.->|约束| PROD
+
+  classDef base fill:#eef2ff,stroke:#6366f1,color:#312e81;
+  classDef ent  fill:#fef3c7,stroke:#d97706,color:#78350f;
+  classDef biz  fill:#dcfce7,stroke:#16a34a,color:#14532d;
+  classDef act  fill:#fae8ff,stroke:#a855f7,color:#581c87;
+`}
+        />
+        <KV items={[
+          { k: "为什么权限基座最上层", v: "Menu / Policy / Role 是「系统出厂资产」，不随某个企业生灭。企业被停用，菜单本身依然存在 —— 反之菜单被下线，所有企业立即失去入口。" },
+          { k: "为什么 Enterprise 是中转中心", v: "几乎所有业务表都带 enterprise_id（RLS 行隔离的根字段）。它不是「最高」，但是「最热」—— 任何业务查询都会先过它。" },
+          { k: "弱依赖为何用虚线", v: "Staff 没有客户 → 列表为空，不报错；Brand 没有 Product → 商品库为空，不报错。这些缺失只影响渲染而非系统功能。" },
+        ]} />
+      </div>
+
+      {/* ───── 8.2 上下游消费矩阵 ───── */}
+      <div id="atlas-matrix" className="space-y-3">
+        <H3>8.2 数据契约 · 上下游消费矩阵</H3>
+        <p className="text-[12.5px] text-muted-foreground leading-[1.8]">
+          行 = 数据生产者（写入方），列 = 数据消费者（读取方）。<Code>●</Code> = 强消费（缺失则功能不可用），
+          <Code>○</Code> = 弱消费（仅影响渲染或排序）。<b>读这张表的方式：先看竖列 —— 当我做这个功能时，我需要谁的数据。</b>
+        </p>
+        <div className="overflow-x-auto rounded-lg border">
+          <table className="w-full text-[11px]">
+            <thead className="bg-muted/40 text-muted-foreground">
+              <tr>
+                <th className="text-left px-3 py-2 sticky left-0 bg-muted/40 z-10">生产者 ↓ / 消费者 →</th>
+                {["Role 鉴权","Staff 列表","Account 配额","Order 下单","Customer 分配","Product 可见","BI 数仓","审计追溯"].map(h => (
+                  <th key={h} className="px-2 py-2 font-normal text-center whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="[&_tr]:border-t [&_td]:px-2 [&_td]:py-1.5">
+              {[
+                ["Menu",        "●","○","—","—","—","○","—","—"],
+                ["Policy",      "●","●","○","●","●","●","—","—"],
+                ["Role",        "●","●","○","●","●","●","—","○"],
+                ["Application", "—","—","—","—","—","—","○","●"],
+                ["Enterprise",  "●","●","●","●","●","●","●","●"],
+                ["Brand",       "—","—","—","●","—","●","○","○"],
+                ["User",        "●","●","—","○","—","—","—","○"],
+                ["Staff",       "●","●","●","●","●","○","○","●"],
+                ["Account",     "—","○","●","●","○","○","●","○"],
+                ["Order",       "—","—","●","●","—","○","●","●"],
+                ["SKU/Capability","—","—","●","●","—","●","○","—"],
+              ].map(row => (
+                <tr key={row[0]} className="hover:bg-muted/20">
+                  <td className="font-medium text-foreground sticky left-0 bg-card">{row[0]}</td>
+                  {row.slice(1).map((v, i) => (
+                    <td key={i} className={`text-center font-mono ${v === "●" ? "text-primary font-bold" : v === "○" ? "text-muted-foreground" : "text-muted-foreground/30"}`}>{v}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ───── 8.3 实体生命周期卡片 ───── */}
+      <div id="atlas-cards" className="space-y-4">
+        <H3>8.3 每个实体的状态机 + 上下游</H3>
+
+        <LifecycleCard
+          code="ENT-01" name="Enterprise · 企业" table="enterprise" owner="平台运营"
+          states={`stateDiagram-v2
+  [*] --> pending: 提交申请
+  pending --> active: 平台通过
+  pending --> pending: 驳回再交
+  active --> frozen: 平台冻结
+  frozen --> active: 解冻
+  active --> disabled: 到期/手动停用
+  disabled --> active: 续期/恢复
+  disabled --> exited: 主动退出审批通过
+  exited --> [*]: 30 天后仅审计可见`}
+          upstream={[
+            { who: "EnterpriseApplication", when: "申请通过 → 落表" },
+            { who: "平台运营", when: "手动停用 / 冻结 / 调整层级" },
+            { who: "Cron · auto_disable", when: "expire_at < now() 批量停用" },
+          ]}
+          downstream={[
+            { who: "RLS 函数", when: "几乎所有业务查询的根过滤字段" },
+            { who: "Staff / Customer / Order / Product", when: "外键 enterprise_id" },
+            { who: "BI 数仓", when: "维表 SCD2 保留版本" },
+          ]}
+          rule="不存在物理删除。所有「删除」语义必须映射到 frozen / disabled / exited 三态之一，否则审计断链。"
+        />
+
+        <LifecycleCard
+          code="APP-01" name="EnterpriseApplication · 入驻申请" table="enterprise_application" owner="平台审核"
+          states={`stateDiagram-v2
+  [*] --> submitted: 提交
+  submitted --> pending: 受理（自动）
+  pending --> approved: 通过 → 生成 Enterprise
+  pending --> rejected: 驳回（可再提交）
+  rejected --> submitted: 修改后再交
+  approved --> [*]: 归档`}
+          upstream={[
+            { who: "申请人 / 平台代提", when: "/enterprise/apply 表单提交" },
+            { who: "平台审核员", when: "审核动作（通过 / 驳回）" },
+          ]}
+          downstream={[
+            { who: "Enterprise", when: "approved 时 1:1 物化新企业" },
+            { who: "AuditRecord", when: "每次状态流转产生一条" },
+            { who: "通知中心", when: "短信 / 站内信告知申请人" },
+          ]}
+          rule="approved 是一次性事件，不可回退；回退路径是「先停用新企业 → 再让申请人重交」。无 final reject。"
+        />
+
+        <LifecycleCard
+          code="USR-01" name="User × Staff · 用户与人员" table="user / staff / user_role" owner="后台管理员"
+          states={`stateDiagram-v2
+  [*] --> created: 管理员代建
+  created --> active: 写入即激活（无申请期）
+  active --> active: 调岗/换企业
+  active --> exited: 离职
+  exited --> [*]: user 保留 · staff 软冻结
+  note right of active
+    user_role 失效会让
+    本企业 staff 立即变只读
+  end note`}
+          upstream={[
+            { who: "平台超管 / 企业管理员", when: "POST /staff 一次性写入 user + staff + user_role" },
+            { who: "SMS 网关", when: "下发登录链接 + 初始凭据（异步）" },
+          ]}
+          downstream={[
+            { who: "Role 鉴权链", when: "登录后计算菜单 / 按钮 / RLS" },
+            { who: "Account.seat", when: "按角色含应用自动 +1 / -1" },
+            { who: "Customer 分配", when: "线索按 staff_id 落到名下" },
+            { who: "Order / Audit", when: "operator_id 永久引用" },
+          ]}
+          rule="phone 是 user 主键，跨企业唯一。同一 user 可被多个 staff 行引用（多企业身份），离职只标 staff.exited，user 永不删。"
+        />
+
+        <LifecycleCard
+          code="ROLE-01" name="Role · 角色" table="role + role_menu + role_policy" owner="平台 / 企业管理员"
+          states={`stateDiagram-v2
+  [*] --> draft: 创建（向导第 1 步）
+  draft --> active: 完成向导（菜单+策略已绑）
+  active --> active: 增减菜单/策略
+  active --> archived: 归档（不再分配新人员）
+  archived --> active: 恢复
+  archived --> [*]: 无人员引用时可删`}
+          upstream={[
+            { who: "Permission 模块向导", when: "Role/Menu 创建向导（参见权限 PRD）" },
+            { who: "管理员", when: "调整菜单 / 策略组合" },
+          ]}
+          downstream={[
+            { who: "user_role", when: "人员引用 → 决定身份" },
+            { who: "登录鉴权链", when: "user → role → menu → policy 四级解析" },
+            { who: "缓存 role:{id}:*", when: "Redis 强一致写后即清" },
+          ]}
+          rule="有 user_role 引用的角色不可删，只能 archived。改菜单/策略立即清缓存，下一次请求即生效。"
+        />
+
+        <LifecycleCard
+          code="ACCT-01" name="EntitlementAccount · 权益账户" table="account + account_user_binding" owner="权益域"
+          states={`stateDiagram-v2
+  [*] --> created: 首张订单生效时创建
+  created --> active: 配额到账
+  active --> active: 续费/扩容/绑定座位
+  active --> frozen: 企业停用 → quota.frozen=true
+  frozen --> active: 企业恢复
+  active --> closed: 企业退出审批通过
+  closed --> [*]: 30 天后归档`}
+          upstream={[
+            { who: "Order 履约", when: "订单 active 触发账户开户 / 加额度" },
+            { who: "Staff 绑定", when: "account_user_binding 占座 / 释放" },
+            { who: "事件 enterprise.business.changed", when: "停用 → frozen，恢复 → active" },
+          ]}
+          downstream={[
+            { who: "应用运行时", when: "每次调用扣减配额（弱一致 30s）" },
+            { who: "BI 数仓", when: "GMV / 续费率 / 健康度" },
+            { who: "客户线索分发", when: "账户健康度影响分发权重" },
+          ]}
+          rule="frozen 只冻结写入，不清零余额（30 天观察期），避免误操作让客户白丢配额。座位归账户所有，人离职座位回池。"
+        />
+
+        <LifecycleCard
+          code="ORD-01" name="Order · 订单" table="order + order_item" owner="权益 / 销售"
+          states={`stateDiagram-v2
+  [*] --> created: 下单
+  created --> audit_pending: 需审核（企业授予 / 内部授予）
+  audit_pending --> audit_passed: 审核通过
+  audit_pending --> audit_rejected: 驳回 → 终态
+  created --> paying: 直购（user_purchase）
+  audit_passed --> paying: 进入支付
+  paying --> paid: 收款确认
+  paid --> active: 配额下发到账户
+  active --> ended: 周期到期 / 退订
+  ended --> [*]
+  audit_rejected --> [*]`}
+          upstream={[
+            { who: "OrderCreate 表单", when: "三类来源：enterprise_grant / internal_grant / user_purchase" },
+            { who: "支付网关 webhook", when: "paying → paid" },
+            { who: "履约 job", when: "paid → active，写 Account 配额" },
+          ]}
+          downstream={[
+            { who: "Account", when: "active 时增配额，ended 时减配额" },
+            { who: "AuditRecord", when: "每次状态流转留痕" },
+            { who: "BI 数仓", when: "收入确认 / 续费分析" },
+          ]}
+          rule="状态三维解耦（审核 × 支付 × 生命周期），互不阻塞。退款不改原订单，开新的反向单（sourceOrderIds 追溯）。"
+        />
+
+        <LifecycleCard
+          code="BRD-01" name="Brand · 品牌关系" table="brand + brand_relation" owner="品牌方 / 平台"
+          states={`stateDiagram-v2
+  [*] --> active: 创建品牌（4 步向导）
+  active --> active: 调整 own/agent 关系
+  active --> suspended: 关系暂停
+  suspended --> active: 恢复
+  active --> archived: 品牌方退出 → 归档`}
+          upstream={[
+            { who: "BrandCreate 向导", when: "独立品牌创建" },
+            { who: "Enterprise 入驻", when: "品牌商类型企业自动绑定其品牌" },
+          ]}
+          downstream={[
+            { who: "Product · own/agent", when: "权限决定企业能上架哪些品牌的商品" },
+            { who: "营销结算", when: "品牌方对应渠道的分润" },
+          ]}
+          rule="own = 自有品牌（一对一），agent = 代理关系（多对多）。Enterprise 类型决定可建立哪种关系。"
+        />
+
+        <LifecycleCard
+          code="CUST-01" name="Customer / Lead · 客户与线索" table="customer + lead + assignment" owner="平台分发 / 企业销售"
+          states={`stateDiagram-v2
+  [*] --> raw: 线索接入（多渠道）
+  raw --> cleansed: 平台清洗去重
+  cleansed --> assigned: 分发到企业
+  assigned --> following: 企业销售跟进
+  following --> deal: 成交
+  following --> dead: 战败
+  deal --> [*]
+  dead --> [*]
+  assigned --> reclaim: 长时间未动作 → 回收池
+  reclaim --> assigned: 重新分发`}
+          upstream={[
+            { who: "广告 / 表单 / API", when: "raw 线索入池" },
+            { who: "平台运营 · 清洗规则", when: "raw → cleansed" },
+            { who: "分发引擎", when: "按企业健康度 + 配额分配" },
+          ]}
+          downstream={[
+            { who: "Staff 销售工作台", when: "「我的客户」列表" },
+            { who: "Marketing ROI", when: "归因到渠道 / 活动" },
+            { who: "Account 健康度", when: "成交转化率反哺权重" },
+          ]}
+          rule="平台视角看「全量线索」，企业视角看「分配给我的」—— 同一份数据两套 RLS 视图。回收池避免线索沉睡。"
+        />
+
+        <LifecycleCard
+          code="PROD-01" name="Product / Model · 商品与模型" table="spu + sku + model + product_distribution" owner="供给方 / 企业"
+          states={`stateDiagram-v2
+  [*] --> draft: 创建（SPU + SKU 双层）
+  draft --> reviewing: 提审
+  reviewing --> published: 通过 → 可分发
+  reviewing --> rejected: 驳回回 draft
+  published --> distributed: 分发到 N 家企业
+  distributed --> offshelf: 下架
+  offshelf --> published: 重新上架`}
+          upstream={[
+            { who: "Supply 供给方", when: "上传 SPU/SKU/Model 资产" },
+            { who: "Enterprise 私有库", when: "企业自建商品" },
+            { who: "分发动作", when: "供给方 1:N 分发给企业" },
+          ]}
+          downstream={[
+            { who: "Order 下单可选范围", when: "已分发到本企业的商品才可售" },
+            { who: "3D 设计应用", when: "Model 资产被画图工具消费" },
+            { who: "Brand 权限校验", when: "own/agent 决定可上架范围" },
+          ]}
+          rule="SPU/SKU 严格两层，Model 是 SKU 的可视化资产。供给库 vs 企业库 vs 私有库三层 Tab，对应不同的归属与可见性。"
+        />
+
+        <LifecycleCard
+          code="AUD-01" name="AuditRecord · 审计追溯" table="audit_record" owner="系统（不可手工写）"
+          states={`stateDiagram-v2
+  [*] --> created: 任意写操作触发
+  created --> [*]: 仅追加不可改`}
+          upstream={[
+            { who: "所有写操作", when: "trigger / 事件订阅自动落表" },
+          ]}
+          downstream={[
+            { who: "企业详情时间线", when: "可视化审计轨迹" },
+            { who: "合规 / 法务", when: "对账与追责" },
+            { who: "BI", when: "操作频次 / 异常检测" },
+          ]}
+          rule="append-only。永远不更新、不删除。退出企业 30 天后只对审计角色可见 —— 但 audit_record 永远保留。"
+        />
+      </div>
+
+      {/* ───── 8.4 数据涌现时序 ───── */}
+      <div id="atlas-emerge" className="space-y-3">
+        <H3>8.4 一次入驻的「数据涌现」时序</H3>
+        <p className="text-[12.5px] text-muted-foreground leading-[1.8]">
+          展示<b>从一行 EnterpriseApplication 开始，到一个企业能正常下单为止，N 张表是按什么顺序「涌现」的</b>。
+          这张时序图回答了一个常被忽视的问题：<b>新企业第一次登录时，背后已经悄悄写过多少张表？</b>
+        </p>
+        <Mermaid
+          caption="入驻数据涌现 · T0 提交 → T7 首单可下"
+          chart={`sequenceDiagram
+  autonumber
+  participant U as 申请人
+  participant APP as enterprise_application
+  participant ENT as enterprise
+  participant ROLE as role + role_menu
+  participant USR as user + staff + user_role
+  participant ACCT as account
+  participant ORD as order
+  participant AUD as audit_record
+
+  U->>APP: T0 提交申请 (submitted)
+  APP->>AUD: 写入审计 · action=apply_submit
+  Note over APP: 审核流转（pending → approved）
+  APP->>ENT: T1 approved 触发物化新企业
+  APP->>AUD: action=apply_approved
+  ENT->>ROLE: T2 注入企业级默认角色（克隆模板）
+  ENT->>USR: T3 创建超管 user + staff + 绑定角色
+  USR->>AUD: action=staff_create
+  Note over USR: 短信网关异步下发登录凭据
+  USR->>ENT: T4 首次登录 · 强制改密
+  ENT->>ORD: T5 平台授予首单 (enterprise_grant)
+  ORD->>ACCT: T6 履约 · 开账户 + 配额下发
+  ORD->>AUD: action=order_active
+  ACCT->>USR: T7 按角色含应用占座（seat+1）
+  Note over ACCT,USR: 此时企业才真正「上线可用」`}
+        />
+        <KV items={[
+          { k: "为什么 Role 必须先于 Staff", v: "Staff 创建时需要立即绑定 user_role；若没有角色可选，就会产生「裸员工」 —— 能登录但看不见任何菜单。" },
+          { k: "为什么 Account 不在 T1 一起建", v: "权益账户由订单驱动 —— 没有第一张订单（哪怕是 0 元授予），就没有账户。这避免了「空账户漂移」。" },
+          { k: "为什么 AuditRecord 反复出现", v: "它是横切的追溯层 —— 每一个关键写操作都必须留痕，否则事后无法回答「谁在 T3 创建了这个超管」。" },
+          { k: "T0 → T7 通常多久", v: "理想路径 ≤ 2 个工作日（T0-T1 审核 1 日，T2-T7 同步完成）。任何一步卡住都会在企业详情时间线醒目显示。" },
+        ]} />
+
+        <div className="rounded-lg border-l-2 border-primary/60 bg-primary/5 px-4 py-3 text-[12.5px] leading-[1.85]">
+          <strong>本章回扣：</strong>读完前 7 章，你知道「流程怎么走」；读完本章，你知道<strong>「每一条数据的来龙去脉」</strong>。
+          两者结合，才构成一个可被工程团队真正落地的 PRD —— <strong>设计的关键不在于眼前看得见的，而在于一眼看不见的逻辑</strong>。
         </div>
       </div>
     </section>
