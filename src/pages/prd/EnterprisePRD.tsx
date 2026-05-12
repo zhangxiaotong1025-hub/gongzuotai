@@ -900,7 +900,7 @@ function E2EFlow() {
         <div className="rounded-lg border border-amber-400/40 bg-amber-400/5 p-4 text-[12.5px] leading-[1.8] text-foreground/85">
           <div className="mb-1 font-semibold text-amber-600">与企业不同：人员无「申请期」</div>
           人员侧没有 C 端用户自助申请加入企业的入口。<b>由后台管理员（平台超管 / 企业管理员）单向创建</b>：
-          填写资料 → 系统注册账号 + 分配角色 + 直接挂载企业组织节点 → 短信告知（含登录入口与初始凭据 / 验证码）。
+          填写资料 → 系统注册账号 + 分配角色 + 直接挂载企业组织节点 → 短信告知（含登录地址、账号、初始密码）。
           人员从被创建那一刻起即 <Code>active</Code>，无 pending / 待审核态。这与企业入驻（带 audit 时间线）形成对照。
         </div>
         <Pre>{`            ┌────────────── 人员域（管理员单向写） ──────────────┐   ┌───── 权益/应用域 ─────┐
