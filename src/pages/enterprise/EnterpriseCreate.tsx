@@ -9,6 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { bundleData, skuData, BILLING_CYCLES, getProductsBySkuId, type Bundle } from "@/data/entitlement";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { BenefitPickerDialog, type CatalogItem } from "@/components/entitlement/BenefitPickerDialog";
 
 const TYPE_LABELS: Record<string, string> = {
   mall: "卖场",
