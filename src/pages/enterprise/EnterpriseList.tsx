@@ -407,11 +407,20 @@ export default function EnterpriseList() {
       onClick: handleEnableClick,
       visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "inactive" && !r.frozen,
     },
-    { label: "设置管理员", onClick: (r) => setAdminTarget(r), visible: (r) => !r._root },
+    // 当前企业(root)：平台支持 查看+设置管理员；企业还支持 新建子企业+增购权益
+    { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
     {
       label: "新建子企业",
       onClick: (r) => setSubParent(r),
-      visible: (r) => !r._root && (r._level || 0) < 2 && !r.frozen,
+      visible: (r) => {
+        if (r._root) return perspective === "enterprise";
+        return (r._level || 0) < 2 && !r.frozen;
+      },
+    },
+    {
+      label: "增购权益",
+      onClick: (r) => navigate(`/entitlement/order/create?customerType=B&customerId=${r.id}&customerName=${encodeURIComponent(r.name)}`),
+      visible: (r) => r._root && perspective === "enterprise",
     },
     { label: "权益配置", onClick: (r) => navigate(`/enterprise/detail/${r.id}`), visible: (r) => !r._root },
   ];
