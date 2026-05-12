@@ -414,11 +414,15 @@ export default function EnterpriseDetail() {
         {/* ── 权益配置 ── */}
         <SectionHeader title="权益配置" icon={Package} action={
           <button className="text-[12px] text-primary/80 hover:text-primary transition-colors font-medium"
-            onClick={() => navigate(`/enterprise/create?type=${d.type}&mode=edit&id=${id}&step=product`)}>
-            编辑权益
+            onClick={() => navigate(`/entitlement/order/create?customerType=B&customerId=${id}&customerName=${encodeURIComponent(d.name)}`)}>
+            增购权益
           </button>
         } />
         <div className="px-6 py-5 space-y-7">
+          <div className="flex items-start gap-2 rounded-md bg-muted/50 border border-border/60 px-3 py-2 text-[12px] text-muted-foreground">
+            <Info className="h-3.5 w-3.5 mt-[2px] text-primary/70 shrink-0" />
+            <span>企业创建时配置的权益已生成默认订单，不再支持直接编辑；如需扩容请使用「增购权益」新建订单。</span>
+          </div>
           <div>
             <SubTitle title="基础权益" />
             <div className="grid grid-cols-3 gap-x-8 gap-y-3">
@@ -496,12 +500,8 @@ export default function EnterpriseDetail() {
         {/* ── 关联订单 ── */}
         <SectionHeader title="关联权益订单" icon={FileText} action={
           <button className="text-[12px] text-primary/80 hover:text-primary transition-colors font-medium"
-            onClick={() => {
-              const first = linkedOrders[0];
-              if (first) navigate(`/entitlement/order/create?id=${first.id}`);
-              else navigate(`/entitlement/order/create?customerType=B&customerId=${d.id}&customerName=${encodeURIComponent(d.name)}`);
-            }}>
-            {linkedOrders.length > 0 ? "编辑关联订单" : "创建关联订单"}
+            onClick={() => navigate(`/entitlement/order/create?customerType=B&customerId=${d.id}&customerName=${encodeURIComponent(d.name)}`)}>
+            增购权益
           </button>
         } />
         <div className="px-6 py-5">

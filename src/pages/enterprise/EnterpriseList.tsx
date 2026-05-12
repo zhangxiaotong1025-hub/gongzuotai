@@ -8,6 +8,7 @@ import { AdminTable, type TableColumn, type ActionItem } from "@/components/admi
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { useAuth } from "@/hooks/useAuth";
 
 // ===== Data Model =====
 type AuditStatus = "pending" | "approved" | "rejected";
@@ -259,11 +260,10 @@ function unfreezeChildren(children?: Enterprise[]): Enterprise[] | undefined {
   }));
 }
 
-// 当前登录视角由登录账号决定，这里 mock 为平台后台
-const perspective: "platform" | "enterprise" = "platform";
-
 export default function EnterpriseList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const perspective: "platform" | "enterprise" = user?.perspective ?? "platform";
   const [data, setData] = useState<Enterprise[]>(initialData);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["ROOT_CURRENT", "ENT001"]));
   const [currentPage, setCurrentPage] = useState(1);
@@ -407,11 +407,20 @@ export default function EnterpriseList() {
       onClick: handleEnableClick,
       visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "inactive" && !r.frozen,
     },
-    { label: "设置管理员", onClick: (r) => setAdminTarget(r), visible: (r) => !r._root },
+    // 当前企业(root)：平台支持 查看+设置管理员；企业还支持 新建子企业+增购权益
+    { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
     {
       label: "新建子企业",
       onClick: (r) => setSubParent(r),
-      visible: (r) => !r._root && (r._level || 0) < 2 && !r.frozen,
+      visible: (r) => {
+        if (r._root) return perspective === "enterprise";
+        return (r._level || 0) < 2 && !r.frozen;
+      },
+    },
+    {
+      label: "增购权益",
+      onClick: (r) => navigate(`/entitlement/order/create?customerType=B&customerId=${r.id}&customerName=${encodeURIComponent(r.name)}`),
+      visible: (r) => r._root && perspective === "enterprise",
     },
     { label: "权益配置", onClick: (r) => navigate(`/enterprise/detail/${r.id}`), visible: (r) => !r._root },
   ];
