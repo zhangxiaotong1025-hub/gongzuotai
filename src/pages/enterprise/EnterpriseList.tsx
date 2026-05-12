@@ -168,7 +168,9 @@ const columns: TableColumn<Enterprise>[] = [
     title: "审核状态",
     minWidth: 90,
     render: (v: AuditStatus, row) => {
-      if ((row as Enterprise)._root) return <span className="text-xs text-muted-foreground">—</span>;
+      const r = row as Enterprise;
+      // root 与子企业(非总部)不进入审核
+      if (r._root || (r._level || 0) > 0) return <span className="text-xs text-muted-foreground">—</span>;
       const cfg = AUDIT_STATUS_MAP[v];
       return <span className={cfg.className}>{cfg.label}</span>;
     },
