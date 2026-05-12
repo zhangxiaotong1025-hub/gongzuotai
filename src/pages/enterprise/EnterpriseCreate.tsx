@@ -533,6 +533,7 @@ export default function EnterpriseCreate() {
             updateRow={updateRow}
             updateProductAccountCount={updateProductAccountCount}
             updateProductDateRange={updateProductDateRange}
+            isEdit={searchParams.get("mode") === "edit"}
           />
         )}
         {currentStepKey === "config" && (
