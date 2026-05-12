@@ -8,6 +8,7 @@ import { AdminTable, type TableColumn, type ActionItem } from "@/components/admi
 import { FilterBar, type FilterField } from "@/components/admin/FilterBar";
 import { Pagination } from "@/components/admin/Pagination";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { useAuth } from "@/hooks/useAuth";
 
 // ===== Data Model =====
 type AuditStatus = "pending" | "approved" | "rejected";
