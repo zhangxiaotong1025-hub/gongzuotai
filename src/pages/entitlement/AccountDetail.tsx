@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { accountData, orderData, appData, skuData, bundleData, ORDER_STATUS, ORDER_TYPES, GRANT_TYPES, getAccountStats, getAccountHealth, getRule, getCapability, type EntitlementAccount, type OrderItem } from "@/data/entitlement";
 import { DetailActionBar } from "@/components/admin/DetailActionBar";
 import { Progress } from "@/components/ui/progress";
@@ -42,6 +42,7 @@ function TrendIcon({ trend }: { trend: "up" | "down" | "stable" }) {
 
 export default function AccountDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const accIndex = accountData.findIndex((a) => a.id === id);
   const acc = accIndex >= 0 ? accountData[accIndex] : null;
 
@@ -302,7 +303,7 @@ export default function AccountDetail() {
             <h3 className="text-[14px] font-semibold text-foreground">权益分配记录</h3>
             <p className="text-[12px] text-muted-foreground mt-0.5">（按商品/套餐维度分配，点击查看每条记录包含的权益明细和实例）</p>
           </div>
-          <button className="btn-primary" onClick={() => setDialogOpen(true)}>
+          <button className="btn-primary" onClick={() => navigate(`/entitlement/order/create?customerType=${acc.customerType}&customerId=${acc.customerId}&customerName=${encodeURIComponent(acc.customerName)}`)}>
             <Plus className="h-4 w-4" /> 分配权益
           </button>
         </div>

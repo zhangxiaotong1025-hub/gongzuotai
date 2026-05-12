@@ -496,7 +496,11 @@ export default function EnterpriseDetail() {
         {/* ── 关联订单 ── */}
         <SectionHeader title="关联权益订单" icon={FileText} action={
           <button className="text-[12px] text-primary/80 hover:text-primary transition-colors font-medium"
-            onClick={() => { setEditingOrder(linkedOrders[0] || null); setShowOrderDialog(true); }}>
+            onClick={() => {
+              const first = linkedOrders[0];
+              if (first) navigate(`/entitlement/order/create?id=${first.id}`);
+              else navigate(`/entitlement/order/create?customerType=B&customerId=${d.id}&customerName=${encodeURIComponent(d.name)}`);
+            }}>
             {linkedOrders.length > 0 ? "编辑关联订单" : "创建关联订单"}
           </button>
         } />

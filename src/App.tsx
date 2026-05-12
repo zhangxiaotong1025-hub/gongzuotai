@@ -36,6 +36,7 @@ import PackageList from "./pages/entitlement/PackageList";
 import PackageDetail from "./pages/entitlement/PackageDetail";
 import OrderList from "./pages/entitlement/OrderList";
 import OrderDetail from "./pages/entitlement/OrderDetail";
+import OrderCreate from "./pages/entitlement/OrderCreate";
 import AccountList from "./pages/entitlement/AccountList";
 import AccountDetail from "./pages/entitlement/AccountDetail";
 import EntitlementDashboard from "./pages/entitlement/Dashboard";
@@ -118,6 +119,7 @@ function ProtectedRoutes() {
         <Route path="/entitlement/package" element={<PackageList />} />
         <Route path="/entitlement/package/detail/:id" element={<PackageDetail />} />
         <Route path="/entitlement/order" element={<OrderList />} />
+        <Route path="/entitlement/order/create" element={<OrderCreate />} />
         <Route path="/entitlement/order/detail/:id" element={<OrderDetail />} />
         <Route path="/entitlement/account" element={<AccountList />} />
         <Route path="/entitlement/account/detail/:id" element={<AccountDetail />} />

@@ -457,7 +457,7 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
 }
 
 /* ── 二级弹窗：跨应用商品/套餐选择器 ── */
-function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
+export function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
   open: boolean;
   onClose: () => void;
   existingItems: OrderItem[];
@@ -650,13 +650,13 @@ function ItemPickerDialog({ open, onClose, existingItems, onConfirm }: {
 
 /* ── 受企业有效期约束的日期区间选择器（maxDate 可选） ── */
 const BENEFIT_TONE_VARS = ["--benefit-blue", "--benefit-teal", "--benefit-violet", "--benefit-amber", "--benefit-rose"];
-function getBenefitTone(seed: string): string {
+export function getBenefitTone(seed: string): string {
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
   return BENEFIT_TONE_VARS[Math.abs(h) % BENEFIT_TONE_VARS.length];
 }
 
-function ConstrainedDateRangePicker({ value, maxDate, onChange }: { value: string; maxDate?: string; onChange: (v: string) => void }) {
+export function ConstrainedDateRangePicker({ value, maxDate, onChange }: { value: string; maxDate?: string; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
   const max = maxDate ? new Date(maxDate) : undefined;
   const [startStr, endStr] = (value || "").split("~").map((s) => s.trim());
