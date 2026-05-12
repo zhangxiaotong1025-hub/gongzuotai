@@ -259,11 +259,10 @@ function unfreezeChildren(children?: Enterprise[]): Enterprise[] | undefined {
   }));
 }
 
-// 当前登录视角由登录账号决定，这里 mock 为平台后台
-const perspective: "platform" | "enterprise" = "platform";
-
 export default function EnterpriseList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const perspective: "platform" | "enterprise" = user?.perspective ?? "platform";
   const [data, setData] = useState<Enterprise[]>(initialData);
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["ROOT_CURRENT", "ENT001"]));
   const [currentPage, setCurrentPage] = useState(1);
