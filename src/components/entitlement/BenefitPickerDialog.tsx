@@ -139,14 +139,12 @@ export function BenefitPickerDialog({
               })}
             </div>
           )}
-          {groupFilter && (
-            <Select value={groupVal} onValueChange={setGroupVal}>
-              <SelectTrigger className="h-8 w-[150px] text-[12px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{groupFilter.label || "全部"}</SelectItem>
-                {groupFilter.options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="搜索名称 / 描述" className="pl-8 h-8 text-[13px]" />
+          </div>
+          {multiple && (
+            <span className="text-[12px] text-muted-foreground whitespace-nowrap">已选 {selectedCount} 项</span>
           )}
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
