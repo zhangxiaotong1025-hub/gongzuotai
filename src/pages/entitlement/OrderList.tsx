@@ -198,7 +198,7 @@ export default function OrderList() {
     <div className="space-y-4">
       <PageHeader title="订单管理" subtitle="统一管理所有权益订单，支持用户购买、内部发放、系统发放、企业入驻四种订单类型，内部发放需人工审核，企业入驻跟随企业审核状态" actions={
         <div className="flex gap-2">
-          <button className="btn-primary" onClick={() => { setEditTarget(null); setDialogOpen(true); }}><Plus className="h-4 w-4" /> 创建内部订单</button>
+          <button className="btn-primary" onClick={() => navigate("/entitlement/order/create")}><Plus className="h-4 w-4" /> 创建内部订单</button>
           <button className="btn-secondary"><Download className="h-4 w-4" /> 导出</button>
         </div>
       } />
