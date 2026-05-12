@@ -389,12 +389,12 @@ export default function EnterpriseList() {
     {
       label: "审核",
       onClick: (r) => setAuditTarget(r),
-      visible: (r) => r.auditStatus === "pending",
+      visible: (r) => !r._root && r.auditStatus === "pending",
     },
     {
       label: "停用",
       onClick: handleToggleStatus,
-      visible: (r) => r.auditStatus === "approved" && r.status === "active" && !r.frozen,
+      visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "active" && !r.frozen,
       danger: true,
       confirm: {
         title: "确认停用该企业？",
@@ -405,15 +405,15 @@ export default function EnterpriseList() {
     {
       label: "启用",
       onClick: handleEnableClick,
-      visible: (r) => r.auditStatus === "approved" && r.status === "inactive" && !r.frozen,
+      visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "inactive" && !r.frozen,
     },
-    { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
+    { label: "设置管理员", onClick: (r) => setAdminTarget(r), visible: (r) => !r._root },
     {
       label: "新建子企业",
       onClick: (r) => setSubParent(r),
-      visible: (r) => (r._level || 0) < 2 && !r.frozen,
+      visible: (r) => !r._root && (r._level || 0) < 2 && !r.frozen,
     },
-    { label: "权益配置", onClick: (r) => navigate(`/enterprise/detail/${r.id}`) },
+    { label: "权益配置", onClick: (r) => navigate(`/enterprise/detail/${r.id}`), visible: (r) => !r._root },
   ];
 
   return (
