@@ -124,7 +124,8 @@ export default function EnterprisePRD() {
         <DataModel />
         <EditFlow />
         <Delivery />
-        <div className="text-center text-[12px] text-muted-foreground py-8 border-t">— 企业管理 PRD · v1.0 · 变更走 PR 评审 —</div>
+        <E2EFlow />
+        <div className="text-center text-[12px] text-muted-foreground py-8 border-t">— 企业管理 PRD · v1.1 · 端到端版 · 变更走 PR 评审 —</div>
       </main>
     </div>
   );
