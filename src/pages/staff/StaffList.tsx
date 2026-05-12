@@ -24,14 +24,31 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ChangePasswordDialog from "@/pages/auth/ChangePasswordDialog";
+import { useAuth } from "@/hooks/useAuth";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building2 } from "lucide-react";
 
 /* ── Types ── */
 interface OrgNode { id: string; name: string; children?: OrgNode[]; isDraft?: boolean; }
 interface StaffMember {
-  id: string; name: string; enterprise: string; phone: string;
+  id: string; name: string; enterprise: string; enterpriseId: string; phone: string;
   status: "active" | "inactive"; products: string[]; role: string;
   benefits: string[]; orgIds: string[]; createdAt: string;
 }
+
+/* ── Platform 视角下可切换的企业列表（接口必须落到单个企业） ── */
+const PLATFORM_ENTERPRISES: { id: string; name: string }[] = [
+  { id: "ENT001", name: "欧派家居集团股份有限公司" },
+  { id: "ENT002", name: "索菲亚家居股份有限公司" },
+  { id: "ENT003", name: "尚品宅配家居股份有限公司" },
+  { id: "ENT004", name: "金牌厨柜家居科技股份有限公司" },
+  { id: "ENT005", name: "志邦家居股份有限公司" },
+  { id: "ENT006", name: "我乐家居股份有限公司" },
+  { id: "ENT007", name: "好莱客创意家居股份有限公司" },
+  { id: "ENT008", name: "皮阿诺家居股份有限公司" },
+  { id: "ENT009", name: "顶固集创家居股份有限公司" },
+  { id: "ENT010", name: "居然之家家居新零售连锁集团" },
+];
 
 /* ── Org Tree Data ── */
 const initialOrgTree: OrgNode[] = [
@@ -97,15 +114,18 @@ const BENEFITS_LIST = ["工具极速渲染", "导购AI生图", "工具极速渲�
 const ORG_IDS = ["hq", "model", "design", "supply", "south", "north", "sd-supply", "hb-supply", "tj-supply"];
 
 function generateStaff(): StaffMember[] {
-  return Array.from({ length: 20 }, (_, i) => {
+  // 总共 80 位人员，按企业循环分布，便于平台视角切换企业时各家都有数据
+  return Array.from({ length: 80 }, (_, i) => {
     const numOrgs = Math.floor(Math.random() * 2) + 1;
     const shuffled = [...ORG_IDS].sort(() => Math.random() - 0.5);
     const orgIds = shuffled.slice(0, numOrgs);
     if (Math.random() < 0.2) orgIds.length = 0;
+    const ent = PLATFORM_ENTERPRISES[i % PLATFORM_ENTERPRISES.length];
     return {
       id: `S${String(i + 1).padStart(3, "0")}`,
       name: NAMES[i % NAMES.length],
-      enterprise: ENTERPRISES[i % ENTERPRISES.length],
+      enterprise: ent.name,
+      enterpriseId: ent.id,
       phone: `185****${String(Math.floor(Math.random() * 9000) + 1000)}`,
       status: Math.random() > 0.3 ? "active" : "inactive",
       products: [PRODUCTS_LIST[Math.floor(Math.random() * PRODUCTS_LIST.length)],
@@ -428,7 +448,11 @@ function OrgTreeNode({
    ══════════════════════════ */
 export default function StaffList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const perspective: "platform" | "enterprise" = user?.perspective ?? "platform";
   const [data] = useState<StaffMember[]>(generateStaff);
+  // 平台视角下，接口必须落到单个企业；默认选中第一家
+  const [scopeEnterpriseId, setScopeEnterpriseId] = useState<string>(PLATFORM_ENTERPRISES[0].id);
   const [orgTree, setOrgTree] = useState<OrgNode[]>(initialOrgTree);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
@@ -507,6 +531,10 @@ export default function StaffList() {
 
   const filteredData = useMemo(() => {
     let list = data;
+    // 平台视角：接口能力限制，必须按单个企业过滤
+    if (perspective === "platform") {
+      list = list.filter((s) => s.enterpriseId === scopeEnterpriseId);
+    }
     if (selectedOrg === "unset") list = list.filter((s) => s.orgIds.length === 0);
     else if (selectedOrg !== "all") { const ids = new Set(collectOrgIds(orgTree, selectedOrg)); list = list.filter((s) => s.orgIds.some((oid) => ids.has(oid))); }
     const seen = new Set<string>();
@@ -516,10 +544,11 @@ export default function StaffList() {
     if (filters.status) list = list.filter((s) => s.status === filters.status);
     if (filters.role) list = list.filter((s) => s.role === filters.role);
     return list;
-  }, [data, selectedOrg, orgTree, filters]);
+  }, [data, perspective, scopeEnterpriseId, selectedOrg, orgTree, filters]);
 
   const totalItems = filteredData.length;
   const selectedOrgNode = findNode(orgTree, selectedOrg);
+  const scopeEnterpriseName = PLATFORM_ENTERPRISES.find((e) => e.id === scopeEnterpriseId)?.name || "";
 
   const actions: ActionItem<StaffMember>[] = [
     { label: "查看", onClick: (r) => navigate(`/enterprise/staff/detail/${r.id}`) },
@@ -559,6 +588,49 @@ export default function StaffList() {
           <button className="btn-primary" onClick={() => navigate("/enterprise/staff/create")}><Plus className="h-4 w-4" />新建人员</button>
         </>
       } />
+
+      {/* 平台视角：企业作用域选择器（接口限制必须落到单个企业） */}
+      {perspective === "platform" && (
+        <div
+          className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/[0.03] px-4 py-2.5"
+          style={{ boxShadow: "var(--shadow-xs)" }}
+        >
+          <Building2 className="h-4 w-4 text-primary shrink-0" />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-[12.5px] font-medium text-foreground shrink-0">当前查看企业</span>
+            <Select
+              value={scopeEnterpriseId}
+              onValueChange={(v) => { setScopeEnterpriseId(v); setSelectedOrg("all"); setCurrentPage(1); }}
+            >
+              <SelectTrigger className="h-8 w-[320px] text-[13px] bg-card">
+                <SelectValue placeholder="请选择企业" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLATFORM_ENTERPRISES.map((e) => (
+                  <SelectItem key={e.id} value={e.id} className="text-[13px]">
+                    {e.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[280px]">
+                  <p className="text-xs leading-relaxed">
+                    平台后台支持查看与协助管理全部企业的人员。为保障接口性能，人员查询必须落到单个企业作用域；默认选中第一家企业「{PLATFORM_ENTERPRISES[0].name}」，可在此切换。
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <span className="text-[11px] text-muted-foreground shrink-0">
+            当前作用域：<span className="text-foreground font-medium">{scopeEnterpriseName}</span>
+          </span>
+        </div>
+      )}
 
       {/* Benefit Summary with product tabs + collapsible */}
       <div className="overflow-hidden rounded-xl border border-border/80 bg-card" style={{ boxShadow: "var(--shadow-xs)" }}>
