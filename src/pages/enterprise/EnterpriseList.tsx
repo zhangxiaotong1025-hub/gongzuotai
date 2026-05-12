@@ -160,7 +160,8 @@ const columns: TableColumn<Enterprise>[] = [
     key: "auditStatus",
     title: "审核状态",
     minWidth: 90,
-    render: (v: AuditStatus) => {
+    render: (v: AuditStatus, row) => {
+      if ((row as Enterprise)._root) return <span className="text-xs text-muted-foreground">—</span>;
       const cfg = AUDIT_STATUS_MAP[v];
       return <span className={cfg.className}>{cfg.label}</span>;
     },
@@ -171,6 +172,9 @@ const columns: TableColumn<Enterprise>[] = [
     minWidth: 90,
     render: (v, row) => {
       const ent = row as Enterprise;
+      if (ent._root) {
+        return <span className="badge-active">运行中</span>;
+      }
       if (ent.frozen) {
         return <span className="badge-danger">已冻结</span>;
       }
