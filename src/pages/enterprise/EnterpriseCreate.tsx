@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Check, ChevronLeft, Upload, X, Plus, Info, Search, Package, CalendarIcon } from "lucide-react";
+import { Check, ChevronLeft, Upload, X, Plus, Info, Package, CalendarIcon } from "lucide-react";
 import { SetAdminDialog } from "./SetAdminDialog";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
