@@ -114,15 +114,18 @@ const BENEFITS_LIST = ["工具极速渲染", "导购AI生图", "工具极速渲�
 const ORG_IDS = ["hq", "model", "design", "supply", "south", "north", "sd-supply", "hb-supply", "tj-supply"];
 
 function generateStaff(): StaffMember[] {
-  return Array.from({ length: 20 }, (_, i) => {
+  // 总共 80 位人员，按企业循环分布，便于平台视角切换企业时各家都有数据
+  return Array.from({ length: 80 }, (_, i) => {
     const numOrgs = Math.floor(Math.random() * 2) + 1;
     const shuffled = [...ORG_IDS].sort(() => Math.random() - 0.5);
     const orgIds = shuffled.slice(0, numOrgs);
     if (Math.random() < 0.2) orgIds.length = 0;
+    const ent = PLATFORM_ENTERPRISES[i % PLATFORM_ENTERPRISES.length];
     return {
       id: `S${String(i + 1).padStart(3, "0")}`,
       name: NAMES[i % NAMES.length],
-      enterprise: ENTERPRISES[i % ENTERPRISES.length],
+      enterprise: ent.name,
+      enterpriseId: ent.id,
       phone: `185****${String(Math.floor(Math.random() * 9000) + 1000)}`,
       status: Math.random() > 0.3 ? "active" : "inactive",
       products: [PRODUCTS_LIST[Math.floor(Math.random() * PRODUCTS_LIST.length)],
