@@ -338,8 +338,8 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                 <div className="border rounded-lg p-6 text-center text-[13px] text-muted-foreground border-dashed">
                   点击上方按钮选择商品或套餐（支持跨应用）
                 </div>
-              ) : isBOrder ? (
-                /* B 端企业：按应用分组、行级配置 应用方式/人数/授权时间（参考企业创建样式） */
+              ) : (
+                /* 统一样式：按应用分组，应用级授权时间；B端含应用方式/人数，C端仅含数量 */
                 <div className="space-y-4">
                   {selectedApps.map((app) => {
                     const groupItems = items
@@ -351,6 +351,9 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                         return aId === app.id;
                       });
                     if (groupItems.length === 0) return null;
+                    const gridCols = isBOrder
+                      ? "grid-cols-[minmax(260px,1fr)_140px_100px_100px_36px]"
+                      : "grid-cols-[minmax(260px,1fr)_100px_100px_36px]";
                     return (
                       <div key={app.id} className="rounded-xl border border-border/70 overflow-hidden bg-card">
                         <div className="flex items-center justify-between border-b border-border/60 bg-muted/30 px-4 py-2.5 gap-3">
@@ -359,54 +362,60 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                             <span className="text-[11px] text-muted-foreground">{groupItems.length} 项权益</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] text-muted-foreground">授权时间</span>
+                            <span className="text-[11px] text-muted-foreground">{isBOrder ? "授权时间" : "使用周期"}</span>
                             <div className="w-[260px]">
                               <ConstrainedDateRangePicker
-                                value={appDateRange[app.id] || `2026-01-01 ~ ${enterpriseExpireDate}`}
-                                maxDate={enterpriseExpireDate!}
+                                value={appDateRange[app.id] || `2026-01-01 ~ ${enterpriseExpireDate || "2028-12-31"}`}
+                                maxDate={enterpriseExpireDate}
                                 onChange={(v) => updateAppDateRange(app.id, v, groupItems.map((g) => g.idx))}
                               />
                             </div>
                           </div>
                         </div>
-                        <div className="grid grid-cols-[minmax(260px,1fr)_140px_100px_100px_36px] bg-muted/20 border-b border-border/50 text-[11px] font-medium text-muted-foreground">
+                        <div className={`grid ${gridCols} bg-muted/20 border-b border-border/50 text-[11px] font-medium text-muted-foreground`}>
                           <div className="px-3 py-2">名称</div>
-                          <div className="px-2 py-2">应用方式</div>
-                          <div className="px-2 py-2 text-center">人数</div>
+                          {isBOrder && <div className="px-2 py-2">应用方式</div>}
+                          <div className="px-2 py-2 text-center">{isBOrder ? "人数" : "数量"}</div>
                           <div className="px-2 py-2 text-right">单价</div>
                           <div />
                         </div>
                         {groupItems.map(({ it, idx }) => {
-                          const typeBadge = it.type === "bundle"
-                            ? { label: "套餐", cls: "bg-accent text-accent-foreground" }
-                            : it.type === "product"
-                            ? { label: "权益产品", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" }
-                            : { label: "SKU", cls: "bg-primary/10 text-primary" };
+                          const toneVar = getBenefitTone(it.itemId);
+                          const typeLabel = it.type === "bundle" ? "套餐" : it.type === "product" ? "权益产品" : "商品";
                           return (
-                            <div key={idx} className="grid grid-cols-[minmax(260px,1fr)_140px_100px_100px_36px] items-center border-b border-border/40 last:border-b-0 hover:bg-muted/15 transition-colors group">
+                            <div key={idx} className={`grid ${gridCols} items-center border-b border-border/40 last:border-b-0 hover:bg-muted/15 transition-colors group`}>
                               <div className="px-3 py-2.5 flex items-center gap-2 min-w-0">
-                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${typeBadge.cls}`}>{typeBadge.label}</span>
-                                <span className="text-[13px] font-medium truncate">{it.itemName}</span>
-                              </div>
-                              <div className="px-2 py-2">
-                                <select
-                                  className="filter-select h-8 w-full px-2 text-[12px]"
-                                  value={it.applyMode || "指定人员"}
-                                  onChange={(e) => updateItem(idx, "applyMode", e.target.value as OrderItem["applyMode"])}
+                                <span
+                                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap"
+                                  style={{ background: `hsl(var(${toneVar}) / 0.08)`, color: `hsl(var(${toneVar}))` }}
                                 >
-                                  <option value="指定人员">指定人员</option>
-                                  <option value="全部人员">全部人员</option>
-                                </select>
+                                  <Package className="h-3 w-3 shrink-0" />
+                                  {it.itemName}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">{typeLabel}</span>
                               </div>
+                              {isBOrder && (
+                                <div className="px-2 py-2">
+                                  <select
+                                    className="filter-select h-9 w-full px-2 text-[12px]"
+                                    value={it.applyMode || "指定人员"}
+                                    onChange={(e) => updateItem(idx, "applyMode", e.target.value as OrderItem["applyMode"])}
+                                  >
+                                    <option value="指定人员">指定人员</option>
+                                    <option value="全部人员">全部人员</option>
+                                  </select>
+                                </div>
+                              )}
                               <div className="px-2 py-2">
-                                {it.applyMode === "全部人员" ? (
+                                {isBOrder && it.applyMode === "全部人员" ? (
                                   <span className="block text-center text-[12px] text-muted-foreground">全员</span>
                                 ) : (
                                   <input
                                     type="number"
-                                    className="filter-input h-8 w-full px-1 text-center text-[12px]"
-                                    value={it.applyCount ?? 10}
-                                    onChange={(e) => updateItem(idx, "applyCount", Number(e.target.value))}
+                                    min={1}
+                                    className="filter-input h-9 w-full px-1 text-center text-[12px]"
+                                    value={isBOrder ? (it.applyCount ?? 10) : it.quantity}
+                                    onChange={(e) => updateItem(idx, isBOrder ? "applyCount" : "quantity", Math.max(1, Number(e.target.value)))}
                                   />
                                 )}
                               </div>
@@ -423,41 +432,6 @@ export function OrderDialog({ open, onClose, onSave, initial }: OrderDialogProps
                     );
                   })}
                   <div className="px-3 py-2 text-[13px] font-medium text-right bg-muted/30 border rounded-lg">
-                    合计: <span className="text-foreground">¥{totalAmount.toFixed(2)}</span>
-                  </div>
-                </div>
-              ) : (
-                /* C 端用户：保持原扁平列表 */
-                <div className="border rounded-lg divide-y">
-                  {items.map((item, idx) => {
-                    const itemApp = item.type === "sku"
-                      ? appData.find((a) => a.id === skuData.find((s) => s.id === item.itemId)?.appId)
-                      : item.type === "product"
-                      ? appData.find((a) => a.id === productData.find((p) => p.id === item.itemId)?.appId)
-                      : appData.find((a) => a.id === bundleData.find((b) => b.id === item.itemId)?.appId);
-                    const typeBadge = item.type === "bundle"
-                      ? { label: "套餐", cls: "bg-accent text-accent-foreground" }
-                      : item.type === "product"
-                      ? { label: "权益产品", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" }
-                      : { label: "SKU", cls: "bg-primary/10 text-primary" };
-                    return (
-                      <div key={idx} className="flex items-center justify-between px-3 py-2 text-[13px]">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${typeBadge.cls}`}>
-                            {typeBadge.label}
-                          </span>
-                          <span className="font-medium truncate">{item.itemName}</span>
-                          {itemApp && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">{itemApp.name}</span>}
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className="text-muted-foreground">×{item.quantity}</span>
-                          <span className="font-medium">{item.unitPrice > 0 ? `¥${item.unitPrice}` : "¥0"}</span>
-                          <button onClick={() => removeItem(idx)} className="text-muted-foreground hover:text-destructive"><X className="h-3.5 w-3.5" /></button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div className="px-3 py-2 text-[13px] font-medium text-right bg-muted/30">
                     合计: <span className="text-foreground">¥{totalAmount.toFixed(2)}</span>
                   </div>
                 </div>
