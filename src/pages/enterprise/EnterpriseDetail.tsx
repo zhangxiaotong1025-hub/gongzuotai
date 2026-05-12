@@ -419,6 +419,10 @@ export default function EnterpriseDetail() {
           </button>
         } />
         <div className="px-6 py-5 space-y-7">
+          <div className="flex items-start gap-2 rounded-md bg-muted/50 border border-border/60 px-3 py-2 text-[12px] text-muted-foreground">
+            <Info className="h-3.5 w-3.5 mt-[2px] text-primary/70 shrink-0" />
+            <span>企业创建时配置的权益已生成默认订单，不再支持直接编辑；如需扩容请使用「增购权益」新建订单。</span>
+          </div>
           <div>
             <SubTitle title="基础权益" />
             <div className="grid grid-cols-3 gap-x-8 gap-y-3">
