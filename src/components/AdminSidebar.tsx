@@ -138,6 +138,7 @@ const navItems: NavItem[] = [
     icon: FileText,
     children: [
       { label: "权益设计", path: "/prd/entitlement" },
+      { label: "企业设计", path: "/prd/enterprise" },
     ],
   },
 ];
