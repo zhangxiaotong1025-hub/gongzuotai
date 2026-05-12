@@ -818,10 +818,26 @@ function BenefitListSection({
             return (
               <div key={row.id} className="grid grid-cols-[minmax(260px,1fr)_160px_120px_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors group">
                 <div className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap" style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}>
-                    <Package className="h-3 w-3 shrink-0" />
-                    {row.packageName}
-                  </span>
+                  {label === "权益套餐" ? (
+                    <button
+                      type="button"
+                      title="查看套餐详情"
+                      onClick={() => {
+                        const bundle = bundleData.find((b) => b.name === row.packageName);
+                        window.open(bundle ? `/entitlement/package/detail/${bundle.id}` : `/entitlement/package`, "_blank");
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap hover:ring-1 hover:ring-current/40 transition-all cursor-pointer"
+                      style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}
+                    >
+                      <Package className="h-3 w-3 shrink-0" />
+                      {row.packageName}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap" style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}>
+                      <Package className="h-3 w-3 shrink-0" />
+                      {row.packageName}
+                    </span>
+                  )}
                 </div>
                 <div className="px-3 py-3">
                   <select className="filter-select h-9 w-full px-2 text-[13px]" value={row.applyMode} onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}>
