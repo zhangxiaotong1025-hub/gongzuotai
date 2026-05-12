@@ -43,6 +43,7 @@ import EntitlementDashboard from "./pages/entitlement/Dashboard";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import EntitlementPRDLayout from "./pages/prd/entitlement/Layout";
 import EnterprisePRD from "./pages/prd/EnterprisePRD";
+import SystemArchitecturePRD from "./pages/prd/SystemArchitecturePRD";
 import BrandList from "./pages/brand/BrandList";
 import BrandDetail from "./pages/brand/BrandDetail";
 import BrandCreate from "./pages/brand/BrandCreate";
@@ -164,6 +165,7 @@ function ProtectedRoutes() {
         <Route path="/dashboard" element={<PlaceholderPage title="数据看版" />} />
         <Route path="/agent" element={<AgentCommandCenter />} />
         <Route path="/agent/leads" element={<LeadsOperation />} />
+        <Route path="/prd/architecture" element={<SystemArchitecturePRD />} />
         <Route path="/prd/entitlement" element={<EntitlementPRDLayout />} />
         <Route path="/prd/entitlement/*" element={<Navigate to="/prd/entitlement" replace />} />
         <Route path="/prd/enterprise" element={<EnterprisePRD />} />
