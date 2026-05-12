@@ -164,11 +164,12 @@ function Overview() {
           headers={["术语", "定义", "易混淆点"]}
           rows={[
             ["企业（Enterprise）", "平台租户主体，持有唯一 enterprise_id", "≠ 品牌（Brand），一个企业可代理多个品牌"],
-            ["总部（HQ）", "Level=0 的根企业，由平台审核准入", "总部不可被停用，仅可冻结"],
-            ["子企业（Child）", "Level=1，由 HQ 创建", "权益可独立配置或继承"],
+            ["总部（HQ）", "Level=0 的根企业，由平台审核准入", "可停用、可冻结，停用属高危操作"],
+            ["子企业（Child）", "Level=1，由 HQ 或平台代建", "权益可独立配置或继承"],
             ["末级企业（Grandchild）", "Level=2，最大层级，不可再建子级", "支持停用，不支持再创建下级"],
+            ["视角 perspective", "platform（平台） / enterprise（企业）", "平台视角全权代操作；企业视角受限于自身子树"],
             ["审核状态", "pending / approved / rejected", "驳回（rejected）后允许再次提交审核"],
-            ["业务状态", "active / disabled", "由企业管理员或平台手动切换"],
+            ["业务状态", "active / disabled", "手动切换 或 到期自动 disable"],
             ["所有权状态", "normal / frozen", "由审计、合规或上级冻结触发，级联生效"],
             ["归属（Ownership）", "人员 / 客户 / 订单与企业之间的多对一关系", "迁移会触发权益重算与审计记录"],
           ]}
