@@ -79,6 +79,22 @@ export function BenefitPickerDialog({
     return Array.from(s) as Array<"product" | "sku" | "bundle">;
   }, [items]);
 
+  const groupOptions = useMemo(() => {
+    if (groupFilter?.options?.length) return groupFilter.options;
+    const seen = new Set<string>();
+    return items.reduce<{ label: string; value: string }[]>((acc, item) => {
+      if (!item.group || seen.has(item.group)) return acc;
+      seen.add(item.group);
+      acc.push({ label: item.group, value: item.group });
+      return acc;
+    }, []);
+  }, [groupFilter, items]);
+
+  useEffect(() => {
+    if (groupVal === "all") return;
+    if (!groupOptions.some((option) => option.value === groupVal)) setGroupVal("all");
+  }, [groupOptions, groupVal]);
+
   const filtered = useMemo(() => items.filter((it) => {
     if (kindVal !== "all" && it.kind && it.kind !== kindVal) return false;
     if (groupVal !== "all" && it.group !== groupVal) return false;
@@ -119,7 +135,38 @@ export function BenefitPickerDialog({
         </DialogHeader>
 
         {/* Filters */}
-        <div className="space-y-2 pb-3 border-b">
+        <div className="space-y-3 pb-3 border-b">
+          {groupOptions.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] text-muted-foreground shrink-0 mr-1">{groupFilter?.label || "应用"}</span>
+              <button
+                type="button"
+                onClick={() => setGroupVal("all")}
+                className={cn(
+                  "px-3 py-1.5 text-[12px] rounded-full border transition-colors",
+                  groupVal === "all"
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                )}
+              >全部</button>
+              {groupOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setGroupVal(option.value)}
+                  className={cn(
+                    "px-3 py-1.5 text-[12px] rounded-full border transition-colors",
+                    groupVal === option.value
+                      ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                      : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="flex items-center gap-2 flex-wrap">
             {showKindTabs && kinds.length > 1 && (
               <div className="flex gap-1 bg-muted rounded-lg p-0.5 shrink-0">
@@ -148,23 +195,6 @@ export function BenefitPickerDialog({
               <span className="text-[12px] text-muted-foreground whitespace-nowrap">已选 {selectedCount} 项</span>
             )}
           </div>
-          {groupFilter && groupFilter.options.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[11px] text-muted-foreground shrink-0 mr-1">{groupFilter.label || "应用"}：</span>
-              <button
-                onClick={() => setGroupVal("all")}
-                className={cn("px-2.5 py-1 text-[12px] rounded-full border transition-colors",
-                  groupVal === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30")}
-              >全部</button>
-              {groupFilter.options.map((o) => (
-                <button key={o.value} onClick={() => setGroupVal(o.value)}
-                  className={cn("px-2.5 py-1 text-[12px] rounded-full border transition-colors",
-                    groupVal === o.value ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30")}>
-                  {o.label}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* List */}
@@ -214,8 +244,10 @@ export function BenefitPickerDialog({
                           <div className="flex-1 min-w-0" onClick={() => !multiple && toggle(item)}>
                             <div className="flex items-center gap-1.5">
                               <div className="text-[13px] font-medium text-foreground truncate">{item.name}</div>
-                              {item.kind === "bundle" && (
-                                <span className="inline-flex items-center px-1.5 py-[1px] rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">套餐</span>
+                              {item.kind && (
+                                <span className="inline-flex items-center px-1.5 py-[1px] rounded text-[10px] font-medium bg-muted text-muted-foreground shrink-0">
+                                  {KIND_META[item.kind].label.replace("权益", "")}
+                                </span>
                               )}
                             </div>
                             {item.desc && <div className="text-[11px] text-muted-foreground truncate mt-0.5">{item.desc}</div>}
