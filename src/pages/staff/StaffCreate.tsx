@@ -577,8 +577,9 @@ export default function StaffCreate() {
                       : null,
                   } as CatalogItem))}
                   existingIds={form.benefits.map((b) => b.name)}
+                  showKindTabs
                   groupFilter={{
-                    label: "全部产品",
+                    label: "应用",
                     options: PRODUCTS.filter((p) => form.enabledProducts.includes(p.key)).map((p) => ({ label: p.label, value: p.label })),
                   }}
                   onConfirm={(selected) => {
