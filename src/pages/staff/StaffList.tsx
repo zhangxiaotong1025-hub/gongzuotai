@@ -589,6 +589,49 @@ export default function StaffList() {
         </>
       } />
 
+      {/* 平台视角：企业作用域选择器（接口限制必须落到单个企业） */}
+      {perspective === "platform" && (
+        <div
+          className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/[0.03] px-4 py-2.5"
+          style={{ boxShadow: "var(--shadow-xs)" }}
+        >
+          <Building2 className="h-4 w-4 text-primary shrink-0" />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="text-[12.5px] font-medium text-foreground shrink-0">当前查看企业</span>
+            <Select
+              value={scopeEnterpriseId}
+              onValueChange={(v) => { setScopeEnterpriseId(v); setSelectedOrg("all"); setCurrentPage(1); }}
+            >
+              <SelectTrigger className="h-8 w-[320px] text-[13px] bg-card">
+                <SelectValue placeholder="请选择企业" />
+              </SelectTrigger>
+              <SelectContent>
+                {PLATFORM_ENTERPRISES.map((e) => (
+                  <SelectItem key={e.id} value={e.id} className="text-[13px]">
+                    {e.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[280px]">
+                  <p className="text-xs leading-relaxed">
+                    平台后台支持查看与协助管理全部企业的人员。为保障接口性能，人员查询必须落到单个企业作用域；默认选中第一家企业「{PLATFORM_ENTERPRISES[0].name}」，可在此切换。
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <span className="text-[11px] text-muted-foreground shrink-0">
+            当前作用域：<span className="text-foreground font-medium">{scopeEnterpriseName}</span>
+          </span>
+        </div>
+      )}
+
       {/* Benefit Summary with product tabs + collapsible */}
       <div className="overflow-hidden rounded-xl border border-border/80 bg-card" style={{ boxShadow: "var(--shadow-xs)" }}>
         <div className="flex items-center justify-between px-5 pt-3.5 pb-1">
