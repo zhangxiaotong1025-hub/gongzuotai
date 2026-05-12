@@ -310,13 +310,26 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mt-3 text-center space-y-1">
-            <p className="text-[11px] text-muted-foreground">
-              Mock 提示：验证码 <code className="text-foreground bg-muted px-1 rounded">1234</code>，密码 <code className="text-foreground bg-muted px-1 rounded">admin123</code>
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              手机号 <code className="text-foreground bg-muted px-1 rounded">13800138000</code> 触发多企业选择
-            </p>
+          <div className="mt-3 rounded-lg border border-border bg-muted/40 px-3.5 py-2.5">
+            <p className="text-[11px] text-muted-foreground mb-1.5">Mock 演示账号（密码 <code className="text-foreground bg-card px-1 rounded">admin123</code> / 验证码 <code className="text-foreground bg-card px-1 rounded">1234</code>）</p>
+            <div className="space-y-1">
+              <button
+                type="button"
+                onClick={() => { setPhone("13800138000"); setPassword("admin123"); setSmsCode("1234"); }}
+                className="w-full flex items-center justify-between text-[12px] text-foreground hover:text-primary transition-colors"
+              >
+                <span>平台管理员</span>
+                <code className="text-foreground bg-card px-1.5 py-0.5 rounded">13800138000</code>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPhone("13900139000"); setPassword("admin123"); setSmsCode("1234"); }}
+                className="w-full flex items-center justify-between text-[12px] text-foreground hover:text-primary transition-colors"
+              >
+                <span>企业管理员</span>
+                <code className="text-foreground bg-card px-1.5 py-0.5 rounded">13900139000</code>
+              </button>
+            </div>
           </div>
         </div>
       </div>
