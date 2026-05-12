@@ -35,14 +35,36 @@ interface Enterprise {
 }
 
 // ===== Mock Data =====
-const ENTERPRISE_NAMES = [
-  "欧派家居集团股份有限公司", "索菲亚家居股份有限公司", "尚品宅配家居股份有限公司",
-  "金牌厨柜家居科技股份有限公司", "志邦家居股份有限公司", "我乐家居股份有限公司",
-  "好莱客创意家居股份有限公司", "皮阿诺家居股份有限公司", "顶固集创家居股份有限公司",
+// 真实头部家居企业（每条数据唯一，避免重复名称）
+const TOP_ENTERPRISES: { name: string; short: string; type: string; products: string[] }[] = [
+  { name: "欧派家居集团股份有限公司", short: "欧派", type: "品牌商", products: ["国内3D", "国际3D", "智能导购", "VR全景"] },
+  { name: "索菲亚家居股份有限公司", short: "索菲亚", type: "品牌商", products: ["国内3D", "智能导购"] },
+  { name: "尚品宅配家居股份有限公司", short: "尚品宅配", type: "品牌商", products: ["国内3D", "VR全景"] },
+  { name: "金牌厨柜家居科技股份有限公司", short: "金牌厨柜", type: "品牌商", products: ["国内3D", "国际3D"] },
+  { name: "志邦家居股份有限公司", short: "志邦", type: "品牌商", products: ["国内3D", "智能导购"] },
+  { name: "我乐家居股份有限公司", short: "我乐", type: "品牌商", products: ["国内3D", "VR全景"] },
+  { name: "好莱客创意家居股份有限公司", short: "好莱客", type: "品牌商", products: ["国内3D", "国际3D", "VR全景"] },
+  { name: "皮阿诺家居股份有限公司", short: "皮阿诺", type: "品牌商", products: ["国内3D"] },
+  { name: "顶固集创家居股份有限公司", short: "顶固", type: "品牌商", products: ["国际3D", "智能导购"] },
+  { name: "居然之家家居新零售连锁集团", short: "居然之家", type: "卖场", products: ["国内3D", "国际3D", "智能导购", "VR全景"] },
 ];
+
 const TYPES = ["品牌商", "经销商", "装修公司", "卖场", "门店", "工作室", "供应商"];
 const PRODUCTS = ["国内3D", "国际3D", "智能导购", "VR全景"];
-const CREATORS = ["张伟", "李娜", "王强", "赵敏", "刘洋", "陈静", "杨帆"];
+const CREATORS = ["张伟", "李娜", "王强", "赵敏", "刘洋", "陈静", "杨帆", "周倩", "黄磊", "吴婷"];
+
+// 真实区域 / 城市分布
+const REGIONS = ["华北", "华东", "华南", "华中", "西南", "东北", "西北"];
+const REGION_CITIES: Record<string, string[]> = {
+  "华北": ["北京", "天津", "石家庄", "太原", "济南"],
+  "华东": ["上海", "杭州", "南京", "苏州", "宁波", "合肥"],
+  "华南": ["广州", "深圳", "厦门", "福州", "南宁"],
+  "华中": ["武汉", "长沙", "郑州", "南昌"],
+  "西南": ["成都", "重庆", "昆明", "贵阳"],
+  "东北": ["沈阳", "大连", "哈尔滨", "长春"],
+  "西北": ["西安", "兰州", "乌鲁木齐"],
+};
+const DISTRICTS = ["朝阳", "海淀", "丰台", "浦东", "徐汇", "天河", "福田", "南山", "锦江", "武侯", "滨江", "鼓楼", "玄武"];
 
 const TYPE_KEY_MAP: Record<string, string> = {
   "品牌商": "brand", "经销商": "dealer", "装修公司": "decoration",
@@ -50,63 +72,179 @@ const TYPE_KEY_MAP: Record<string, string> = {
 };
 
 const SUB_TYPE_MAP: Record<string, string[]> = {
-  "品牌商": ["品牌商", "经销商", "装修公司", "门店", "工作室"],
-  "经销商": ["经销商", "装修公司", "门店", "工作室"],
-  "装修公司": ["装修公司", "门店", "工作室"],
-  "门店": ["门店", "工作室"],
+  "品牌商": ["经销商", "装修公司", "门店", "工作室"],
+  "经销商": ["装修公司", "门店", "工作室"],
+  "装修公司": ["门店", "工作室"],
+  "门店": ["工作室"],
   "工作室": ["工作室"],
   "供应商": ["供应商"],
-  "卖场": ["品牌商", "经销商", "装修公司", "门店", "工作室"],
+  "卖场": ["品牌商", "经销商", "装修公司", "门店"],
 };
 
-function randomPick<T>(arr: T[], count?: number): T[] {
-  const c = count || Math.ceil(Math.random() * arr.length);
-  return [...arr].sort(() => Math.random() - 0.5).slice(0, Math.min(c, arr.length));
+const NOTE_LIB: Record<string, string[]> = {
+  "品牌商": ["核心战略客户，2023 年签约，年度 GMV 破亿", "全品类整装品牌，主推全屋定制方案", "年度合作伙伴，专属客户成功对接"],
+  "经销商": ["大区独家代理，覆盖 5 个省份门店", "稳定续费客户，主要销售硬装瓷砖", "新签约渠道伙伴，试运营 3 个月"],
+  "装修公司": ["华东大区直营，主推整装套餐", "新签约客户，处于试用期", "重点关注客户，季度复购率 60%"],
+  "门店": ["旗舰店，月均到店客流 1500+", "社区店，主打小户型方案", "新开门店，处于市场培育期"],
+  "工作室": ["独立设计师工作室，签约设计师 8 人", "高端定制工作室，客单价 20w+"],
+  "卖场": ["全国连锁卖场，入驻品牌 200+", "区域型卖场，覆盖周边 50 公里商圈"],
+  "供应商": ["A 级核心供应商，年度供货额 5000w+", "新晋供应商，处于评估期"],
+};
+
+let __seq = 1;
+function pickFrom<T>(arr: T[], seed: number): T { return arr[seed % arr.length]; }
+function pickNote(type: string): string {
+  const lib = NOTE_LIB[type] || ["年度合作伙伴"];
+  return lib[(__seq++) % lib.length];
 }
 
-function generateEnterprise(id: string, depth = 0, parentType?: string): Enterprise {
-  const maxDepth = 2;
-  const hasChildren = depth < maxDepth && Math.random() > (depth === 0 ? 0.3 : 0.5);
-  const childCount = hasChildren ? Math.floor(Math.random() * 3) + 1 : 0;
-  const allowedTypes = depth === 0 ? TYPES : (parentType ? (SUB_TYPE_MAP[parentType] || TYPES) : TYPES);
-  const type = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
-  // 仅总部企业(depth===0)进入审核流程；子企业由总部直接创建，自动通过
-  let auditStatus: AuditStatus;
-  if (depth === 0) {
-    const auditRand = Math.random();
-    auditStatus = auditRand > 0.7 ? "pending" : auditRand > 0.15 ? "approved" : "rejected";
-  } else {
-    auditStatus = "approved";
+function buildChildName(parentShort: string, type: string, region: string, city: string, district: string): string {
+  switch (type) {
+    case "经销商": return `${parentShort}${city}经销有限公司`;
+    case "装修公司": return `${parentShort}${city}装饰工程有限公司`;
+    case "门店": return `${parentShort}${city}${district}旗舰店`;
+    case "工作室": return `${parentShort}${city}设计工作室`;
+    case "供应商": return `${parentShort}${city}供应链有限公司`;
+    case "品牌商": return `${parentShort}${region}品牌运营中心`;
+    case "卖场": return `${parentShort}${city}卖场`;
+    default: return `${parentShort}${city}分公司`;
   }
+}
+
+function staffByType(type: string): number {
+  const base: Record<string, [number, number]> = {
+    "品牌商": [120, 280], "经销商": [25, 70], "装修公司": [30, 90],
+    "卖场": [60, 180], "门店": [6, 18], "工作室": [4, 12], "供应商": [40, 120],
+  };
+  const [min, max] = base[type] || [10, 50];
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+function pad2(n: number): string { return String(n).padStart(2, "0"); }
+function makeDate(year: number): string {
+  return `${year}-${pad2(Math.floor(Math.random() * 12) + 1)}-${pad2(Math.floor(Math.random() * 28) + 1)} ${pad2(9 + Math.floor(Math.random() * 9))}:${pad2(Math.floor(Math.random() * 60))}`;
+}
+
+interface BuildCtx { parentShort: string; depth: number; parentType: string; }
+
+function generateChild(id: string, ctx: BuildCtx): Enterprise {
+  const allowed = SUB_TYPE_MAP[ctx.parentType] || ["门店"];
+  const type = pickFrom(allowed, __seq + ctx.depth);
+  const region = pickFrom(REGIONS, __seq);
+  const city = pickFrom(REGION_CITIES[region], __seq + 1);
+  const district = pickFrom(DISTRICTS, __seq + 2);
+  __seq++;
+  const hasChildren = ctx.depth < 2 && (type === "经销商" || type === "装修公司" || type === "卖场") && Math.random() > 0.4;
+  const childCount = hasChildren ? Math.floor(Math.random() * 3) + 2 : 0;
+  const children = hasChildren
+    ? Array.from({ length: childCount }, (_, i) => generateChild(`${id}-${i + 1}`, { parentShort: ctx.parentShort, depth: ctx.depth + 1, parentType: type }))
+    : [];
+  const descendants = children.reduce((s, c) => s + 1 + c.subsidiaries, 0);
+  const selfStaff = staffByType(type);
+  const staff = children.reduce((s, c) => s + c.staff, selfStaff);
   return {
     id,
-    name: ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)],
+    name: buildChildName(ctx.parentShort, type, region, city, district),
     type,
-    status: auditStatus === "approved" ? (Math.random() > 0.25 ? "active" : "inactive") : "inactive",
-    auditStatus,
-    admin: Math.random() > 0.4 ? CREATORS[Math.floor(Math.random() * CREATORS.length)] : undefined,
-    products: randomPick(PRODUCTS, Math.floor(Math.random() * 3) + 1),
-    subsidiaries: Math.floor(Math.random() * 50) + 1,
-    staff: Math.floor(Math.random() * 200) + 5,
-    createdAt: `202${Math.floor(Math.random() * 6)}-${String(Math.floor(Math.random() * 12) + 1).padStart(2, "0")}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")} ${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
+    status: Math.random() > 0.2 ? "active" : "inactive",
+    auditStatus: "approved",
+    admin: Math.random() > 0.3 ? CREATORS[Math.floor(Math.random() * CREATORS.length)] : undefined,
+    products: ["国内3D"].concat(Math.random() > 0.6 ? ["VR全景"] : []).concat(Math.random() > 0.8 ? ["智能导购"] : []),
+    subsidiaries: descendants,
+    staff,
+    createdAt: makeDate(2023 + Math.floor(Math.random() * 3)),
     creator: CREATORS[Math.floor(Math.random() * CREATORS.length)],
-    updatedAt: `2026-0${Math.floor(Math.random() * 3) + 1}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")} ${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
-    note: ["核心战略客户", "稳定续费客户，主要销售硬装瓷砖", "新签约客户，试用期", "重点关注客户", "年度合作伙伴"][Math.floor(Math.random() * 5)],
-    auditRecords: [
-      {
-        id: `${id}-ar-1`,
-        action: "submit",
-        operator: CREATORS[Math.floor(Math.random() * CREATORS.length)],
-        time: `2026-01-${String(Math.floor(Math.random() * 28) + 1).padStart(2, "0")} 14:30`,
-        remark: "新企业创建，提交审核",
-      },
+    updatedAt: makeDate(2026),
+    note: pickNote(type),
+    auditRecords: [],
+    children,
+  };
+}
+
+function generateTopEnterprise(id: string, idx: number): Enterprise {
+  const meta = TOP_ENTERPRISES[idx % TOP_ENTERPRISES.length];
+  // 总部企业(depth===0)进入审核流程；首条(idx===0)恒为已通过，便于演示当前登录企业
+  let auditStatus: AuditStatus;
+  if (idx === 0) {
+    auditStatus = "approved";
+  } else {
+    const r = Math.random();
+    auditStatus = r > 0.7 ? "pending" : r > 0.15 ? "approved" : "rejected";
+  }
+  // 首条企业构造 3-5 个大区/渠道子公司，下面再挂门店/工作室
+  const childCount = idx === 0 ? 5 : auditStatus === "approved" ? Math.floor(Math.random() * 3) + 1 : 0;
+  const usedRegions = new Set<string>();
+  const children: Enterprise[] = [];
+  for (let i = 0; i < childCount; i++) {
+    // 首条按大区拆分，确保结构真实
+    const region = idx === 0 ? REGIONS[i % REGIONS.length] : pickFrom(REGIONS, __seq);
+    if (idx === 0 && usedRegions.has(region)) continue;
+    usedRegions.add(region);
+    const city = pickFrom(REGION_CITIES[region], __seq);
+    const parentType = idx === 0 ? "经销商" : meta.type;
+    __seq++;
+    // 大区运营公司
+    const regionalId = `${id}-${i + 1}`;
+    const regionalChildren = Array.from({ length: Math.floor(Math.random() * 2) + 2 }, (_, j) =>
+      generateChild(`${regionalId}-${j + 1}`, { parentShort: meta.short, depth: 1, parentType: "经销商" })
+    );
+    const descendants = regionalChildren.reduce((s, c) => s + 1 + c.subsidiaries, 0);
+    const selfStaff = staffByType("经销商");
+    const staff = regionalChildren.reduce((s, c) => s + c.staff, selfStaff);
+    children.push({
+      id: regionalId,
+      name: `${meta.short}${region}运营有限公司`,
+      type: "经销商",
+      status: "active",
+      auditStatus: "approved",
+      admin: CREATORS[i % CREATORS.length],
+      products: meta.products.slice(0, 2),
+      subsidiaries: descendants,
+      staff,
+      createdAt: makeDate(2022 + Math.floor(Math.random() * 2)),
+      creator: CREATORS[i % CREATORS.length],
+      updatedAt: makeDate(2026),
+      note: `${region}大区运营中心，下辖 ${city} 等核心市场`,
+      auditRecords: [],
+      children: regionalChildren,
+      _level: 1,
+    });
+    void parentType;
+  }
+  const descendants = children.reduce((s, c) => s + 1 + c.subsidiaries, 0);
+  const hqStaff = staffByType(meta.type);
+  const staff = children.reduce((s, c) => s + c.staff, hqStaff);
+  return {
+    id,
+    name: meta.name,
+    type: meta.type,
+    status: auditStatus === "approved" ? (idx === 0 ? "active" : Math.random() > 0.25 ? "active" : "inactive") : "inactive",
+    auditStatus,
+    admin: CREATORS[idx % CREATORS.length],
+    products: meta.products,
+    subsidiaries: descendants,
+    staff,
+    createdAt: makeDate(2020 + (idx % 3)),
+    creator: CREATORS[(idx + 3) % CREATORS.length],
+    updatedAt: makeDate(2026),
+    note: NOTE_LIB[meta.type][idx % (NOTE_LIB[meta.type].length)],
+    auditRecords: auditStatus === "pending" ? [{
+      id: `${id}-ar-1`, action: "submit",
+      operator: CREATORS[idx % CREATORS.length],
+      time: makeDate(2026), remark: "新企业入驻，提交平台审核",
+    }] : auditStatus === "rejected" ? [
+      { id: `${id}-ar-1`, action: "submit", operator: CREATORS[idx % CREATORS.length], time: makeDate(2026), remark: "新企业入驻，提交平台审核" },
+      { id: `${id}-ar-2`, action: "reject", operator: "平台审核组", time: makeDate(2026), remark: "营业执照信息不清晰，请重新上传" },
+    ] : [
+      { id: `${id}-ar-1`, action: "submit", operator: CREATORS[idx % CREATORS.length], time: makeDate(2026), remark: "新企业入驻，提交平台审核" },
+      { id: `${id}-ar-2`, action: "approve", operator: "平台审核组", time: makeDate(2026), remark: "资质完整，审核通过" },
     ],
-    children: hasChildren ? Array.from({ length: childCount }, (_, i) => generateEnterprise(`${id}-${i + 1}`, depth + 1, type)) : [],
+    children,
   };
 }
 
 const initialData: Enterprise[] = Array.from({ length: 10 }, (_, i) =>
-  generateEnterprise(`ENT${String(i + 1).padStart(3, "0")}`)
+  generateTopEnterprise(`ENT${String(i + 1).padStart(3, "0")}`, i)
 );
 
 // ===== Audit Status Labels =====
