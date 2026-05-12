@@ -70,8 +70,14 @@ function generateEnterprise(id: string, depth = 0, parentType?: string): Enterpr
   const childCount = hasChildren ? Math.floor(Math.random() * 3) + 1 : 0;
   const allowedTypes = depth === 0 ? TYPES : (parentType ? (SUB_TYPE_MAP[parentType] || TYPES) : TYPES);
   const type = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
-  const auditRand = Math.random();
-  const auditStatus: AuditStatus = auditRand > 0.7 ? "pending" : auditRand > 0.15 ? "approved" : "rejected";
+  // 仅总部企业(depth===0)进入审核流程；子企业由总部直接创建，自动通过
+  let auditStatus: AuditStatus;
+  if (depth === 0) {
+    const auditRand = Math.random();
+    auditStatus = auditRand > 0.7 ? "pending" : auditRand > 0.15 ? "approved" : "rejected";
+  } else {
+    auditStatus = "approved";
+  }
   return {
     id,
     name: ENTERPRISE_NAMES[Math.floor(Math.random() * ENTERPRISE_NAMES.length)],
