@@ -924,7 +924,82 @@ function BenefitListSection({
           </div>
         </div>
       )}
+
+      <BundleDetailDialog bundle={bundleDetail} onClose={() => setBundleDetail(null)} />
     </div>
+  );
+}
+
+function BundleDetailDialog({ bundle, onClose }: { bundle: Bundle | null; onClose: () => void }) {
+  if (!bundle) return null;
+  const cycle = BILLING_CYCLES.find((b) => b.value === bundle.billingCycle)?.label || bundle.billingCycle || "—";
+  const items = (bundle.items || []).map((it) => {
+    const sku = skuData.find((s) => s.id === it.skuId);
+    const products = sku ? getProductsBySkuId(sku.id) : [];
+    return { ...it, sku, products };
+  });
+  const hasMeta = Boolean(bundle.id);
+  return (
+    <Dialog open={!!bundle} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-[680px] p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-5 py-4 border-b bg-muted/30 space-y-1">
+          <DialogTitle className="text-[15px] flex items-center gap-2">
+            <Package className="h-4 w-4 text-primary" /> {bundle.name}
+          </DialogTitle>
+          {hasMeta ? (
+            <DialogDescription className="text-[12px]">
+              <code className="font-mono">{bundle.code}</code>
+              <span className="mx-2">·</span>
+              {bundle.appName}
+              <span className="mx-2">·</span>
+              {bundle.price > 0 ? `¥${bundle.price}/${cycle}` : "免费"}
+            </DialogDescription>
+          ) : (
+            <DialogDescription className="text-[12px]">套餐详情数据未匹配，仅展示名称</DialogDescription>
+          )}
+        </DialogHeader>
+        <div className="px-5 py-4 max-h-[60vh] overflow-y-auto space-y-3">
+          {bundle.description && <p className="text-[13px] text-muted-foreground leading-relaxed">{bundle.description}</p>}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[12px] font-medium text-muted-foreground">套餐明细 ({items.length})</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400">人员授权时按下列商品维度拆分逐项配置</span>
+            </div>
+            {items.length === 0 ? (
+              <div className="text-[12px] text-muted-foreground text-center py-6 border border-dashed rounded-lg">暂无明细</div>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full text-[13px]">
+                  <thead className="bg-muted/40 text-[11px] text-muted-foreground">
+                    <tr>
+                      <th className="text-left px-3 py-2 font-medium">商品名称</th>
+                      <th className="text-center px-3 py-2 font-medium w-16">数量</th>
+                      <th className="text-left px-3 py-2 font-medium">关联权益产品</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map(({ skuId, skuName, quantity, products }) => (
+                      <tr key={skuId} className="border-t border-border/50">
+                        <td className="px-3 py-2 text-foreground">{skuName}</td>
+                        <td className="px-3 py-2 text-center">{quantity > 1 ? <span className="text-primary font-medium">×{quantity}</span> : "1"}</td>
+                        <td className="px-3 py-2">
+                          <div className="flex flex-wrap gap-1">
+                            {products.map((p) => (
+                              <span key={p.id} className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] bg-muted text-muted-foreground">{p.name}</span>
+                            ))}
+                            {products.length === 0 && <span className="text-muted-foreground">—</span>}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
