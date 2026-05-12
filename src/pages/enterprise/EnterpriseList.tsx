@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, Building2 } from "lucide-react";
 import { CreateEnterpriseDialog } from "./CreateEnterpriseDialog";
 import { SetAdminDialog } from "./SetAdminDialog";
 import { AuditDialog, type AuditRecord } from "./AuditDialog";
@@ -29,6 +29,7 @@ interface Enterprise {
   children?: Enterprise[];
   _level?: number;
   frozen?: boolean; // cascading freeze from parent
+  _root?: boolean; // synthetic top-most row representing current login context
   auditRecords?: AuditRecord[];
 }
 
@@ -124,14 +125,26 @@ const columns: TableColumn<Enterprise>[] = [
     key: "name",
     title: "企业名称",
     minWidth: 260,
-    render: (v, row) => (
-      <span className="text-foreground font-medium">
-        {v}
-        {(row as Enterprise).frozen && (
-          <span className="ml-1.5 badge-danger text-[10px] py-0">已冻结</span>
-        )}
-      </span>
-    ),
+    render: (v, row) => {
+      const r = row as Enterprise;
+      if (r._root) {
+        return (
+          <span className="inline-flex items-center gap-2 font-semibold text-foreground">
+            <Building2 className="h-3.5 w-3.5 text-primary" />
+            {v}
+            <span className="badge-info text-[10px] py-0">当前</span>
+          </span>
+        );
+      }
+      return (
+        <span className="text-foreground font-medium">
+          {v}
+          {r.frozen && (
+            <span className="ml-1.5 badge-danger text-[10px] py-0">已冻结</span>
+          )}
+        </span>
+      );
+    },
   },
   {
     key: "type",
@@ -147,7 +160,8 @@ const columns: TableColumn<Enterprise>[] = [
     key: "auditStatus",
     title: "审核状态",
     minWidth: 90,
-    render: (v: AuditStatus) => {
+    render: (v: AuditStatus, row) => {
+      if ((row as Enterprise)._root) return <span className="text-xs text-muted-foreground">—</span>;
       const cfg = AUDIT_STATUS_MAP[v];
       return <span className={cfg.className}>{cfg.label}</span>;
     },
@@ -158,6 +172,9 @@ const columns: TableColumn<Enterprise>[] = [
     minWidth: 90,
     render: (v, row) => {
       const ent = row as Enterprise;
+      if (ent._root) {
+        return <span className="badge-active">运行中</span>;
+      }
       if (ent.frozen) {
         return <span className="badge-danger">已冻结</span>;
       }
@@ -242,10 +259,14 @@ function unfreezeChildren(children?: Enterprise[]): Enterprise[] | undefined {
   }));
 }
 
+type Perspective = "platform" | "enterprise";
+
 export default function EnterpriseList() {
   const navigate = useNavigate();
   const [data, setData] = useState<Enterprise[]>(initialData);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set(["ENT001"]));
+  // Mock: 默认平台后台视角，可切换到企业后台
+  const [perspective, setPerspective] = useState<Perspective>("platform");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(["ROOT_CURRENT", "ENT001"]));
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -254,6 +275,43 @@ export default function EnterpriseList() {
   const [subParent, setSubParent] = useState<Enterprise | null>(null);
   const [auditTarget, setAuditTarget] = useState<Enterprise | null>(null);
   const totalItems = 1200;
+
+  // 构造一行"当前最高层级企业"作为列表第一条
+  const displayData = useMemo<Enterprise[]>(() => {
+    if (perspective === "platform") {
+      const root: Enterprise = {
+        id: "ROOT_CURRENT",
+        name: "居然设计家平台",
+        type: "平台",
+        status: "active",
+        auditStatus: "approved",
+        products: PRODUCTS,
+        subsidiaries: data.length,
+        staff: data.reduce((sum, e) => sum + e.staff, 0),
+        createdAt: "2020-01-01 00:00",
+        creator: "系统",
+        updatedAt: "—",
+        note: "平台总控企业，不可编辑",
+        _root: true,
+        _level: 0,
+        children: data,
+      };
+      return [root];
+    }
+    // 企业后台视角：取第一家企业作为"当前企业"，其下级作为同级树
+    const [current, ...rest] = data;
+    if (!current) return [];
+    const root: Enterprise = {
+      ...current,
+      _root: true,
+      _level: 0,
+      note: current.note || "当前登录企业，不可编辑",
+      children: current.children,
+    };
+    // rest 不显示（属于其他企业，企业视角不可见）
+    void rest;
+    return [root];
+  }, [data, perspective]);
 
   const toggleExpand = useCallback((id: string) => {
     setExpanded((prev) => {
@@ -331,12 +389,12 @@ export default function EnterpriseList() {
     {
       label: "审核",
       onClick: (r) => setAuditTarget(r),
-      visible: (r) => r.auditStatus === "pending",
+      visible: (r) => !r._root && r.auditStatus === "pending",
     },
     {
       label: "停用",
       onClick: handleToggleStatus,
-      visible: (r) => r.auditStatus === "approved" && r.status === "active" && !r.frozen,
+      visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "active" && !r.frozen,
       danger: true,
       confirm: {
         title: "确认停用该企业？",
@@ -347,24 +405,35 @@ export default function EnterpriseList() {
     {
       label: "启用",
       onClick: handleEnableClick,
-      visible: (r) => r.auditStatus === "approved" && r.status === "inactive" && !r.frozen,
+      visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "inactive" && !r.frozen,
     },
-    { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
+    { label: "设置管理员", onClick: (r) => setAdminTarget(r), visible: (r) => !r._root },
     {
       label: "新建子企业",
       onClick: (r) => setSubParent(r),
-      visible: (r) => (r._level || 0) < 2 && !r.frozen,
+      visible: (r) => !r._root && (r._level || 0) < 2 && !r.frozen,
     },
-    { label: "权益配置", onClick: (r) => navigate(`/enterprise/detail/${r.id}`) },
+    { label: "权益配置", onClick: (r) => navigate(`/enterprise/detail/${r.id}`), visible: (r) => !r._root },
   ];
 
   return (
     <div className="space-y-4">
       <PageHeader
         title="企业管理"
-        subtitle={`共 ${totalItems} 个企业`}
+        subtitle={`共 ${totalItems} 个企业 · 当前视角：${perspective === "platform" ? "平台后台" : "企业后台"}`}
         actions={
           <>
+            <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 text-xs">
+              {(["platform", "enterprise"] as Perspective[]).map((p) => (
+                <button
+                  key={p}
+                  className={`px-2.5 py-1 rounded-md transition-colors ${perspective === p ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  onClick={() => setPerspective(p)}
+                >
+                  {p === "platform" ? "平台后台" : "企业后台"}
+                </button>
+              ))}
+            </div>
             <button className="btn-secondary">
               <Download className="h-4 w-4" />
               导出
@@ -388,7 +457,7 @@ export default function EnterpriseList() {
 
       <AdminTable
         columns={columns}
-        data={data}
+        data={displayData}
         rowKey={(r) => r.id}
         actions={listActions}
         maxVisibleActions={2}
