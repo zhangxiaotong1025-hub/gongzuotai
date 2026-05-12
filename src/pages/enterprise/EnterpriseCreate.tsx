@@ -533,6 +533,7 @@ export default function EnterpriseCreate() {
             updateRow={updateRow}
             updateProductAccountCount={updateProductAccountCount}
             updateProductDateRange={updateProductDateRange}
+            isEdit={searchParams.get("mode") === "edit"}
           />
         )}
         {currentStepKey === "config" && (
@@ -693,6 +694,7 @@ function StepBenefits({
   updateRow,
   updateProductAccountCount,
   updateProductDateRange,
+  isEdit = false,
 }: {
   form: Record<string, any>;
   update: (k: string, v: unknown) => void;
@@ -702,11 +704,34 @@ function StepBenefits({
   updateRow: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => void;
   updateProductAccountCount: (productKey: string, count: number) => void;
   updateProductDateRange: (productKey: string, range: string) => void;
+  isEdit?: boolean;
 }) {
+  const navigate = useNavigate();
   return (
     <div className="p-6">
       <div className="space-y-6">
-        <SectionTitle title="权益配置" description="同一产品块、同一列表、同一字段高度，避免编辑页视觉跳动。" />
+        <SectionTitle title="权益配置" description={isEdit ? "权益配置在编辑模式下只读，调整请通过权益订单。" : "同一产品块、同一列表、同一字段高度，避免编辑页视觉跳动。"} />
+
+        {isEdit && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.06] px-4 py-3 flex items-start gap-3">
+            <Info className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-medium text-foreground">权益配置已生效，编辑模式下仅供查看</div>
+              <div className="text-[12px] text-muted-foreground mt-0.5">
+                为保障订单溯源与对账，权益的增加、续期、回收均需通过「权益订单」操作。
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate(`/entitlement/order/create`)}
+              className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-card px-3 py-1.5 text-[12px] font-medium text-amber-600 hover:bg-amber-500/10 transition-colors"
+            >
+              去增购权益
+            </button>
+          </div>
+        )}
+
+        <fieldset disabled={isEdit} className={cn("space-y-6 min-w-0 m-0 p-0 border-0", isEdit && "opacity-95 pointer-events-none select-none")}>
 
         <SectionCard>
           <FormRow label="开通产品" wide>
@@ -809,6 +834,7 @@ function StepBenefits({
             </FormRow>
           </div>
         </SectionCard>
+        </fieldset>
       </div>
     </div>
   );
