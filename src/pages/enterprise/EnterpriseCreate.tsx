@@ -827,7 +827,7 @@ function BenefitListSection({
                       title="查看套餐详情"
                       onClick={() => {
                         const bundle = bundleData.find((b) => b.name === row.packageName);
-                        window.open(bundle ? `/entitlement/package/detail/${bundle.id}` : `/entitlement/package`, "_blank");
+                        setBundleDetail(bundle || ({ name: row.packageName, items: [] } as unknown as Bundle));
                       }}
                       className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap hover:ring-1 hover:ring-current/40 transition-all cursor-pointer"
                       style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}
