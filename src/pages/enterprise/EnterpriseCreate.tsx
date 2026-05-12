@@ -886,6 +886,185 @@ function BenefitListSection({
   );
 }
 
+function UnifiedBenefitSection({
+  productKey,
+  productLabel,
+  packageRows,
+  productRows,
+  catalog,
+  onAddBundle,
+  onAddSku,
+  onRemove,
+  onUpdate,
+}: {
+  productKey: string;
+  productLabel: string;
+  packageRows: BenefitRow[];
+  productRows: BenefitRow[];
+  catalog: { name: string; desc: string; tone: BenefitTone }[];
+  onAddBundle: (name: string) => void;
+  onAddSku: (name: string) => void;
+  onRemove: (productKey: string, type: "packageRows" | "productRows", rowId: string) => void;
+  onUpdate: (productKey: string, type: "packageRows" | "productRows", rowId: string, field: string, value: unknown) => void;
+}) {
+  const [showPicker, setShowPicker] = useState(false);
+  const [bundleDetail, setBundleDetail] = useState<Bundle | null>(null);
+
+  // Build mixed catalog: bundles from BENEFIT_CATALOG + skus extracted from those bundles' items
+  const items: CatalogItem[] = useMemo(() => {
+    const bundleItems: CatalogItem[] = catalog.map((c) => {
+      const bundle = bundleData.find((b) => b.name === c.name);
+      return {
+        id: `bundle:${c.name}`,
+        name: c.name,
+        desc: c.desc,
+        tone: c.tone,
+        kind: "bundle",
+        group: productLabel,
+        meta: bundle ? (
+          <div className="text-right">
+            <div className="text-[12px] font-medium text-foreground">{bundle.price > 0 ? `¥${bundle.price}` : "免费"}</div>
+            <div className="text-[10px] text-muted-foreground">{bundle.items.length} 项商品</div>
+          </div>
+        ) : null,
+      };
+    });
+    const skuIds = new Set<string>();
+    catalog.forEach((c) => {
+      const bundle = bundleData.find((b) => b.name === c.name);
+      bundle?.items.forEach((it) => skuIds.add(it.skuId));
+    });
+    const skuItems: CatalogItem[] = Array.from(skuIds).map((id, idx) => {
+      const sku = skuData.find((s) => s.id === id);
+      if (!sku) return null;
+      const tone: BenefitTone = (["blue", "teal", "violet", "amber", "rose"] as BenefitTone[])[idx % 5];
+      return {
+        id: `sku:${sku.name}`,
+        name: sku.name,
+        desc: sku.description,
+        tone,
+        kind: "sku",
+        group: productLabel,
+        meta: <span className="text-[11px] text-muted-foreground">¥{sku.price ?? 0}</span>,
+      };
+    }).filter(Boolean) as CatalogItem[];
+    return [...bundleItems, ...skuItems];
+  }, [catalog, productLabel]);
+
+  const allRows = useMemo(
+    () => [
+      ...packageRows.map((r) => ({ row: r, type: "packageRows" as const, kind: "bundle" as const })),
+      ...productRows.map((r) => ({ row: r, type: "productRows" as const, kind: "sku" as const })),
+    ],
+    [packageRows, productRows],
+  );
+
+  const existingIds = useMemo(
+    () => [
+      ...packageRows.map((r) => `bundle:${r.packageName}`),
+      ...productRows.map((r) => `sku:${r.packageName}`),
+    ],
+    [packageRows, productRows],
+  );
+
+  const getToneVar = (name: string) => BENEFIT_TONE_VARS[catalog.find((c) => c.name === name)?.tone || "blue"];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-[12px] font-medium text-muted-foreground tracking-wide">权益商品 / 套餐</span>
+        <button onClick={() => setShowPicker(true)} className="inline-flex items-center gap-1 text-[12px] text-primary hover:text-primary/80 transition-colors font-medium">
+          <Plus className="h-3 w-3" /> 选择权益商品 / 套餐
+        </button>
+      </div>
+
+      {allRows.length === 0 ? (
+        <div onClick={() => setShowPicker(true)} className="flex flex-col items-center justify-center gap-2 py-7 border border-dashed border-border rounded-xl text-muted-foreground cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-colors">
+          <Plus className="h-4 w-4 opacity-60" />
+          <span className="text-[12px]">点击选择权益商品或套餐</span>
+        </div>
+      ) : (
+        <div className="border border-border/70 rounded-xl overflow-hidden bg-card">
+          <div className="grid grid-cols-[minmax(260px,1fr)_160px_120px_36px] bg-muted/35 border-b border-border/60 text-[11px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
+            <div className="px-4 py-3">名称</div>
+            <div className="px-4 py-3">应用方式</div>
+            <div className="px-4 py-3">人数</div>
+            <div />
+          </div>
+          {allRows.map(({ row, type, kind }) => {
+            const toneVar = getToneVar(row.packageName);
+            return (
+              <div key={`${type}-${row.id}`} className="grid grid-cols-[minmax(260px,1fr)_160px_120px_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors group">
+                <div className="px-4 py-3 flex items-center gap-2 min-w-0">
+                  {kind === "bundle" ? (
+                    <button
+                      type="button"
+                      title="查看套餐详情"
+                      onClick={() => {
+                        const bundle = bundleData.find((b) => b.name === row.packageName);
+                        setBundleDetail(bundle || ({ name: row.packageName, items: [] } as unknown as Bundle));
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap hover:ring-1 hover:ring-current/40 transition-all cursor-pointer"
+                      style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}
+                    >
+                      <Package className="h-3 w-3 shrink-0" />
+                      {row.packageName}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap" style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}>
+                      <Package className="h-3 w-3 shrink-0" />
+                      {row.packageName}
+                    </span>
+                  )}
+                  <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">
+                    {kind === "bundle" ? "套餐" : "商品"}
+                  </span>
+                </div>
+                <div className="px-3 py-3">
+                  <select className="filter-select h-9 w-full px-2 text-[13px]" value={row.applyMode} onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}>
+                    <option value="指定人员">指定人员</option>
+                    <option value="全部人员">全部人员</option>
+                  </select>
+                </div>
+                <div className="px-3 py-3">
+                  {row.applyMode === "指定人员" ? (
+                    <input className="filter-input h-9 w-full px-2 text-center" type="number" value={row.applyCount} onChange={(e) => onUpdate(productKey, type, row.id, "applyCount", Number(e.target.value))} />
+                  ) : (
+                    <span className="text-[13px] text-muted-foreground">全员</span>
+                  )}
+                </div>
+                <div className="px-2 py-3 flex justify-center">
+                  <button onClick={() => onRemove(productKey, type, row.id)} className="w-7 h-7 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <BenefitPickerDialog
+        open={showPicker}
+        onClose={() => setShowPicker(false)}
+        title="选择权益商品 / 套餐"
+        description="支持按种类、产品快速筛选；同一权益仅可添加一次"
+        items={items}
+        existingIds={existingIds}
+        showKindTabs
+        onConfirm={(selected) => {
+          selected.forEach((s) => {
+            if (s.kind === "bundle") onAddBundle(s.name);
+            else onAddSku(s.name);
+          });
+        }}
+      />
+
+      <BundleDetailDialog bundle={bundleDetail} onClose={() => setBundleDetail(null)} />
+    </div>
+  );
+}
+
 function BundleDetailDialog({ bundle, onClose }: { bundle: Bundle | null; onClose: () => void }) {
   if (!bundle) return null;
   const cycle = BILLING_CYCLES.find((b) => b.value === bundle.billingCycle)?.label || bundle.billingCycle || "—";
