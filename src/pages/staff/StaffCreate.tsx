@@ -589,10 +589,10 @@ export default function StaffCreate() {
                     options: PRODUCTS.filter((p) => form.enabledProducts.includes(p.key)).map((p) => ({ label: p.label, value: p.label })),
                   }}
                   onConfirm={(selected) => {
-                    selected.forEach((s) => {
-                      const original = availableBenefits.find((b) => b.name === s.id);
-                      if (original) addBenefit(original);
-                    });
+                    const originals = selected
+                      .map((s) => availableBenefits.find((b) => b.name === s.id))
+                      .filter((b): b is BenefitItem => !!b);
+                    if (originals.length) addBenefits(originals);
                   }}
                 />
               </div>
