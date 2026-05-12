@@ -1143,7 +1143,7 @@ function LifecycleCard({
   owner: string;
   states: string;             // mermaid stateDiagram-v2
   upstream: { who: string; when: string }[];
-  downstream: { who: string; how: string }[];
+  downstream: { who: string; when: string }[];
   rule: string;
 }) {
   return (
