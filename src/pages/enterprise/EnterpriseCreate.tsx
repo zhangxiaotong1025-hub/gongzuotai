@@ -834,6 +834,7 @@ function StepBenefits({
             </FormRow>
           </div>
         </SectionCard>
+        </fieldset>
       </div>
     </div>
   );
