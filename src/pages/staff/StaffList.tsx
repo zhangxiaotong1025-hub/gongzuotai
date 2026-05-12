@@ -448,7 +448,11 @@ function OrgTreeNode({
    ══════════════════════════ */
 export default function StaffList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const perspective: "platform" | "enterprise" = user?.perspective ?? "platform";
   const [data] = useState<StaffMember[]>(generateStaff);
+  // 平台视角下，接口必须落到单个企业；默认选中第一家
+  const [scopeEnterpriseId, setScopeEnterpriseId] = useState<string>(PLATFORM_ENTERPRISES[0].id);
   const [orgTree, setOrgTree] = useState<OrgNode[]>(initialOrgTree);
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [currentPage, setCurrentPage] = useState(1);
