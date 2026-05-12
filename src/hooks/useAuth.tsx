@@ -78,11 +78,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error("密码错误");
     }
 
+    const isPlatform = phone === PLATFORM_ADMIN_PHONE;
+    const perspective: Perspective = isPlatform ? "platform" : "enterprise";
+    const role = isPlatform ? "平台超级管理员" : "企业超级管理员";
     const needSelect = MULTI_ENTERPRISE_PHONES.includes(phone);
-    const enterprises = needSelect ? MOCK_ENTERPRISES : [MOCK_ENTERPRISES[0]];
+    const enterprises = isPlatform
+      ? [PLATFORM_ENTERPRISE]
+      : (needSelect ? MOCK_ENTERPRISES : [MOCK_ENTERPRISES[0]]);
 
     if (!needSelect) {
-      const u: AuthUser = { ...MOCK_USER, phone, enterprises, currentEnterprise: enterprises[0] };
+      const u: AuthUser = { ...MOCK_USER_BASE, phone, role, perspective, enterprises, currentEnterprise: enterprises[0] };
       setUser(u);
       localStorage.setItem("auth_user", JSON.stringify(u));
     }
@@ -92,9 +97,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const selectEnterprise = useCallback((enterprise: Enterprise) => {
-    const u: AuthUser = { ...MOCK_USER, currentEnterprise: enterprise, enterprises: MOCK_ENTERPRISES };
-    setUser(u);
-    localStorage.setItem("auth_user", JSON.stringify(u));
+    setUser((prev) => {
+      const base = prev ?? { ...MOCK_USER_BASE, phone: ENTERPRISE_ADMIN_PHONE, role: "企业超级管理员", perspective: "enterprise" as Perspective, enterprises: MOCK_ENTERPRISES, currentEnterprise: null };
+      const u: AuthUser = { ...base, currentEnterprise: enterprise, enterprises: base.enterprises };
+      localStorage.setItem("auth_user", JSON.stringify(u));
+      return u;
+    });
   }, []);
 
   const logout = useCallback(() => {
