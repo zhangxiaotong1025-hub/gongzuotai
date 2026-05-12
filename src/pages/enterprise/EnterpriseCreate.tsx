@@ -715,27 +715,16 @@ function StepBenefits({
                     </div>
                   </div>
                 </FormRow>
-                <BenefitListSection
-                  label="权益套餐"
+                <UnifiedBenefitSection
                   productKey={pKey}
-                  type="packageRows"
-                  rows={cfg.packageRows}
+                  productLabel={product.label}
+                  packageRows={cfg.packageRows}
+                  productRows={cfg.productRows}
                   catalog={catalog}
-                  onAdd={addRow}
+                  onAddBundle={(name) => addRow(pKey, "packageRows", name)}
+                  onAddSku={(name) => addRow(pKey, "productRows", name)}
                   onRemove={removeRow}
                   onUpdate={updateRow}
-                  onAddWithName={(name) => addRow(pKey, "packageRows", name)}
-                />
-                <BenefitListSection
-                  label="权益商品"
-                  productKey={pKey}
-                  type="productRows"
-                  rows={cfg.productRows}
-                  catalog={catalog}
-                  onAdd={addRow}
-                  onRemove={removeRow}
-                  onUpdate={updateRow}
-                  onAddWithName={(name) => addRow(pKey, "productRows", name)}
                 />
               </div>
             </div>
