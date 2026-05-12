@@ -31,10 +31,24 @@ import { Building2 } from "lucide-react";
 /* ── Types ── */
 interface OrgNode { id: string; name: string; children?: OrgNode[]; isDraft?: boolean; }
 interface StaffMember {
-  id: string; name: string; enterprise: string; phone: string;
+  id: string; name: string; enterprise: string; enterpriseId: string; phone: string;
   status: "active" | "inactive"; products: string[]; role: string;
   benefits: string[]; orgIds: string[]; createdAt: string;
 }
+
+/* ── Platform 视角下可切换的企业列表（接口必须落到单个企业） ── */
+const PLATFORM_ENTERPRISES: { id: string; name: string }[] = [
+  { id: "ENT001", name: "欧派家居集团股份有限公司" },
+  { id: "ENT002", name: "索菲亚家居股份有限公司" },
+  { id: "ENT003", name: "尚品宅配家居股份有限公司" },
+  { id: "ENT004", name: "金牌厨柜家居科技股份有限公司" },
+  { id: "ENT005", name: "志邦家居股份有限公司" },
+  { id: "ENT006", name: "我乐家居股份有限公司" },
+  { id: "ENT007", name: "好莱客创意家居股份有限公司" },
+  { id: "ENT008", name: "皮阿诺家居股份有限公司" },
+  { id: "ENT009", name: "顶固集创家居股份有限公司" },
+  { id: "ENT010", name: "居然之家家居新零售连锁集团" },
+];
 
 /* ── Org Tree Data ── */
 const initialOrgTree: OrgNode[] = [
