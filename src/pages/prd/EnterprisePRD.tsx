@@ -125,30 +125,150 @@ export default function EnterprisePRD() {
 function Overview() {
   return (
     <section id="overview" className="scroll-mt-4 space-y-5">
-      <H2 icon={FileText} num="01">设计总论</H2>
+      <H2 icon={FileText} num="01">设计总论 · 顶层架构</H2>
 
       <div id="ov-why">
-        <H3>为什么单独成模</H3>
+        <H3>这套体系到底在解决什么问题</H3>
         <Card>
           <p className="text-[13px] leading-7 text-foreground/85">
-            企业是平台的<span className="text-primary font-medium">第一租户实体</span>，承载组织结构、人员归属、品牌关系、权益账户、订单结算、客户数据等全部业务上下文。「企业 = 租户 = 数据围栏」，
-            一旦企业实体的状态机被破坏，下游所有模块（权益、客户、人员、营销）都会出现数据穿透、归属错乱、对账失败。本模块的关键不在于「列表 / 表单」这些看得见的元素，
-            而在于：状态解耦、级联规则、字段可变性、归属迁移、订单驱动的变更链路。
+            居然设计家不是「一家公司的 SaaS」，而是一个<b>多角色、多产品、多业务关系并存的产业互联网底座</b>。同一份 3D 设计能力，要同时服务：
+            头部品牌商（如欧派）做全国分销、家居卖场（如居然之家）做品牌聚合、装企做整装履约、独立设计师做末端落地。这些角色彼此既是
+            <Tag tone="info">客户</Tag>、又是<Tag tone="success">渠道</Tag>、还可能是<Tag tone="warning">供给</Tag>。
+          </p>
+          <p className="text-[13px] leading-7 text-foreground/85 mt-2.5">
+            因此本模块的核心命题不是「画一棵组织树」，而是<b>用一张统一的关系图，把所有商业角色和它们之间的派生 / 代理 / 聚合 / 供给关系，
+            装进一个可治理、可隔离、可扩展的数据骨架</b>。所有下游模块（权益、订单、人员、客户、营销）的可见性、可操作性、对账归属，最终都从这张图导出。
           </p>
         </Card>
       </div>
 
+      <div id="ov-philosophy">
+        <H3>设计哲学 · 「Platform as Enterprise」</H3>
+        <Card>
+          <p className="text-[12.5px] leading-6 text-foreground/85">
+            最关键的一条顶层设计原则：<b>平台本身被建模为一个虚拟企业节点</b>。在代码层面（<Code>EnterpriseList.tsx</Code> 的
+            <Code>ROOT_CURRENT</Code>），「居然设计家平台」是 enterprise 表里的一行，<Code>type=&quot;平台&quot;</Code>、<Code>level=0</Code>、不可编辑。
+            这条「等价」带来三个非线性收益：
+          </p>
+          <ul className="list-disc pl-5 mt-2 text-[12.5px] leading-6 text-foreground/85 space-y-1">
+            <li><b>数据模型零分支</b> — 平台、品牌、卖场、门店共享同一张表、同一套字段、同一份 RLS 策略；不需要为「平台对象」单独建表。</li>
+            <li><b>视角切换零成本</b> — 平台 / 企业后台只是 <Code>perspective</Code> + 当前 <Code>enterprise_id</Code> 的差异，前后端复用同一份接口。</li>
+            <li><b>权限模型可递归</b> — 同一套「角色 × 策略 × 数据范围」可作用在任意企业节点上；平台只是这张图最顶端的一个特殊节点。</li>
+          </ul>
+          <Pre>{`概念上：
+    enterprise（表）─┬─ 平台节点（虚拟根，type=平台）
+                     ├─ 品牌商 · 卖场 · 装企 · 经销商 · 供应商（实际企业）
+                     └─ … 派生出子企业、子子企业（按 SUB_TYPE_MAP 规则）
+
+实际上：
+    平台 = 一种特殊 type 的 enterprise + perspective=platform 的会话
+            ↳ 权限上「越权读 + 代操作写」，业务规则仍受同一图约束`}</Pre>
+        </Card>
+      </div>
+
+      <div id="ov-relationship">
+        <H3>企业关系语法 · SUB_TYPE_MAP 才是真正的「层级」定义</H3>
+        <Card>
+          <p className="text-[12.5px] leading-6 text-foreground/85">
+            很多人误以为这是一棵「Level 0/1/2」的树。其实代码里真正决定关系结构的是 <Code>SUB_TYPE_MAP</Code> ——
+            一张「父类型 → 允许的子类型集合」的有向图。UI 限定最深渲染 3 层，但<b>关系语义本身是一张图</b>，UI 的 3 层只是工程化的可视上限。
+          </p>
+          <Pre>{`SUB_TYPE_MAP（节选自 EnterpriseList.tsx）：
+    品牌商  → [经销商, 装修公司, 门店, 工作室]   ← 全渠道分销
+    经销商  → [装修公司, 门店, 工作室]           ← 区域下沉
+    装修公司→ [门店, 工作室]                     ← 整装落地
+    门店    → [工作室]                           ← 末端服务点
+    工作室  → [工作室]                           ← 协作扩展
+    卖场    → [品牌商, 经销商, 装修公司, 门店]   ← 聚合型枢纽
+    供应商  → [供应商]                           ← 平行供应链
+
+→ 这张图同时表达了 4 种业务关系：
+    分销链（brand→dealer→store→studio）、
+    聚合关系（mall 把多个独立品牌纳入同一商业体）、
+    履约关系（decoration→store），
+    供给关系（supplier 自成体系）。`}</Pre>
+          <p className="text-[12.5px] leading-6 text-foreground/85 mt-2.5">
+            这意味着：「父企业类型」决定了「子企业可选类型集合」，决定了「品牌关系是否可 own」，决定了「人员 / 客户挂载语义」，决定了「权益是否可继承」。
+            它是一切下游规则的源头 —— 改一行 SUB_TYPE_MAP，整个商业模型就发生质变。
+          </p>
+        </Card>
+      </div>
+
+      <div id="ov-roles">
+        <H3>企业角色定位（4 种语义角色，跨越 7 类企业类型）</H3>
+        <Table
+          headers={["角色语义", "企业类型", "在关系图中的位置", "核心价值"]}
+          cols={["110px", "150px", undefined, undefined]}
+          rows={[
+            ["主体型", "品牌商 / 装修公司", "图的源头节点，自营品牌、自有权益账户", "平台直接对接、合同主体、品牌资产持有者"],
+            ["聚合型", "卖场", "多分支起点，可接入任意主体型 / 渠道型", "把分散的品牌方聚合为同一商业体（如居然之家模式）"],
+            ["渠道型", "经销商 / 门店 / 工作室", "派生节点，必须挂在主体型或聚合型之下", "承接主体的销售/履约/服务，享受继承式权益"],
+            ["供给型", "供应商", "独立平行链（supplier→supplier）", "面向 B2B 的供应链协同，与零售链解耦"],
+          ]}
+        />
+        <div className="text-[11.5px] text-muted-foreground mt-2">
+          注：「角色语义」是 PRD 抽象，「企业类型」是数据落地。前者解释为什么，后者驱动 UI 与 SUB_TYPE_MAP 规则。
+        </div>
+      </div>
+
+      <div id="ov-product">
+        <H3>正交切面 · 「产品维度」与关系图垂直相交</H3>
+        <Card>
+          <p className="text-[12.5px] leading-6 text-foreground/85">
+            企业关系图是横向骨架，<b>产品（国内 3D / 国际 3D / 智能导购 / VR 全景 …）是纵向切面</b>。每个企业可绑定多个产品，
+            每个产品下持有<b>独立的权益账户、独立的人员授权、独立的客户库</b>。同一家欧派可以「国内 3D 已激活、国际 3D 未开通」，
+            两条业务线的对账、配额、用户在数据层完全隔离。
+          </p>
+          <Pre>{`           产品维度（垂直切面）
+              │
+              ▼
+    ┌─────────────────────────┐
+    │ 国内3D │ 国际3D │ 智能导购 │ VR全景 │ …
+    ├────────┼────────┼─────────┼────────┤
+品牌│   ●    │   ●    │    ●    │   ○    │   ← 同一企业 × 不同产品 = 独立权益账户
+卖场│   ●    │   ●    │    ●    │   ●    │
+门店│   ●    │   —    │    ●    │   —    │
+    └────────┴────────┴─────────┴────────┘
+              ▲
+              │
+        企业关系图（水平骨架）
+
+「企业 × 产品」是一切权益、订单、人员授权、营销动作的最小坐标点。`}</Pre>
+        </Card>
+      </div>
+
+      <div id="ov-value">
+        <H3>这套顶层设计的商业 & 技术价值</H3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Card><H4>商业价值</H4>
+            <ul className="list-disc pl-5 text-[12.5px] leading-6 text-foreground/85 space-y-1">
+              <li>同一套系统承载「分销 / 聚合 / 供应」三种产业关系，平台可同时变现 B 端 SaaS、卖场聚合、供应链协同三条收入线。</li>
+              <li>关系图改一行（SUB_TYPE_MAP）即可扩展新业务形态，无需新建产品线 / 不再造系统。</li>
+              <li>「Platform as Enterprise」让平台拥有「代任意企业操作」的合法身份 —— 客成、运营、审计的代客服务都不需要特殊接口。</li>
+            </ul>
+          </Card>
+          <Card><H4>技术价值</H4>
+            <ul className="list-disc pl-5 text-[12.5px] leading-6 text-foreground/85 space-y-1">
+              <li>单表 + 单套 RLS 同时支持平台 / 企业视角，运维成本与 bug 面积都下降一个数量级。</li>
+              <li>关系图（SUB_TYPE_MAP）+ 产品矩阵（PRODUCTS）+ 状态三维（audit/business/ownership）= 完整业务空间的解析坐标系。</li>
+              <li>下游模块（权益、订单、人员、客户）只需消费 enterprise_id × product_id 两个坐标即可完成租户隔离，零额外约定。</li>
+            </ul>
+          </Card>
+        </div>
+      </div>
+
       <div id="ov-axiom">
-        <H3>6 条不可违反的公理</H3>
+        <H3>7 条不可违反的公理</H3>
         <div className="grid grid-cols-1 gap-2.5">
           {[
-            { k: "公理 0 · 平台即上帝视角", v: "平台后台（perspective=platform）拥有全部能力 —— 可代任意企业创建子企业 / 人员 / 商品 / 模型资产 / 调整组织树。安全边界不由「能不能点」收口，而由「权限管理」的角色 × 策略 × 数据范围三层兜底。企业后台（perspective=enterprise）只能在自己企业子树内操作。" },
-            { k: "公理 1 · 状态三维解耦", v: "审核状态（pending/approved/rejected）、业务状态（active/disabled）、所有权状态（normal/frozen）相互独立，禁止用单一 status 字段表达。" },
-            { k: "公理 2 · 所有真实企业均可停用", v: "停用入口对 Level 0/1/2 全部开放（仅虚拟「平台根节点」除外），由角色权限决定谁能按；总部停用属高危操作，需二次确认 + 审计留痕。" },
-            { k: "公理 3 · 到期即自动停用", v: "expire_at ≤ now() 由定时任务把 business_status 自动置 disabled，权益账户 quota.frozen=true；续期成功后由订单事件回写为 active。该流程不经过人工，但会写 AuditRecord(action=auto_disable)。" },
-            { k: "公理 4 · 编辑不创订单", v: "企业编辑页面禁止修改权益数量、套餐、到期时间。所有权益变更（增购、续期、回收、赠送）必须通过权益订单，留下 sourceOrderId 溯源。" },
-            { k: "公理 5 · 退出而非删除", v: "企业、人员均不支持物理删除。退出（exit）即解除归属 + 软冻结历史数据，保证审计与对账可追溯。" },
-            { k: "公理 6 · 级联冻结，不级联停用", v: "冻结父企业 → 子企业级联冻结；停用父企业不级联停用子企业（业务停用是商务行为，需逐个确认）。" },
+            { k: "公理 0 · 平台即上帝视角", v: "平台后台（perspective=platform）拥有全部能力 —— 可代任意企业创建子企业 / 人员 / 商品 / 模型资产 / 调整组织树。安全边界不由「能不能点」收口，而由「权限管理」的角色 × 策略 × 数据范围三层兜底。" },
+            { k: "公理 1 · Platform as Enterprise", v: "平台节点是 enterprise 表里一条虚拟根记录（type=平台），与真实企业共享同一份数据模型、字段、RLS。不允许为「平台」单独建表或字段。" },
+            { k: "公理 2 · 关系语法即业务模型", v: "SUB_TYPE_MAP 是企业关系图的唯一权威定义；任何 type → 子 type 的可派生性，必须以它为准。绕过该图的「特例」必须拒绝。" },
+            { k: "公理 3 · 状态三维解耦", v: "审核（pending/approved/rejected）、业务（active/disabled）、所有权（normal/frozen）三个维度相互独立，禁止合并为单一 status 字段。" },
+            { k: "公理 4 · 到期即自动停用", v: "expire_at ≤ now() 由定时任务把 business_status 自动置 disabled，权益账户 quota.frozen=true；续期成功后由订单事件回写为 active。写 AuditRecord(action=auto_disable)。" },
+            { k: "公理 5 · 编辑不创订单", v: "企业编辑页面禁止修改权益数量、套餐、到期时间。所有权益变更（增购、续期、回收、赠送）必须通过权益订单，留下 sourceOrderId 溯源。" },
+            { k: "公理 6 · 退出而非删除", v: "企业、人员均不支持物理删除。退出（exit）即解除归属 + 软冻结历史数据，保证审计与对账可追溯。" },
+            { k: "公理 7 · 级联冻结，不级联停用", v: "冻结父企业 → 子企业级联冻结；停用父企业不级联停用子企业（业务停用是商务行为，需逐个确认）。" },
           ].map((it, i) => (
             <div key={i} className="flex gap-3 border rounded-lg px-3.5 py-2.5 bg-muted/15">
               <div className="text-[12px] font-semibold text-primary w-[160px] shrink-0">{it.k}</div>
@@ -163,15 +283,16 @@ function Overview() {
         <Table
           headers={["术语", "定义", "易混淆点"]}
           rows={[
-            ["企业（Enterprise）", "平台租户主体，持有唯一 enterprise_id", "≠ 品牌（Brand），一个企业可代理多个品牌"],
-            ["总部（HQ）", "Level=0 的根企业，由平台审核准入", "可停用、可冻结，停用属高危操作"],
-            ["子企业（Child）", "Level=1，由 HQ 或平台代建", "权益可独立配置或继承"],
-            ["末级企业（Grandchild）", "Level=2，最大层级，不可再建子级", "支持停用，不支持再创建下级"],
-            ["视角 perspective", "platform（平台） / enterprise（企业）", "平台视角全权代操作；企业视角受限于自身子树"],
-            ["审核状态", "pending / approved / rejected", "驳回（rejected）后允许再次提交审核"],
-            ["业务状态", "active / disabled", "手动切换 或 到期自动 disable"],
-            ["所有权状态", "normal / frozen", "由审计、合规或上级冻结触发，级联生效"],
-            ["归属（Ownership）", "人员 / 客户 / 订单与企业之间的多对一关系", "迁移会触发权益重算与审计记录"],
+            ["企业（Enterprise）", "平台租户主体，持有唯一 enterprise_id", "包含「平台」虚拟节点，是图的一个特殊行"],
+            ["平台节点", "type=平台 的虚拟企业（ROOT_CURRENT）", "在 UI 列表中作为置顶首条；不可编辑、不可停用"],
+            ["主体 / 聚合 / 渠道 / 供给", "企业的 4 种语义角色", "和 type 是 1:N 关系，决定可派生哪些子类型"],
+            ["SUB_TYPE_MAP", "「父 type → 子 type 集合」有向图", "是关系语义本体，UI 的 3 层只是渲染上限"],
+            ["视角 perspective", "platform / enterprise", "platform 全权代操作；enterprise 仅限自身子树"],
+            ["产品（Product）", "国内 3D / 国际 3D / 智能导购 / VR 全景 …", "与企业关系图正交；权益账户以「企业 × 产品」为单位"],
+            ["审核状态", "pending / approved / rejected", "驳回可再次提交，无 final-reject 终态"],
+            ["业务状态", "active / disabled", "可人工切换；可由到期自动 disable"],
+            ["所有权状态", "normal / frozen", "仅审计、合规、级联可触发"],
+            ["品牌关系", "own（自营）/ agent（代理）", "由企业 type 决定可 own 还是仅可 agent"],
           ]}
         />
       </div>
@@ -179,19 +300,22 @@ function Overview() {
       <div id="ov-scope">
         <H3>本模块边界与上下游</H3>
         <Pre>{`            ┌─────────────────────────────────────┐
-   上游 ──▶ │  入驻申请 (ApplicationList)         │ ──▶ 创建企业
+   上游 ──▶ │  入驻申请 (ApplicationList)         │ ──▶ 创建企业（落入关系图）
             └─────────────────────────────────────┘
                             │
             ┌───────────────▼────────────────────┐
    本模块   │  企业管理 EnterpriseList / Detail  │
-            │   ├─ 组织树（OrgNode）              │
+            │   ├─ 企业关系图（SUB_TYPE_MAP 驱动）│
+            │   ├─ 组织树（OrgNode，企业内部）    │
             │   ├─ 人员归属（Staff）              │
             │   ├─ 品牌关系（BrandRelation）      │
+            │   ├─ 产品绑定（products[]）         │
             │   └─ 审计轨迹（AuditRecord）        │
             └───────────────┬────────────────────┘
                             │
             ┌───────────────▼────────────────────┐
-   下游 ◀── │ 权益账户 · 订单 · 客户 · 营销 · 权限 │
+   下游 ◀── │ 权益账户(企业×产品) · 订单 · 客户   │
+            │            · 营销 · 权限             │
             └─────────────────────────────────────┘`}</Pre>
       </div>
     </section>
@@ -205,72 +329,105 @@ function Blueprint() {
       <H2 icon={Network} num="02">系统蓝图</H2>
 
       <div id="bp-types">
-        <H3>6 类企业 & 准入路径</H3>
+        <H3>7 类企业 × 4 种角色语义</H3>
         <Table
-          headers={["type", "名称", "默认层级", "准入方式", "典型场景"]}
-          cols={["80px", "120px", "80px", "180px", undefined]}
+          headers={["type", "中文", "角色语义", "可派生子类型（SUB_TYPE_MAP）", "准入路径"]}
+          cols={["90px", "90px", "80px", undefined, "180px"]}
           rows={[
-            ["brand", "品牌商", "Level 0", "平台审核（线下尽调 + 资质）", "欧派、索菲亚等头部品牌"],
-            ["dealer", "经销商", "Level 0/1", "平台审核 或 品牌邀请", "区域代理、城市加盟商"],
-            ["decoration", "装企", "Level 0", "平台审核", "整装公司、设计工作室"],
-            ["mall", "卖场", "Level 0", "平台直签", "居然之家门店"],
-            ["store", "门店", "Level 1/2", "由 dealer/brand 创建", "终端销售网点"],
-            ["studio", "工作室", "Level 2", "由 dealer/store 创建", "末级落地团队"],
+            ["brand", "品牌商", <Tag tone="info">主体型</Tag>, "经销商 · 装修公司 · 门店 · 工作室", "平台审核（线下尽调 + 资质）"],
+            ["mall", "卖场", <Tag tone="warning">聚合型</Tag>, "品牌商 · 经销商 · 装修公司 · 门店", "平台直签"],
+            ["decoration", "装修公司", <Tag tone="info">主体型</Tag>, "门店 · 工作室", "平台审核"],
+            ["dealer", "经销商", <Tag tone="success">渠道型</Tag>, "装修公司 · 门店 · 工作室", "平台审核 或 品牌邀请"],
+            ["store", "门店", <Tag tone="success">渠道型</Tag>, "工作室", "由 brand / dealer / mall 创建"],
+            ["studio", "工作室", <Tag tone="success">渠道型</Tag>, "工作室（协作扩展）", "由 store / studio / decoration 创建"],
+            ["supplier", "供应商", <Tag tone="muted">供给型</Tag>, "供应商（自成平行链）", "平台审核（独立通道）"],
           ]}
         />
         <div className="text-[11.5px] text-muted-foreground mt-2">
-          注：<Code>type</Code> 决定可创建的<span className="text-foreground">子企业类型集合（SUB_TYPE_MAP）</span>，前端按 type 渲染表单字段差异。
+          特别说明：<b>卖场</b>是关系图里唯一的「聚合型」节点 —— 它能接入主体型的品牌商进来，使「居然之家入驻欧派门店」这种现实业务有干净的数据建模。
         </div>
       </div>
 
+      <div id="bp-graph">
+        <H3>企业关系图（有向图，不是树）</H3>
+        <Pre>{`                    ┌─────────────────────────────────┐
+                    │  Platform（虚拟根，type=平台）   │
+                    └──────────────────┬──────────────┘
+                                       │ 准入审核
+              ┌────────────┬───────────┼─────────────┬──────────────┐
+              ▼            ▼           ▼             ▼              ▼
+        ┌─────────┐  ┌───────────┐ ┌──────┐  ┌─────────────┐  ┌──────────┐
+        │ brand   │  │ decoration│ │ mall │  │  dealer*    │  │ supplier │
+        │ 主体    │  │ 主体      │ │ 聚合 │  │  渠道(可直签)│  │ 供给    │
+        └────┬────┘  └─────┬─────┘ └──┬───┘  └──────┬──────┘  └────┬─────┘
+             │              │          │             │              │
+             │派生           │派生      │聚合         │派生           │自派生
+             ▼              ▼          ▼             ▼              ▼
+         dealer           store     brand        decoration      supplier
+         decoration       studio    dealer       store           （平行链
+         store                      decoration   studio            独立成体系）
+         studio                     store
+                                    │
+                                    ▼
+                                  store
+                                  studio
+
+* dealer 既可由平台直签准入，也可由 brand 派生。
+
+水平：商业关系（分销 / 聚合 / 履约 / 供给）
+垂直：产品维度（国内3D · 国际3D · 智能导购 · VR全景）正交其上`}</Pre>
+      </div>
+
       <div id="bp-tree">
-        <H3>3 级层级 & 角色关系</H3>
-        <Pre>{`Level 0 · HQ 总部       ╱── 持有所有平台关系（权益、品牌、合同主体）
-   │                    ╲── 仅平台可审核 / 冻结，禁止停用
-   │
-   ├── Level 1 · 子企业  ╱── 由 HQ 创建，可继承或独立配置权益
-   │   │                ╲── 支持停用、冻结，被冻结时子级级联冻结
-   │   │
-   │   └── Level 2 · 末级 ── 不可再建下级；可作为人员、客户挂载点
-   │
-   └── 最多 3 层；任意层都可挂载 Staff / Customer / Brand 关系`}</Pre>
-        <Card className="mt-2">
-          <H4>品牌关系（BrandRelation）</H4>
-          <div className="text-[12.5px] leading-6 text-foreground/85">
-            企业与品牌的关系分两种：<Tag tone="info">自营 own</Tag><Tag tone="success">代理 agent</Tag>。
-            <ul className="list-disc pl-5 mt-1.5 space-y-1">
-              <li><Code>brand</Code> 类型企业默认 own 自己的品牌，可额外 agent 其他品牌；</li>
-              <li><Code>dealer / store / studio</Code> 仅可 agent，不可 own；</li>
-              <li>关系变更需经品牌方授权（授权流走「品牌管理」模块）。</li>
-            </ul>
-          </div>
-        </Card>
+        <H3>实例化层级（UI 渲染上限 3 层 + 平台虚拟根）</H3>
+        <Pre>{`UI 视图：
+  平台（虚拟根，置顶 1 行）
+    │
+    ├─ Level 0 · 真实企业（HQ / 总部）       ← 由平台审核准入
+    │    │
+    │    ├─ Level 1 · 子企业                 ← 由 HQ 或平台代建
+    │    │    │
+    │    │    └─ Level 2 · 末级企业          ← 不可再建下级
+    │    │
+    │    └─ … （平铺，按 SUB_TYPE_MAP 校验 type 兼容）
+    │
+    └─ … 其他 HQ
+
+注 1：「Level」是 UI 渲染层数，不是关系语义。关系语义由 SUB_TYPE_MAP 表达。
+注 2：平台节点不计入 Level 计数，仅作为入口和数据围栏的逻辑顶点。
+注 3：当 enterprise.parent.type → child.type 在 SUB_TYPE_MAP 中不存在时，
+      创建被拒绝；这是关系图被强制执行的唯一点。`}</Pre>
       </div>
 
       <div id="bp-page">
         <H3>页面地图与权限矩阵</H3>
         <Table
           headers={["页面", "路由", "平台后台", "企业后台", "关键逻辑"]}
-          cols={[undefined, undefined, "80px", "80px", undefined]}
+          cols={[undefined, undefined, "100px", "100px", undefined]}
           rows={[
-            ["企业列表", "/enterprise", <Tag tone="info">全量</Tag>, <Tag tone="success">自树</Tag>, "平台看全部 + 子树展开；企业仅看自身 + 子级"],
-            ["企业详情", "/enterprise/detail/:id", <Tag tone="info">读写</Tag>, <Tag tone="success">受限</Tag>, "企业方仅可编辑联系信息、组织树；权益只读"],
-            ["新建/编辑企业", "/enterprise/create", <Tag tone="info">读写</Tag>, <Tag tone="warning">仅编辑</Tag>, "edit 模式：权益、到期时间锁定为只读"],
-            ["入驻申请", "/enterprise/apply", <Tag tone="info">审核</Tag>, <Tag tone="muted">不可见</Tag>, "驳回支持再次审核（无 final reject 状态）"],
-            ["人员列表", "/enterprise/staff", <Tag tone="info">需选企业</Tag>, <Tag tone="success">自树</Tag>, "平台需强制选中一个企业作用域"],
+            ["企业列表", "/enterprise", <Tag tone="info">全量 + 平台节点置顶</Tag>, <Tag tone="success">自树 + 自身置顶</Tag>, "Platform-as-Enterprise 的 UI 落地：root 行结构相同，操作集不同"],
+            ["企业详情", "/enterprise/detail/:id", <Tag tone="info">读写 + 代操作</Tag>, <Tag tone="success">受限</Tag>, "企业方仅可编辑联系信息、组织树；权益只读"],
+            ["新建 / 编辑", "/enterprise/create", <Tag tone="info">读写</Tag>, <Tag tone="warning">仅编辑</Tag>, "create 时校验 parent.type → type ∈ SUB_TYPE_MAP；edit 时锁权益"],
+            ["入驻申请", "/enterprise/apply", <Tag tone="info">审核</Tag>, <Tag tone="muted">不可见</Tag>, "驳回可再次提交，无 final reject"],
+            ["人员列表", "/enterprise/staff", <Tag tone="info">需选企业作用域</Tag>, <Tag tone="success">自树</Tag>, "Staff 必须挂载到具体企业节点，不能挂在平台虚拟根"],
           ]}
         />
       </div>
 
       <div id="bp-rule">
         <H3>架构层级约束</H3>
-        <Pre>{`R1  企业 Level ∈ {0,1,2}，最深 3 层
+        <Pre>{`R1  enterprise.level ∈ {0,1,2}，UI 渲染最深 3 层
 R2  Level=0 仅平台创建；Level=1 由 HQ 或平台代建；Level=2 由 Level≤1 或平台代建
-R3  子企业的 type ∈ SUB_TYPE_MAP[parent.type]
-R4  子企业的到期时间 ≤ 父企业到期时间（trigger 校验）
-R5  人员（Staff）必须挂载到某个具体企业节点（不能挂在「平台根」上）；平台后台操作人员需先选定一个企业作用域
-R6  企业 enterprise_id 一经创建不可变更；归属迁移走 ownership_event 记录
-R7  平台视角对以上规则有「越权读 + 代操作写」能力，但仍受 R1–R6 业务规则约束（不能绕过 Level/Type/到期校验）`}</Pre>
+R3  ★ 关系合法性：child.type ∈ SUB_TYPE_MAP[parent.type]
+       —— 这是「关系图」被强制执行的唯一点，违反即创建失败
+R4  子企业 expire_at ≤ 父企业 expire_at（trigger 校验）
+R5  Staff 必须挂载到具体企业节点（不能挂到「平台虚拟根」）；
+       平台后台操作 Staff 列表时，前端强制选定一个企业作用域
+R6  enterprise_id 一经创建不可变更；归属迁移走 ownership_event
+R7  「企业 × 产品」是权益账户、订单、人员授权的最小坐标点；
+       同一企业可在不同 product 上有完全独立的账户与配额
+R8  平台视角对以上规则有「越权读 + 代操作写」能力，
+       但仍受 R1–R7 业务规则约束（不能绕过 Type/Level/到期校验）`}</Pre>
       </div>
     </section>
   );
