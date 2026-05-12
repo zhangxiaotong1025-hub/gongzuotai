@@ -317,8 +317,10 @@ function BenefitRowCard({ pkg, onUpdate, onRemove }: {
           {pkg.name}
         </span>
       </div>
-      <div className="px-3 py-2">
-        <DateRangePicker value={pkg.dateRange} onChange={(v) => onUpdate("dateRange", v)} />
+      <div className="px-4 py-3 flex items-center gap-1.5 text-[13px] text-foreground">
+        <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        <span className="font-mono">{pkg.dateRange}</span>
+        <span className="text-[11px] text-muted-foreground ml-1">（同企业配置）</span>
       </div>
       <button
         className="justify-self-center p-1 rounded hover:bg-muted/60 transition-colors"
