@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { bundleData, skuData, BILLING_CYCLES, getProductsBySkuId, type Bundle } from "@/data/entitlement";
+import { appData, bundleData, skuData, BILLING_CYCLES, getProductsBySkuId, type Bundle } from "@/data/entitlement";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BenefitPickerDialog, type CatalogItem } from "@/components/entitlement/BenefitPickerDialog";
 
@@ -73,6 +73,65 @@ const AVAILABLE_PRODUCTS = [
 ];
 
 type BenefitTone = "blue" | "teal" | "violet" | "amber" | "rose";
+
+const BENEFIT_TONES: BenefitTone[] = ["blue", "teal", "violet", "amber", "rose"];
+
+const PRODUCT_APP_NAMES: Record<string, string> = {
+  domestic3d: "国内3D工具",
+  international3d: "国际3D工具",
+  smartGuide: "智能导购",
+  customerData: "精准客资",
+  smartPhoto: "AI设计家",
+  live: "智能导购",
+};
+
+function getCatalogTone(seed: string): BenefitTone {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+  return BENEFIT_TONES[Math.abs(hash) % BENEFIT_TONES.length];
+}
+
+function buildEntitlementCatalog(productKey: string, fallbackLabel: string): CatalogItem[] {
+  const appName = PRODUCT_APP_NAMES[productKey] || fallbackLabel;
+  const app = appData.find((item) => item.name === appName);
+  const appId = app?.id;
+  const bundles: CatalogItem[] = bundleData
+    .filter((bundle) => bundle.status === "on_sale" && (appId ? bundle.appId === appId : bundle.appName === appName))
+    .map((bundle) => ({
+      id: `bundle:${bundle.name}`,
+      name: bundle.name,
+      desc: `${bundle.code} · ${bundle.items.length} 个商品`,
+      tone: getCatalogTone(bundle.id),
+      kind: "bundle",
+      group: appName,
+      meta: (
+        <div className="text-right">
+          <div className="text-[12px] font-medium text-foreground">{bundle.price > 0 ? `¥${bundle.price}` : "免费"}</div>
+          <div className="text-[10px] text-muted-foreground">{bundle.items.length} 项商品</div>
+        </div>
+      ),
+    }));
+  const skus: CatalogItem[] = skuData
+    .filter((sku) => sku.salesStatus === "on_sale" && (!appId || sku.appId === appId))
+    .map((sku) => {
+      const cycle = BILLING_CYCLES.find((item) => item.value === sku.billingCycle)?.label;
+      return {
+        id: `sku:${sku.name}`,
+        name: sku.name,
+        desc: `${sku.code} · ${sku.description}`,
+        tone: getCatalogTone(sku.id),
+        kind: "sku",
+        group: appName,
+        meta: (
+          <div className="text-right">
+            <div className="text-[12px] font-medium text-foreground">{sku.price > 0 ? `¥${sku.price}` : "免费"}</div>
+            {cycle && <div className="text-[10px] text-muted-foreground">{cycle}</div>}
+          </div>
+        ),
+      };
+    });
+  return [...bundles, ...skus];
+}
 
 const BENEFIT_TONE_VARS: Record<BenefitTone, string> = {
   blue: "var(--benefit-blue)",
