@@ -316,7 +316,14 @@ export default function EnterpriseList() {
       note: current.note || "当前登录企业，不可编辑",
       children: [],
     };
-    const siblings: Enterprise[] = (current.children || []).map((c) => ({ ...c, _level: 0 }));
+    // 当前企业的子公司作为列表数据展示，保留其下级树结构
+    const relevel = (items: Enterprise[], level: number): Enterprise[] =>
+      items.map((c) => ({
+        ...c,
+        _level: level,
+        children: c.children ? relevel(c.children, level + 1) : c.children,
+      }));
+    const siblings: Enterprise[] = relevel(current.children || [], 0);
     void rest;
     return [root, ...siblings];
   }, [data, perspective]);
