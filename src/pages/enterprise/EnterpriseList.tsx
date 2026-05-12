@@ -125,14 +125,26 @@ const columns: TableColumn<Enterprise>[] = [
     key: "name",
     title: "企业名称",
     minWidth: 260,
-    render: (v, row) => (
-      <span className="text-foreground font-medium">
-        {v}
-        {(row as Enterprise).frozen && (
-          <span className="ml-1.5 badge-danger text-[10px] py-0">已冻结</span>
-        )}
-      </span>
-    ),
+    render: (v, row) => {
+      const r = row as Enterprise;
+      if (r._root) {
+        return (
+          <span className="inline-flex items-center gap-2 font-semibold text-foreground">
+            <Building2 className="h-3.5 w-3.5 text-primary" />
+            {v}
+            <span className="badge-info text-[10px] py-0">当前</span>
+          </span>
+        );
+      }
+      return (
+        <span className="text-foreground font-medium">
+          {v}
+          {r.frozen && (
+            <span className="ml-1.5 badge-danger text-[10px] py-0">已冻结</span>
+          )}
+        </span>
+      );
+    },
   },
   {
     key: "type",
