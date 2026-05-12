@@ -923,7 +923,7 @@ function E2EFlow() {
           cols={["80px", "110px", undefined, undefined, undefined]}
           rows={[
             ["创建", "平台超管 / 企业管理员", "user(created) + staff(active) + user_role 一次性写入", "role → menu → policy 缓存预热；按角色含应用 → account_user_binding 占座", "组织树即时出现新节点；无「待入职」中间态"],
-            ["通知", "系统（事件驱动）", "—", "短信网关下发（登录地址 + 账号 + 初始密码 / 一次性验证码）", "本人未登录前，列表仍为 active；短信失败有重发入口"],
+            ["通知", "系统（事件驱动）", "—", "短信网关下发：登录地址 + 账号（手机号）+ 初始密码", "本人未登录前，列表仍为 active；短信失败有重发入口"],
             ["首次登录", "本人", "user.first_login_at 写入；强制改密", "—", "改密后进入正常工作态"],
             ["调岗", "管理员", "user_role 更新", "失效 role 缓存，下次请求重算；新角色不含某应用 → 释放座位", "当前页若失去访问权 → 401 拦截跳首页"],
             ["跨企业", "管理员", "新增一行 staff（同 user_id，不同 enterprise_id）", "X-Enterprise-Id 切换；新企业账户内重新占座", "登录后可切换企业入口；切换后 layout reload"],
