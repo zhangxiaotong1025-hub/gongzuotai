@@ -18,7 +18,6 @@ export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; 
   });
   const [touched, setTouched] = useState(false);
   const isEdit = Boolean(initial);
-  if (!open) return null;
 
   const availableCaps = getCapabilitiesByApp(form.appId).filter((c) => c.status === "active");
   const selectedCap = capabilityData.find((c) => c.id === form.capabilityId);
@@ -34,6 +33,8 @@ export function RuleDialog({ open, onClose, onSave, initial }: { open: boolean; 
     const periodSuffix = form.periodType === "DAY" ? "DAY" : form.periodType === "MONTH" ? "MONTH" : form.periodType === "YEAR" ? "YEAR" : "PERM";
     return `RULE_${selectedCap.code}_${form.quota}_${periodSuffix}`;
   }, [selectedCap, form.quota, form.periodType, isEdit]);
+
+  if (!open) return null;
 
   const errors: string[] = [];
   if (!form.name.trim()) errors.push("规则名称");
