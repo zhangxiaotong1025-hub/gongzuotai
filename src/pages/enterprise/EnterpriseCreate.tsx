@@ -1083,6 +1083,7 @@ function UnifiedBenefitSection({
         items={items}
         existingIds={existingIds}
         showKindTabs
+        groupFilter={{ label: "应用", options: items.some((item) => item.group) ? Array.from(new Set(items.map((item) => item.group).filter(Boolean) as string[])).map((group) => ({ label: group, value: group })) : [] }}
         onConfirm={(selected) => {
           selected.forEach((s) => {
             if (s.kind === "bundle") onAddBundle(s.name);
