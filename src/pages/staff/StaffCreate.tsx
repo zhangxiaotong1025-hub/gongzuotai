@@ -591,7 +591,7 @@ export default function StaffCreate() {
                   onConfirm={(selected) => {
                     const originals = selected
                       .map((s) => availableBenefits.find((b) => b.name === s.id))
-                      .filter((b): b is BenefitItem => !!b);
+                      .filter((b): b is (BenefitItem & { productKey: string }) => !!b);
                     if (originals.length) addBenefits(originals);
                   }}
                 />
