@@ -788,6 +788,7 @@ function BenefitListSection({
 }) {
   const [showPicker, setShowPicker] = useState(false);
   const [search, setSearch] = useState("");
+  const [bundleDetail, setBundleDetail] = useState<Bundle | null>(null);
   const filtered = catalog.filter((c) => c.name.includes(search));
 
   const getToneVar = (name: string) => BENEFIT_TONE_VARS[catalog.find((c) => c.name === name)?.tone || "blue"];
