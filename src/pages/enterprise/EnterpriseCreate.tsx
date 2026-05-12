@@ -104,18 +104,20 @@ const BENEFIT_CATALOG: Record<string, { name: string; desc: string; tone: Benefi
   live: [{ name: "直播权益套餐", desc: "含直播推流、互动工具", tone: "teal" }],
 };
 
-function DateRangePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function DateRangePicker({ value, onChange, maxDate }: { value: string; onChange: (v: string) => void; maxDate?: Date }) {
   const parts = (value || "").split(" ~ ");
   const startDate = parts[0] ? new Date(parts[0]) : undefined;
   const endDate = parts[1] ? new Date(parts[1]) : undefined;
+
+  const clamp = (d: Date) => (maxDate && d > maxDate ? maxDate : d);
 
   const handleSelect = (range: { from?: Date; to?: Date } | undefined) => {
     if (!range) {
       onChange("");
       return;
     }
-    const from = range.from ? format(range.from, "yyyy-MM-dd") : "";
-    const to = range.to ? format(range.to, "yyyy-MM-dd") : "";
+    const from = range.from ? format(clamp(range.from), "yyyy-MM-dd") : "";
+    const to = range.to ? format(clamp(range.to), "yyyy-MM-dd") : "";
     onChange(to ? `${from} ~ ${to}` : from);
   };
 
@@ -145,6 +147,35 @@ function DateRangePicker({ value, onChange }: { value: string; onChange: (v: str
           selected={startDate && endDate ? { from: startDate, to: endDate } : startDate ? { from: startDate, to: undefined } : undefined}
           onSelect={handleSelect as never}
           numberOfMonths={2}
+          disabled={maxDate ? { after: maxDate } : undefined}
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function SingleDatePicker({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const selected = value ? new Date(value) : undefined;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-9 w-full justify-start rounded-lg border-input bg-card px-3 text-left text-[13px] font-normal shadow-none hover:bg-muted/40",
+            !value && "text-muted-foreground",
+          )}
+        >
+          <CalendarIcon className="mr-2 h-3.5 w-3.5 opacity-50 shrink-0" />
+          {selected ? format(selected, "yyyy/MM/dd") : <span>{placeholder || "选择日期"}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto rounded-xl p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={selected}
+          onSelect={(d) => onChange(d ? format(d, "yyyy-MM-dd") : "")}
           className={cn("p-3 pointer-events-auto")}
         />
       </PopoverContent>
