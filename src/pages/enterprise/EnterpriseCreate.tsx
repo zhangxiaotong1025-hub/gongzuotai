@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
+import { bundleData } from "@/data/entitlement";
 
 const TYPE_LABELS: Record<string, string> = {
   mall: "卖场",
@@ -104,18 +105,20 @@ const BENEFIT_CATALOG: Record<string, { name: string; desc: string; tone: Benefi
   live: [{ name: "直播权益套餐", desc: "含直播推流、互动工具", tone: "teal" }],
 };
 
-function DateRangePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function DateRangePicker({ value, onChange, maxDate }: { value: string; onChange: (v: string) => void; maxDate?: Date }) {
   const parts = (value || "").split(" ~ ");
   const startDate = parts[0] ? new Date(parts[0]) : undefined;
   const endDate = parts[1] ? new Date(parts[1]) : undefined;
+
+  const clamp = (d: Date) => (maxDate && d > maxDate ? maxDate : d);
 
   const handleSelect = (range: { from?: Date; to?: Date } | undefined) => {
     if (!range) {
       onChange("");
       return;
     }
-    const from = range.from ? format(range.from, "yyyy-MM-dd") : "";
-    const to = range.to ? format(range.to, "yyyy-MM-dd") : "";
+    const from = range.from ? format(clamp(range.from), "yyyy-MM-dd") : "";
+    const to = range.to ? format(clamp(range.to), "yyyy-MM-dd") : "";
     onChange(to ? `${from} ~ ${to}` : from);
   };
 
@@ -145,6 +148,35 @@ function DateRangePicker({ value, onChange }: { value: string; onChange: (v: str
           selected={startDate && endDate ? { from: startDate, to: endDate } : startDate ? { from: startDate, to: undefined } : undefined}
           onSelect={handleSelect as never}
           numberOfMonths={2}
+          disabled={maxDate ? { after: maxDate } : undefined}
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function SingleDatePicker({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+  const selected = value ? new Date(value) : undefined;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "h-9 w-full justify-start rounded-lg border-input bg-card px-3 text-left text-[13px] font-normal shadow-none hover:bg-muted/40",
+            !value && "text-muted-foreground",
+          )}
+        >
+          <CalendarIcon className="mr-2 h-3.5 w-3.5 opacity-50 shrink-0" />
+          {selected ? format(selected, "yyyy/MM/dd") : <span>{placeholder || "选择日期"}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto rounded-xl p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={selected}
+          onSelect={(d) => onChange(d ? format(d, "yyyy-MM-dd") : "")}
           className={cn("p-3 pointer-events-auto")}
         />
       </PopoverContent>
@@ -651,6 +683,7 @@ function StepBenefits({
           if (!product) return null;
           const cfg = form.productConfigs[pKey] || { packageRows: [], productRows: [], accountCount: 30 };
           const catalog = BENEFIT_CATALOG[pKey] || [];
+          const expireMax = form.expireDate ? new Date(form.expireDate) : undefined;
           return (
             <div key={pKey} className="rounded-2xl border border-border/70 overflow-hidden bg-card" style={{ boxShadow: "var(--shadow-xs)" }}>
               <div className="flex items-center justify-between border-b border-border/60 bg-muted/25 px-5 py-4">
@@ -670,8 +703,14 @@ function StepBenefits({
                   </div>
                 </FormRow>
                 <FormRow label="授权时间" wide>
-                  <div className="w-[280px]">
-                    <DateRangePicker value={cfg.dateRange || "2026-01-01 ~ 2028-12-31"} onChange={(val) => updateProductDateRange(pKey, val)} />
+                  <div className="space-y-1.5">
+                    <div className="w-[280px]">
+                      <DateRangePicker value={cfg.dateRange || "2026-01-01 ~ 2028-12-31"} onChange={(val) => updateProductDateRange(pKey, val)} maxDate={expireMax} />
+                    </div>
+                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Info className="h-3 w-3 shrink-0" />
+                      <span>授权时间不可超出企业到期时间{form.expireDate ? `（${form.expireDate}）` : ""}</span>
+                    </div>
                   </div>
                 </FormRow>
                 <BenefitListSection
@@ -714,7 +753,9 @@ function StepBenefits({
               <ToggleSwitch checked={form.autoGrantSub} onChange={() => update("autoGrantSub", !form.autoGrantSub)} />
             </FormRow>
             <FormRow label="到期时间" wide>
-              <input className="filter-input w-48" type="date" value={form.expireDate} onChange={(e) => update("expireDate", e.target.value)} />
+              <div className="w-[280px]">
+                <SingleDatePicker value={form.expireDate} onChange={(v) => update("expireDate", v)} placeholder="选择企业到期时间" />
+              </div>
             </FormRow>
           </div>
         </SectionCard>
@@ -778,10 +819,26 @@ function BenefitListSection({
             return (
               <div key={row.id} className="grid grid-cols-[minmax(260px,1fr)_160px_120px_36px] items-center border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors group">
                 <div className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap" style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}>
-                    <Package className="h-3 w-3 shrink-0" />
-                    {row.packageName}
-                  </span>
+                  {label === "权益套餐" ? (
+                    <button
+                      type="button"
+                      title="查看套餐详情"
+                      onClick={() => {
+                        const bundle = bundleData.find((b) => b.name === row.packageName);
+                        window.open(bundle ? `/entitlement/package/detail/${bundle.id}` : `/entitlement/package`, "_blank");
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap hover:ring-1 hover:ring-current/40 transition-all cursor-pointer"
+                      style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}
+                    >
+                      <Package className="h-3 w-3 shrink-0" />
+                      {row.packageName}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[12px] font-medium whitespace-nowrap" style={{ background: `hsl(${toneVar} / 0.08)`, color: `hsl(${toneVar})` }}>
+                      <Package className="h-3 w-3 shrink-0" />
+                      {row.packageName}
+                    </span>
+                  )}
                 </div>
                 <div className="px-3 py-3">
                   <select className="filter-select h-9 w-full px-2 text-[13px]" value={row.applyMode} onChange={(e) => onUpdate(productKey, type, row.id, "applyMode", e.target.value)}>
