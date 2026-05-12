@@ -265,11 +265,12 @@ function Blueprint() {
       <div id="bp-rule">
         <H3>架构层级约束</H3>
         <Pre>{`R1  企业 Level ∈ {0,1,2}，最深 3 层
-R2  Level=0 仅由平台创建；Level=1 由 HQ 创建；Level=2 由 Level≤1 创建
+R2  Level=0 仅平台创建；Level=1 由 HQ 或平台代建；Level=2 由 Level≤1 或平台代建
 R3  子企业的 type ∈ SUB_TYPE_MAP[parent.type]
 R4  子企业的到期时间 ≤ 父企业到期时间（trigger 校验）
-R5  人员（Staff）必须挂载到某个具体企业节点（不能挂在「平台」上）
-R6  企业 enterprise_id 一经创建不可变更；归属迁移走 ownership_event 记录`}</Pre>
+R5  人员（Staff）必须挂载到某个具体企业节点（不能挂在「平台根」上）；平台后台操作人员需先选定一个企业作用域
+R6  企业 enterprise_id 一经创建不可变更；归属迁移走 ownership_event 记录
+R7  平台视角对以上规则有「越权读 + 代操作写」能力，但仍受 R1–R6 业务规则约束（不能绕过 Level/Type/到期校验）`}</Pre>
       </div>
     </section>
   );
