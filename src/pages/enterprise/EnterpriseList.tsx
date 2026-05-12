@@ -397,12 +397,18 @@ export default function EnterpriseList() {
     {
       label: "审核",
       onClick: (r) => setAuditTarget(r),
-      visible: (r) => !r._root && r.auditStatus === "pending",
+      // 仅平台后台可审核，且仅总部企业(level 0、非 root)需要审核
+      visible: (r) => perspective === "platform" && !r._root && (r._level || 0) === 0 && r.auditStatus === "pending",
     },
     {
       label: "停用",
       onClick: handleToggleStatus,
-      visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "active" && !r.frozen,
+      // 平台后台：可对已通过审核的总部企业停用；企业后台：可对自家子企业停用
+      visible: (r) => {
+        if (r._root || r.frozen || r.auditStatus !== "approved" || r.status !== "active") return false;
+        const level = r._level || 0;
+        return perspective === "platform" ? level === 0 : level >= 0; // 企业视角下，列表中除 root 外都是子企业
+      },
       danger: true,
       confirm: {
         title: "确认停用该企业？",
@@ -413,7 +419,11 @@ export default function EnterpriseList() {
     {
       label: "启用",
       onClick: handleEnableClick,
-      visible: (r) => !r._root && r.auditStatus === "approved" && r.status === "inactive" && !r.frozen,
+      visible: (r) => {
+        if (r._root || r.frozen || r.auditStatus !== "approved" || r.status !== "inactive") return false;
+        const level = r._level || 0;
+        return perspective === "platform" ? level === 0 : level >= 0;
+      },
     },
     // 当前企业(root)：平台支持 查看+设置管理员；企业还支持 新建子企业+增购权益
     { label: "设置管理员", onClick: (r) => setAdminTarget(r) },
