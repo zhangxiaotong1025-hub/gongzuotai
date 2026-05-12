@@ -24,6 +24,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ChangePasswordDialog from "@/pages/auth/ChangePasswordDialog";
+import { useAuth } from "@/hooks/useAuth";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building2 } from "lucide-react";
 
 /* ── Types ── */
 interface OrgNode { id: string; name: string; children?: OrgNode[]; isDraft?: boolean; }
