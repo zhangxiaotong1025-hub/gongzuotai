@@ -19,12 +19,12 @@ export default function ProjectPitch() {
             <Sparkles className="h-3 w-3" /> 2026 H1 · 半年度汇报
           </span>
           <h1 className="text-[34px] font-bold leading-[1.2] tracking-tight">
-            我们把"卖软件的后台"，
+            我们把「卖软件的后台」，
             <br />
             重做成了一座 <span className="text-primary">能经营家居生态的中台</span>。
           </h1>
           <p className="max-w-3xl text-[15px] leading-[1.9] text-muted-foreground">
-            过去：一套只服务于"3D 设计软件"的旧后台。
+            过去：一套只服务于「3D 设计软件」的旧后台。
             <br />
             现在：一套既能卖软件、也能跑客资、还能托起整个家居生态的<b className="text-foreground">底座</b>。
           </p>
@@ -49,7 +49,7 @@ export default function ProjectPitch() {
             tone="blue"
             tag="入口"
             title="谁可以上路"
-            desc="企业、品牌商、装企、设计师、消费者——全部按"企业"统一管，权限清晰、互不打架。"
+            desc="企业、品牌商、装企、设计师、消费者——全部按「企业」统一管，权限清晰、互不打架。"
           />
           <Arrow />
           {/* 通行 */}
@@ -74,17 +74,17 @@ export default function ProjectPitch() {
       <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <ValueCard
           n="01"
-          title="把"散的"做成了"通的""
+          title="把「散的」做成了「通的」"
           body="原本散落在各端的企业、权限、权益、客户、营销、商家——现在跑在同一套底座上，数据天然连通、规则天然一致。"
         />
         <ValueCard
           n="02"
-          title="把"卖软件"扩成了"做生意""
+          title="把「卖软件」扩成了「做生意」"
           body="平台不再只靠卖席位赚钱：客资分发、营销服务、商家运营、生态分润，多了好几条收入曲线。"
         />
         <ValueCard
           n="03"
-          title="把"拍脑袋"换成了"看数据""
+          title="把「拍脑袋」换成了「看数据」"
           body="客户健康分、商家分级、续费风险、营销 ROI，每一个经营动作都有事实支撑，Agent 还能主动给出建议。"
         />
       </section>
