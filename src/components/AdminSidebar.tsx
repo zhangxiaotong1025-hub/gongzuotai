@@ -137,6 +137,7 @@ const navItems: NavItem[] = [
     label: "PRD设计",
     icon: FileText,
     children: [
+      { label: "项目汇报（一页讲清）", path: "/prd/pitch" },
       { label: "顶层架构总览", path: "/prd/architecture" },
       { label: "权益设计", path: "/prd/entitlement" },
       { label: "企业设计", path: "/prd/enterprise" },
