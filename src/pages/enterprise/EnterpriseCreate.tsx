@@ -615,9 +615,6 @@ function StepBasic({ form, update }: { form: Record<string, any>; update: (k: st
             <FormRow label="企业人数" required>
               <input className="filter-input w-full" placeholder="请输入" value={form.legalPerson} onChange={(e) => update("legalPerson", e.target.value)} />
             </FormRow>
-            <FormRow label="企业手机号" required>
-              <input className="filter-input w-full" placeholder="请输入" value={form.legalPhone} onChange={(e) => update("legalPhone", e.target.value)} />
-            </FormRow>
             <FormRow label="企业管理员" required>
               <input className="filter-input w-full" placeholder="请输入管理员姓名" value={form.adminName} onChange={(e) => update("adminName", e.target.value)} maxLength={50} />
             </FormRow>
