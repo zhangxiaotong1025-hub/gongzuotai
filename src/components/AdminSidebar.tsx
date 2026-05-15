@@ -205,7 +205,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-3">
         <div className="space-y-0.5">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             if (item.children) {
               const isOpen = expanded.includes(item.label);
               const groupActive = isGroupActive(item);
