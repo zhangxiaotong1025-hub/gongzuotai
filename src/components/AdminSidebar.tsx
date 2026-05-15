@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation, Link } from "react-router-dom";
 import {
   Building2, Users, Shield, Gift, Tag, UserCircle, Sliders,
@@ -7,6 +7,7 @@ import {
   Box, Layers, ClipboardList, Wallet, Activity, Store,
   Briefcase, Star, Heart,
 } from "lucide-react";
+import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 
 interface NavGrandChild {
   label: string;
@@ -147,7 +148,20 @@ const navItems: NavItem[] = [
 
 export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const location = useLocation();
+  const { user } = useAuth();
   const [expanded, setExpanded] = useState<string[]>(["企业管理"]);
+
+  // 「创建平台管理员」入口仅对白名单超级管理员可见
+  const visibleNavItems = useMemo(() => {
+    if (isSuperAdmin(user)) {
+      return navItems.map((item) =>
+        item.label === "权限管理" && item.children
+          ? { ...item, children: [...item.children, { label: "平台管理员", path: "/permission/platform-admin" }] }
+          : item
+      );
+    }
+    return navItems;
+  }, [user]);
 
   const toggleExpand = (label: string) => {
     setExpanded((prev) =>
@@ -191,7 +205,7 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-3">
         <div className="space-y-0.5">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             if (item.children) {
               const isOpen = expanded.includes(item.label);
               const groupActive = isGroupActive(item);

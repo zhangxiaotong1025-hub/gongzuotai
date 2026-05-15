@@ -22,6 +22,7 @@ import RoleCreate from "./pages/permission/RoleCreate";
 import RoleDetail from "./pages/permission/RoleDetail";
 import ResourceList from "./pages/permission/ResourceList";
 import ResourceCreate from "./pages/permission/ResourceCreate";
+import PlatformAdminList from "./pages/permission/PlatformAdminList";
 import AppListPage from "./pages/entitlement/AppList";
 import AppDetail from "./pages/entitlement/AppDetail";
 import CapabilityList from "./pages/entitlement/CapabilityList";
@@ -108,6 +109,7 @@ function ProtectedRoutes() {
         <Route path="/permission/resource" element={<ResourceList />} />
         <Route path="/permission/resource/create" element={<ResourceCreate />} />
         <Route path="/permission/resource/edit/:id" element={<ResourceCreate />} />
+        <Route path="/permission/platform-admin" element={<PlatformAdminList />} />
         <Route path="/entitlement/dashboard" element={<EntitlementDashboard />} />
         <Route path="/entitlement/app" element={<AppListPage />} />
         <Route path="/entitlement/app/detail/:id" element={<AppDetail />} />
