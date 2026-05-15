@@ -1248,8 +1248,6 @@ function StepBrandConfig({
 }
 
 function StepDone({ type, form, navigate }: { type: string; form: Record<string, any>; navigate: (path: string) => void }) {
-  const [showAdminDialog, setShowAdminDialog] = useState(false);
-
   return (
     <div className="py-14 px-6">
       <div className="flex flex-col items-center justify-center">
@@ -1257,11 +1255,14 @@ function StepDone({ type, form, navigate }: { type: string; form: Record<string,
           <Check className="h-10 w-10" style={{ color: "hsl(var(--success))" }} strokeWidth={3} />
         </div>
         <h3 className="text-[22px] font-semibold text-foreground tracking-tight">创建成功</h3>
-        <p className="text-[13px] text-muted-foreground mt-2">企业创建已完成，设置企业管理员后可开启使用</p>
+        <p className="text-[13px] text-muted-foreground mt-2">
+          {form.adminName && form.adminPhone
+            ? "企业及管理员已创建完成，可直接开启使用"
+            : "企业创建已完成，可在企业列表「设置管理员」中补充管理员信息"}
+        </p>
         <div className="flex items-center gap-3 mt-6">
           <button onClick={() => navigate("/enterprise")} className="btn-secondary">查看详情</button>
-          <button onClick={() => navigate(`/enterprise/create?type=${type}`)} className="btn-secondary">继续创建</button>
-          <button className="btn-primary" onClick={() => setShowAdminDialog(true)}>设置管理员</button>
+          <button onClick={() => navigate(`/enterprise/create?type=${type}`)} className="btn-primary">继续创建</button>
         </div>
       </div>
 
@@ -1269,8 +1270,8 @@ function StepDone({ type, form, navigate }: { type: string; form: Record<string,
         <div className="grid grid-cols-2 gap-x-14 gap-y-5">
           <SummaryItem label="公司名称" value={form.name || "未填写"} />
           <SummaryItem label="公司类型" value={TYPE_LABELS[type]} />
-          <SummaryItem label="法人代表" value={form.legalPerson || "未填写"} />
-          <SummaryItem label="法人手机号" value={form.legalPhone || "未填写"} />
+          <SummaryItem label="企业管理员" value={form.adminName || "未设置"} />
+          <SummaryItem label="管理员手机号" value={form.adminPhone || "未设置"} />
           <div className="flex items-start gap-3">
             <span className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">开启产品：</span>
             <div className="flex flex-wrap gap-1.5">
@@ -1296,16 +1297,6 @@ function StepDone({ type, form, navigate }: { type: string; form: Record<string,
           </div>
         </div>
       </div>
-
-      <SetAdminDialog
-        open={showAdminDialog}
-        onClose={() => setShowAdminDialog(false)}
-        enterpriseName={form.name || "未填写"}
-        onConfirm={(data) => {
-          console.log("设置管理员", data);
-          setShowAdminDialog(false);
-        }}
-      />
     </div>
   );
 }
