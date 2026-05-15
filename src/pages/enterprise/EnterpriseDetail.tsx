@@ -558,9 +558,15 @@ export default function EnterpriseDetail() {
       {/* ── Dialogs ── */}
       <AuditDialog open={showAuditDialog} onClose={() => setShowAuditDialog(false)} enterpriseName={d.name} onConfirm={handleAuditConfirm} />
 
-      <SetAdminDialog open={showAdminDialog} onClose={() => setShowAdminDialog(false)} enterpriseName={d.name}
+      <SetAdminDialog
+        open={showAdminDialog}
+        onClose={() => setShowAdminDialog(false)}
+        enterpriseName={d.name}
+        defaultAdminName={d.admin || ""}
+        defaultAdminPhone={(d as any).adminPhone || ""}
+        defaultStatus={d.status}
         onConfirm={(result) => {
-          setD((prev) => ({ ...prev, admin: result.adminName, status: result.status }));
+          setD((prev) => ({ ...prev, admin: result.adminName, adminPhone: result.adminPhone, status: result.status } as typeof prev));
           setShowAdminDialog(false);
         }}
       />
