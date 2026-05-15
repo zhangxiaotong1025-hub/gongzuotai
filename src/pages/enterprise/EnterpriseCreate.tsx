@@ -677,6 +677,12 @@ function StepSubBasic({
             <FormRow label="联系人手机号">
               <input className="filter-input w-full" placeholder="请输入" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} />
             </FormRow>
+            <FormRow label="企业管理员">
+              <input className="filter-input w-full" placeholder="选填，可后续在企业列表设置" value={form.adminName} onChange={(e) => update("adminName", e.target.value)} maxLength={50} />
+            </FormRow>
+            <FormRow label="管理员手机号">
+              <input className="filter-input w-full" placeholder="选填，可后续在企业列表设置" value={form.adminPhone} onChange={(e) => update("adminPhone", e.target.value)} maxLength={11} />
+            </FormRow>
             <FormRow label="覆盖区域">
               <select className="filter-select w-full" value={form.region} onChange={(e) => update("region", e.target.value)}>
                 <option value="">请选择</option>
