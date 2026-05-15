@@ -224,6 +224,7 @@ function generateTopEnterprise(id: string, idx: number): Enterprise {
     status: auditStatus === "approved" ? (idx === 0 ? "active" : Math.random() > 0.25 ? "active" : "inactive") : "inactive",
     auditStatus,
     admin: CREATORS[idx % CREATORS.length],
+    adminPhone: `137${String(20000000 + idx * 211).slice(-8)}`,
     products: meta.products,
     subsidiaries: descendants,
     staff,
