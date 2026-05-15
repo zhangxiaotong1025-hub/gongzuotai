@@ -142,7 +142,7 @@ export default function PlatformAdminList() {
           )},
         ] as any}
         data={filtered}
-        rowKey="id"
+        rowKey={(r) => r.id}
       />
 
       {/* 创建弹窗 */}
