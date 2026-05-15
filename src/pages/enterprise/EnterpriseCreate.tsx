@@ -324,6 +324,8 @@ export default function EnterpriseCreate() {
     orgStructure: "上级/本级",
     region: "",
     address: "",
+    adminName: "",
+    adminPhone: "",
     enabledProducts: ["domestic3d", "smartGuide"] as string[],
     joinSupplyChain: true,
     enableGenericConfig: false,
