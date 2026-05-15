@@ -109,6 +109,7 @@ function ProtectedRoutes() {
         <Route path="/permission/resource" element={<ResourceList />} />
         <Route path="/permission/resource/create" element={<ResourceCreate />} />
         <Route path="/permission/resource/edit/:id" element={<ResourceCreate />} />
+        <Route path="/permission/platform-admin" element={<PlatformAdminList />} />
         <Route path="/entitlement/dashboard" element={<EntitlementDashboard />} />
         <Route path="/entitlement/app" element={<AppListPage />} />
         <Route path="/entitlement/app/detail/:id" element={<AppDetail />} />
