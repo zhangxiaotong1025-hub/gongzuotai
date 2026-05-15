@@ -150,6 +150,7 @@ function generateChild(id: string, ctx: BuildCtx): Enterprise {
     status: Math.random() > 0.2 ? "active" : "inactive",
     auditStatus: "approved",
     admin: Math.random() > 0.3 ? CREATORS[Math.floor(Math.random() * CREATORS.length)] : undefined,
+    adminPhone: Math.random() > 0.3 ? `138${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}` : undefined,
     products: ["国内3D"].concat(Math.random() > 0.6 ? ["VR全景"] : []).concat(Math.random() > 0.8 ? ["智能导购"] : []),
     subsidiaries: descendants,
     staff,
