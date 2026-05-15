@@ -148,7 +148,20 @@ const navItems: NavItem[] = [
 
 export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const location = useLocation();
+  const { user } = useAuth();
   const [expanded, setExpanded] = useState<string[]>(["企业管理"]);
+
+  // 「创建平台管理员」入口仅对白名单超级管理员可见
+  const visibleNavItems = useMemo(() => {
+    if (isSuperAdmin(user)) {
+      return navItems.map((item) =>
+        item.label === "权限管理" && item.children
+          ? { ...item, children: [...item.children, { label: "平台管理员", path: "/permission/platform-admin" }] }
+          : item
+      );
+    }
+    return navItems;
+  }, [user]);
 
   const toggleExpand = (label: string) => {
     setExpanded((prev) =>
