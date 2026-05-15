@@ -654,25 +654,11 @@ function StepSubBasic({
             <FormRow label="上级企业">
               <input className="filter-input w-full bg-muted/30" value={parentName} disabled />
             </FormRow>
-            <FormRow label="企业类型">
-              <input className="filter-input w-full bg-muted/30" value={TYPE_LABELS[type] || type} disabled />
-            </FormRow>
             <FormRow label="企业名称" required>
               <input className="filter-input w-full" placeholder="请输入" value={form.name} onChange={(e) => update("name", e.target.value)} />
             </FormRow>
             <FormRow label="企业ID">
               <input className="filter-input w-full bg-muted/30" value={form.license} disabled />
-            </FormRow>
-            <FormRow label="组织结构">
-              <select className="filter-select w-full" value={form.orgStructure} onChange={(e) => update("orgStructure", e.target.value)}>
-                {ORG_STRUCTURES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </FormRow>
-            <FormRow label="企业联系人">
-              <input className="filter-input w-full" placeholder="请输入" value={form.contactName} onChange={(e) => update("contactName", e.target.value)} />
-            </FormRow>
-            <FormRow label="联系人手机号">
-              <input className="filter-input w-full" placeholder="请输入" value={form.contactPhone} onChange={(e) => update("contactPhone", e.target.value)} />
             </FormRow>
             <FormRow label="企业管理员">
               <input className="filter-input w-full" placeholder="选填，可后续在企业列表设置" value={form.adminName} onChange={(e) => update("adminName", e.target.value)} maxLength={50} />
