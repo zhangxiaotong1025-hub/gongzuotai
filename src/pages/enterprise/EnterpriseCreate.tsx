@@ -1282,13 +1282,13 @@ function StepDone({ type, form, navigate }: { type: string; form: Record<string,
           <div className="flex items-start gap-3">
             <span className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">企业状态：</span>
             <div className="flex items-center gap-4">
-              <label className="flex items-center gap-1.5 cursor-default">
-                <div className="w-4 h-4 rounded-full border-[5px] border-foreground" />
-                <span className="text-[13px] text-foreground">停用</span>
-              </label>
               <label className="flex items-center gap-1.5 cursor-default opacity-50">
                 <div className="w-4 h-4 rounded-full border border-border" />
-                <span className="text-[13px] text-muted-foreground">启用</span>
+                <span className="text-[13px] text-muted-foreground">停用</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-default">
+                <div className="w-4 h-4 rounded-full border-[5px] border-foreground" />
+                <span className="text-[13px] text-foreground">启用</span>
               </label>
             </div>
           </div>
