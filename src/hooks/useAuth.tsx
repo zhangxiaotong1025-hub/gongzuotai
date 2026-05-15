@@ -45,8 +45,14 @@ const MOCK_ENTERPRISES: Enterprise[] = [
  *  - 平台管理员：13800138000 / 密码 admin123 / 验证码 1234
  *  - 企业管理员：13900139000 / 密码 admin123 / 验证码 1234
  */
-const PLATFORM_ADMIN_PHONE = "13800138000";
+export const PLATFORM_ADMIN_PHONE = "13800138000";
 const ENTERPRISE_ADMIN_PHONE = "13900139000";
+
+/** 平台超级管理员白名单：仅这些账号可见「创建平台管理员」入口 */
+export const SUPER_ADMIN_PHONES = [PLATFORM_ADMIN_PHONE];
+export function isSuperAdmin(user: { phone?: string } | null | undefined) {
+  return !!user?.phone && SUPER_ADMIN_PHONES.includes(user.phone);
+}
 
 const MOCK_USER_BASE = {
   id: "user-1",
