@@ -114,19 +114,6 @@ export function SetAdminDialog({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <label className="text-[13px] text-muted-foreground w-[100px] shrink-0 text-right">企业状态：</label>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-1.5 cursor-pointer" onClick={() => setStatus("inactive")}>
-                <div className={`w-4 h-4 rounded-full border-2 transition-colors ${status === "inactive" ? "border-[5px] border-foreground" : "border-border"}`} />
-                <span className="text-[13px] text-foreground">停用</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer" onClick={() => setStatus("active")}>
-                <div className={`w-4 h-4 rounded-full border-2 transition-colors ${status === "active" ? "border-[5px] border-foreground" : "border-border"}`} />
-                <span className="text-[13px] text-foreground">启用</span>
-              </label>
-            </div>
-          </div>
         </div>
 
         <div className="flex items-center justify-center gap-3 px-5 py-4 border-t">
