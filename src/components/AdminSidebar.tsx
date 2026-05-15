@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation, Link } from "react-router-dom";
 import {
   Building2, Users, Shield, Gift, Tag, UserCircle, Sliders,
@@ -7,6 +7,7 @@ import {
   Box, Layers, ClipboardList, Wallet, Activity, Store,
   Briefcase, Star, Heart,
 } from "lucide-react";
+import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 
 interface NavGrandChild {
   label: string;
