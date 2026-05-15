@@ -606,7 +606,7 @@ function StepBasic({ form, update }: { form: Record<string, any>; update: (k: st
                 {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
               </select>
             </FormRow>
-            <FormRow label="证件照">
+            <FormRow label="营业执照">
               <UploadCard label="点击上传" />
             </FormRow>
             <FormRow label="对接销售/顾问">
