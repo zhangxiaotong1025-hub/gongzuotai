@@ -669,21 +669,36 @@ export default function EnterpriseList() {
         );
       })()}
 
-      <SetAdminDialog
-        open={Boolean(adminTarget)}
-        onClose={() => setAdminTarget(null)}
-        enterpriseName={adminTarget?.name}
-        onConfirm={(result) => {
-          if (adminTarget) {
-            updateEnterprise(adminTarget.id, {
-              admin: result.adminName,
-              status: result.status,
-            });
-          }
-          setAdminTarget(null);
-        }}
-      />
-
+      {(() => {
+        // 收集所有已绑定管理员手机号（排除当前编辑企业自身）
+        const collectPhones = (items: Enterprise[]): string[] =>
+          items.flatMap((e) => [
+            ...(e.adminPhone && e.id !== adminTarget?.id ? [e.adminPhone] : []),
+            ...(e.children ? collectPhones(e.children) : []),
+          ]);
+        const existingPhones = adminTarget ? collectPhones(data) : [];
+        return (
+          <SetAdminDialog
+            open={Boolean(adminTarget)}
+            onClose={() => setAdminTarget(null)}
+            enterpriseName={adminTarget?.name}
+            defaultAdminName={adminTarget?.admin || ""}
+            defaultAdminPhone={adminTarget?.adminPhone || ""}
+            defaultStatus={adminTarget?.status || "inactive"}
+            existingAdminPhones={existingPhones}
+            onConfirm={(result) => {
+              if (adminTarget) {
+                updateEnterprise(adminTarget.id, {
+                  admin: result.adminName,
+                  adminPhone: result.adminPhone,
+                  status: result.status,
+                });
+              }
+              setAdminTarget(null);
+            }}
+          />
+        );
+      })()}
       <AuditDialog
         open={Boolean(auditTarget)}
         onClose={() => setAuditTarget(null)}
