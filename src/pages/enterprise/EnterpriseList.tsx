@@ -27,6 +27,7 @@ interface Enterprise {
   updatedAt: string;
   note: string;
   admin?: string;
+  adminPhone?: string;
   children?: Enterprise[];
   _level?: number;
   frozen?: boolean; // cascading freeze from parent
