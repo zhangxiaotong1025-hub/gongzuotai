@@ -200,6 +200,7 @@ function generateTopEnterprise(id: string, idx: number): Enterprise {
       status: "active",
       auditStatus: "approved",
       admin: CREATORS[i % CREATORS.length],
+      adminPhone: `139${String(10000000 + i * 137).slice(-8)}`,
       products: meta.products.slice(0, 2),
       subsidiaries: descendants,
       staff,
