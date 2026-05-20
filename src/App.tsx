@@ -46,6 +46,7 @@ import EntitlementPRDLayout from "./pages/prd/entitlement/Layout";
 import EnterprisePRD from "./pages/prd/EnterprisePRD";
 import SystemArchitecturePRD from "./pages/prd/SystemArchitecturePRD";
 import ProjectPitch from "./pages/prd/ProjectPitch";
+import CeoReport from "./pages/prd/CeoReport";
 import BrandList from "./pages/brand/BrandList";
 import BrandDetail from "./pages/brand/BrandDetail";
 import BrandCreate from "./pages/brand/BrandCreate";
