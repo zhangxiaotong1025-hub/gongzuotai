@@ -170,6 +170,7 @@ function ProtectedRoutes() {
         <Route path="/agent" element={<AgentCommandCenter />} />
         <Route path="/agent/leads" element={<LeadsOperation />} />
         <Route path="/prd/pitch" element={<ProjectPitch />} />
+        <Route path="/prd/ceo" element={<CeoReport />} />
         <Route path="/prd/architecture" element={<SystemArchitecturePRD />} />
         <Route path="/prd/entitlement" element={<EntitlementPRDLayout />} />
         <Route path="/prd/entitlement/*" element={<Navigate to="/prd/entitlement" replace />} />
