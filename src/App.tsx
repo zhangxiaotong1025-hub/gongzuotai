@@ -46,6 +46,7 @@ import EntitlementPRDLayout from "./pages/prd/entitlement/Layout";
 import EnterprisePRD from "./pages/prd/EnterprisePRD";
 import SystemArchitecturePRD from "./pages/prd/SystemArchitecturePRD";
 import ProjectPitch from "./pages/prd/ProjectPitch";
+import CeoReport from "./pages/prd/CeoReport";
 import BrandList from "./pages/brand/BrandList";
 import BrandDetail from "./pages/brand/BrandDetail";
 import BrandCreate from "./pages/brand/BrandCreate";
@@ -169,6 +170,7 @@ function ProtectedRoutes() {
         <Route path="/agent" element={<AgentCommandCenter />} />
         <Route path="/agent/leads" element={<LeadsOperation />} />
         <Route path="/prd/pitch" element={<ProjectPitch />} />
+        <Route path="/prd/ceo" element={<CeoReport />} />
         <Route path="/prd/architecture" element={<SystemArchitecturePRD />} />
         <Route path="/prd/entitlement" element={<EntitlementPRDLayout />} />
         <Route path="/prd/entitlement/*" element={<Navigate to="/prd/entitlement" replace />} />
