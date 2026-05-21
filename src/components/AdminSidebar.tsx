@@ -186,17 +186,36 @@ export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onTo
   const { user } = useAuth();
   const [expanded, setExpanded] = useState<string[]>(["企业管理"]);
 
-  // 「创建平台管理员」入口仅对白名单超级管理员可见
+  // 1) 先按 perspective（平台/企业）过滤菜单；2) 超级管理员追加「平台管理员」入口
   const visibleNavItems = useMemo(() => {
+    const perspective = user?.perspective ?? "platform";
+
+    const filtered = navItems
+      .filter((item) => matchScope(item.scope, perspective))
+      .map((item) => {
+        if (!item.children) return item;
+        const children = item.children
+          .filter((c) => matchScope(c.scope, perspective))
+          .map((c) => {
+            if (!c.children) return c;
+            const gcs = c.children.filter((gc) => matchScope(gc.scope, perspective));
+            return { ...c, children: gcs };
+          });
+        return { ...item, children };
+      })
+      // 过滤掉因子项被清空而变空的分组
+      .filter((item) => !item.children || item.children.length > 0);
+
     if (isSuperAdmin(user)) {
-      return navItems.map((item) =>
+      return filtered.map((item) =>
         item.label === "权限管理" && item.children
           ? { ...item, children: [...item.children, { label: "平台管理员", path: "/permission/platform-admin" }] }
           : item
       );
     }
-    return navItems;
+    return filtered;
   }, [user]);
+
 
   const toggleExpand = (label: string) => {
     setExpanded((prev) =>
