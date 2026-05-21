@@ -9,12 +9,9 @@ import {
 } from "lucide-react";
 import { useAuth, isSuperAdmin } from "@/hooks/useAuth";
 
-type Scope = "platform" | "enterprise" | "both";
-
 interface NavGrandChild {
   label: string;
   path: string;
-  scope?: Scope;
 }
 
 interface NavChild {
@@ -22,7 +19,6 @@ interface NavChild {
   path: string;
   icon?: React.ElementType;
   children?: NavGrandChild[];
-  scope?: Scope;
 }
 
 interface NavItem {
@@ -30,43 +26,21 @@ interface NavItem {
   icon: React.ElementType;
   path?: string;
   children?: NavChild[];
-  scope?: Scope;
 }
 
-/**
- * 菜单权限分析（scope 缺省 = both，平台/企业都可见）：
- *
- * 平台独有（scope: 'platform'）—— 平台资产治理 & 全局配置：
- *   - 企业管理 / 企业入驻申请（平台审核与维护企业档案）
- *   - 权限管理（菜单/角色/策略/平台管理员，平台统一下发）
- *   - 权益管理（应用/能力/规则/产品/SKU/套餐，平台定义可售权益）
- *   - 属性 / 类目 / 前台类目管理（平台标准化数据治理）
- *   - 营销结算 / 智能派发 / 运营配置（平台统一调度）
- *   - PRD 设计（内部产品文档）
- *
- * 企业独有（scope: 'enterprise'）—— 企业经营动作：
- *   - 商家经营（商家工作台、客资、签单、交付、评价、老客）
- *
- * 双方都可见（scope: 'both' 或缺省）：
- *   - 企业管理 → 人员管理（平台看全部，企业看本企业人员）
- *   - 品牌 / 客户 / 模型 / 商品 / 授权 / 方案 / 内容
- *   - 订单管理 / 权益账户（企业看自己的）
- *   - 智能营销（部分）/ 数据看版 / 智能经营
- */
 const navItems: NavItem[] = [
   {
     label: "企业管理",
     icon: Building2,
     children: [
-      { label: "企业管理", path: "/enterprise", scope: "platform" },
+      { label: "企业管理", path: "/enterprise" },
       { label: "人员管理", path: "/enterprise/staff" },
-      { label: "企业入驻申请", path: "/enterprise/apply", scope: "platform" },
+      { label: "企业入驻申请", path: "/enterprise/apply" },
     ],
   },
   {
     label: "权限管理",
     icon: Shield,
-    scope: "platform",
     children: [
       { label: "菜单管理", path: "/permission/menu" },
       { label: "角色管理", path: "/permission/role" },
@@ -77,15 +51,14 @@ const navItems: NavItem[] = [
     label: "权益管理",
     icon: Gift,
     children: [
-      { label: "数据看板", path: "/entitlement/dashboard", scope: "platform" },
-      { label: "应用管理", path: "/entitlement/app", scope: "platform" },
-      { label: "能力管理", path: "/entitlement/capability", scope: "platform" },
-      { label: "权益规则", path: "/entitlement/rule", scope: "platform" },
-      { label: "权益产品", path: "/entitlement/product", scope: "platform" },
+      { label: "数据看板", path: "/entitlement/dashboard" },
+      { label: "应用管理", path: "/entitlement/app" },
+      { label: "能力管理", path: "/entitlement/capability" },
+      { label: "权益规则", path: "/entitlement/rule" },
+      { label: "权益产品", path: "/entitlement/product" },
       {
         label: "商品管理",
         path: "/entitlement/sku",
-        scope: "platform",
         children: [
           { label: "商品SKU", path: "/entitlement/sku" },
           { label: "商品套餐", path: "/entitlement/package" },
@@ -105,8 +78,8 @@ const navItems: NavItem[] = [
       { label: "营销策略", path: "/customer/marketing" },
     ],
   },
-  { label: "属性管理", icon: Sliders, path: "/attribute", scope: "platform" },
-  { label: "类目管理", icon: FolderTree, path: "/category", scope: "platform" },
+  { label: "属性管理", icon: Sliders, path: "/attribute" },
+  { label: "类目管理", icon: FolderTree, path: "/category" },
   {
     label: "模型管理",
     icon: Box,
@@ -123,7 +96,7 @@ const navItems: NavItem[] = [
   },
   { label: "授权管理", icon: Key, path: "/authorization" },
   { label: "方案管理", icon: Layout, path: "/plan" },
-  { label: "前台类目管理", icon: Monitor, path: "/front-category", scope: "platform" },
+  { label: "前台类目管理", icon: Monitor, path: "/front-category" },
   { label: "内容管理", icon: FileText, path: "/content" },
   {
     label: "智能营销",
@@ -134,17 +107,16 @@ const navItems: NavItem[] = [
       { label: "活动管理", path: "/marketing/campaigns" },
       { label: "线索池", path: "/marketing/leads" },
       { label: "呼叫中心", path: "/marketing/call-center" },
-      { label: "智能派发", path: "/marketing/distribution", scope: "platform" },
+      { label: "智能派发", path: "/marketing/distribution" },
       { label: "跟进追踪", path: "/marketing/tracking" },
-      { label: "结算中心", path: "/marketing/settlement", scope: "platform" },
-      { label: "运营配置", path: "/marketing/settings", scope: "platform" },
+      { label: "结算中心", path: "/marketing/settlement" },
+      { label: "运营配置", path: "/marketing/settings" },
     ],
   },
   { label: "数据看版", icon: BarChart3, path: "/dashboard" },
   {
     label: "商家经营",
     icon: Store,
-    scope: "enterprise",
     children: [
       { label: "商家工作台", path: "/merchant" },
       { label: "我的客资", path: "/merchant/leads" },
@@ -165,10 +137,9 @@ const navItems: NavItem[] = [
   {
     label: "PRD设计",
     icon: FileText,
-    scope: "platform",
     children: [
       { label: "项目汇报（一页讲清）", path: "/prd/pitch" },
-      { label: "项目价值与节奏", path: "/prd/ceo" },
+      { label: "CEO 汇报（短期/长期收益）", path: "/prd/ceo" },
       { label: "顶层架构总览", path: "/prd/architecture" },
       { label: "权益设计", path: "/prd/entitlement" },
       { label: "企业设计", path: "/prd/enterprise" },
@@ -176,46 +147,22 @@ const navItems: NavItem[] = [
   },
 ];
 
-function matchScope(scope: Scope | undefined, perspective: "platform" | "enterprise") {
-  if (!scope || scope === "both") return true;
-  return scope === perspective;
-}
-
 export function AdminSidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const location = useLocation();
   const { user } = useAuth();
   const [expanded, setExpanded] = useState<string[]>(["企业管理"]);
 
-  // 1) 先按 perspective（平台/企业）过滤菜单；2) 超级管理员追加「平台管理员」入口
+  // 「创建平台管理员」入口仅对白名单超级管理员可见
   const visibleNavItems = useMemo(() => {
-    const perspective = user?.perspective ?? "platform";
-
-    const filtered = navItems
-      .filter((item) => matchScope(item.scope, perspective))
-      .map((item) => {
-        if (!item.children) return item;
-        const children = item.children
-          .filter((c) => matchScope(c.scope, perspective))
-          .map((c) => {
-            if (!c.children) return c;
-            const gcs = c.children.filter((gc) => matchScope(gc.scope, perspective));
-            return { ...c, children: gcs };
-          });
-        return { ...item, children };
-      })
-      // 过滤掉因子项被清空而变空的分组
-      .filter((item) => !item.children || item.children.length > 0);
-
     if (isSuperAdmin(user)) {
-      return filtered.map((item) =>
+      return navItems.map((item) =>
         item.label === "权限管理" && item.children
           ? { ...item, children: [...item.children, { label: "平台管理员", path: "/permission/platform-admin" }] }
           : item
       );
     }
-    return filtered;
+    return navItems;
   }, [user]);
-
 
   const toggleExpand = (label: string) => {
     setExpanded((prev) =>
