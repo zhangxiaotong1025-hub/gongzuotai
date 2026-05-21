@@ -29,22 +29,22 @@ export default function CeoReport() {
           </div>
 
           <h1 className="text-[32px] font-bold leading-[1.22] tracking-tight">
-            脱淘不是一次「搬家」，
+            脱淘不只是一次系统迁移，
             <br />
-            而是一次<span className="text-primary">把命脉拿回自己手里</span>的机会。
+            更是一次<span className="text-primary">建立自主可控底座</span>的机会。
           </h1>
 
           <p className="max-w-3xl text-[14px] leading-[1.95] text-foreground/85">
-            短期看，这是一次<b>必须完成的风险拆弹</b>——账号、资产、监控权三件事都还押在阿里手里；
-            长期看，这是十年来<b>第一次有机会从底座重新设计一遍系统</b>，
-            把国内外、把多个产品线、把企业级业务一次性装进同一副骨架。
+            短期看，这是一次<b>必要的外部依赖收敛</b>——账号、资产、系统监控目前仍依托阿里体系；
+            长期看，这是十年来<b>第一次有机会从底座重新规划系统</b>，
+            将国内外、多产品线与企业级业务统一到同一套架构上。
           </p>
 
           <div className="flex flex-wrap gap-2 pt-1">
-            <Pill icon={ShieldAlert} tone="danger" text="阿里随时可断" />
-            <Pill icon={AlertTriangle} tone="warn" text="十年历史债务" />
-            <Pill icon={Cpu} tone="primary" text="AI 化必经之路" />
-            <Pill icon={Globe2} tone="success" text="国内外统一窗口" />
+            <Pill icon={ShieldAlert} tone="danger" text="外部依赖待收敛" />
+            <Pill icon={AlertTriangle} tone="warn" text="历史债务待清理" />
+            <Pill icon={Cpu} tone="primary" text="AI 化基础准备" />
+            <Pill icon={Globe2} tone="success" text="国内外统一契机" />
           </div>
         </div>
       </header>
@@ -55,30 +55,30 @@ export default function CeoReport() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
           <RiskCard
             icon={Unplug}
-            tag="外部风险"
-            title="账号体系被阿里绑架"
-            desc="国内版 B 端账号、注册、企业创建仍接入阿里体系。阿里已启动边缘业务清算，一旦叫停，核心资产将瘫痪——这是悬在头上的剑。"
+            tag="外部依赖"
+            title="账号体系依托阿里"
+            desc="国内版 B 端账号、注册、企业创建仍接入阿里体系。考虑到阿里已在收敛边缘业务，相关链路存在不确定性，需要在可控时间内完成迁移。"
           />
           <RiskCard
             icon={AlertTriangle}
-            tag="内部债务"
-            title="十年迭代已失控"
-            desc="大量废旧功能堆叠，新业务被迫硬凹老逻辑；旧代码不敢动、改不动。我们已经丧失对自己系统的监控权。"
+            tag="历史债务"
+            title="十年迭代积累待整理"
+            desc="历史功能层层叠加，新业务在老逻辑上扩展成本较高；部分旧代码缺乏改造空间，系统观测能力也较为有限。"
           />
           <RiskCard
             icon={Layers3}
-            tag="资源浪费"
+            tag="资源效率"
             title="国内外多套并行"
-            desc="国内、国际两套体系 + 家具/家装/企业/内部多个工作台，同一个模块要重复开发两遍以上，研发产能被持续消耗。"
+            desc="国内、国际两套体系叠加多个工作台，同一模块往往需要重复开发，研发投入产出比有较大优化空间。"
           />
         </div>
         <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
           <div className="flex items-start gap-3">
             <Quote className="h-4 w-4 text-primary mt-1 shrink-0" />
             <p className="text-[13px] leading-[1.9] text-foreground/90">
-              <b>结论：</b>这三件事不可能靠"再迭代一版"解决。
-              脱淘是<b className="text-primary">唯一一次合理的、可以从底座推倒重来的窗口期</b>——
-              错过这次，下次再想动底层，成本和阻力只会更大。
+              <b>结论：</b>这三类问题难以通过"再迭代一版"逐步消化。
+              脱淘是<b className="text-primary">一次较为合适的、可以从底座系统性重构的窗口期</b>，
+              越早推进，整体成本和协同代价越低。
             </p>
           </div>
         </div>
@@ -93,21 +93,21 @@ export default function CeoReport() {
             </div>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-emerald-500">SHORT-TERM · 0–6 个月</span>
           </div>
-          <div className="text-[18px] font-semibold text-foreground leading-[1.4]">短期收益 · 把命脉拿回来、把样板跑出来</div>
+          <div className="text-[18px] font-semibold text-foreground leading-[1.4]">短期收益 · 完成依赖收敛、跑通样板链路</div>
           <p className="mt-1.5 text-[12.5px] text-muted-foreground leading-[1.85]">
-            短期我们不追规模，只追三件事：<b className="text-foreground">脱得干净、跑得通、可以复制</b>。
+            短期不追求规模，聚焦三件事：<b className="text-foreground">迁移彻底、链路跑通、模式可复用</b>。
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x">
           <BenefitBlock
             n="01"
-            title="风险拆弹"
-            head="国内版彻底脱离阿里账号体系"
+            title="依赖收敛"
+            head="国内版完成账号体系自主化"
             bullets={[
-              "建立独立的账号 + 权限 + 企业体系",
-              "存量用户平滑迁移 ≥ 95%，业务不中断",
-              "阿里再做任何动作，我们都不再受制",
+              "建立独立的账号、权限与企业体系",
+              "存量用户平滑迁移 ≥ 95%，业务保持连续",
+              "对外部账号体系的依赖降到可控范围",
             ]}
             kpi="脱淘完成率 100% · 用户迁移率 ≥ 95%"
           />
@@ -124,23 +124,23 @@ export default function CeoReport() {
           />
           <BenefitBlock
             n="03"
-            title="架构清债"
-            head="趁脱淘把十年历史债一次性清掉"
+            title="架构清理"
+            head="借脱淘契机系统性清理历史债务"
             bullets={[
-              "废旧功能清理 ~ 80%，只保留核心",
-              "企业 / 资产 / 权益 / 权限 全部重新建模",
-              "建立可支撑 3–5 年演进的稳定底座",
+              "梳理并下线约 80% 的废旧功能，保留核心",
+              "企业 / 资产 / 权益 / 权限 模型统一重构",
+              "形成可支撑 3–5 年演进的稳定底座",
             ]}
-            kpi="核心模块重构完成 · 系统监控权回收"
+            kpi="核心模块重构完成 · 系统可观测性恢复"
           />
         </div>
 
         <div className="px-6 py-4 bg-emerald-500/5 border-t flex items-start gap-3">
           <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
           <p className="text-[12.5px] text-foreground/85 leading-[1.85]">
-            <b className="text-foreground">短期不创造新收入，但锁定的是「不被叫停」的能力。</b>
-            这部分价值在出事之前看不见，出事之后无法弥补——
-            它是后面所有中长期收益能落地的<b className="text-emerald-500">前提条件</b>。
+            <b className="text-foreground">短期不直接带来新增收入，但建立的是业务自主性与连续性保障。</b>
+            它的价值更多体现在风险出现前的稳定性，
+            也是中长期收益能够顺利落地的<b className="text-emerald-500">前提条件</b>。
           </p>
         </div>
       </section>
@@ -156,21 +156,21 @@ export default function CeoReport() {
           </div>
           <div className="text-[18px] font-semibold text-foreground leading-[1.4]">中期收益 · 一套架构，承接所有产品线</div>
           <p className="mt-1.5 text-[12.5px] text-muted-foreground leading-[1.85]">
-            样板跑通后，把<b className="text-foreground">国内 3D、国际 3D、精准营销、AI 设计家</b>逐个接入，
-            把多年并行开发的成本，一次性合并到一条主干上。
+            样板跑通后，将<b className="text-foreground">国内 3D、国际 3D、精准营销、AI 设计家</b>逐步接入，
+            把多年并行开发的投入逐步收敛到统一主干上。
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:divide-x divide-y md:divide-y-0">
           <MidBlock
             icon={Globe2}
-            title="国内外彻底统一"
+            title="国内外统一"
             points={[
-              "国内 3D 与国际 3D 作为同一套架构下的两个产品",
-              "差异由配置承接，不再各写一套代码",
-              "研发产能从「维护双系统」转向「做新业务」",
+              "国内 3D 与国际 3D 作为同一架构下的两个产品",
+              "差异通过配置承接，避免双套代码维护",
+              "研发投入从维护双系统转向新业务建设",
             ]}
-            outcome="重复开发成本下降 · 海外扩张几乎零额外底座成本"
+            outcome="重复开发成本下降 · 海外扩张底座近乎零额外成本"
           />
           <MidBlock
             icon={Building2}
@@ -194,13 +194,13 @@ export default function CeoReport() {
           />
           <MidBlock
             icon={LineChart}
-            title="新业务上线速度数量级提升"
+            title="新业务上线效率显著提升"
             points={[
-              "新增一种业务形态 ≈ 在配置里加一条边",
-              "新能力 / 新套餐 / 新权益不再要改 4 张表 + 5 段代码",
-              "产品节奏第一次追上市场节奏",
+              "新增业务形态以配置为主，开发改动量降低",
+              "新能力 / 套餐 / 权益的扩展路径标准化",
+              "产品节奏更贴近市场节奏",
             ]}
-            outcome="新功能上线从 N 周 → N 天"
+            outcome="新功能上线周期从 N 周 → N 天"
           />
         </div>
       </section>
@@ -214,10 +214,10 @@ export default function CeoReport() {
             </div>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-violet-500">LONG-TERM · 12–24 个月</span>
           </div>
-          <div className="text-[18px] font-semibold text-foreground leading-[1.4]">长期收益 · 从工具公司，演进成 AI × 平台公司</div>
+          <div className="text-[18px] font-semibold text-foreground leading-[1.4]">长期收益 · 从工具型产品演进为 AI × 平台型产品</div>
           <p className="mt-1.5 text-[12.5px] text-muted-foreground leading-[1.85]">
-            底座稳了、数据通了、业务可配了，<b className="text-foreground">AI 化和平台化才有立足点</b>——
-            没有这次脱淘+重构，下面这些事根本无法启动。
+            底座稳定、数据贯通、业务可配置之后，<b className="text-foreground">AI 化与平台化才具备落地基础</b>，
+            脱淘与重构是这条路径的必要前置。
           </p>
         </div>
 
@@ -226,27 +226,27 @@ export default function CeoReport() {
             icon={Sparkles}
             tag="AI 化升级"
             title="AI 辅助设计 · 智能推荐 · 数据预测"
-            desc="高质量、可追溯的数据是 AI 的前提。脱淘后的数据底座，才有资格承接 AI 设计家从工具到生产力平台的跃迁。"
+            desc="高质量、可追溯的数据是 AI 能力落地的基础。脱淘后形成的数据底座，能够支撑 AI 设计家由工具向生产力平台的演进。"
           />
           <LongCard
             icon={Layers3}
             tag="平台化演进"
             title="从工具平台 → 生态平台"
-            desc="第三方应用接入、供应链建设、平台治理——都需要平台真正具备资产监管权。脱淘后我们才第一次拥有这个权利。"
+            desc="第三方接入、供应链建设与平台治理，都需要平台具备完整的资产管理能力。脱淘后这一基础得以建立。"
           />
           <LongCard
             icon={TrendingUp}
             tag="商业模式扩展"
             title="权益化运营 · 多元变现"
-            desc="基于统一的权益与订单底座，可以灵活配置会员、套餐、SaaS 订阅、增值服务，承载未来 3–5 年的多元收入结构。"
+            desc="基于统一的权益与订单底座，可以灵活配置会员、套餐、SaaS 订阅、增值服务，支撑未来 3–5 年的多元收入结构。"
           />
         </div>
 
         <div className="mx-6 mb-6 rounded-lg border border-violet-500/30 bg-violet-500/5 p-4">
           <p className="text-[13px] leading-[1.9] text-foreground/90">
-            <b className="text-violet-500">CTO 的话：</b>
-            旧代码不敢动也改不动；新设计一套，什么都自己说了算，国内国外做成同一套，
-            <b className="text-foreground">以后迭代起来都方便</b>——这正是长期复利的起点。
+            <b className="text-violet-500">CTO 视角：</b>
+            旧代码改造空间有限；重新设计一套架构，国内外统一为一套体系，
+            <b className="text-foreground">后续迭代和维护效率会显著提升</b>，这是长期价值复利的起点。
           </p>
         </div>
       </section>
@@ -285,13 +285,13 @@ export default function CeoReport() {
           <Target className="h-5 w-5 text-primary shrink-0 mt-1.5" />
           <div className="space-y-3">
             <p className="text-[16px] leading-[1.85] text-foreground">
-              <b className="text-primary">短期</b>——把命脉拿回来；
-              <b className="text-primary"> 中期</b>——把成本结构改过来；
-              <b className="text-primary"> 长期</b>——把增长曲线撬起来。
+              <b className="text-primary">短期</b>——建立自主可控的业务底座；
+              <b className="text-primary"> 中期</b>——优化整体成本结构；
+              <b className="text-primary"> 长期</b>——支撑新的增长曲线。
             </p>
             <p className="text-[13px] leading-[1.95] text-foreground/85">
-              脱淘从来不是一次性的搬迁动作，它是<b>未来三年所有战略动作的前置条件</b>。
-              做完这件事，我们才真正拥有一家「自己说了算」的产品技术公司。
+              脱淘并非一次性的迁移动作，而是<b>未来三年战略动作的前置条件</b>。
+              完成这一步之后，公司在产品与技术层面将具备更完整的自主能力。
             </p>
           </div>
         </div>
